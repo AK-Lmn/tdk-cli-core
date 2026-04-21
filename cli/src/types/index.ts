@@ -43,11 +43,12 @@ export interface ServiceConfig {
   runtime: string;
   features?: string[];
   internalDependencies?: string[];
+  dependencies?: string[];
   /**
-   * The stack this service belongs to.
-   * Each service belongs to exactly one stack.
-   * Example: "booking-flow"
-   */
+    * The stack this service belongs to.
+    * Each service belongs to exactly one stack.
+    * Example: "booking-flow"
+    */
   stack?: string;
 }
 
