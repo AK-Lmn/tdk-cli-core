@@ -3,11 +3,14 @@
 # =============================================================================
 
 # Import manifest filename from local manifest folder (self-contained)
-load("./manifest/constants.star", "MANIFEST_FILENAME", "MANIFEST_FILENAME_YAML")
+load("./manifest/constants.star", 
+    _manifest_file="MANIFEST_FILENAME", 
+    _manifest_file_yaml="MANIFEST_FILENAME_YAML"
+)
 
 # Re-export for consumers of this module
-MANIFEST_FILENAME = MANIFEST_FILENAME
-MANIFEST_FILENAME_YAML = MANIFEST_FILENAME_YAML
+MANIFEST_FILENAME = _manifest_file
+MANIFEST_FILENAME_YAML = _manifest_file_yaml
 
 # NOTE: These paths are resolved relative to the TILTFILE directory (project root)
 # NOT relative to this module's location
