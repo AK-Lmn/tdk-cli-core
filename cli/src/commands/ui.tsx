@@ -20,7 +20,10 @@ import {
   type StackMetadata,
 } from '../utils/services.js';
 import { isTiltAvailable } from '../utils/tilt.js';
-import { TabBar, type TabId, DetailPanel, ResourceTable, FileTree, type FileNode } from '../components/index.js';
+import { 
+  TabBar, type TabId, DetailPanel, ResourceTable, FileTree, type FileNode,
+  AccessibleTooltip, TOOLTIPS
+} from '../components/index.js';
 
 // Help Panel Component
 const HelpPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => (
@@ -44,6 +47,8 @@ const HelpPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => (
       <Text bold underline marginTop={1}>Actions</Text>
       <Text>  a       Toggle all/pre-alpha services</Text>
       <Text>  m       Toggle mouse support</Text>
+      <Text>  t       Toggle tooltips</Text>
+      <Text>  e       Toggle enabled/disabled services</Text>
       <Text>  r       Refresh data</Text>
       <Text>  /       Search/filter</Text>
       <Text>  ?       Show this help</Text>
@@ -127,6 +132,9 @@ const TUIApp: React.FC = () => {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState('Initializing...');
   const [error, setError] = useState<string | null>(null);
+  const [focusedTooltip, setFocusedTooltip] = useState<string | null>(null);
+  const [showTooltips, setShowTooltips] = useState(true);
+  const [showEnabledOnly, setShowEnabledOnly] = useState(true); // Default to enabled only for alpha
 
   // Data
   const projectRoot = findProjectRoot() || 'unknown';
@@ -204,12 +212,20 @@ const TUIApp: React.FC = () => {
   }, [stacks, searchQuery]);
 
   const filteredServices = useMemo(() => {
-    if (!searchQuery) return services;
-    return services.filter(s => 
-      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (s.domain || '').toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [services, searchQuery]);
+    let filtered = services;
+    // Filter by enabled status if showEnabledOnly is true
+    if (showEnabledOnly) {
+      filtered = filtered.filter(s => s.config?.enabled !== false);
+    }
+    // Filter by search query
+    if (searchQuery) {
+      filtered = filtered.filter(s => 
+        s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (s.domain || '').toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    return filtered;
+  }, [services, searchQuery, showEnabledOnly]);
 
   // Build menu items for current tab
   const getItems = useCallback(() => {
@@ -222,10 +238,14 @@ const TUIApp: React.FC = () => {
     
     if (activeTab === 'resources') {
       if (selectedStackData) {
-        return selectedStackData.stack.services.map(s => ({
-          label: `${s.name} [${s.domain}]`,
-          value: s.name,
-        }));
+        return selectedStackData.stack.services.map(s => {
+          const domainLabel = s.domain && s.domain !== 'unknown' ? ` [${s.domain}]` : '';
+          const enabledLabel = s.config?.enabled === false ? ' [DISABLED]' : '';
+          return {
+            label: `${s.name}${domainLabel}${enabledLabel}`,
+            value: s.name,
+          };
+        });
       }
       return filteredStacks.map(stack => ({
         label: `${stack.name} (${stack.services.length} services)`,
@@ -240,17 +260,26 @@ const TUIApp: React.FC = () => {
           value: f.path,
         }));
       }
-      return filteredServices.map(s => ({
-        label: `${s.domain}/${s.name}`,
-        value: s.name,
-      }));
+      return filteredServices.map(s => {
+        const domainPrefix = s.domain && s.domain !== 'unknown' ? `${s.domain}/` : '';
+        const enabledLabel = s.config?.enabled === false ? ' [DISABLED]' : '';
+        return {
+          label: `${domainPrefix}${s.name}${enabledLabel}`,
+          value: s.name,
+        };
+      });
     }
     
     if (activeTab === 'config') {
-      return filteredServices.map(s => ({
-        label: `${s.domain}/${s.name} ${s.stack ? `[${s.stack}]` : ''}`,
-        value: s.name,
-      }));
+      return filteredServices.map(s => {
+        const domainPrefix = s.domain && s.domain !== 'unknown' ? `${s.domain}/` : '';
+        const stackLabel = s.stack ? ` [${s.stack}]` : '';
+        const enabledLabel = s.config?.enabled === false ? ' [DISABLED]' : '';
+        return {
+          label: `${domainPrefix}${s.name}${stackLabel}${enabledLabel}`,
+          value: s.name,
+        };
+      });
     }
     
     return [];
@@ -415,6 +444,26 @@ const TUIApp: React.FC = () => {
       return;
     }
 
+    if (input === 't') {
+      setShowTooltips(prev => {
+        const newState = !prev;
+        setMessage(newState ? 'Tooltips enabled' : 'Tooltips disabled');
+        return newState;
+      });
+      setTimeout(() => setMessage(''), 1500);
+      return;
+    }
+
+    if (input === 'e') {
+      setShowEnabledOnly(prev => {
+        const newState = !prev;
+        setMessage(newState ? 'Showing enabled services only' : 'Showing all services (including disabled)');
+        return newState;
+      });
+      setTimeout(() => setMessage(''), 1500);
+      return;
+    }
+
     if (key.tab) {
       const tabs: TabId[] = ['overview', 'resources', 'events', 'files', 'config'];
       const currentIdx = tabs.indexOf(activeTab);
@@ -532,6 +581,30 @@ const TUIApp: React.FC = () => {
       {!isSearching && message && (
         <Box paddingX={1} height={1}>
           <Text color="cyan">▓▒░ {message} ░▒▓</Text>
+        </Box>
+      )}
+
+      {/* Contextual Tooltip */}
+      {!isSearching && !message && showTooltips && !showHelp && (
+        <Box paddingX={1} height={1}>
+          <Text color="gray" dimColor>
+            {activeTab === 'overview' && selectedStack 
+              ? `Stack "${selectedStack}" selected. [Enter] view │ [Esc] back │ [e] ${showEnabledOnly ? 'show all' : 'enabled only'} │ [?] help`
+              : activeTab === 'overview' && !selectedStack
+              ? `[↑/↓] Navigate │ [Enter] Select │ [a] Pre-alpha │ [e] ${showEnabledOnly ? 'show all' : 'enabled only'} │ [?] help`
+              : activeTab === 'resources'
+              ? `[Tab] Tabs │ [r] Refresh │ [/] Search │ [e] ${showEnabledOnly ? 'show all' : 'enabled only'} │ [?] help`
+              : activeTab === 'events'
+              ? `Event timeline │ [Tab] Switch tabs │ [e] ${showEnabledOnly ? 'show all' : 'enabled only'} │ [?] help`
+              : activeTab === 'files' && selectedService
+              ? `Service "${selectedService}" │ [Space] Expand │ [Esc] Back │ [e] ${showEnabledOnly ? 'show all' : 'enabled only'} │ [?] help`
+              : activeTab === 'files'
+              ? `Select service to view files │ [e] ${showEnabledOnly ? 'show all' : 'enabled only'} │ [?] help`
+              : activeTab === 'config'
+              ? `View configurations │ [e] ${showEnabledOnly ? 'show all' : 'enabled only'} │ [?] help`
+              : `[Tab] Next │ [1-5] Tabs │ [e] ${showEnabledOnly ? 'show all' : 'enabled only'} │ [?] help │ [q] Quit`
+            }
+          </Text>
         </Box>
       )}
 
@@ -779,7 +852,15 @@ const TUIApp: React.FC = () => {
             <Box justifyContent="space-between">
               <Text color="gray">Stacks: {stacks.length}</Text>
               <Text color="gray">Services: {services.length}</Text>
-              <Text color="gray">🖱️ {mouseEnabled ? 'ON' : 'OFF'} │ [?] Help │ [q] Quit</Text>
+              <Text color="gray">
+                🖱️ {mouseEnabled ? 'ON' : 'OFF'} │ 
+                ℹ️ {showTooltips ? 'ON' : 'OFF'} │ 
+                <Text color={showEnabledOnly ? 'green' : 'yellow'}>
+                  {showEnabledOnly ? '✓ enabled' : '✓ all'}
+                </Text>
+                {' │ '}
+                [?] Help │ [q] Quit
+              </Text>
             </Box>
           </Box>
         </>

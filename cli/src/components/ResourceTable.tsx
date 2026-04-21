@@ -67,7 +67,12 @@ export const ResourceTable: React.FC<ResourceTableProps> = ({ services, maxWidth
             </Box>
             {!narrowMode && (
               <Box width={20}>
-                <Text color="gray">{truncate(service.domain + '/' + service.name, 18)}</Text>
+                <Text color="gray">
+                  {service.domain && service.domain !== 'unknown' 
+                    ? truncate(service.domain + '/' + service.name, 18)
+                    : truncate(service.name, 18)
+                  }
+                </Text>
               </Box>
             )}
             <Box width={12}>

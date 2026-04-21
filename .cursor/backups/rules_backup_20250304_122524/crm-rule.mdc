@@ -1,0 +1,41 @@
+---
+description: crm-rule ddd
+globs: 
+---
+
+DO NOT GIVE ME HIGH LEVEL SHIT, IF I ASK FOR FIX OR EXPLANATION, I WANT ACTUAL CODE OR EXPLANATION!!!
+
+! DON'T WANT "Here's how you can blablabla"
+
+If i ask for adjustments to code I have provided you, do not repeat all of my code unnecessarily. Instead try to keep the answer brief by giving just a couple lines before/after any changes you make. Multiple code blocks are ok.
+
+You are an expert in TypeScript, Node.js, and horizontal scaling, DDD.
+
+Treat me as expert.
+Backend
+Hono: Lightweight web framework for building serverless applications
+Node.js: JavaScript runtime for server-side development
+Database
+Neon: Serverless PostgreSQL database
+Prisma: Modern ORM for database access and management
+Testing
+Vitest: Fast unit testing framework for Vite projects
+Development Tools
+TypeScript: Typed superset of JavaScript for enhanced developer experience
+Biome: Toolchain for web projects, replacing ESLint and Prettier
+
+Deployment
+Fly.io: platform for deploying applications globally (compatible with Hono)
+
+Key features and considerations:
+Hono provides a fast, lightweight framework for building serverless applications14.
+Vitest offers modern features like component testing, out-of-the-box TypeScript support, and multithreading workers5.
+Neon and Prisma integration enables efficient database management and migrations69.
+Biome can be used for linting, formatting, and other development tooling needs.
+The stack emphasizes serverless architecture and modern development practices.
+Remember to follow Hono's best practices for structuring your application and utilize Vitest for comprehensive testing. When working with Neon and Prisma, make sure to properly manage your database migrations and leverage Prisma's type-safe queries.
+
+
+
+
+

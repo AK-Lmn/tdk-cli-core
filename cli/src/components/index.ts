@@ -9,3 +9,15 @@ export { ResourceTable } from './ResourceTable.js';
 
 export { FileTree } from './FileTree.js';
 export type { FileNode, FileType } from './FileTree.js';
+
+// Accessibility components
+export { 
+  AccessibleItem, 
+  AccessibleTab,
+  AccessibleTooltip,
+  FocusIndicator,
+  StatusAnnouncement,
+  LiveRegion,
+} from './Accessible.js';
+
+export { Tooltip, TOOLTIPS } from './Tooltip.js';

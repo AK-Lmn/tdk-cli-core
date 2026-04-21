@@ -55,6 +55,11 @@ export interface ServiceConfig {
    * Non-pre-alpha services are hidden by default in the UI.
    */
   preAlpha?: boolean;
+  /**
+   * Whether this service is enabled for deployment.
+   * Disabled services are shown in the UI but marked as disabled.
+   */
+  enabled?: boolean;
 }
 
 /**

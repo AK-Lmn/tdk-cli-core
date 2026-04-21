@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleIdentifier</key>
+	<string>com.beautycrm.AdvancedCopy</string>
+	<key>CFBundleName</key>
+	<string>Advanced Copy</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSUIElement</key>
+	<true/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	<key>NSServices</key>
+	<array>
+		<!-- Copy Services -->
+		<dict>
+			<key>NSKeyEquivalent</key>
+			<dict>
+				<key>default</key>
+				<string>1</string>
+			</dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>Advanced Copy/Buffer 1</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>advancedCopy</string>
+			<key>NSPortName</key>
+			<string>Advanced Copy</string>
+			<key>NSRequiredContext</key>
+			<dict/>
+			<key>NSSendTypes</key>
+			<array>
+				<string>NSStringPboardType</string>
+				<string>public.utf8-plain-text</string>
+			</array>
+			<key>NSUserData</key>
+			<string>1</string>
+		</dict>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>Advanced Copy/Buffer 2</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>advancedCopy</string>
+			<key>NSPortName</key>
+			<string>Advanced Copy</string>
+			<key>NSRequiredContext</key>
+			<dict/>
+			<key>NSSendTypes</key>
+			<array>
+				<string>NSStringPboardType</string>
+				<string>public.utf8-plain-text</string>
+			</array>
+			<key>NSUserData</key>
+			<string>2</string>
+		</dict>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>Advanced Copy/Buffer 3</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>advancedCopy</string>
+			<key>NSPortName</key>
+			<string>Advanced Copy</string>
+			<key>NSRequiredContext</key>
+			<dict/>
+			<key>NSSendTypes</key>
+			<array>
+				<string>NSStringPboardType</string>
+				<string>public.utf8-plain-text</string>
+			</array>
+			<key>NSUserData</key>
+			<string>3</string>
+		</dict>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>Advanced Copy/Buffer 4</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>advancedCopy</string>
+			<key>NSPortName</key>
+			<string>Advanced Copy</string>
+			<key>NSRequiredContext</key>
+			<dict/>
+			<key>NSSendTypes</key>
+			<array>
+				<string>NSStringPboardType</string>
+				<string>public.utf8-plain-text</string>
+			</array>
+			<key>NSUserData</key>
+			<string>4</string>
+		</dict>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>Advanced Copy/Buffer 5</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>advancedCopy</string>
+			<key>NSPortName</key>
+			<string>Advanced Copy</string>
+			<key>NSRequiredContext</key>
+			<dict/>
+			<key>NSSendTypes</key>
+			<array>
+				<string>NSStringPboardType</string>
+				<string>public.utf8-plain-text</string>
+			</array>
+			<key>NSUserData</key>
+			<string>5</string>
+		</dict>
+		<!-- Paste Services -->
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>Advanced Paste/Buffer 1</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>advancedPaste</string>
+			<key>NSPortName</key>
+			<string>Advanced Copy</string>
+			<key>NSRequiredContext</key>
+			<dict/>
+			<key>NSReturnTypes</key>
+			<array>
+				<string>NSStringPboardType</string>
+				<string>public.utf8-plain-text</string>
+			</array>
+			<key>NSUserData</key>
+			<string>1</string>
+		</dict>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>Advanced Paste/Buffer 2</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>advancedPaste</string>
+			<key>NSPortName</key>
+			<string>Advanced Copy</string>
+			<key>NSRequiredContext</key>
+			<dict/>
+			<key>NSReturnTypes</key>
+			<array>
+				<string>NSStringPboardType</string>
+				<string>public.utf8-plain-text</string>
+			</array>
+			<key>NSUserData</key>
+			<string>2</string>
+		</dict>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>Advanced Paste/Buffer 3</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>advancedPaste</string>
+			<key>NSPortName</key>
+			<string>Advanced Copy</string>
+			<key>NSRequiredContext</key>
+			<dict/>
+			<key>NSReturnTypes</key>
+			<array>
+				<string>NSStringPboardType</string>
+				<string>public.utf8-plain-text</string>
+			</array>
+			<key>NSUserData</key>
+			<string>3</string>
+		</dict>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>Advanced Paste/Buffer 4</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>advancedPaste</string>
+			<key>NSPortName</key>
+			<string>Advanced Copy</string>
+			<key>NSRequiredContext</key>
+			<dict/>
+			<key>NSReturnTypes</key>
+			<array>
+				<string>NSStringPboardType</string>
+				<string>public.utf8-plain-text</string>
+			</array>
+			<key>NSUserData</key>
+			<string>4</string>
+		</dict>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>Advanced Paste/Buffer 5</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>advancedPaste</string>
+			<key>NSPortName</key>
+			<string>Advanced Copy</string>
+			<key>NSRequiredContext</key>
+			<dict/>
+			<key>NSReturnTypes</key>
+			<array>
+				<string>NSStringPboardType</string>
+				<string>public.utf8-plain-text</string>
+			</array>
+			<key>NSUserData</key>
+			<string>5</string>
+		</dict>
+	</array>
+</dict>
+</plist>
