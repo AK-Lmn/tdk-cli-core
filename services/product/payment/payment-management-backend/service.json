@@ -8,6 +8,5 @@
   "features": ["nats", "prisma"],
   "internalDependencies": ["identity-sdk"],
   "stack": "payment",
-  "preAlpha": true,
   "enabled": false
 }

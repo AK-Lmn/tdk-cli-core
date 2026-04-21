@@ -8,6 +8,5 @@
   "features": ["nats"],
   "internalDependencies": [],
   "stack": "platform",
-  "preAlpha": true,
   "enabled": true
 }

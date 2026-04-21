@@ -121,7 +121,7 @@ const TUIApp: React.FC = () => {
   const [showHelp, setShowHelp] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [showAllServices, setShowAllServices] = useState(false);
+
   const [terminalWidth, setTerminalWidth] = useState(stdout.columns || 120);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
@@ -164,8 +164,8 @@ const TUIApp: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const stacks = discoverStacks({ preAlphaOnly: !showAllServices });
-  const services = discoverServices({ preAlphaOnly: !showAllServices });
+  const stacks = discoverStacks();
+  const services = discoverServices();
   
   // Handle errors
   useEffect(() => {
@@ -287,6 +287,15 @@ const TUIApp: React.FC = () => {
 
   const items = getItems();
 
+  // Clamp highlighted index when items change
+  useEffect(() => {
+    if (highlightedIndex >= items.length && items.length > 0) {
+      setHighlightedIndex(items.length - 1);
+    } else if (items.length === 0) {
+      setHighlightedIndex(0);
+    }
+  }, [highlightedIndex, items.length, setHighlightedIndex]);
+
   // Handle selection
   const handleSelect = useCallback((item: { label: string; value: string }) => {
     if (activeTab === 'overview') {
@@ -320,13 +329,83 @@ const TUIApp: React.FC = () => {
     }
   }, [activeTab, selectedStack, selectedService, setSelectedStack, setSelectedService, setSelectedFile, setMessage]);
 
-  // Enable raw mode
+  // Enable raw mode and mouse support
   useEffect(() => {
     setRawMode(true);
+    
+    // Enable mouse reporting (SGR 1006 mode - supports large terminals)
+    stdout.write('\x1b[?1000h'); // Basic mouse tracking
+    stdout.write('\x1b[?1006h'); // SGR extended coordinates
+    
     return () => {
       setRawMode(false);
+      // Disable mouse reporting
+      stdout.write('\x1b[?1000l');
+      stdout.write('\x1b[?1006l');
     };
-  }, [setRawMode]);
+  }, [setRawMode, stdout]);
+
+  // Handle mouse clicks
+  useEffect(() => {
+    if (!mouseEnabled) return;
+    
+    const handleMouseData = (data: Buffer) => {
+      const str = data.toString();
+      
+      // Parse SGR 1006 mouse protocol: ESC[<btn;x;yM or ESC[<btn;x;ym
+      const sgrMatch = str.match(/\x1b\[<(\d+);(\d+);(\d+)([Mm])/);
+      if (sgrMatch) {
+        const btn = parseInt(sgrMatch[1], 10);
+        const x = parseInt(sgrMatch[2], 10);
+        const y = parseInt(sgrMatch[3], 10);
+        const release = sgrMatch[4] === 'm';
+        
+        // Check if it's a left click (btn & 0b11 == 0 means left button)
+        const isLeftClick = (btn & 0b11) === 0;
+        
+        if (isLeftClick && !release) {
+          // Calculate row in the list (header takes ~6 lines)
+          const listRow = y - 7; // Adjust for header, tabs, and borders
+          
+          if (listRow >= 0 && listRow < items.length) {
+            setHighlightedIndex(listRow);
+            // Select the item
+            const item = items[listRow];
+            if (item) {
+              handleSelect(item);
+            }
+          }
+        }
+        return;
+      }
+      
+      // Fallback: Try X10 protocol (older terminals)
+      const x10Match = str.match(/\x1b\[M(.)(.)(.)/);
+      if (x10Match) {
+        const btn = x10Match[1].charCodeAt(0) - 32;
+        const x = x10Match[2].charCodeAt(0) - 32;
+        const y = x10Match[3].charCodeAt(0) - 32;
+        
+        const isLeftClick = (btn & 0b11) === 0;
+        
+        if (isLeftClick) {
+          const listRow = y - 7;
+          if (listRow >= 0 && listRow < items.length) {
+            setHighlightedIndex(listRow);
+            const item = items[listRow];
+            if (item) {
+              handleSelect(item);
+            }
+          }
+        }
+      }
+    };
+    
+    stdin.on('data', handleMouseData);
+    return () => {
+      stdin.off('data', handleMouseData);
+    };
+  }, [stdin, items, mouseEnabled, handleSelect, setHighlightedIndex]);
 
   // Handle terminal resize
   useEffect(() => {
@@ -427,13 +506,6 @@ const TUIApp: React.FC = () => {
       return;
     }
 
-    if (input === 'a') {
-      setShowAllServices(prev => !prev);
-      setMessage(showAllServices ? 'Showing pre-alpha services only' : 'Showing all services');
-      setTimeout(() => setMessage(''), 1500);
-      return;
-    }
-
     if (input === 'm') {
       setMouseEnabled(prev => {
         const newState = !prev;
@@ -471,7 +543,6 @@ const TUIApp: React.FC = () => {
         ? (currentIdx - 1 + tabs.length) % tabs.length 
         : (currentIdx + 1) % tabs.length;
       setActiveTab(tabs[nextIdx]);
-      setHighlightedIndex(0);
       return;
     }
 
@@ -484,7 +555,6 @@ const TUIApp: React.FC = () => {
         '5': 'config',
       };
       setActiveTab(tabMap[input]);
-      setHighlightedIndex(0);
       return;
     }
 
@@ -845,9 +915,6 @@ const TUIApp: React.FC = () => {
               <Text color="cyan" bold>▓▒░ {activeTab}</Text>
               <Text color="green">● {services.filter(s => s.stack).length} in stack</Text>
               <Text color="yellow">○ {services.filter(s => !s.stack).length} no stack</Text>
-              <Text color={showAllServices ? 'pink' : 'blue'}>
-                {showAllServices ? '[a] All' : '[a] Pre-alpha'}
-              </Text>
             </Box>
             <Box justifyContent="space-between">
               <Text color="gray">Stacks: {stacks.length}</Text>

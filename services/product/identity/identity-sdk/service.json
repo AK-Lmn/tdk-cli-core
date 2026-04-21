@@ -8,6 +8,5 @@
   "features": [],
   "internalDependencies": [],
   "stack": "identity",
-  "preAlpha": true,
   "enabled": true
 }

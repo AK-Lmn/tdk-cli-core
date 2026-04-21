@@ -45,19 +45,15 @@ export interface ServiceConfig {
   internalDependencies?: string[];
   dependencies?: string[];
   /**
-    * The stack this service belongs to.
-    * Each service belongs to exactly one stack.
-    * Example: "booking-flow"
-    */
-  stack?: string;
-  /**
-   * Whether this service is part of the pre-alpha release.
-   * Non-pre-alpha services are hidden by default in the UI.
+   * The stack this service belongs to.
+   * Each service belongs to exactly one stack.
+   * Example: "booking-flow"
    */
-  preAlpha?: boolean;
+  stack?: string;
   /**
    * Whether this service is enabled for deployment.
    * Disabled services are shown in the UI but marked as disabled.
+   * Services without this field default to enabled (true).
    */
   enabled?: boolean;
 }
