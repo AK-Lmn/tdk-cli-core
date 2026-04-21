@@ -10,6 +10,7 @@ import { statusCommand } from './commands/status.js';
 import { initCommand } from './commands/init.js';
 import { watchCommand } from './commands/watch.js';
 import { uiCommand } from './commands/ui.js';
+import { versionCommand } from './commands/version.js';
 
 const require = createRequire(import.meta.url);
 const pkg = require('../package.json');
@@ -33,6 +34,7 @@ program.addCommand(statusCommand);
 program.addCommand(initCommand);
 program.addCommand(watchCommand);
 program.addCommand(uiCommand);
+program.addCommand(versionCommand);
 
 // Show help if no command provided
 if (process.argv.length === 2) {
