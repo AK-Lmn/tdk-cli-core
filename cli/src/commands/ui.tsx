@@ -49,6 +49,7 @@ const HelpPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => (
       <Text>  5       Config tab</Text>
       
       <Text><Text bold>Actions:</Text></Text>
+      <Text>  a       Toggle all/pre-alpha services</Text>
       <Text>  r       Refresh data</Text>
       <Text>  /       Search/filter</Text>
       <Text>  ?       Show this help</Text>
@@ -75,6 +76,7 @@ const TUIApp: React.FC = () => {
   const [showHelp, setShowHelp] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [showAllServices, setShowAllServices] = useState(false);
   const [terminalWidth, setTerminalWidth] = useState(stdout.columns || 120);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
@@ -82,8 +84,8 @@ const TUIApp: React.FC = () => {
 
   // Data
   const projectRoot = findProjectRoot() || 'unknown';
-  const stacks = discoverStacks();
-  const services = discoverServices();
+  const stacks = discoverStacks({ preAlphaOnly: !showAllServices });
+  const services = discoverServices({ preAlphaOnly: !showAllServices });
   
   // Get metadata for selected stack
   const selectedStackData = useMemo(() => {
@@ -252,6 +254,13 @@ const TUIApp: React.FC = () => {
 
     if (input === '?') {
       setShowHelp(true);
+      return;
+    }
+
+    if (input === 'a') {
+      setShowAllServices(prev => !prev);
+      setMessage(showAllServices ? 'Showing pre-alpha services only' : 'Showing all services');
+      setTimeout(() => setMessage(''), 1500);
       return;
     }
 
@@ -603,26 +612,29 @@ const TUIApp: React.FC = () => {
             )}
           </Box>
 
-          {/* Status Bar */}
-          <Box 
-            borderStyle="single" 
-            borderColor="gray" 
-            paddingX={1}
-            height={3}
-            flexDirection="column"
-            marginTop={1}
-          >
-            <Box justifyContent="space-between">
-              <Text color="cyan" bold>Tab: {activeTab}</Text>
-              <Text color="green">● {services.filter(s => s.stack).length} in stack</Text>
-              <Text color="yellow">○ {services.filter(s => !s.stack).length} no stack</Text>
-            </Box>
-            <Box justifyContent="space-between">
-              <Text color="gray">Stacks: {stacks.length}</Text>
-              <Text color="gray">Services: {services.length}</Text>
-              <Text color="gray">[?] Help | [1-5] Tabs | [q] Quit</Text>
-            </Box>
-          </Box>
+      {/* Status Bar */}
+      <Box 
+        borderStyle="single" 
+        borderColor="gray" 
+        paddingX={1}
+        height={3}
+        flexDirection="column"
+        marginTop={1}
+      >
+        <Box justifyContent="space-between">
+          <Text color="cyan" bold>Tab: {activeTab}</Text>
+          <Text color="green">● {services.filter(s => s.stack).length} in stack</Text>
+          <Text color="yellow">○ {services.filter(s => !s.stack).length} no stack</Text>
+          <Text color={showAllServices ? 'magenta' : 'blue'}>
+            {showAllServices ? '[a] All services' : '[a] Pre-alpha only'}
+          </Text>
+        </Box>
+        <Box justifyContent="space-between">
+          <Text color="gray">Stacks: {stacks.length}</Text>
+          <Text color="gray">Services: {services.length}</Text>
+          <Text color="gray">[?] Help | [1-5] Tabs | [q] Quit</Text>
+        </Box>
+      </Box>
         </>
       )}
     </Box>

@@ -131,9 +131,10 @@ function parseService(serviceJsonPath: string): DiscoveredService | null {
  *
  * Scans the filesystem for service.json files and parses them.
  *
+ * @param options - Discovery options
  * @returns Array of discovered services
  */
-export function discoverServices(): DiscoveredService[] {
+export function discoverServices(options?: { preAlphaOnly?: boolean }): DiscoveredService[] {
   const projectRoot = findProjectRoot();
 
   if (!projectRoot) {
@@ -144,9 +145,17 @@ export function discoverServices(): DiscoveredService[] {
   const serviceJsonPaths = findServiceJsonFiles(projectRoot);
 
   // Parse each service.json file
-  return serviceJsonPaths
+  let services = serviceJsonPaths
     .map(path => parseService(path))
     .filter((s): s is DiscoveredService => s !== null);
+
+  // Filter by pre-alpha status if requested
+  if (options?.preAlphaOnly) {
+    services = services.filter(s => s.config?.preAlpha !== false);
+    // Services without preAlpha field default to true (existing behavior)
+  }
+
+  return services;
 }
 
 /**
@@ -170,10 +179,11 @@ export function getAllStacks(services?: DiscoveredService[]): string[] {
 /**
  * Discover all stacks with their associated services
  *
+ * @param options - Discovery options
  * @returns Array of discovered stacks with services
  */
-export function discoverStacks(): DiscoveredStack[] {
-  const services = discoverServices();
+export function discoverStacks(options?: { preAlphaOnly?: boolean }): DiscoveredStack[] {
+  const services = discoverServices(options);
   const stackMap = new Map<string, DiscoveredService[]>();
 
   // Group services by stack

@@ -50,6 +50,11 @@ export interface ServiceConfig {
     * Example: "booking-flow"
     */
   stack?: string;
+  /**
+   * Whether this service is part of the pre-alpha release.
+   * Non-pre-alpha services are hidden by default in the UI.
+   */
+  preAlpha?: boolean;
 }
 
 /**
