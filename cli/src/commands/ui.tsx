@@ -9,7 +9,7 @@ import { Command } from 'commander';
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { render, Box, Text, useInput, useApp, useStdout, useStdin, type Key } from 'ink';
 import SelectInput from 'ink-select-input';
-import { stdin as processStdin } from 'node:process';
+import { stdout as processStdout, stdin as processStdin } from 'node:process';
 import { 
   discoverStacks, 
   discoverServices, 
@@ -222,15 +222,15 @@ const TUIApp: React.FC = () => {
     setRawMode(true);
     
     // Enable mouse reporting (X11 mode - button press and release)
-    if (mouseEnabled && processStdin.isTTY) {
-      processStdin.write('\x1b[?1000h\x1b[?1002h\x1b[?1015h\x1b[?1006h');
+    if (mouseEnabled && processStdout.isTTY) {
+      processStdout.write('\x1b[?1000h\x1b[?1002h\x1b[?1015h\x1b[?1006h');
     }
     
     return () => {
       setRawMode(false);
       // Disable mouse reporting
-      if (processStdin.isTTY) {
-        processStdin.write('\x1b[?1000l\x1b[?1002l\x1b[?1015l\x1b[?1006l');
+      if (processStdout.isTTY) {
+        processStdout.write('\x1b[?1000l\x1b[?1002l\x1b[?1015l\x1b[?1006l');
       }
     };
   }, [setRawMode, mouseEnabled]);
