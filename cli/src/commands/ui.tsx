@@ -180,6 +180,43 @@ const TUIApp: React.FC = () => {
 
   const items = getItems();
 
+  // Handle selection (defined early for useEffect dependencies)
+  const handleSelect = useCallback((item: { label: string; value: string }) => {
+    if (activeTab === 'overview') {
+      setSelectedStack(item.value);
+      setSelectedService(null);
+      setMessage(`Selected stack: ${item.value}`);
+      setTimeout(() => setMessage(''), 2000);
+    } else if (activeTab === 'resources') {
+      if (selectedStack && !selectedService) {
+        // Selecting a service within a stack
+        setSelectedService(item.value);
+        setMessage(`Selected service: ${item.value}`);
+        setTimeout(() => setMessage(''), 2000);
+      } else {
+        // Selecting a stack
+        setSelectedStack(item.value);
+        setSelectedService(null);
+      }
+    } else if (activeTab === 'files') {
+      if (selectedService) {
+        // Selecting a file
+        setSelectedFile(item.value);
+        setMessage(`Selected file: ${item.label}`);
+        setTimeout(() => setMessage(''), 2000);
+      } else {
+        // Selecting a service
+        setSelectedService(item.value);
+        setMessage(`Selected service: ${item.value}`);
+        setTimeout(() => setMessage(''), 2000);
+      }
+    } else if (activeTab === 'config') {
+      setSelectedService(item.value);
+      setMessage(`Viewing config for: ${item.value}`);
+      setTimeout(() => setMessage(''), 2000);
+    }
+  }, [activeTab, selectedStack, selectedService, setSelectedStack, setSelectedService, setSelectedFile, setMessage]);
+
   // Enable raw mode and mouse support
   useEffect(() => {
     setRawMode(true);
@@ -421,42 +458,6 @@ const TUIApp: React.FC = () => {
       return;
     }
   });
-
-  const handleSelect = useCallback((item: { label: string; value: string }) => {
-    if (activeTab === 'overview') {
-      setSelectedStack(item.value);
-      setSelectedService(null);
-      setMessage(`Selected stack: ${item.value}`);
-      setTimeout(() => setMessage(''), 2000);
-    } else if (activeTab === 'resources') {
-      if (selectedStack && !selectedService) {
-        // Selecting a service within a stack
-        setSelectedService(item.value);
-        setMessage(`Selected service: ${item.value}`);
-        setTimeout(() => setMessage(''), 2000);
-      } else {
-        // Selecting a stack
-        setSelectedStack(item.value);
-        setSelectedService(null);
-      }
-    } else if (activeTab === 'files') {
-      if (selectedService) {
-        // Selecting a file
-        setSelectedFile(item.value);
-        setMessage(`Selected file: ${item.label}`);
-        setTimeout(() => setMessage(''), 2000);
-      } else {
-        // Selecting a service
-        setSelectedService(item.value);
-        setMessage(`Selected service: ${item.value}`);
-        setTimeout(() => setMessage(''), 2000);
-      }
-    } else if (activeTab === 'config') {
-      setSelectedService(item.value);
-      setMessage(`Viewing config for: ${item.value}`);
-      setTimeout(() => setMessage(''), 2000);
-    }
-  }, [activeTab, selectedStack, selectedService, setSelectedStack, setSelectedService, setSelectedFile, setMessage]);
 
   // Build file tree for Files tab
   const fileTreeNodes: FileNode[] = useMemo(() => {
