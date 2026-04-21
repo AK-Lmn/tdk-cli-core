@@ -8,7 +8,7 @@ load("./registry.star", "CacheOps", "get_app_services", "_DISCOVERY_CACHE")
 load("./discovery_orchestrator.star", "_normalize_manifest")
 load("../resources/orchestrator/generators/manifest_resource.star", "ManifestResource")
 load("../manifest/loader.star", "ManifestLoader")
-load("../../../../.tilt/TILT_SERVICE_DEFAULTS.star", "BASE_PORT_BACKEND")
+load("../../specs/specs/TILT_SERVICE_DEFAULTS.star", "BASE_PORT_BACKEND")
 
 def register_new_service(service_path, manifest, ctx, auto_init=True, verbose=False):
     """

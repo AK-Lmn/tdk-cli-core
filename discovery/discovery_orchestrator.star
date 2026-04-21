@@ -1,9 +1,20 @@
-load("../manifest/parser.star", "extract_domain_from_path")
-load("../manifest/loader.star", "ManifestLoader")
+load("./manifest/parser.star", "extract_domain_from_path")
+load("./manifest/loader.star", "ManifestLoader")
 load("./manifest/loading.star", "get_default_syncs_for_type")
-load("../../../../spec.master", "OUT_OF_SCOPE_DOMAINS")
-load("../manifest/constants.star", "MANIFEST_FILENAME", "MANIFEST_FILENAME_YAML")
-load("../../../../.tilt/TILT_SERVICE_DEFAULTS.star", "BASE_PORT_FRONTEND", "BASE_PORT_BACKEND", "get_default_port")
+
+# Out of scope domains - defined locally for unified repo
+OUT_OF_SCOPE_DOMAINS = ["warehouse", "logistics", "accounting"]
+
+load("./manifest/constants.star", "MANIFEST_FILENAME", "MANIFEST_FILENAME_YAML")
+
+# Service defaults - inlined for unified repo
+def get_default_port(app_type):
+    if app_type == "frontend":
+        return 3000
+    return 4000
+
+BASE_PORT_FRONTEND = 3000
+BASE_PORT_BACKEND = 4000
 
 # Phase 1: Use json_manifest_scanner for manifest discovery (enables Phase 2 multi-source discovery)
 load("./json_manifest_scanner.star", "discover_json_manifests")

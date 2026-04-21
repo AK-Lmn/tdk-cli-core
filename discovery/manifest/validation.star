@@ -5,8 +5,8 @@
 # Purpose: Validate manifest structure and values
 # =============================================================================
 
-load('../../../tilt/manifest/constants.star', 'VALID_APP_TYPES')
-load('../../../../../.tilt/TILT_DISCOVERY.star', 'VALID_DOMAINS', 'VALID_FEATURES', 'PORT_RANGES')
+load('./constants.star', 'VALID_APP_TYPES')
+load('../TILT_DISCOVERY.star', 'VALID_DOMAINS', 'VALID_FEATURES', 'PORT_RANGES')
 
 
 def validate_manifest(manifest):

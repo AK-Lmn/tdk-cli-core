@@ -4,7 +4,7 @@
 
 load("./constants.star", "SERVICES_ROOT")
 load("../../platform/docker/constants.star", "PlatformDockerConstants")
-load("../../../../spec.master", "DEFAULTS")
+load("../engine/spec.master", "DEFAULTS")
 
 # FOCUS release phase service lists
 # These define which services are included in each release phase

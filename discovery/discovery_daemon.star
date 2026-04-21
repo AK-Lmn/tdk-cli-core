@@ -7,7 +7,14 @@
 load("./service_snapshot.star", "ServiceSnapshot")
 load("./registry.star", "CacheOps")
 load("../manifest/loader.star", "ManifestLoader")
-load("../../../../.tilt/TILT_SERVICE_DEFAULTS.star", "get_discovery_config")
+# Discovery config - inlined for unified repo
+def get_discovery_config():
+    return {
+        "scan_interval_seconds": 5,
+        "max_scan_timeout_ms": 5000,
+        "initial_scan_delay_seconds": 2,
+        "scan_debounce_ms": 100,
+    }
 
 _DISCOVERY_CONFIG = get_discovery_config()
 

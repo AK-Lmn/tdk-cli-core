@@ -1,4 +1,4 @@
-load("../../../../.tilt/TILT_DISCOVERY.star",
+load("./TILT_DISCOVERY.star",
     "VALID_DOMAINS",
     "VALID_FEATURES",
     "PORT_RANGES",

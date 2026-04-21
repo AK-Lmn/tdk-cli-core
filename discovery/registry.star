@@ -15,7 +15,7 @@ load(
     "PRODUCT_LIBS_FRONTEND"
 )
 load("./discovery_orchestrator.star", "initialize_discovery")
-load("../manifest/loader.star", "ManifestLoader")
+load("./manifest/loader.star", "ManifestLoader")
 load("./libraries.star", "autodiscover_libraries", "get_platform_libs", "get_product_libs")
 load(
     "./constants.star",
@@ -26,7 +26,7 @@ load(
     "PRODUCT_DOMAIN_SERVICES_FILE",
     "DISCOVERY_SCAN_ROOTS",
 )
-load("../manifest/constants.star", "MANIFEST_FILENAME", "MANIFEST_FILENAME_NEW", "MANIFEST_FILENAME_YAML", "MANIFEST_FILENAME_NEW_YAML")
+load("./manifest/constants.star", "MANIFEST_FILENAME", "MANIFEST_FILENAME_NEW", "MANIFEST_FILENAME_YAML", "MANIFEST_FILENAME_NEW_YAML")
 
 
 _DISCOVERY_CACHE = {

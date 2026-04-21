@@ -5,12 +5,12 @@
 # Purpose: Normalize manifests and provide helper accessors
 # =============================================================================
 
-load('../../../tilt/manifest/constants.star', 'MANIFEST_DEFAULTS', 'MANIFEST_FILENAME')
+load('./constants.star', 'MANIFEST_DEFAULTS', 'MANIFEST_FILENAME')
 load('./loading.star', 'apply_manifest_defaults', 'check_prisma_folder', 'get_default_syncs_for_type')
 load('./validation.star', 'validate_manifest')
-load('../../common/utils.star', 'Utils')
-load('../../../platform/docker/constants.star', 'PlatformDockerConstants')
-load('../../../../../.tilt/TILT_TECH_STACK.star', 'RUNTIME', 'MESSAGING')
+load('../../engine/topologies/tilt/common/utils.star', 'Utils')
+load('../../engine/topologies/platform/docker/constants.star', 'PlatformDockerConstants')
+load('../../specs/specs/TILT_TECH_STACK.star', 'RUNTIME', 'MESSAGING')
 
 
 def _load_and_normalize(manifest_path, warn_only=True):
