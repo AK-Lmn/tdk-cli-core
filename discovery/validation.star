@@ -3,7 +3,7 @@ load("./TILT_DISCOVERY.star",
     "VALID_FEATURES",
     "PORT_RANGES",
 )
-load("../manifest/constants.star", "VALID_APP_TYPES")
+load("../engine/topologies/tilt/manifest/constants.star", "VALID_APP_TYPES")
 
 
 def validate(manifest):
