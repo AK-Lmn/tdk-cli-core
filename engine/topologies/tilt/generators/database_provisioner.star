@@ -13,7 +13,15 @@ load("../common/utils.star", "Utils")
 load("../../platform/docker/constants.star", "PlatformDockerConstants")
 
 
-# Load discovery configuration
+# Discovery configuration - inlined for self-containment
+def get_discovery_config():
+    """Return discovery configuration with database readiness settings."""
+    return {
+        "db_readiness_timeout_seconds": 30,
+        "db_connect_retry_attempts": 10,
+        "db_connect_retry_delay_seconds": 2,
+    }
+
 _discovery_config = get_discovery_config()
 
 # =============================================================================
