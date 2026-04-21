@@ -8,7 +8,7 @@
 # Priority: service.json → legacy manifest → synthesize from path
 # =============================================================================
 
-load('./constants.star', 
+load('../../engine/topologies/tilt/manifest/constants.star', 
      'MANIFEST_DEFAULTS', 
      'DEFAULT_SYNCS', 
      'MANIFEST_FILENAME',
