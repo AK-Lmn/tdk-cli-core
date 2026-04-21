@@ -1,9 +1,7 @@
 /**
- * DetailPanel Component - Right sidebar showing stack/service details
+ * DetailPanel Component - Neon Edition (Restrained)
  * 
- * Displays metadata similar to AWS CloudFormation stack details:
- * - Name, Created Time, Status, Service Count
- * - Resource summary table
+ * Simple borders, only status gets color
  */
 
 import React from 'react';
@@ -22,8 +20,8 @@ export interface StackMetadata {
   serviceCount: number;
   createdAt: string;
   lastModified: string;
-  overallStatus: 'healthy' | 'degraded' | 'error' | 'unknown';
   services: ServiceMetadata[];
+  overallStatus: 'healthy' | 'degraded' | 'error' | 'unknown';
 }
 
 export interface ServiceMetadata {
@@ -42,9 +40,7 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
   visible 
 }) => {
   if (!visible) {
-    return (
-      <Box width={0} />
-    );
+    return <Box width={0} />;
   }
 
   // Show service details if service is selected
@@ -52,19 +48,46 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
     return (
       <Box 
         width={40} 
-        borderStyle="single" 
-        borderColor="cyan"
-        paddingX={1}
         flexDirection="column"
+        borderStyle="single"
+        borderColor="gray"
+        paddingX={1}
+        paddingY={1}
       >
-        <Text bold color="cyan" underline>Service Details</Text>
-        <Box marginY={1} flexDirection="column">
-          <Text><Text bold>Name:</Text> {service.name}</Text>
-          <Text><Text bold>Domain:</Text> {service.domain || 'unknown'}</Text>
+        {/* Title */}
+        <Box marginBottom={1} justifyContent="center">
+          <Text color="cyan" bold>
+            ┌─ {service.name.toUpperCase()} ─┐
+          </Text>
+        </Box>
+        
+        {/* Details */}
+        <Box flexDirection="column" marginY={1}>
+          <Box>
+            <Text color="gray">Name: </Text>
+            <Text color="white">{service.name}</Text>
+          </Box>
+          <Box>
+            <Text color="gray">Domain: </Text>
+            <Text color="white">{service.domain || 'unknown'}</Text>
+          </Box>
           {service.stack && (
-            <Text><Text bold>Stack:</Text> {service.stack}</Text>
+            <Box>
+              <Text color="gray">Stack: </Text>
+              <Text color="cyan">{service.stack}</Text>
+            </Box>
           )}
-          <Text><Text bold>Type:</Text> {(service.domain || '') === 'platform' ? 'platform' : 'product'}</Text>
+          <Box>
+            <Text color="gray">Type: </Text>
+            <Text color="yellow">{(service.domain || '') === 'platform' ? 'PLATFORM' : 'PRODUCT'}</Text>
+          </Box>
+        </Box>
+        
+        {/* Close hint */}
+        <Box marginTop={2}>
+          <Text color="gray" dimColor>
+            Press <Text color="cyan">[Esc]</Text> to close
+          </Text>
         </Box>
       </Box>
     );
@@ -78,43 +101,72 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
     
     const statusIcon = 
       stackMetadata.overallStatus === 'healthy' ? '✓' :
-      stackMetadata.overallStatus === 'degraded' ? '⚠' : '✗';
+      stackMetadata.overallStatus === 'degraded' ? '◐' : '✗';
 
     return (
       <Box 
-        width={45} 
-        borderStyle="single" 
-        borderColor="cyan"
-        paddingX={1}
+        width={40} 
         flexDirection="column"
+        borderStyle="single"
+        borderColor="gray"
+        paddingX={1}
+        paddingY={1}
       >
-        <Text bold color="cyan" underline>Stack Details</Text>
-        
-        <Box marginY={1} flexDirection="column">
-          <Text><Text bold>Name:</Text> {stack.name}</Text>
-          <Text><Text bold>Created:</Text> {formatDate(stackMetadata.createdAt)}</Text>
-          <Text><Text bold>Services:</Text> {stackMetadata.serviceCount}</Text>
-          <Text>
-            <Text bold>Status:</Text>{' '}
-            <Text color={statusColor}>{statusIcon} {stackMetadata.overallStatus}</Text>
+        {/* Title */}
+        <Box marginBottom={1} justifyContent="center">
+          <Text color="cyan" bold>
+            ┌─ {stack.name.toUpperCase()} ─┐
           </Text>
         </Box>
-
-        <Box marginTop={1}>
-          <Text bold underline>Services</Text>
+        
+        {/* Status - only colored element */}
+        <Box 
+          borderStyle="single" 
+          borderColor={statusColor}
+          paddingX={1}
+          paddingY={1}
+          marginY={1}
+          justifyContent="center"
+        >
+          <Text color={statusColor} bold>
+            {statusIcon} {stackMetadata.overallStatus.toUpperCase()}
+          </Text>
         </Box>
         
-        <Box flexDirection="column" marginTop={1}>
-          {stack.services.map((svc: DiscoveredService) => (
+        {/* Details */}
+        <Box flexDirection="column" marginY={1}>
+          <Box>
+            <Text color="gray">Created: </Text>
+            <Text color="white">{formatDate(stackMetadata.createdAt)}</Text>
+          </Box>
+          <Box>
+            <Text color="gray">Services: </Text>
+            <Text color="cyan">{stackMetadata.serviceCount}</Text>
+          </Box>
+        </Box>
+
+        {/* Services List */}
+        <Box marginTop={1} marginBottom={1}>
+          <Text color="gray" underline>
+            Services
+          </Text>
+        </Box>
+        
+        <Box flexDirection="column">
+          {stack.services.map((svc, index) => (
             <Box key={svc.name}>
-              <Text color="gray">├─ {svc.name}</Text>
+              <Text color="gray">
+                {index === stack.services.length - 1 ? '└─ ' : '├─ '}
+              </Text>
+              <Text color="white">{svc.name}</Text>
             </Box>
           ))}
         </Box>
 
+        {/* Close hint */}
         <Box marginTop={2}>
-          <Text dimColor color="gray">
-            Press [Esc] to close
+          <Text color="gray" dimColor>
+            Press <Text color="cyan">[Esc]</Text> to close
           </Text>
         </Box>
       </Box>
@@ -127,13 +179,20 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
       width={40} 
       borderStyle="single" 
       borderColor="gray"
-      paddingX={1}
+      paddingX={2}
+      paddingY={2}
       flexDirection="column"
     >
-      <Text color="gray" dimColor>
-        Select a stack or service
-to view details
-      </Text>
+      <Box marginBottom={1} justifyContent="center">
+        <Text color="gray" dimColor>
+          Select a stack or service
+        </Text>
+      </Box>
+      <Box justifyContent="center">
+        <Text color="gray" dimColor>
+          to view details
+        </Text>
+      </Box>
     </Box>
   );
 };
@@ -144,7 +203,6 @@ function formatDate(timestamp: string): string {
     return date.toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
     });

@@ -1,8 +1,7 @@
 /**
- * TabBar Component - Custom tab bar for TDK UI
+ * TabBar Component - Neon Edition (Restrained)
  * 
- * Displays 5 tabs: Overview, Resources, Events, Files, Config
- * Supports keyboard navigation (Tab, Shift+Tab, 1-5 keys)
+ * Only the active tab gets neon treatment
  */
 
 import React from 'react';
@@ -17,11 +16,11 @@ interface Tab {
 }
 
 const TABS: Tab[] = [
-  { id: 'overview', label: 'Overview', shortcut: '1' },
-  { id: 'resources', label: 'Resources', shortcut: '2' },
-  { id: 'events', label: 'Events', shortcut: '3' },
-  { id: 'files', label: 'Files', shortcut: '4' },
-  { id: 'config', label: 'Config', shortcut: '5' },
+  { id: 'overview', label: 'OVERVIEW', shortcut: '1' },
+  { id: 'resources', label: 'RESOURCES', shortcut: '2' },
+  { id: 'events', label: 'EVENTS', shortcut: '3' },
+  { id: 'files', label: 'FILES', shortcut: '4' },
+  { id: 'config', label: 'CONFIG', shortcut: '5' },
 ];
 
 interface TabBarProps {
@@ -32,53 +31,50 @@ interface TabBarProps {
 
 export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange, compact = false }) => {
   return (
-    <Box 
-      borderStyle="single" 
-      borderColor="gray" 
-      paddingX={1}
-      height={compact ? 1 : 3}
-      flexDirection={compact ? 'row' : 'column'}
-    >
-      {compact ? (
-        // Compact horizontal layout for narrow terminals
-        <Box flexDirection="row" gap={1}>
-          {TABS.map((tab) => (
-            <Text 
-              key={tab.id}
-              color={activeTab === tab.id ? 'cyan' : 'gray'}
-              bold={activeTab === tab.id}
-              dimColor={activeTab !== tab.id}
-            >
-              {activeTab === tab.id ? `[${tab.shortcut}]` : tab.shortcut}
-            </Text>
-          ))}
-        </Box>
-      ) : (
-        // Full layout with labels
-        <>
-          <Box flexDirection="row" gap={2}>
-            {TABS.map((tab) => (
-              <Box key={tab.id}>
-                <Text 
-                  color={activeTab === tab.id ? 'cyan' : 'white'}
-                  bold={activeTab === tab.id}
-                  dimColor={activeTab !== tab.id}
-                  backgroundColor={activeTab === tab.id ? 'blue' : undefined}
+    <Box flexDirection="column" paddingX={1}>
+      {/* Simple separator line */}
+      <Box marginBottom={1}>
+        <Text color="gray">{'─'.repeat(compact ? 60 : 80)}</Text>
+      </Box>
+      
+      {/* Tabs */}
+      <Box flexDirection="row" justifyContent="space-between" paddingX={1}>
+        {TABS.map((tab) => {
+          const isActive = activeTab === tab.id;
+          
+          return (
+            <Box key={tab.id}>
+              {isActive ? (
+                // Active tab: neon cyan with border
+                <Box 
+                  borderStyle="single" 
+                  borderColor="cyan"
+                  paddingX={1}
+                  backgroundColor="black"
                 >
-                  {activeTab === tab.id ? '▸ ' : '  '}
-                  [{tab.shortcut}] {tab.label}
-                  {activeTab === tab.id ? ' ◂' : '  '}
-                </Text>
-              </Box>
-            ))}
-          </Box>
-          <Box marginTop={1}>
-            <Text color="gray" dimColor>
-              Press [1-5] for direct access, [Tab] to cycle
-            </Text>
-          </Box>
-        </>
-      )}
+                  <Text>
+                    <Text color="cyan">▓▒░</Text>
+                    <Text color="cyan" bold> [{tab.shortcut}] {tab.label} </Text>
+                    <Text color="cyan">░▒▓</Text>
+                  </Text>
+                </Box>
+              ) : (
+                // Inactive tab: plain gray
+                <Box paddingX={1}>
+                  <Text color="gray" dimColor>
+                    [{tab.shortcut}] {compact ? tab.label.slice(0, 4) : tab.label}
+                  </Text>
+                </Box>
+              )}
+            </Box>
+          );
+        })}
+      </Box>
+      
+      {/* Simple separator line */}
+      <Box marginTop={1}>
+        <Text color="gray">{'─'.repeat(compact ? 60 : 80)}</Text>
+      </Box>
     </Box>
   );
 };
