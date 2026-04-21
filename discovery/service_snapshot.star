@@ -128,6 +128,11 @@ def snapshot_exists():
     )
     return str(result).strip() == "yes"
 
+# Get the path to the service snapshot file
+def get_service_snapshot_path():
+    """Return the path to the service snapshot JSON file."""
+    return ".tilt/service-snapshot.json"
+
 # Export public API
 ServiceSnapshot = struct(
     save=save_snapshot,
