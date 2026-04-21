@@ -42,8 +42,15 @@ def _load_and_normalize(manifest_path, warn_only=True):
     Returns:
         Normalized manifest dict or None on error (if warn_only=True)
     """
+    # Prepend project root to relative paths for correct resolution
+    project_root = os.environ.get('TDK_PROJECT_ROOT', '')
+    if project_root and not manifest_path.startswith('/'):
+        full_path = project_root + '/' + manifest_path
+    else:
+        full_path = manifest_path
+    
     # Read manifest file
-    content = read_file(manifest_path, default='')
+    content = read_file(full_path, default='')
     
     if not content or not str(content).strip():
         if warn_only:

@@ -97,8 +97,15 @@ def load_manifest(service_path, persist_to_disk=False):
     manifest_source = None
     manifest_path = None
     
+    # Prepend project root to relative paths for correct resolution
+    project_root = os.environ.get('TDK_PROJECT_ROOT', '')
+    if project_root and not service_path.startswith('/'):
+        base_path = project_root + '/' + service_path
+    else:
+        base_path = service_path
+    
     # Try new filename first (service.json)
-    new_manifest_path = service_path + '/' + MANIFEST_FILENAME_NEW
+    new_manifest_path = base_path + '/' + MANIFEST_FILENAME_NEW
     new_content = read_file(new_manifest_path, default='')
     
     if new_content and str(new_content).strip():

@@ -264,7 +264,13 @@ def get_all_frontend_resources():
 
 
 def _write_file_if_changed(path, content):
-    current = read_file(path, default="")
+    # Prepend project root to relative paths for correct resolution
+    project_root = os.environ.get('TDK_PROJECT_ROOT', '')
+    if project_root and not path.startswith('/'):
+        full_path = project_root + '/' + path
+    else:
+        full_path = path
+    current = read_file(full_path, default="")
     if current != content:
         safe_content = str(content).replace("'", "'\\''")
         dir_path = path.rsplit("/", 1)[0]
@@ -639,13 +645,23 @@ def _generate_yaml_from_json_manifests():
             # Determine the corresponding YAML file path (service.json -> service.yaml)
             yaml_file = json_file.replace(MANIFEST_FILENAME_NEW, MANIFEST_FILENAME_NEW_YAML)
             
+            # Prepend project root to relative paths for correct resolution
+            project_root = os.environ.get('TDK_PROJECT_ROOT', '')
+            if project_root and not json_file.startswith('/'):
+                full_json_path = project_root + '/' + json_file
+                full_yaml_path = project_root + '/' + yaml_file
+            else:
+                full_json_path = json_file
+                full_yaml_path = yaml_file
+            
             # Check if regeneration is needed
-            check_cmd = "if [ ! -f " + yaml_file + " ] || [ " + json_file + " -nt " + yaml_file + " ]; then echo 'regenerate'; fi"
+            check_cmd = "if [ ! -f " + full_yaml_path + " ] || [ " + full_json_path + " -nt " + full_yaml_path + " ]; then echo 'regenerate'; fi"
             needs_regen = str(local(check_cmd, quiet=True)).strip()
             
             if needs_regen:
                 # Read and parse JSON
-                json_content = read_file(json_file, default='')
+                json_content = read_file(full_json_path, default='')
+                json_content = read_file(full_json_path, default='')
                 if json_content:
                     manifest = decode_json(json_content)
                     if manifest:
@@ -655,7 +671,7 @@ def _generate_yaml_from_json_manifests():
                             # Write YAML file using shell command (write_file not available in Starlark)
                             # Escape the content for shell
                             yaml_escaped = yaml_content.replace("'", "'\\''")
-                            write_cmd = "echo '" + yaml_escaped + "' > " + yaml_file
+                            write_cmd = "echo '" + yaml_escaped + "' > " + full_yaml_path
                             local(write_cmd, quiet=True)
                             generated_count += 1
     

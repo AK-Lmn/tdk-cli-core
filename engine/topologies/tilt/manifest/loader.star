@@ -38,7 +38,14 @@ def load_from_file(path):
     JSON files are the source of truth (developer-defined).
     YAML files are generated from JSON for Tilt resource tracking only.
     """
-    content_raw = read_file(path, default="")
+    # Prepend project root to relative paths for correct resolution
+    project_root = os.environ.get('TDK_PROJECT_ROOT', '')
+    if project_root and not path.startswith('/'):
+        full_path = project_root + '/' + path
+    else:
+        full_path = path
+    
+    content_raw = read_file(full_path, default="")
     content = str(content_raw)  # Convert blob to string
     if not content:
         return struct(manifest=None, error="File not found: " + path)
@@ -112,14 +119,21 @@ def _get_manifest_filename_with_fallback(service_path):
     
     Returns: (filename, is_legacy)
     """
+    # Prepend project root to relative paths for correct resolution
+    project_root = os.environ.get('TDK_PROJECT_ROOT', '')
+    if project_root and not service_path.startswith('/'):
+        base_path = project_root + '/' + service_path
+    else:
+        base_path = service_path
+    
     # Check for new filename first
-    new_path = service_path + "/" + MANIFEST_FILENAME_NEW
+    new_path = base_path + "/" + MANIFEST_FILENAME_NEW
     new_content = read_file(new_path, default="")
     if new_content:
         return (MANIFEST_FILENAME_NEW, False)
     
     # Fall back to legacy filename
-    legacy_path = service_path + "/" + MANIFEST_FILENAME
+    legacy_path = base_path + "/" + MANIFEST_FILENAME
     legacy_content = read_file(legacy_path, default="")
     if legacy_content:
         # Deprecation warning

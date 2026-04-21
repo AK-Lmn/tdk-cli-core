@@ -258,7 +258,13 @@ def get_all_frontend_resources():
 
 
 def _write_file_if_changed(path, content):
-    current = read_file(path, default="")
+    # Prepend project root to relative paths for correct resolution
+    project_root = os.environ.get('TDK_PROJECT_ROOT', '')
+    if project_root and not path.startswith('/'):
+        full_path = project_root + '/' + path
+    else:
+        full_path = path
+    current = read_file(full_path, default="")
     if current != content:
         safe_content = str(content).replace("'", "'\\''")
         dir_path = path.rsplit("/", 1)[0]
@@ -639,7 +645,13 @@ def _generate_yaml_from_json_manifests():
             
             if needs_regen:
                 # Read and parse JSON
-                json_content = read_file(json_file, default='')
+                # Prepend project root to relative paths for correct resolution
+                project_root = os.environ.get('TDK_PROJECT_ROOT', '')
+                if project_root and not json_file.startswith('/'):
+                    full_json_path = project_root + '/' + json_file
+                else:
+                    full_json_path = json_file
+                json_content = read_file(full_json_path, default='')
                 if json_content:
                     manifest = decode_json(json_content)
                     if manifest:
