@@ -1,5 +1,5 @@
 load("../engine/topologies/tilt/manifest/parser.star", "extract_domain_from_path")
-load("./manifest/loader.star", "ManifestLoader")
+load("../engine/topologies/tilt/manifest/loader.star", "ManifestLoader")
 load("./manifest/loading.star", "get_default_syncs_for_type")
 
 # Out of scope domains - defined locally for unified repo
