@@ -274,7 +274,12 @@ const TUIApp: React.FC = () => {
           const listStartY = 6;
           const clickedIndex = y - listStartY;
           
-          if (clickedIndex >= 0 && clickedIndex < items.length) {
+          // Check if click is within the list area (left side, not in sidebar)
+          // List starts at column 1, width varies based on sidebar visibility
+          const listStartX = 1;
+          const listWidth = showSidebar ? terminalWidth - 50 : terminalWidth - 4;
+          
+          if (clickedIndex >= 0 && clickedIndex < items.length && x >= listStartX && x <= listStartX + listWidth) {
             setHighlightedIndex(clickedIndex);
             const clickedItem = items[clickedIndex];
             if (clickedItem) {
@@ -307,7 +312,11 @@ const TUIApp: React.FC = () => {
           const listStartY = 6;
           const clickedIndex = row - listStartY;
           
-          if (clickedIndex >= 0 && clickedIndex < items.length) {
+          // Check if click is within the list area (left side, not in sidebar)
+          const listStartX = 1;
+          const listWidth = showSidebar ? terminalWidth - 50 : terminalWidth - 4;
+          
+          if (clickedIndex >= 0 && clickedIndex < items.length && col >= listStartX && col <= listStartX + listWidth) {
             setHighlightedIndex(clickedIndex);
             const clickedItem = items[clickedIndex];
             if (clickedItem) {
@@ -322,7 +331,7 @@ const TUIApp: React.FC = () => {
     return () => {
       stdin.off('data', handleMouseData);
     };
-  }, [mouseEnabled, stdin, items, terminalWidth, setHighlightedIndex, setActiveTab, handleSelect]);
+  }, [mouseEnabled, stdin, items, terminalWidth, showSidebar, setHighlightedIndex, setActiveTab, handleSelect]);
 
   // Keyboard handling
   useInput((input, key) => {
