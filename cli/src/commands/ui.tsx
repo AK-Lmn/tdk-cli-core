@@ -6,8 +6,8 @@
  */
 
 import { Command } from 'commander';
-import React, { useState, useMemo } from 'react';
-import { render, Box, Text, useInput, useApp, useStdout } from 'ink';
+import React, { useState, useMemo, useEffect } from 'react';
+import { render, Box, Text, useInput, useApp, useStdout, useStdin } from 'ink';
 import SelectInput from 'ink-select-input';
 import { discoverStacks, discoverServices, findProjectRoot } from '../utils/services.js';
 import { isTiltAvailable } from '../utils/tilt.js';
@@ -31,7 +31,7 @@ const StatusBar: React.FC<{mode: string; stacks: number; services: number; inSta
     <Box justifyContent="space-between">
       <Text color="gray">Stacks: {stacks}</Text>
       <Text color="gray">Services: {services}</Text>
-      <Text color="gray">[↑↓] Navigate | [Enter] Select | [Tab] Mode | [q] Quit</Text>
+      <Text color="gray">[↑↓] Navigate | [Enter/Space] Select | [Tab] Mode | [q] Quit</Text>
     </Box>
   </Box>
 );
@@ -40,9 +40,11 @@ const StatusBar: React.FC<{mode: string; stacks: number; services: number; inSta
 const TUIApp: React.FC = () => {
   const { exit } = useApp();
   const { stdout } = useStdout();
+  const { stdin, setRawMode } = useStdin();
   const [mode, setMode] = useState<'stacks' | 'services' | 'files'>('stacks');
   const [selectedStack, setSelectedStack] = useState<string | null>(null);
   const [message, setMessage] = useState<string>('');
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
 
   const projectRoot = findProjectRoot() || 'unknown';
   const stacks = discoverStacks();
@@ -81,6 +83,14 @@ const TUIApp: React.FC = () => {
 
   const items = getItems();
 
+  // Enable raw mode for keyboard input
+  useEffect(() => {
+    setRawMode(true);
+    return () => {
+      setRawMode(false);
+    };
+  }, [setRawMode]);
+
   // Handle keyboard input
   useInput((input, key) => {
     if (input === 'q' || key.escape) {
@@ -92,6 +102,28 @@ const TUIApp: React.FC = () => {
         const idx = modes.indexOf(prev);
         return modes[(idx + 1) % modes.length];
       });
+    }
+    // Spacebar to select current item
+    if (input === ' ') {
+      // Get currently highlighted item and select it
+      const currentItem = items[highlightedIndex];
+      if (currentItem) {
+        handleSelect(currentItem);
+      }
+    }
+    // Arrow navigation with wrapping
+    if (key.upArrow) {
+      setHighlightedIndex(prev => (prev > 0 ? prev - 1 : items.length - 1));
+    }
+    if (key.downArrow) {
+      setHighlightedIndex(prev => (prev < items.length - 1 ? prev + 1 : 0));
+    }
+    // Home/End keys
+    if (key.return) {
+      const currentItem = items[highlightedIndex];
+      if (currentItem) {
+        handleSelect(currentItem);
+      }
     }
   });
 
@@ -130,6 +162,7 @@ const TUIApp: React.FC = () => {
               <SelectInput 
                 items={items} 
                 onSelect={handleSelect}
+                initialIndex={highlightedIndex}
                 indicatorComponent={({ isSelected }) => (
                   <Text color={isSelected ? 'cyan' : undefined}>{isSelected ? '▸ ' : '  '}</Text>
                 )}
@@ -159,6 +192,7 @@ const TUIApp: React.FC = () => {
               <SelectInput 
                 items={items} 
                 onSelect={handleSelect}
+                initialIndex={highlightedIndex}
                 indicatorComponent={({ isSelected }) => (
                   <Text color={isSelected ? 'cyan' : undefined}>{isSelected ? '▸ ' : '  '}</Text>
                 )}
