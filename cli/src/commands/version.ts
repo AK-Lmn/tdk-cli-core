@@ -1,8 +1,13 @@
 import { Command } from 'commander';
-import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 
-const require = createRequire(import.meta.url);
-const pkg = require('../package.json');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Read package.json directly
+const pkg = JSON.parse(readFileSync(join(__dirname, '..', '..', 'package.json'), 'utf-8'));
 
 export const versionCommand = new Command('version')
   .description('Display version number')

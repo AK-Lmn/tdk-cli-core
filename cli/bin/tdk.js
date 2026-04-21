@@ -1,14 +1,13 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { createRequire } from 'node:module';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Resolve the compiled CLI entry point
-const cliPath = join(__dirname, '..', 'dist', 'cli.js');
+// Resolve the CLI entry point (source, no build needed with Bun)
+const cliPath = join(__dirname, '..', 'src', 'cli.ts');
 
 // Run the CLI
 import(cliPath).catch((err) => {
