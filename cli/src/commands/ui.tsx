@@ -7,8 +7,9 @@
 
 import { Command } from 'commander';
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { render, Box, Text, useInput, useApp, useStdout, useStdin } from 'ink';
+import { render, Box, Text, useInput, useApp, useStdout, useStdin, type Key } from 'ink';
 import SelectInput from 'ink-select-input';
+import { stdin as processStdin } from 'node:process';
 import { 
   discoverStacks, 
   discoverServices, 
@@ -35,6 +36,7 @@ const HelpPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => (
     <Text bold color="cyan" underline>Keyboard Shortcuts</Text>
     <Box marginY={1} flexDirection="column">
       <Text><Text bold>Navigation:</Text></Text>
+      <Text>  Mouse   Click to select items/tabs</Text>
       <Text>  ↑/↓     Navigate list items</Text>
       <Text>  Enter   Select item / Open detail</Text>
       <Text>  Space   Toggle expand (tree view)</Text>
@@ -50,6 +52,7 @@ const HelpPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => (
       
       <Text><Text bold>Actions:</Text></Text>
       <Text>  a       Toggle all/pre-alpha services</Text>
+      <Text>  m       Toggle mouse support</Text>
       <Text>  r       Refresh data</Text>
       <Text>  /       Search/filter</Text>
       <Text>  ?       Show this help</Text>
@@ -81,6 +84,8 @@ const TUIApp: React.FC = () => {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [mouseEnabled, setMouseEnabled] = useState(true);
+  const [mouseClickY, setMouseClickY] = useState<number | null>(null);
 
   // Data
   const projectRoot = findProjectRoot() || 'unknown';
@@ -175,13 +180,23 @@ const TUIApp: React.FC = () => {
 
   const items = getItems();
 
-  // Enable raw mode for keyboard input
+  // Enable raw mode and mouse support
   useEffect(() => {
     setRawMode(true);
+    
+    // Enable mouse reporting (X11 mode - button press and release)
+    if (mouseEnabled && processStdin.isTTY) {
+      processStdin.write('\x1b[?1000h\x1b[?1002h\x1b[?1015h\x1b[?1006h');
+    }
+    
     return () => {
       setRawMode(false);
+      // Disable mouse reporting
+      if (processStdin.isTTY) {
+        processStdin.write('\x1b[?1000l\x1b[?1002l\x1b[?1015l\x1b[?1006l');
+      }
     };
-  }, [setRawMode]);
+  }, [setRawMode, mouseEnabled]);
 
   // Handle terminal resize
   useEffect(() => {
@@ -194,6 +209,83 @@ const TUIApp: React.FC = () => {
       stdout.off('resize', handleResize);
     };
   }, [stdout]);
+
+  // Handle mouse clicks
+  useEffect(() => {
+    if (!mouseEnabled || !stdin) return;
+    
+    const handleMouseData = (data: Buffer) => {
+      const str = data.toString();
+      
+      // Check for mouse event sequences
+      // X10 mode: \x1b[M<btn><col><row> (3 chars after M)
+      // SGR 1006 mode: \x1b[<btn;x;yM (press) or \x1b[<btn;x;ym (release)
+      
+      const sgrMatch = str.match(/\x1b\[<(\d+);(\d+);(\d+)(M|m)/);
+      if (sgrMatch) {
+        const button = parseInt(sgrMatch[1], 10);
+        const x = parseInt(sgrMatch[2], 10);
+        const y = parseInt(sgrMatch[3], 10);
+        const isPress = sgrMatch[4] === 'M';
+        
+        // Button 0 = left click, 1 = middle, 2 = right
+        if (isPress && button === 0) {
+          setMouseClickY(y);
+          
+          // Calculate which list item was clicked
+          // Header is at rows 1-3, tab bar at row 4, content starts around row 6
+          const listStartY = 6;
+          const clickedIndex = y - listStartY;
+          
+          if (clickedIndex >= 0 && clickedIndex < items.length) {
+            setHighlightedIndex(clickedIndex);
+            const clickedItem = items[clickedIndex];
+            if (clickedItem) {
+              handleSelect(clickedItem);
+            }
+          }
+          
+          // Check for tab clicks (tab bar is at row 4)
+          if (y === 4) {
+            const tabWidth = Math.floor(terminalWidth / 5);
+            const clickedTab = Math.floor((x - 1) / tabWidth);
+            if (clickedTab >= 0 && clickedTab < 5) {
+              const tabs: TabId[] = ['overview', 'resources', 'events', 'files', 'config'];
+              setActiveTab(tabs[clickedTab]);
+            }
+          }
+        }
+        return;
+      }
+      
+      // X10 mode: \x1b[M followed by 3 bytes
+      const x10Match = str.match(/\x1b\[M(.)(.)(.)/);
+      if (x10Match) {
+        const button = x10Match[1].charCodeAt(0) - 32;
+        const col = x10Match[2].charCodeAt(0) - 32;
+        const row = x10Match[3].charCodeAt(0) - 32;
+        
+        if (button === 0) { // Left click
+          setMouseClickY(row);
+          const listStartY = 6;
+          const clickedIndex = row - listStartY;
+          
+          if (clickedIndex >= 0 && clickedIndex < items.length) {
+            setHighlightedIndex(clickedIndex);
+            const clickedItem = items[clickedIndex];
+            if (clickedItem) {
+              handleSelect(clickedItem);
+            }
+          }
+        }
+      }
+    };
+    
+    stdin.on('data', handleMouseData);
+    return () => {
+      stdin.off('data', handleMouseData);
+    };
+  }, [mouseEnabled, stdin, items, terminalWidth, setHighlightedIndex, setActiveTab, handleSelect]);
 
   // Keyboard handling
   useInput((input, key) => {
@@ -264,6 +356,16 @@ const TUIApp: React.FC = () => {
       return;
     }
 
+    if (input === 'm') {
+      setMouseEnabled(prev => {
+        const newState = !prev;
+        setMessage(newState ? 'Mouse support enabled' : 'Mouse support disabled');
+        return newState;
+      });
+      setTimeout(() => setMessage(''), 1500);
+      return;
+    }
+
     if (input === 'r') {
       clearMetadataCache();
       setMessage('Data refreshed');
@@ -307,11 +409,9 @@ const TUIApp: React.FC = () => {
     // Navigation
     if (key.upArrow) {
       setHighlightedIndex(prev => (prev > 0 ? prev - 1 : items.length - 1));
-      return;
     }
     if (key.downArrow) {
       setHighlightedIndex(prev => (prev < items.length - 1 ? prev + 1 : 0));
-      return;
     }
     if (key.return || input === ' ') {
       const currentItem = items[highlightedIndex];
@@ -322,7 +422,7 @@ const TUIApp: React.FC = () => {
     }
   });
 
-  const handleSelect = (item: { label: string; value: string }) => {
+  const handleSelect = useCallback((item: { label: string; value: string }) => {
     if (activeTab === 'overview') {
       setSelectedStack(item.value);
       setSelectedService(null);
@@ -356,7 +456,7 @@ const TUIApp: React.FC = () => {
       setMessage(`Viewing config for: ${item.value}`);
       setTimeout(() => setMessage(''), 2000);
     }
-  };
+  }, [activeTab, selectedStack, selectedService, setSelectedStack, setSelectedService, setSelectedFile, setMessage]);
 
   // Build file tree for Files tab
   const fileTreeNodes: FileNode[] = useMemo(() => {
@@ -632,7 +732,7 @@ const TUIApp: React.FC = () => {
         <Box justifyContent="space-between">
           <Text color="gray">Stacks: {stacks.length}</Text>
           <Text color="gray">Services: {services.length}</Text>
-          <Text color="gray">[?] Help | [1-5] Tabs | [q] Quit</Text>
+          <Text color="gray">🖱️Mouse {mouseEnabled ? 'ON' : 'OFF'} | [?] Help | [q] Quit</Text>
         </Box>
       </Box>
         </>
