@@ -1,0 +1,13 @@
+{
+  "appName": "product-introvertic-ui",
+  "appType": "library",
+  "domain": "identity",
+  "port": 0,
+  "replicas": 1,
+  "runtime": "bun",
+  "features": [],
+  "internalDependencies": [],
+  "stack": "identity",
+  "preAlpha": true,
+  "enabled": true
+}

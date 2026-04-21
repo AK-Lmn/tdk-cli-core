@@ -1,0 +1,13 @@
+{
+  "appName": "appointment-management-frontend",
+  "appType": "frontend",
+  "domain": "appointment",
+  "port": 3002,
+  "replicas": 1,
+  "runtime": "bun",
+  "features": ["vite-node"],
+  "internalDependencies": ["identity-sdk", "product-introvertic-ui"],
+  "stack": "appointment",
+  "preAlpha": true,
+  "enabled": true
+}

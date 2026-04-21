@@ -1,0 +1,13 @@
+{
+  "appName": "identity-management-frontend",
+  "appType": "frontend",
+  "domain": "identity",
+  "port": 3001,
+  "replicas": 1,
+  "runtime": "bun",
+  "features": ["vite-node"],
+  "internalDependencies": ["identity-sdk", "product-introvertic-ui"],
+  "stack": "identity",
+  "preAlpha": true,
+  "enabled": true
+}

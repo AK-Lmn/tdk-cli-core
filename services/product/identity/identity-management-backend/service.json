@@ -1,0 +1,13 @@
+{
+  "appName": "identity-management-backend",
+  "appType": "backend",
+  "domain": "identity",
+  "port": 4001,
+  "replicas": 2,
+  "runtime": "bun",
+  "features": ["nats", "prisma"],
+  "internalDependencies": ["identity-sdk", "introvertic-infra"],
+  "stack": "identity",
+  "preAlpha": true,
+  "enabled": true
+}

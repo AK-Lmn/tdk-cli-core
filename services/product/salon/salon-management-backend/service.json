@@ -1,0 +1,13 @@
+{
+  "appName": "salon-management-backend",
+  "appType": "backend",
+  "domain": "salon",
+  "port": 4003,
+  "replicas": 2,
+  "runtime": "bun",
+  "features": ["nats", "prisma"],
+  "internalDependencies": ["identity-sdk"],
+  "stack": "salon",
+  "preAlpha": true,
+  "enabled": false
+}

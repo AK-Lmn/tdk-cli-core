@@ -1,0 +1,13 @@
+{
+  "appName": "appointment-management-backend",
+  "appType": "backend",
+  "domain": "appointment",
+  "port": 4002,
+  "replicas": 2,
+  "runtime": "bun",
+  "features": ["nats", "prisma"],
+  "internalDependencies": ["identity-sdk"],
+  "stack": "appointment",
+  "preAlpha": true,
+  "enabled": true
+}

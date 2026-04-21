@@ -1,0 +1,13 @@
+{
+  "appName": "api-gateway",
+  "appType": "backend",
+  "domain": "platform",
+  "port": 8080,
+  "replicas": 2,
+  "runtime": "bun",
+  "features": ["nats"],
+  "internalDependencies": [],
+  "stack": "platform",
+  "preAlpha": true,
+  "enabled": true
+}
