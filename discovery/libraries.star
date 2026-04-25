@@ -7,7 +7,7 @@ load("./config.star", "PLATFORM_LIBS_EXPLICIT", "PLATFORM_LIBS_FRONTEND", "PRODU
 
 def autodiscover_libraries(root_path, prefix):
     libs = []
-    result = str(local("ls -d " + root_path + "/" + prefix + "*/ 2>/dev/null || true", quiet=True))
+    result = str(local("ls -d " + root_path + "/" + prefix + "*/ 2>/dev/null || true", quiet=True, echo_off=True))
 
     if result:
         for line in result.strip().split("\n"):

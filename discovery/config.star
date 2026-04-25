@@ -1,16 +1,131 @@
+#!/usr/bin/env starlark
 # =============================================================================
 # 🗺️ TOPOLOGIES - DISCOVERY CONFIG
 # =============================================================================
 
 load("./constants.star", "SERVICES_ROOT")
 load("../../platform/docker/constants.star", "PlatformDockerConstants")
-load("../engine/spec.master", "DEFAULTS")
 
-# FOCUS release phase service lists
-# These define which services are included in each release phase
-FOCUS_PRE_ALPHA = DEFAULTS.get("pre_alpha_services", [])
-FOCUS_ALPHA = DEFAULTS.get("alpha_services", [])
-FOCUS_BETA = DEFAULTS.get("beta_services", [])
+# NOTE: DEFAULTS and focus lists are now loaded dynamically in registry.star
+# from the project's spec.master (using TDK_PROJECT_ROOT environment variable).
+# This allows per-project service configuration.
+
+# Default empty values - will be populated by _load_project_defaults() in registry.star
+DEFAULTS = {}
+FOCUS_PRE_ALPHA = []
+FOCUS_ALPHA = []
+FOCUS_BETA = []
+
+# Export a function to load project-specific defaults
+def load_project_defaults(project_root):
+    """
+    Load DEFAULTS and focus lists from project spec.master.
+    Called by registry.star during initialization.
+    
+    Returns struct with loaded values or None if spec.master not found.
+    """
+    if not project_root:
+        return None
+    
+    spec_path = project_root + "/spec.master"
+    
+    # Check if spec.master exists
+    check_cmd = "test -f '{}' && echo 'yes' || echo 'no'".format(spec_path)
+    exists = str(local(check_cmd, quiet=True, echo_off=True)).strip() == 'yes'
+    
+    if not exists:
+        return None
+    
+    # Read and parse the spec.master file
+    # Since we can't dynamically load, we parse it manually
+    spec_content_raw = read_file(spec_path, default="")
+    if not spec_content_raw:
+        return None
+    
+    # Ensure content is a string (read_file may return bytes)
+    spec_content = str(spec_content_raw)
+    
+    # Extract PRE_ALPHA_SERVICES from the file
+    # This is a simple parser for the expected format
+    defaults = {}
+    pre_alpha = []
+    alpha = []
+    beta = []
+    
+    # Parse PRE_ALPHA_SERVICES
+    if "PRE_ALPHA_SERVICES" in spec_content:
+        # Extract the dict content between { and }
+        start = spec_content.find("PRE_ALPHA_SERVICES = {")
+        if start != -1:
+            start = spec_content.find("{", start)
+            end = spec_content.find("}", start)
+            if start != -1 and end != -1:
+                dict_content = spec_content[start+1:end]
+                # Parse "key": True/False entries
+                for line in dict_content.split("\n"):
+                    line = line.strip()
+                    if line and not line.startswith("#"):
+                        # Extract key before colon
+                        if '"' in line or "'" in line:
+                            # Find quoted key
+                            quote_char = '"' if '"' in line else "'"
+                            key_start = line.find(quote_char)
+                            key_end = line.find(quote_char, key_start + 1)
+                            if key_start != -1 and key_end != -1:
+                                key = line[key_start+1:key_end]
+                                # Check if value is True
+                                if "True" in line:
+                                    defaults[key] = True
+                                    pre_alpha.append(key)
+    
+    # Parse ALPHA_SERVICES
+    if "ALPHA_SERVICES" in spec_content:
+        start = spec_content.find("ALPHA_SERVICES = {")
+        if start != -1:
+            start = spec_content.find("{", start)
+            end = spec_content.find("}", start)
+            if start != -1 and end != -1:
+                dict_content = spec_content[start+1:end]
+                for line in dict_content.split("\n"):
+                    line = line.strip()
+                    if line and not line.startswith("#"):
+                        if '"' in line or "'" in line:
+                            quote_char = '"' if '"' in line else "'"
+                            key_start = line.find(quote_char)
+                            key_end = line.find(quote_char, key_start + 1)
+                            if key_start != -1 and key_end != -1:
+                                key = line[key_start+1:key_end]
+                                if "True" in line:
+                                    defaults[key] = True
+                                    alpha.append(key)
+    
+    # Parse BETA_SERVICES
+    if "BETA_SERVICES" in spec_content:
+        start = spec_content.find("BETA_SERVICES = {")
+        if start != -1:
+            start = spec_content.find("{", start)
+            end = spec_content.find("}", start)
+            if start != -1 and end != -1:
+                dict_content = spec_content[start+1:end]
+                for line in dict_content.split("\n"):
+                    line = line.strip()
+                    if line and not line.startswith("#"):
+                        if '"' in line or "'" in line:
+                            quote_char = '"' if '"' in line else "'"
+                            key_start = line.find(quote_char)
+                            key_end = line.find(quote_char, key_start + 1)
+                            if key_start != -1 and key_end != -1:
+                                key = line[key_start+1:key_end]
+                                if "True" in line:
+                                    defaults[key] = True
+                                    beta.append(key)
+    
+    return struct(
+        DEFAULTS = defaults,
+        FOCUS_PRE_ALPHA = pre_alpha,
+        FOCUS_ALPHA = pre_alpha + alpha,
+        FOCUS_BETA = pre_alpha + alpha + beta,
+    )
 
 # -----------------------------------------------------------------------------
 # 🎛️ SERVICE DEFAULTS
@@ -94,8 +209,6 @@ INFRA_DOMAIN_MAP = {
     "traefik": "proxy",
     "verdaccio": "verdaccio",
     "infisical": "infisical",
-    "infisical-db": "infisical",
-    "infisical-redis": "infisical",
 }
 
 OPTIONAL_INFRA = {
@@ -106,11 +219,7 @@ OPTIONAL_INFRA = {
 }
 
 # -----------------------------------------------------------------------------
-# 🎛️ SERVICE DEFAULTS
-# -----------------------------------------------------------------------------
-# Loaded from: spec.master (in project root)
-# See that file for service enable/disable configuration
-# DEFAULTS variable imported at top of file via load()
+# 📚 LIBRARY DEFINITIONS
 # -----------------------------------------------------------------------------
 
 DDD_LIBS = [
@@ -152,9 +261,22 @@ PRODUCT_LIBS_EXPLICIT = [
 ]
 
 # Export DEFAULTS and focus filters for use by other modules via Config struct
+# Note: These will be populated by load_project_defaults() in registry.star
 Config = struct(
+    load_project_defaults = load_project_defaults,
     DEFAULTS = DEFAULTS,
     FOCUS_PRE_ALPHA = FOCUS_PRE_ALPHA,
     FOCUS_ALPHA = FOCUS_ALPHA,
     FOCUS_BETA = FOCUS_BETA,
+    GLOBAL = GLOBAL_CONFIG,
+    INFRA_SERVICES = INFRA_SERVICES,
+    CORE_INFRA = CORE_INFRA,
+    INFRA_DOMAIN_MAP = INFRA_DOMAIN_MAP,
+    OPTIONAL_INFRA = OPTIONAL_INFRA,
+    DDD_LIBS = DDD_LIBS,
+    PLATFORM_LIBS_EXPLICIT = PLATFORM_LIBS_EXPLICIT,
+    PLATFORM_CLI_TOOLS = PLATFORM_CLI_TOOLS,
+    PLATFORM_LIBS_FRONTEND = PLATFORM_LIBS_FRONTEND,
+    PRODUCT_LIBS_FRONTEND = PRODUCT_LIBS_FRONTEND,
+    PRODUCT_LIBS_EXPLICIT = PRODUCT_LIBS_EXPLICIT,
 )

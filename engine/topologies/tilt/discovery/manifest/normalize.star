@@ -131,7 +131,7 @@ def _discover_manifests_in_path(root_path):
         root=root_path,
         filename=MANIFEST_FILENAME
     )
-    result = str(local(find_cmd, quiet=True))
+    result = str(local(find_cmd, quiet=True, echo_off=True))
     
     manifests = []
     if result:

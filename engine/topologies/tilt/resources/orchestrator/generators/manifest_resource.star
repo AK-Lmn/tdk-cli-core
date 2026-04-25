@@ -416,6 +416,20 @@ def _generate_yaml_manifest(resource_path, manifest, write_file):
     write_file(yaml_path, yaml_content)
 
 
+# =============================================================================
+# 📦 EXPORTED STRUCT
+# =============================================================================
+
+# Track created config-gen resources to prevent duplicates (use list instead of dict to avoid frozen issues)
+_CONFIG_GEN_CREATED = []
+
+def _is_config_gen_created(name):
+    """Check if a config-gen resource was already created."""
+    for created in _CONFIG_GEN_CREATED:
+        if created == name:
+            return True
+    return False
+
 def create_manifest_config_resource(
     service_name,
     resource_config,
@@ -447,6 +461,12 @@ def create_manifest_config_resource(
     # which uses resource.get('_service_path', ...) to get the actual path
     resource_path = service_path
     config_gen_resource_name = resource_name + '-config-gen'
+    
+    # Skip if this config-gen resource was already created (deduplication)
+    if _is_config_gen_created(config_gen_resource_name):
+        print("   ⚠️  Skipping duplicate config-gen: " + config_gen_resource_name)
+        return config_gen_resource_name
+    
     auto_init_config_gen = ctx.get('auto_init_config_gen', True)
     
     # Dependencies to watch
@@ -479,12 +499,11 @@ def create_manifest_config_resource(
         auto_init=auto_init_config_gen
     )
     
+    # Mark this resource as created (append to mutable list)
+    _CONFIG_GEN_CREATED.append(config_gen_resource_name)
+    
     return config_gen_resource_name
 
-
-# =============================================================================
-# 📦 EXPORTED STRUCT
-# =============================================================================
 
 ManifestResource = struct(
     generate_all_configs = _generate_all_configs_for_resource,

@@ -29,11 +29,11 @@ _LEGACY_LOADER_ONLY = os.environ.get('BEAUTY_CRM_LEGACY_LOADER_ONLY', '') == 'tr
 
 def _check_prisma_folder(service_path):
     """
-    Check if prisma/ directory exists in service path.
+    Check if prisma/ directory exists in service path (silent).
     Used to auto-detect has_migrator when not in features.
     """
     check_cmd = "test -d '{path}/prisma' && echo 'yes' || echo 'no'".format(path=service_path)
-    result = str(local(check_cmd, quiet=True)).strip()
+    result = str(local(check_cmd, quiet=True, echo_off=True)).strip()
     return result == 'yes'
 
 
@@ -247,7 +247,7 @@ def _apply_manifest_defaults(manifest, service_path):
     if 'dockerfile' in result:
         custom_dockerfile = result['dockerfile']
         dockerfile_path = service_path + '/' + custom_dockerfile
-        dockerfile_exists = local("test -f '{path}' && echo 'yes' || echo 'no'".format(path=dockerfile_path), quiet=True)
+        dockerfile_exists = local("test -f '{path}' && echo 'yes' || echo 'no'".format(path=dockerfile_path), quiet=True, echo_off=True)
         if str(dockerfile_exists).strip() != 'yes':
             fail("""
 ❌ ═══════════════════════════════════════════════════════════════════
@@ -389,14 +389,14 @@ def get_manifest_filename(service_path):
     Returns:
         Filename string or None if neither exists (synthesis will be used)
     """
-    # Check new filename first
+    # Check new filename first (silent)
     new_path = service_path + '/' + MANIFEST_FILENAME_NEW
-    if local("test -f '{path}' && echo 'yes' || echo 'no'".format(path=new_path), quiet=True) == 'yes':
+    if local("test -f '{path}' && echo 'yes' || echo 'no'".format(path=new_path), quiet=True, echo_off=True) == 'yes':
         return MANIFEST_FILENAME_NEW
     
-    # Check legacy filename
+    # Check legacy filename (silent)
     legacy_path = service_path + '/' + MANIFEST_FILENAME
-    if local("test -f '{path}' && echo 'yes' || echo 'no'".format(path=legacy_path), quiet=True) == 'yes':
+    if local("test -f '{path}' && echo 'yes' || echo 'no'".format(path=legacy_path), quiet=True, echo_off=True) == 'yes':
         return MANIFEST_FILENAME
     
     # Neither exists - synthesis will be used

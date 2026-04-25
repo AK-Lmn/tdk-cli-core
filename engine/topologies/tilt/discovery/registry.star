@@ -538,6 +538,36 @@ SERVICE_PATH_MAP = _DISCOVERY_CACHE["service_path_map"]
 print("✅ Registry initialized (" + str(len(APP_SERVICES)) + " services)")
 print("")
 
+# Load project-specific defaults from spec.master
+# This populates DEFAULTS, FOCUS_PRE_ALPHA, etc.
+project_root = os.environ.get('TDK_PROJECT_ROOT', '')
+if project_root:
+    project_defaults = Config.load_project_defaults(project_root)
+    if project_defaults:
+        print("📄 Loaded project defaults from: " + project_root + "/spec.master")
+        print("   Pre-alpha services: " + str(len(project_defaults.FOCUS_PRE_ALPHA)))
+        # Update Config with loaded values
+        Config = struct(
+            load_project_defaults = Config.load_project_defaults,
+            DEFAULTS = project_defaults.DEFAULTS,
+            FOCUS_PRE_ALPHA = project_defaults.FOCUS_PRE_ALPHA,
+            FOCUS_ALPHA = project_defaults.FOCUS_ALPHA,
+            FOCUS_BETA = project_defaults.FOCUS_BETA,
+            GLOBAL = Config.GLOBAL,
+            INFRA_SERVICES = Config.INFRA_SERVICES,
+            CORE_INFRA = Config.CORE_INFRA,
+            INFRA_DOMAIN_MAP = Config.INFRA_DOMAIN_MAP,
+            OPTIONAL_INFRA = Config.OPTIONAL_INFRA,
+            DDD_LIBS = Config.DDD_LIBS,
+            PLATFORM_LIBS_EXPLICIT = Config.PLATFORM_LIBS_EXPLICIT,
+            PLATFORM_CLI_TOOLS = Config.PLATFORM_CLI_TOOLS,
+            PLATFORM_LIBS_FRONTEND = Config.PLATFORM_LIBS_FRONTEND,
+            PRODUCT_LIBS_FRONTEND = Config.PRODUCT_LIBS_FRONTEND,
+            PRODUCT_LIBS_EXPLICIT = Config.PRODUCT_LIBS_EXPLICIT,
+        )
+    else:
+        print("⚠️  No project spec.master found, using empty defaults")
+
 OPTIONAL_INFRA_EXPORT = OPTIONAL_INFRA
 CORE_INFRA_EXPORT = CORE_INFRA
 INFRA_DOMAIN_MAP_EXPORT = INFRA_DOMAIN_MAP
@@ -633,7 +663,7 @@ def _generate_yaml_from_json_manifests():
         
         # Search for service.json manifests only (migration complete)
         cmd = "cd " + config.main_dir + " && find " + root + " -type f -name '" + MANIFEST_FILENAME_NEW + "' 2>/dev/null"
-        result = str(local(cmd, quiet=True)).strip()
+        result = str(local(cmd, quiet=True, echo_off=True)).strip()
         if result:
             for f in result.split("\n"):
                 f = f.strip()
@@ -654,13 +684,12 @@ def _generate_yaml_from_json_manifests():
                 full_json_path = json_file
                 full_yaml_path = yaml_file
             
-            # Check if regeneration is needed
+            # Check if regeneration is needed (silent - echo_off prevents log noise)
             check_cmd = "if [ ! -f " + full_yaml_path + " ] || [ " + full_json_path + " -nt " + full_yaml_path + " ]; then echo 'regenerate'; fi"
-            needs_regen = str(local(check_cmd, quiet=True)).strip()
+            needs_regen = str(local(check_cmd, quiet=True, echo_off=True)).strip()
             
             if needs_regen:
                 # Read and parse JSON
-                json_content = read_file(full_json_path, default='')
                 json_content = read_file(full_json_path, default='')
                 if json_content:
                     manifest = decode_json(json_content)
@@ -672,7 +701,7 @@ def _generate_yaml_from_json_manifests():
                             # Escape the content for shell
                             yaml_escaped = yaml_content.replace("'", "'\\''")
                             write_cmd = "echo '" + yaml_escaped + "' > " + full_yaml_path
-                            local(write_cmd, quiet=True)
+                            local(write_cmd, quiet=True, echo_off=True)
                             generated_count += 1
     
     if generated_count > 0:
@@ -696,13 +725,13 @@ def load_yaml_manifests_as_resources():
     
     print("🎯 Loading YAML manifests as Tilt resources (local mode)...")
     
-    # Find all YAML manifest files across all discovery roots
+    # Find all YAML manifest files across all discovery roots (silent)
     # Check both legacy (platform-computing-provisioner.manifest.yaml) and new (service.yaml) naming
     yaml_files = []
     for root in DISCOVERY_SCAN_ROOTS:
         # Search for legacy YAML manifests
         cmd_legacy = "cd " + config.main_dir + " && find " + root + " -type f -name '" + MANIFEST_FILENAME_YAML + "' 2>/dev/null"
-        result_legacy = str(local(cmd_legacy, quiet=True)).strip()
+        result_legacy = str(local(cmd_legacy, quiet=True, echo_off=True)).strip()
         if result_legacy:
             for f in result_legacy.split("\n"):
                 f = f.strip()
@@ -711,7 +740,7 @@ def load_yaml_manifests_as_resources():
         
         # Search for new service.yaml manifests
         cmd_new = "cd " + config.main_dir + " && find " + root + " -type f -name '" + MANIFEST_FILENAME_NEW_YAML + "' 2>/dev/null"
-        result_new = str(local(cmd_new, quiet=True)).strip()
+        result_new = str(local(cmd_new, quiet=True, echo_off=True)).strip()
         if result_new:
             for f in result_new.split("\n"):
                 f = f.strip()
@@ -723,6 +752,10 @@ def load_yaml_manifests_as_resources():
         return
     
     print("📄 Loading " + str(len(yaml_files)) + " YAML files as Tilt resources...")
+    
+    # Track created resources to prevent duplicates (same service may exist in multiple scan roots)
+    created_resources = {}
+    skipped_duplicates = []
     
     # Load each YAML file as a Tilt local_resource (no k8s cluster needed!)
     for yaml_file in yaml_files:
@@ -751,6 +784,11 @@ def load_yaml_manifests_as_resources():
         
         resource_name = service_name + "-yaml"
         
+        # Skip if this resource name was already created (deduplication)
+        if resource_name in created_resources:
+            skipped_duplicates.append(resource_name + " (from " + yaml_file + ")")
+            continue
+        
         # For the dependency path, we need the repo-relative path (without ../../../../)
         if yaml_file.startswith("../../../../"):
             yaml_path_display = yaml_file[12:]  # Remove "../../../../" for display
@@ -766,9 +804,16 @@ def load_yaml_manifests_as_resources():
             labels=["yaml-manifest"],
         )
         
+        created_resources[resource_name] = True
         print("  ↳ Created resource: " + resource_name)
     
-    print("✅ Loaded " + str(len(yaml_files)) + " YAML manifests as Tilt resources (no k8s needed)!")
+    # Report results
+    created_count = len(created_resources)
+    print("✅ Loaded " + str(created_count) + " YAML manifests as Tilt resources (no k8s needed)!")
+    if skipped_duplicates:
+        print("  ⚠️  Skipped " + str(len(skipped_duplicates)) + " duplicate(s):")
+        for dup in skipped_duplicates:
+            print("     - " + dup)
     print("📝 ═══════════════════════════════════════════════════════════════")
     print("")
 

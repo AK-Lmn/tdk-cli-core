@@ -142,7 +142,7 @@ export default defineConfig({{
 }});
 """.format(
     expect_timeout=5000,  # 5 seconds for expect timeout
-    timeout=_discovery_config["playwright_timeout_ms"],
+    timeout=_discovery_config.get("playwright_timeout_ms", 30000),  # Default 30s timeout
 )
 
 

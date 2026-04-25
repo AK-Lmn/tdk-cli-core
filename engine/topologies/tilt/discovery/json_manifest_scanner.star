@@ -21,9 +21,9 @@ def discover_json_manifests(root_path):
     # Use config.main_dir to get the project root (where the main Tiltfile is)
     project_root = config.main_dir
     
-    # Run find from project root
+    # Run find from project root (silent)
     cmd = "cd " + project_root + " && find " + root_path + " -type f -name '" + MANIFEST_FILENAME_NEW + "' 2>/dev/null | sort"
-    result = str(local(cmd, quiet=True))
+    result = str(local(cmd, quiet=True, echo_off=True))
     
     manifests = []
     if result:

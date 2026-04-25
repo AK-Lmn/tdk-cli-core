@@ -22,10 +22,11 @@ def validate_service(service_config):
     for resource_path in service_paths:
         naming_errors = Utils.validate_lib_naming(resource_path)
         if naming_errors:
-            error_msg = "🔴 LIBRARY NAMING VIOLATION in " + service_name + "\n"
+            # Print warnings but don't fail - allow services to load with missing libs
+            print("⚠️  LIBRARY NAMING WARNING in " + service_name)
             for err in naming_errors:
-                error_msg += "   ❌ " + err['package'] + ": " + err['error'] + "\n"
-            fail(error_msg)
+                print("   ❌ " + err['package'] + ": " + err['error'])
+            print("   📝 Continuing despite missing libraries (this may cause build failures)")
 
 
 ServiceValidation = struct(

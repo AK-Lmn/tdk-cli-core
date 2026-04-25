@@ -28,9 +28,9 @@ def discover_json_manifests(root_path):
     else:
         full_path = project_root + "/" + root_path
     
-    # Search for service.json files
+    # Search for service.json files (silent)
     cmd = "find " + full_path + " -type f -name '" + MANIFEST_FILENAME_NEW + "' 2>/dev/null | sort"
-    result = str(local(cmd, quiet=True))
+    result = str(local(cmd, quiet=True, echo_off=True))
     
     manifests = []
     if result:
