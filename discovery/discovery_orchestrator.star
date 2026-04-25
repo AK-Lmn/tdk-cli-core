@@ -367,9 +367,18 @@ def _scan_services():
                 break
         
         if existing_service:
-            # Add resource to existing service
-            existing_service["resources"].append(resource)
-            existing_service["labels"].append("app." + app_name)
+            # Check if resource with same name already exists (prevent duplicates from multiple scan roots)
+            resource_exists = False
+            for existing_res in existing_service["resources"]:
+                if existing_res.get("name") == resource["name"]:
+                    resource_exists = True
+                    print("   ⚠️  Skipping duplicate resource: " + app_name + " (from " + service_path + ")")
+                    break
+            
+            if not resource_exists:
+                # Add resource to existing service
+                existing_service["resources"].append(resource)
+                existing_service["labels"].append("app." + app_name)
         else:
             # Create new service entry
             service = {
