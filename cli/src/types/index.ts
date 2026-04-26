@@ -62,6 +62,16 @@ export interface ServiceConfig {
    * Services without this field default to enabled (true).
    */
   enabled?: boolean;
+  /**
+   * Base path for Traefik routing.
+   * Used to construct the public URL: http://{host}/{basePath}
+   * Example: "/identity-management"
+   */
+  basePath?: string;
+  /**
+   * Backend service name this frontend connects to.
+   */
+  backendName?: string;
 }
 
 /**

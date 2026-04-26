@@ -16,6 +16,7 @@ import { projectCommand } from './commands/project.js';
 import { resourceCommand } from './commands/resource.js';
 import { completionCommand } from './commands/completion.js';
 import { upgradeCommand } from './commands/upgrade.js';
+import { networksCommand } from './commands/networks.js';
 import { showHelp } from './commands/help.js';
 const require = createRequire(import.meta.url);
 const pkg = require('../package.json');
@@ -55,6 +56,7 @@ program.addCommand(versionCommand);
 program.addCommand(doctorCommand);
 program.addCommand(completionCommand);
 program.addCommand(upgradeCommand);
+program.addCommand(networksCommand);
 // Show colorful help if no command provided
 if (process.argv.length === 2) {
     showHelp();
