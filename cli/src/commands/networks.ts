@@ -2,6 +2,7 @@
  * tdk networks command
  *
  * Show all Traefik-routed URLs for services with basePath.
+ * Design spec: networks-design.md
  */
 
 import { Command } from 'commander';
@@ -18,7 +19,9 @@ interface ServiceUrl {
   status: 'running' | 'stopped' | 'unknown';
 }
 
-// Get base domain from environment or default
+const BOX_WIDTH = 62;
+
+// Get base domain from environment or auto-detect
 function getBaseDomain(): string {
   if (process.env.TDK_PUBLIC_HOST) {
     return process.env.TDK_PUBLIC_HOST;
@@ -56,6 +59,27 @@ function checkServiceStatus(serviceName: string): 'running' | 'stopped' | 'unkno
   } catch {
     return 'unknown';
   }
+}
+
+// Helper to create a line of box characters
+function line(char: string, width: number = BOX_WIDTH): string {
+  return char.repeat(width);
+}
+
+// Center text in a box
+function center(text: string, width: number = BOX_WIDTH - 2): string {
+  const padding = Math.max(0, width - text.length);
+  const left = Math.floor(padding / 2);
+  const right = padding - left;
+  return ' '.repeat(left) + text + ' '.repeat(right);
+}
+
+// Pad text to exact width
+function pad(text: string, width: number): string {
+  if (text.length > width) {
+    return text.slice(0, width - 1) + '…';
+  }
+  return text.padEnd(width);
 }
 
 export const networksCommand = new Command('networks')
@@ -122,12 +146,11 @@ export const networksCommand = new Command('networks')
     
     // Header
     console.log();
-    console.log(chalk.cyan('┌────────────────────────────────────────────────────────────┐'));
-    console.log(chalk.cyan('│') + '  🌐  ' + chalk.bold.white('Traefik Network URLs') + ' '.repeat(35) + chalk.cyan('│'));
-    console.log(chalk.cyan('├────────────────────────────────────────────────────────────┤'));
-    console.log(chalk.cyan('│') + chalk.gray(`  Domain: http://${baseDomain}`).padEnd(59) + chalk.cyan('│'));
-    console.log(chalk.cyan('└────────────────────────────────────────────────────────────┘'));
-    console.log();
+    console.log(chalk.cyan('╭' + line('─', BOX_WIDTH - 2) + '╮'));
+    console.log(chalk.cyan('│') + chalk.bold.white(center('🌐  TRAEFIK NETWORKS')) + chalk.cyan('│'));
+    console.log(chalk.cyan('├' + line('─', BOX_WIDTH - 2) + '┤'));
+    console.log(chalk.cyan('│') + chalk.gray(center(`Domain: http://${baseDomain}`)) + chalk.cyan('│'));
+    console.log(chalk.cyan('╰' + line('─', BOX_WIDTH - 2) + '╯'));
     
     // Group by stack
     const stacks = new Map<string, ServiceUrl[]>();
@@ -140,30 +163,41 @@ export const networksCommand = new Command('networks')
     }
     
     // Display by stack
+    let isFirstStack = true;
     for (const [stackName, stackServices] of stacks) {
-      const emoji = getStackEmoji(stackName);
-      console.log(chalk.bold(`${emoji} ${stackName}`));
-      console.log(chalk.gray('  ' + '─'.repeat(56)));
-      
-      for (const service of stackServices) {
-        const statusEmoji = service.status === 'running' ? '🟢' : 
-                           service.status === 'stopped' ? '🔴' : '⚪';
-        const namePadded = service.name.slice(0, 28).padEnd(28);
-        
-        console.log(`  ${statusEmoji} ${chalk.white(namePadded)} ${chalk.cyan.underline(service.url)}`);
+      if (!isFirstStack) {
+        console.log();
       }
+      isFirstStack = false;
+      
+      const emoji = getStackEmoji(stackName);
+      const stackTitle = `${emoji}  ${stackName.toUpperCase()} STACK`;
       
       console.log();
+      console.log(chalk.bold.white(stackTitle));
+      console.log(chalk.gray(line('━', BOX_WIDTH - 4)));
+      
+      for (const service of stackServices) {
+        const statusEmoji = service.status === 'running' ? chalk.green('●') : 
+                           service.status === 'stopped' ? chalk.red('●') : chalk.gray('○');
+        
+        const namePart = pad(service.name, 24);
+        const arrow = chalk.gray('→');
+        const pathPart = chalk.cyan('/' + service.basePath.replace(/^\//, ''));
+        
+        console.log(`  ${statusEmoji} ${chalk.white(namePart)} ${arrow} ${pathPart}`);
+      }
     }
     
     // Footer
-    console.log(chalk.gray('─'.repeat(60)));
-    console.log(chalk.gray('🖱️  Click any URL to open in browser'));
-    console.log(chalk.gray('📊 Status: 🟢 Running | 🔴 Stopped | ⚪ Unknown'));
+    console.log();
+    console.log(chalk.gray(line('─', BOX_WIDTH - 2)));
+    console.log(chalk.gray('🖱️  Click any URL above to open in browser'));
+    console.log(chalk.gray('📊 Status: ') + chalk.green('● Running') + ' | ' + chalk.red('● Stopped') + ' | ' + chalk.gray('○ Unknown'));
     
     if (baseDomain === 'localhost') {
       console.log();
-      console.log(chalk.yellow('💡 Tip: Set custom domain:'));
+      console.log(chalk.yellow('💡 Tip: Set custom domain with:'));
       console.log(chalk.cyan('   export TDK_PUBLIC_HOST=beauty-crm.localhost'));
     }
     
