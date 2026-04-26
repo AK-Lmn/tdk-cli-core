@@ -240,7 +240,9 @@ def _apply_manifest_defaults(manifest, service_path):
     if computed_port != None:
         if 'port' in result and result['port'] != computed_port:
             overrides.append("port: {} (auto: {})".format(result['port'], computed_port))
-        result['port'] = computed_port
+        else:
+            # Only use computed port if not explicitly set in manifest
+            result['port'] = computed_port
     
     # 🎯 CEO REVIEW: Custom dockerfile support
     # Validate custom dockerfile exists if specified
