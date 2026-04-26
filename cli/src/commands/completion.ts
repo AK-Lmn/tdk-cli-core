@@ -18,7 +18,7 @@ _tdk_completions() {
     prev="\${COMP_WORDS[COMP_CWORD-1]}"
     
     # Main commands
-    local commands="project projects stack stacks resource resources up down status ui doctor version help"
+    local commands="project projects stack stacks resource resources up down status ui doctor version completion help upgrade"
     
     # Options for specific commands
     case "\${prev}" in
@@ -57,7 +57,7 @@ _tdk_completions() {
     
     # Global options
     if [[ \${cur} == -* ]]; then
-        local options="--verbose --version --help"
+        local options="--verbose --version --help --force --dry-run"
         COMPREPLY=( $(compgen -W "\${options}" -- \${cur}) )
         return 0
     fi
@@ -116,6 +116,11 @@ _tdk() {
             _arguments 
                 '--fix[Attempt to fix issues]'
             ;;
+        upgrade)
+            _arguments
+                '--force[Force upgrade even if on latest]'
+                '--dry-run[Show what would be upgraded]'
+            ;;
     esac
 }
 
@@ -133,6 +138,7 @@ _tdk_commands() {
         'ui:Open interactive UI'
         'doctor:Check environment'
         'version:Show version'
+        'upgrade:Upgrade TDK CLI'
         'completion:Generate shell completions'
         'help:Show help'
     )
@@ -141,13 +147,13 @@ _tdk_commands() {
 
 _tdk_stacks() {
     local stacks
-    stacks=(${(f)"$(tdk stacks 2>/dev/null | grep '^  -' | sed 's/^  - //' | awk '{print $1}')"})
+    stacks=($(tdk stacks 2>/dev/null | grep '^  -' | sed 's/^  - //' | awk '{print $1}'))
     _describe -t stacks 'stack' stacks
 }
 
 _tdk_resources() {
     local resources
-    resources=(${(f)"$(tdk resources 2>/dev/null | grep -E '^[a-z0-9-]+' | awk '{print $1}')"})
+    resources=($(tdk resources 2>/dev/null | grep -E '^[a-z0-9-]+' | awk '{print $1}'))
     _describe -t resources 'resource' resources
 }
 
@@ -177,6 +183,7 @@ complete -c tdk -n '__fish_use_subcommand' -a 'status' -d 'Show resource status'
 complete -c tdk -n '__fish_use_subcommand' -a 'ui' -d 'Open interactive UI'
 complete -c tdk -n '__fish_use_subcommand' -a 'doctor' -d 'Check environment'
 complete -c tdk -n '__fish_use_subcommand' -a 'version' -d 'Show version'
+complete -c tdk -n '__fish_use_subcommand' -a 'upgrade' -d 'Upgrade TDK CLI'
 complete -c tdk -n '__fish_use_subcommand' -a 'completion' -d 'Generate shell completions'
 complete -c tdk -n '__fish_use_subcommand' -a 'help' -d 'Show help'
 
@@ -206,10 +213,14 @@ complete -c tdk -n '__fish_seen_subcommand_from projects' -l check -d 'Validate 
 
 # up command completions
 complete -c tdk -n '__fish_seen_subcommand_from up' -a '(tdk stacks 2>/dev/null | string match -r "^  - " | string replace "  - " "")'
-complete -c tdk -n '__fish_seen_subcommand_from up' -a '(tdk resources 2>/dev/null | string match -r "^[a-z0-9-]+" )'
+complete -c tdk -n '__fish_seen_subcommand_from up' -a '(tdk resources 2>/dev/null | string match -r "^[a-z0-9-]+")'
 
 # doctor command options
 complete -c tdk -n '__fish_seen_subcommand_from doctor' -l fix -d 'Attempt to fix issues'
+
+# upgrade command options
+complete -c tdk -n '__fish_seen_subcommand_from upgrade' -l force -d 'Force upgrade even if on latest'
+complete -c tdk -n '__fish_seen_subcommand_from upgrade' -l dry-run -d 'Show what would be upgraded'
 `;
 
 export const completionCommand = new Command('completion')
@@ -237,7 +248,7 @@ export const completionCommand = new Command('completion')
         filename = 'tdk.fish';
         break;
       default:
-        console.error(chalk.red(`❌ Unsupported shell: ${shell}`));
+        console.error(chalk.red('❌ Unsupported shell: ' + shell));
         console.log(chalk.gray('Supported shells: bash, zsh, fish'));
         process.exit(1);
     }
@@ -256,7 +267,7 @@ export const completionCommand = new Command('completion')
           if (!existsSync(bashDir)) {
             mkdirSync(bashDir, { recursive: true });
           }
-          installInstructions = `\n# Add to ~/.bashrc:\nsource ~/.bash_completion.d/${filename}`;
+          installInstructions = '\n# Add to ~/.bashrc:\nsource ~/.bash_completion.d/' + filename;
           break;
         case 'zsh':
           installPath = join(home, '.zsh', 'completions', filename);
@@ -264,7 +275,7 @@ export const completionCommand = new Command('completion')
           if (!existsSync(zshDir)) {
             mkdirSync(zshDir, { recursive: true });
           }
-          installInstructions = `\n# Add to ~/.zshrc:\nfpath+=(~/.zsh/completions)\nautoload -U compinit && compinit`;
+          installInstructions = '\n# Add to ~/.zshrc:\nfpath+=(~/.zsh/completions)\nautoload -U compinit && compinit';
           break;
         case 'fish':
           installPath = join(home, '.config', 'fish', 'completions', filename);
@@ -274,25 +285,28 @@ export const completionCommand = new Command('completion')
           }
           installInstructions = '\n# Fish completions loaded automatically';
           break;
+        default:
+          installPath = '';
+          installInstructions = '';
       }
       
       try {
         writeFileSync(installPath, completionScript, 'utf-8');
-        console.log(chalk.green(`✅ Installed ${shell} completion to:`));
-        console.log(chalk.cyan(`   ${installPath}`));
+        console.log(chalk.green('✅ Installed ' + shell + ' completion to:'));
+        console.log(chalk.cyan('   ' + installPath));
         console.log(chalk.yellow(installInstructions));
       } catch (err) {
-        console.error(chalk.red(`❌ Failed to install: ${err}`));
+        console.error(chalk.red('❌ Failed to install: ' + err));
         process.exit(1);
       }
     } else if (options.output) {
       // Write to specified file
       try {
         writeFileSync(options.output, completionScript, 'utf-8');
-        console.log(chalk.green(`✅ Written ${shell} completion to:`));
-        console.log(chalk.cyan(`   ${options.output}`));
+        console.log(chalk.green('✅ Written ' + shell + ' completion to:'));
+        console.log(chalk.cyan('   ' + options.output));
       } catch (err) {
-        console.error(chalk.red(`❌ Failed to write: ${err}`));
+        console.error(chalk.red('❌ Failed to write: ' + err));
         process.exit(1);
       }
     } else {

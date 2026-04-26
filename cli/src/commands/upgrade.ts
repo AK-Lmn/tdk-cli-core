@@ -57,10 +57,11 @@ function getCurrentVersion(): string {
   }
 }
 
-// Check for latest version from npm
+// Check for latest version from npm or git
 async function getLatestVersion(): Promise<string | null> {
   const spinner = ora('Checking for latest version...').start();
   
+  // Try npm registry first
   try {
     const result = execSync('npm view @tdk/cli version', { 
       encoding: 'utf-8',
@@ -68,43 +69,87 @@ async function getLatestVersion(): Promise<string | null> {
     }).trim();
     spinner.succeed(`Latest version: ${chalk.green(result)}`);
     return result;
-  } catch (err) {
-    spinner.fail('Could not check latest version');
-    return null;
+  } catch {
+    // npm registry failed, try git/GitHub
+    spinner.text = 'npm registry not available, checking GitHub...';
+    
+    try {
+      // Get latest tag from GitHub repo
+      const result = execSync('git ls-remote --tags https://github.com/tdk-landscape/tdk-cli.git | tail -1', {
+        encoding: 'utf-8',
+        timeout: 10000
+      }).trim();
+      
+      // Parse version from refs/tags/v1.2.3
+      const match = result.match(/refs\/tags\/v?([\d.]+)/);
+      if (match) {
+        spinner.succeed(`Latest version: ${chalk.green(match[1])}`);
+        return match[1];
+      }
+      
+      throw new Error('Could not parse version from git tags');
+    } catch (gitErr) {
+      spinner.fail('Could not check latest version');
+      return null;
+    }
   }
 }
 
-// Upgrade via npm
+// Upgrade via npm (GitHub fallback)
 async function upgradeViaNpm(): Promise<boolean> {
   const spinner = ora('Upgrading via npm...').start();
   
   try {
+    // Try npm registry first
     execSync('npm install -g @tdk/cli@latest', {
       stdio: 'inherit',
       timeout: 120000,
     });
     spinner.succeed('Upgraded successfully via npm');
     return true;
-  } catch (err) {
-    spinner.fail(`Upgrade failed: ${err}`);
-    return false;
+  } catch {
+    // Fall back to GitHub
+    spinner.text = 'npm registry failed, trying GitHub...';
+    try {
+      execSync('npm install -g github:tdk-landscape/tdk-cli', {
+        stdio: 'inherit',
+        timeout: 120000,
+      });
+      spinner.succeed('Upgraded successfully via GitHub');
+      return true;
+    } catch (err) {
+      spinner.fail(`Upgrade failed: ${err}`);
+      return false;
+    }
   }
 }
 
-// Upgrade via bun
+// Upgrade via bun (GitHub fallback)
 async function upgradeViaBun(): Promise<boolean> {
   const spinner = ora('Upgrading via bun...').start();
   
   try {
+    // Try npm registry first
     execSync('bun install -g @tdk/cli@latest', {
       stdio: 'inherit',
       timeout: 120000,
     });
     spinner.succeed('Upgraded successfully via bun');
     return true;
-  } catch (err) {
-    spinner.fail(`Upgrade failed: ${err}`);
-    return false;
+  } catch {
+    // Fall back to GitHub
+    spinner.text = 'npm registry failed, trying GitHub...';
+    try {
+      execSync('bun install -g github:tdk-landscape/tdk-cli', {
+        stdio: 'inherit',
+        timeout: 120000,
+      });
+      spinner.succeed('Upgraded successfully via GitHub');
+      return true;
+    } catch (err) {
+      spinner.fail(`Upgrade failed: ${err}`);
+      return false;
+    }
   }
 }
 
@@ -176,10 +221,10 @@ export const upgradeCommand = new Command('upgrade')
     
     if (installInfo.method === 'unknown') {
       console.error(chalk.red('❌ Could not detect installation method'));
-      console.log(chalk.yellow('\n💡 Manual upgrade:'));
-      console.log(chalk.cyan('   npm:  npm install -g @tdk/cli@latest'));
-      console.log(chalk.cyan('   bun:  bun install -g @tdk/cli@latest'));
-      console.log(chalk.cyan('   git:  cd /path/to/tdk-cli && git pull'));
+      console.log(chalk.yellow('\n💡 Manual upgrade (package not on npm yet, use GitHub):'));
+      console.log(chalk.cyan('   npm:  npm install -g github:tdk-landscape/tdk-cli'));
+      console.log(chalk.cyan('   bun:  bun install -g github:tdk-landscape/tdk-cli'));
+      console.log(chalk.cyan('   git:  cd /path/to/tdk-cli && git pull && bun link --force'));
       process.exit(1);
     }
     
@@ -256,13 +301,13 @@ export const upgradeCommand = new Command('upgrade')
     
     if (!success) {
       console.error(chalk.red('\n❌ Upgrade failed'));
-      console.log(chalk.yellow('\n💡 Try manual upgrade:'));
+      console.log(chalk.yellow('\n💡 Try manual upgrade (use GitHub until npm package is published):'));
       if (installInfo.method === 'npm') {
-        console.log(chalk.cyan('   npm install -g @tdk/cli@latest'));
+        console.log(chalk.cyan('   npm install -g github:tdk-landscape/tdk-cli'));
       } else if (installInfo.method === 'bun') {
-        console.log(chalk.cyan('   bun install -g @tdk/cli@latest'));
+        console.log(chalk.cyan('   bun install -g github:tdk-landscape/tdk-cli'));
       } else if (installInfo.method === 'git') {
-        console.log(chalk.cyan(`   cd ${installInfo.path} && git pull`));
+        console.log(chalk.cyan(`   cd ${installInfo.path} && git pull && bun link --force`));
       }
       process.exit(1);
     }
