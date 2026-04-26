@@ -11,6 +11,7 @@ import { initCommand } from './commands/init.js';
 import { watchCommand } from './commands/watch.js';
 import { uiCommand } from './commands/ui.js';
 import { versionCommand } from './commands/version.js';
+import { doctorCommand } from './commands/doctor.js';
 
 const require = createRequire(import.meta.url);
 const pkg = require('../package.json');
@@ -35,6 +36,7 @@ program.addCommand(initCommand);
 program.addCommand(watchCommand);
 program.addCommand(uiCommand);
 program.addCommand(versionCommand);
+program.addCommand(doctorCommand);
 
 // Show help if no command provided
 if (process.argv.length === 2) {

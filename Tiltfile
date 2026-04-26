@@ -32,6 +32,7 @@ load('./engine/topologies/tilt/generators/vite_config.star', _Vite='Vite')
 load('./engine/topologies/tilt/generators/tsconfig.star', _TSConfig='TSConfig')
 load('./engine/topologies/platform/docker/index.star', _Docker='Docker')
 load('./engine/topologies/tilt/generators/npmrc.star', _PackageConfig='PackageConfig')
+load('./engine/topologies/tilt/common/utils_deterministic.star', _Determinism='Determinism')
 load('./engine/topologies/tilt/resources/deps.star', _Libs='Libs')
 load('./engine/topologies/tilt/resources/conditions.star', _Database='Database')
 load('./engine/topologies/tilt/resources/declaration.star', _Orchestrator='Orchestrator')
@@ -148,4 +149,7 @@ DISCOVERY_SCAN_ROOTS = _DISCOVERY_SCAN_ROOTS
 initialize_discovery = _initialize_discovery
 get_service_snapshot_path = _get_service_snapshot_path
 
-print("✅ TDK CLI loaded: engine + discovery + specs + ext")
+# Determinism Utilities
+Determinism = _Determinism
+
+print("✅ TDK CLI loaded: engine + discovery + specs + ext + determinism")
