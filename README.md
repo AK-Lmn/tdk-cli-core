@@ -56,6 +56,25 @@ bun install -g @tdk/cli
 
 ---
 
+## ⬆️ Upgrading
+
+Self-update TDK CLI to the latest version:
+
+```bash
+# Check current version and upgrade if needed
+tdk upgrade
+
+# Force upgrade even if on latest
+tdk upgrade --force
+
+# Dry run - see what would happen
+tdk upgrade --dry-run
+```
+
+Automatically detects installation method (npm, bun, or git) and upgrades accordingly.
+
+---
+
 ## 🚀 Quick Start
 
 ```bash
@@ -230,6 +249,7 @@ tdk resource my-service --type backend --stack identity
 | `tdk ui` | 🎨 Interactive UI |
 | `tdk doctor` | 🔍 Environment check |
 | `tdk version` | ℹ️ Show version |
+| `tdk upgrade` | ⬆️ Upgrade TDK CLI to latest |
 
 ---
 
