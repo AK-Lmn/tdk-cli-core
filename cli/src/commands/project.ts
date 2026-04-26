@@ -1,317 +1,104 @@
 /**
  * tdk project command
  *
- * Initialize or validate project-level master configuration files.
- * Creates TILT_SERVICE_DEFAULTS.star and TILT_TECH_STACK.star if they don't exist.
+ * Initialize or validate project-level master configuration.
+ * Creates .tdk/project.json and generates all 4 master config files from templates.
  */
 
 import { Command } from 'commander';
-import { existsSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { resolve, join } from 'node:path';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { findProjectRoot } from '../utils/services.js';
+import { generateMasterConfigs, readProjectConfig } from '../generator/template-engine.js';
 
-// Template for TILT_SERVICE_DEFAULTS.star
-export const PLATFORM_CONFIG_TEMPLATE = `# =============================================================================
-# TILT_SERVICE_DEFAULTS.star - Platform Runtime Configuration
-# =============================================================================
-# WHO SHOULD READ THIS:
-#   - Platform engineers changing global defaults
-#   - Developers debugging "why is my service on port X?"
-#   - Anyone adding new infrastructure services
-#
-# WHAT THIS CONTROLS:
-#   - Port ranges (frontend: 3000-3999, backend: 4000-4999)
-#   - Health check endpoints (/health/live, /health/ready)
-#   - Memory limits per service type
-#   - Docker base images and networking
-#
-# READ-ONLY FOR MOST DEVELOPERS: Your service inherits from these values via
-# service.json. You don't import this file directly.
-# =============================================================================
-
-# =============================================================================
-# 🔌 PORT CONFIGURATION
-# =============================================================================
-# Services get auto-assigned ports from these ranges based on type
-# =============================================================================
-
-BASE_PORT_FRONTEND = 3000   # Frontend apps: 3000-3999
-BASE_PORT_BACKEND = 4000    # Backend services: 4000-4999
-
-# =============================================================================
-# 🏥 HEALTH CHECK CONFIGURATION
-# =============================================================================
-# All services expose these endpoints for Tilt/Traefik health checks
-# =============================================================================
-
-HEALTH_CHECK_PATH = "/health"
-HEALTH_CHECK_PATH_LIVE = "/health/live"    # Liveness probe (process up)
-HEALTH_CHECK_PATH_READY = "/health/ready"  # Readiness probe (deps ready)
-
-# Default health check intervals (seconds)
-HEALTH_CHECK_INTERVAL = 10
-HEALTH_CHECK_TIMEOUT = 5
-HEALTH_CHECK_RETRIES = 3
-
-# =============================================================================
-# 💾 MEMORY LIMITS (MB)
-# =============================================================================
-# Per-service-type memory limits. Adjust based on your infrastructure.
-# =============================================================================
-
-MEMORY_LIMITS = {
-    "frontend": 512,
-    "backend": 1024,
-    "worker": 768,
-    "infra": 256,
-}
-
-# =============================================================================
-# 🐳 DOCKER CONFIGURATION
-# =============================================================================
-
-# Base images used for golden layer builds
-DOCKER_BASE_IMAGES = {
-    "bun": "oven/bun:1.2",
-    "node": "node:20-alpine",
-    "nginx": "nginx:alpine",
-}
-
-# Network prefix for Docker networks
-NETWORK_PREFIX = "tdk"
-
-# =============================================================================
-# 📦 VERDACCIO (Private NPM Registry)
-# =============================================================================
-
-VERDACCIO_URL_LOCAL = "http://localhost:4873"
-VERDACCIO_URL_DOCKER = "http://verdaccio:4873"
-VERDACCIO_NPM_REGISTRY = "http://localhost:4873"
-
-# =============================================================================
-# 🗄️ DATABASE DEFAULTS
-# =============================================================================
-
-DB_CONFIG = {
-    "host": "postgres",
-    "port": 5432,
-    "user": "postgres",
-    "password": "postgres",
-}
-
-# =============================================================================
-# 📚 LIBRARY PATHS
-# =============================================================================
-# Where shared libraries live (relative to project root)
-# =============================================================================
-
-LIBRARY_ROOTS = {
-    "platform": "shared-platform-engineering",
-    "product": "shared-product-engineering",
-    "ddd": "shared-ddd-layers",
-}
-
-# Export for Tilt
-exports = {
-    "BASE_PORT_FRONTEND": BASE_PORT_FRONTEND,
-    "BASE_PORT_BACKEND": BASE_PORT_BACKEND,
-    "HEALTH_CHECK_PATH": HEALTH_CHECK_PATH,
-    "HEALTH_CHECK_PATH_LIVE": HEALTH_CHECK_PATH_LIVE,
-    "HEALTH_CHECK_PATH_READY": HEALTH_CHECK_PATH_READY,
-    "HEALTH_CHECK_INTERVAL": HEALTH_CHECK_INTERVAL,
-    "HEALTH_CHECK_TIMEOUT": HEALTH_CHECK_TIMEOUT,
-    "HEALTH_CHECK_RETRIES": HEALTH_CHECK_RETRIES,
-    "MEMORY_LIMITS": MEMORY_LIMITS,
-    "DOCKER_BASE_IMAGES": DOCKER_BASE_IMAGES,
-    "NETWORK_PREFIX": NETWORK_PREFIX,
-    "VERDACCIO_URL_LOCAL": VERDACCIO_URL_LOCAL,
-    "VERDACCIO_URL_DOCKER": VERDACCIO_URL_DOCKER,
-    "VERDACCIO_NPM_REGISTRY": VERDACCIO_NPM_REGISTRY,
-    "DB_CONFIG": DB_CONFIG,
-    "LIBRARY_ROOTS": LIBRARY_ROOTS,
-}
-`;
-
-// Template for TILT_TECH_STACK.star
-export const TECH_STACK_TEMPLATE = `# =============================================================================
-# TILT_TECH_STACK.star - Technology Stack Configuration
-# =============================================================================
-# WHO SHOULD READ THIS:
-#   - Platform engineers doing tech stack migrations
-#   - Developers wondering "why Bun not Node?"
-#
-# WHAT THIS CONTROLS:
-#   - Runtime (Bun vs Node)
-#   - Bundler (Vite vs Webpack)
-#   - ORM (Prisma vs alternatives)
-#   - Testing framework (Vitest vs Jest)
-#
-# ⚠️  CHANGING THESE IS A BIG DEAL:
-#   These are platform-wide decisions affecting 120+ services.
-#   Coordinate with platform engineering before changing.
-# =============================================================================
-
-# =============================================================================
-# 🏃 RUNTIME
-# =============================================================================
-# Bun is our runtime of choice - faster, all-in-one, simpler
-# https://bun.sh
-# =============================================================================
-
-RUNTIME = "bun"
-RUNTIME_VERSION = "1.2"
-
-# =============================================================================
-# 📦 BUNDLER
-# =============================================================================
-# Vite for all frontend and library builds
-# https://vitejs.dev
-# =============================================================================
-
-BUNDLER = "vite"
-BUNDLER_VERSION = "5"
-
-# =============================================================================
-# 🗄️ ORM / DATABASE
-# =============================================================================
-# Prisma for all database access
-# https://prisma.io
-# =============================================================================
-
-ORM = "prisma"
-ORM_VERSION = "7"
-
-# =============================================================================
-# 📨 MESSAGING
-# =============================================================================
-# NATS JetStream for async messaging
-# https://nats.io
-# =============================================================================
-
-MESSAGING = "nats"
-MESSAGING_VERSION = "2"
-NATS_SERVER = "nats://nats:4222"
-
-# =============================================================================
-# 🧪 TESTING
-# =============================================================================
-# Vitest for all tests (unit, integration, e2e)
-# https://vitest.dev
-# =============================================================================
-
-TESTING = "vitest"
-TESTING_VERSION = "1"
-
-# =============================================================================
-# 🎨 LINTING / FORMATTING
-# =============================================================================
-# Biome for fast linting and formatting
-# https://biomejs.dev
-# =============================================================================
-
-LINTING = "biome"
-LINTING_VERSION = "1.5"
-
-# =============================================================================
-# 🌐 WEB FRAMEWORK
-# =============================================================================
-# Hono for backend APIs (lightweight, fast)
-# https://hono.dev
-# =============================================================================
-
-WEB_FRAMEWORK = "hono"
-WEB_FRAMEWORK_VERSION = "4"
-
-# =============================================================================
-# 🐳 CONTAINER ORCHESTRATION
-# =============================================================================
-
-CONTAINER_PLATFORM = "docker"
-COMPOSE_VERSION = "3.8"
-
-# =============================================================================
-# 📋 TECH STACK ASSERTION
-# =============================================================================
-# Validates that loaded modules match the expected tech stack
-# =============================================================================
-
-def assert_tech_stack(loaded_stack):
-    """
-    Validates that the loaded tech stack matches platform standards.
-    Called automatically by the Tiltfile to ensure consistency.
-    """
-    required = {
-        "bundler": BUNDLER,
-        "runtime": RUNTIME,
+// Default project configuration template
+const DEFAULT_PROJECT_JSON = {
+  version: "1.0",
+  project: {
+    name: "",
+    version: "1.0.0"
+  },
+  stacks: {
+    pre_alpha: {
+      name: "Pre-Alpha",
+      description: "Core infrastructure and MVP services",
+      services: ["identity"]
+    },
+    alpha: {
+      name: "Alpha",
+      description: "Essential business services",
+      services: []
+    },
+    beta: {
+      name: "Beta",
+      description: "Extended features",
+      services: []
+    },
+    out_of_scope: {
+      name: "Out of Scope",
+      description: "Future releases",
+      services: []
     }
-    
-    for key, expected in required.items():
-        actual = loaded_stack.get(key)
-        if actual != expected:
-            fail("Tech stack mismatch: {} should be '{}' but got '{}'".format(
-                key, expected, actual
-            ))
-    
-    print("✅ Tech stack validated: {} / {} / {}".format(
-        BUNDLER, RUNTIME, TESTING
-    ))
-
-# Export for Tilt
-exports = {
-    "RUNTIME": RUNTIME,
-    "RUNTIME_VERSION": RUNTIME_VERSION,
-    "BUNDLER": BUNDLER,
-    "BUNDLER_VERSION": BUNDLER_VERSION,
-    "ORM": ORM,
-    "ORM_VERSION": ORM_VERSION,
-    "MESSAGING": MESSAGING,
-    "MESSAGING_VERSION": MESSAGING_VERSION,
-    "NATS_SERVER": NATS_SERVER,
-    "TESTING": TESTING,
-    "TESTING_VERSION": TESTING_VERSION,
-    "LINTING": LINTING,
-    "LINTING_VERSION": LINTING_VERSION,
-    "WEB_FRAMEWORK": WEB_FRAMEWORK,
-    "WEB_FRAMEWORK_VERSION": WEB_FRAMEWORK_VERSION,
-    "CONTAINER_PLATFORM": CONTAINER_PLATFORM,
-    "COMPOSE_VERSION": COMPOSE_VERSION,
-    "assert_tech_stack": assert_tech_stack,
-    "TECH_STACK": exports,  # Self-reference for convenience
-}
-`;
+  },
+  optional_infra: {
+    monitoring: false,
+    elk: false,
+    debezium: false,
+    golden_image: true
+  },
+  discovery: {
+    paths: ["services/product/*", "services/platform/*"]
+  },
+  overrides: {}
+};
 
 export const projectCommand = new Command('project')
   .description('Initialize or validate project-level master configuration')
-  .option('--check', 'Check if master configs exist (exit code 0 if yes, 1 if no)', false)
-  .option('--force', 'Overwrite existing master configs (dangerous)', false)
+  .option('--check', 'Check if master configs exist and are in sync')
+  .option('--force', 'Overwrite existing configuration (dangerous)')
+  .option('--yes', 'Non-interactive mode (use defaults)')
+  .option('--config-file <path>', 'Load project config from existing JSON file')
   .action(async (options) => {
     try {
       const projectRoot = findProjectRoot();
       if (!projectRoot) {
-        console.error(chalk.red('Error: Could not find project root (no Tiltfile found).'));
-        console.error(chalk.gray('Run this from within a project that has a Tiltfile.'));
+        console.error(chalk.red('Error: Not in a TDK project (no Tiltfile found)'));
         process.exit(1);
       }
 
-      const defaultsPath = resolve(projectRoot, 'TILT_SERVICE_DEFAULTS.star');
-      const techStackPath = resolve(projectRoot, 'TILT_TECH_STACK.star');
+      const tdkDir = join(projectRoot, '.tdk');
+      const projectJsonPath = join(tdkDir, 'project.json');
 
-      // Check mode - just verify files exist
+      // Check mode - verify files exist and are in sync
       if (options.check) {
-        const defaultsExists = existsSync(defaultsPath);
-        const techStackExists = existsSync(techStackPath);
+        const allFilesExist = ['tilt.config.json', 'TILT_TECH_STACK.star', 'TILT_SERVICE_DEFAULTS.star', 'spec.master']
+          .every(f => existsSync(join(projectRoot, '.tdk-out', f)));
+        const projectJsonExists = existsSync(projectJsonPath);
 
-        if (defaultsExists && techStackExists) {
-          console.log(chalk.green('✅ Master configuration files exist:'));
-          console.log(chalk.gray(`   - ${defaultsPath}`));
-          console.log(chalk.gray(`   - ${techStackPath}`));
-          process.exit(0);
+        if (allFilesExist && projectJsonExists) {
+          // Verify files are in sync
+          try {
+            const projectConfig = readProjectConfig(projectRoot);
+            console.log(chalk.green('✅ Project configuration is valid'));
+            console.log(chalk.gray(`   Project: ${projectConfig.project.name}`));
+            console.log(chalk.gray(`   Stacks: ${Object.keys(projectConfig.stacks).join(', ')}`));
+            process.exit(0);
+          } catch (err) {
+            console.log(chalk.yellow('⚠️  Project configuration out of sync'));
+            console.log(chalk.gray(`   Error: ${err instanceof Error ? err.message : String(err)}`));
+            console.log(chalk.gray('\nRun `tdk project` to regenerate.'));
+            process.exit(1);
+          }
         } else {
-          console.log(chalk.yellow('⚠️  Master configuration files missing:'));
-          if (!defaultsExists) console.log(chalk.gray(`   - TILT_SERVICE_DEFAULTS.star (not found)`));
-          if (!techStackExists) console.log(chalk.gray(`   - TILT_TECH_STACK.star (not found)`));
+          console.log(chalk.yellow('⚠️  Project configuration incomplete:'));
+          if (!projectJsonExists) console.log(chalk.gray('   - .tdk/project.json (not found)'));
+          if (!allFilesExist) {
+            ['tilt.config.json', 'TILT_TECH_STACK.star', 'TILT_SERVICE_DEFAULTS.star', 'spec.master']
+              .filter(f => !existsSync(join(projectRoot, '.tdk-out', f)))
+              .forEach(f => console.log(chalk.gray(`   - .tdk-out/${f} (not found)`)));
+          }
           console.log(chalk.gray('\nRun `tdk project` to create them.'));
           process.exit(1);
         }
@@ -321,39 +108,42 @@ export const projectCommand = new Command('project')
       console.log(chalk.blue('TDK Project Configuration\n'));
       console.log(chalk.gray(`Project root: ${projectRoot}\n`));
 
-      const defaultsExists = existsSync(defaultsPath);
-      const techStackExists = existsSync(techStackPath);
-
-      // Show current status
-      if (defaultsExists) {
-        console.log(chalk.green('✓ TILT_SERVICE_DEFAULTS.star exists'));
-      } else {
-        console.log(chalk.yellow('✗ TILT_SERVICE_DEFAULTS.star missing'));
+      // Ensure .tdk directory exists
+      if (!existsSync(tdkDir)) {
+        mkdirSync(tdkDir, { recursive: true });
+        console.log(chalk.green('✓ Created: .tdk/ directory'));
       }
 
-      if (techStackExists) {
-        console.log(chalk.green('✓ TILT_TECH_STACK.star exists'));
-      } else {
-        console.log(chalk.yellow('✗ TILT_TECH_STACK.star missing'));
+      // Check if project.json exists
+      const projectJsonExists = existsSync(projectJsonPath);
+
+      if (projectJsonExists && !options.force) {
+        // Project already configured - just regenerate files
+        console.log(chalk.green('✓ .tdk/project.json exists'));
+        console.log(chalk.blue('\n📋 Regenerating master configuration files...\n'));
+
+        try {
+          generateMasterConfigs(projectRoot);
+      console.log(chalk.green('\n✅ Project configuration regenerated!'));
+      console.log(chalk.gray('\nGenerated in .tdk-out/:'));
+      console.log(chalk.gray('  - tilt.config.json (Tilt UI settings)'));
+      console.log(chalk.gray('  - TILT_TECH_STACK.star (tech stack constants)'));
+      console.log(chalk.gray('  - TILT_SERVICE_DEFAULTS.star (service defaults)'));
+      console.log(chalk.gray('  - spec.master (stack definitions)'));
+          return;
+        } catch (err) {
+          console.error(chalk.red(`\n❌ Error generating files: ${err instanceof Error ? err.message : String(err)}`));
+          process.exit(1);
+        }
       }
 
-      // If both exist and no --force, we're done
-      if (defaultsExists && techStackExists && !options.force) {
-        console.log(chalk.green('\n✅ Project is already configured!'));
-        console.log(chalk.gray('\nThese files control platform-wide settings:'));
-        console.log(chalk.gray('  - TILT_SERVICE_DEFAULTS.star: ports, health checks, memory limits'));
-        console.log(chalk.gray('  - TILT_TECH_STACK.star: Bun, Vite, Prisma, NATS stack'));
-        console.log(chalk.gray('\nEach service you create will inherit from these via service.json'));
-        return;
-      }
-
-      // Warn if overwriting
-      if ((defaultsExists || techStackExists) && options.force) {
-        console.log(chalk.red('\n⚠️  WARNING: --force will overwrite existing configuration!'));
+      // Need to create project.json
+      if (projectJsonExists && options.force) {
+        console.log(chalk.red('\n⚠️  WARNING: --force will overwrite .tdk/project.json!'));
         const { confirm } = await inquirer.prompt([{
           type: 'confirm',
           name: 'confirm',
-          message: 'This will reset your master configs to defaults. Continue?',
+          message: 'This will reset your project configuration. Continue?',
           default: false
         }]);
         if (!confirm) {
@@ -362,29 +152,130 @@ export const projectCommand = new Command('project')
         }
       }
 
-      // Create missing files
-      console.log(chalk.blue('\n📋 Creating master configuration files...\n'));
+      // Interactive wizard or load from file
+      let projectConfig: typeof DEFAULT_PROJECT_JSON;
 
-      if (!defaultsExists || options.force) {
-        writeFileSync(defaultsPath, PLATFORM_CONFIG_TEMPLATE, 'utf-8');
-        console.log(chalk.green(`✓ Created: TILT_SERVICE_DEFAULTS.star`));
-        console.log(chalk.gray(`  → Platform runtime config (ports, health checks, memory)`));
+      if (options.configFile) {
+        // Load from existing file
+        const configFilePath = resolve(options.configFile);
+        if (!existsSync(configFilePath)) {
+          console.error(chalk.red(`Error: Config file not found: ${configFilePath}`));
+          process.exit(1);
+        }
+        const configContent = await import('node:fs').then(fs => fs.readFileSync(configFilePath, 'utf-8'));
+        projectConfig = JSON.parse(configContent);
+        console.log(chalk.green(`✓ Loaded config from: ${configFilePath}`));
+      } else if (options.yes) {
+        // Non-interactive mode with defaults
+        projectConfig = JSON.parse(JSON.stringify(DEFAULT_PROJECT_JSON));
+        projectConfig.project.name = projectRoot.split('/').pop() || 'my-project';
+        console.log(chalk.gray('Using default configuration (non-interactive mode)'));
+      } else {
+        // Interactive wizard
+        console.log(chalk.blue('📝 Project Setup Wizard\n'));
+
+        const answers = await inquirer.prompt([
+          {
+            type: 'input',
+            name: 'name',
+            message: 'Project name:',
+            default: projectRoot.split('/').pop() || 'my-project',
+            validate: (input: string) => input.trim() !== '' || 'Project name is required'
+          },
+          {
+            type: 'input',
+            name: 'version',
+            message: 'Project version:',
+            default: '1.0.0-alpha'
+          },
+          {
+            type: 'checkbox',
+            name: 'preAlphaServices',
+            message: 'Select Pre-Alpha services (core infrastructure):',
+            choices: [
+              { name: 'identity (Authentication)', value: 'identity', checked: true },
+              { name: 'proxy (Traefik)', value: 'proxy' },
+              { name: 'verdaccio (NPM registry)', value: 'verdaccio' },
+              { name: 'infisical (Secrets)', value: 'infisical' },
+              { name: 'database-management (PostgreSQL)', value: 'database-management' },
+              { name: 'mdblaster (Docs)', value: 'mdblaster' }
+            ]
+          },
+          {
+            type: 'checkbox',
+            name: 'alphaServices',
+            message: 'Select Alpha services (core business):',
+            choices: [
+              { name: 'appointment', value: 'appointment' },
+              { name: 'appointment-planner', value: 'appointment-planner' },
+              { name: 'salon', value: 'salon' },
+              { name: 'gdpr', value: 'gdpr' }
+            ]
+          },
+          {
+            type: 'checkbox',
+            name: 'betaServices',
+            message: 'Select Beta services (extended features):',
+            choices: [
+              { name: 'accounting', value: 'accounting' },
+              { name: 'website', value: 'website' },
+              { name: 'payment', value: 'payment' },
+              { name: 'reporting', value: 'reporting' },
+              { name: 'billing', value: 'billing' }
+            ]
+          },
+          {
+            type: 'checkbox',
+            name: 'optionalInfra',
+            message: 'Enable optional infrastructure (high resource):',
+            choices: [
+              { name: 'monitoring (SigNoz/SkyWalking)', value: 'monitoring' },
+              { name: 'elk (Elasticsearch stack)', value: 'elk' },
+              { name: 'debezium (CDC)', value: 'debezium' },
+              { name: 'golden_image (One-time build)', value: 'golden_image', checked: true }
+            ]
+          }
+        ]);
+
+        projectConfig = JSON.parse(JSON.stringify(DEFAULT_PROJECT_JSON));
+        projectConfig.project.name = answers.name;
+        projectConfig.project.version = answers.version;
+        projectConfig.stacks.pre_alpha.services = answers.preAlphaServices;
+        projectConfig.stacks.alpha.services = answers.alphaServices;
+        projectConfig.stacks.beta.services = answers.betaServices;
+        projectConfig.optional_infra.monitoring = answers.optionalInfra.includes('monitoring');
+        projectConfig.optional_infra.elk = answers.optionalInfra.includes('elk');
+        projectConfig.optional_infra.debezium = answers.optionalInfra.includes('debezium');
+        projectConfig.optional_infra.golden_image = answers.optionalInfra.includes('golden_image');
       }
 
-      if (!techStackExists || options.force) {
-        writeFileSync(techStackPath, TECH_STACK_TEMPLATE, 'utf-8');
-        console.log(chalk.green(`✓ Created: TILT_TECH_STACK.star`));
-        console.log(chalk.gray(`  → Tech stack lock (Bun, Vite, Prisma, NATS)`));
-      }
+      // Write project.json
+      console.log(chalk.blue('\n📋 Creating project configuration...\n'));
+      writeFileSync(projectJsonPath, JSON.stringify(projectConfig, null, 2), 'utf-8');
+      console.log(chalk.green(`✓ Created: .tdk/project.json`));
+      console.log(chalk.gray(`  → Project: ${projectConfig.project.name}`));
+
+      // Generate all 4 master config files
+      console.log(chalk.blue('\n📋 Generating master configuration files...\n'));
+      generateMasterConfigs(projectRoot);
 
       console.log(chalk.green('\n✅ Project configuration complete!'));
+      console.log(chalk.gray('\nGenerated files in .tdk-out/:'));
+      console.log(chalk.gray('  - tilt.config.json (Tilt UI settings)'));
+      console.log(chalk.gray('  - TILT_TECH_STACK.star (tech stack constants)'));
+      console.log(chalk.gray('  - TILT_SERVICE_DEFAULTS.star (service defaults)'));
+      console.log(chalk.gray('  - spec.master (stack definitions)'));
+      console.log(chalk.gray('\nSource file:'));
+      console.log(chalk.gray('  - .tdk/project.json (edit this to change project structure)'));
       console.log(chalk.gray('\nNext steps:'));
-      console.log(chalk.gray('  1. Review and customize the generated files'));
-      console.log(chalk.gray('  2. Run `tdk init` to create individual services'));
+      console.log(chalk.gray('  1. Run `tdk config regenerate` after editing .tdk/project.json'));
+      console.log(chalk.gray('  2. Run `tdk stack` to manage services in stacks'));
       console.log(chalk.gray('  3. Run `tdk up` to start development'));
 
     } catch (err) {
-      console.error(chalk.red(`Error: ${err}`));
+      console.error(chalk.red(`Error: ${err instanceof Error ? err.message : String(err)}`));
       process.exit(1);
     }
   });
+
+export default projectCommand;

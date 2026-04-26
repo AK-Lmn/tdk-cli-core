@@ -217,15 +217,21 @@ export function readProjectConfig(projectRoot: string): ProjectConfig {
 export function generateMasterConfigs(projectRoot: string): void {
   const projectConfig = readProjectConfig(projectRoot);
 
+  // Ensure .tdk-out directory exists
+  const outputDir = path.join(projectRoot, ".tdk-out");
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+  }
+
   // Generate files
   const engine = new TemplateEngine();
   const files = engine.generateAll(projectConfig);
 
-  // Write files
+  // Write files to .tdk-out/
   for (const [filename, content] of Object.entries(files)) {
-    const filePath = path.join(projectRoot, filename);
+    const filePath = path.join(outputDir, filename);
     fs.writeFileSync(filePath, content, "utf-8");
-    console.log(`✓ Generated: ${filename}`);
+    console.log(`✓ Generated: .tdk-out/${filename}`);
   }
 }
 
@@ -239,18 +245,19 @@ export function verifyMasterConfigs(projectRoot: string): { valid: boolean; erro
     const projectConfig = readProjectConfig(projectRoot);
     const engine = new TemplateEngine();
     const expectedFiles = engine.generateAll(projectConfig);
+    const outputDir = path.join(projectRoot, ".tdk-out");
 
     for (const [filename, expectedContent] of Object.entries(expectedFiles)) {
-      const filePath = path.join(projectRoot, filename);
+      const filePath = path.join(outputDir, filename);
 
       if (!fs.existsSync(filePath)) {
-        errors.push(`Missing file: ${filename}`);
+        errors.push(`Missing file: .tdk-out/${filename}`);
         continue;
       }
 
       const actualContent = fs.readFileSync(filePath, "utf-8");
       if (actualContent !== expectedContent) {
-        errors.push(`Out of sync: ${filename} (run 'tdk config regenerate')`);
+        errors.push(`Out of sync: .tdk-out/${filename} (run 'tdk config regenerate')`);
       }
     }
   } catch (error) {

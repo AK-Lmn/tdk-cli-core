@@ -14,6 +14,7 @@ import { uiCommand } from './commands/ui.js';
 import { versionCommand } from './commands/version.js';
 import { doctorCommand } from './commands/doctor.js';
 import { projectCommand } from './commands/project.js';
+import { configCommand } from './commands/config.js';
 import { resourceCommand } from './commands/resource.js';
 import { completionCommand } from './commands/completion.js';
 import { upgradeCommand } from './commands/upgrade.js';
@@ -59,6 +60,7 @@ program.addCommand(statusCommand);
 program.addCommand(stackCommand);
 program.addCommand(resourceCommand);
 program.addCommand(projectCommand);
+program.addCommand(configCommand);
 
 // Utility commands
 program.addCommand(uiCommand);
