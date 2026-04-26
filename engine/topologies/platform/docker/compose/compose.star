@@ -61,7 +61,8 @@ def generate_frontend_compose(service_path, service_name, res, manifest=None):
     
     target_path = res.get('target_path', manifest.get('target_path', '/usr/share/nginx/html'))
     use_nginx = 'nginx' in target_path or target_path == '/usr/share/nginx/html'
-    port = 80 if use_nginx else BASE_PORT_FRONTEND
+    # Read port from manifest (service.json), fallback to BASE_PORT_FRONTEND or 80 for nginx
+    port = manifest.get('port', 80 if use_nginx else BASE_PORT_FRONTEND)
     
     # Base path for routing on beauty-crm.localhost
     base_path = '/' + manifest.get('basePath', domain + 's').lstrip('/')
