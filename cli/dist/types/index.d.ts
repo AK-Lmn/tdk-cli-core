@@ -23,6 +23,10 @@ export interface DiscoveredService {
      * Each service can belong to exactly one stack.
      */
     stack?: string;
+    /** Service port (extracted from config for convenience) */
+    port?: number;
+    /** Service type (extracted from config for convenience) */
+    type?: string;
 }
 /**
  * Partial service.json structure (only fields LDK cares about)
@@ -36,12 +40,19 @@ export interface ServiceConfig {
     runtime: string;
     features?: string[];
     internalDependencies?: string[];
+    dependencies?: string[];
     /**
      * The stack this service belongs to.
      * Each service belongs to exactly one stack.
      * Example: "booking-flow"
      */
     stack?: string;
+    /**
+     * Whether this service is enabled for deployment.
+     * Disabled services are shown in the UI but marked as disabled.
+     * Services without this field default to enabled (true).
+     */
+    enabled?: boolean;
 }
 /**
  * Represents a discovered stack (aggregated from services)

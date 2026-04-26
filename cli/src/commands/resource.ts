@@ -63,11 +63,11 @@ function createServiceJson(name: string, type: 'backend' | 'frontend' | 'worker'
                type === 'frontend' ? FRONTEND_TEMPLATE : WORKER_TEMPLATE;
 
   return {
+    ...base,
     name,
     type,
     stack,
     port,
-    ...base,
   };
 }
 

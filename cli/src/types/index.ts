@@ -29,6 +29,12 @@ export interface DiscoveredService {
    * Each service can belong to exactly one stack.
    */
   stack?: string;
+
+  /** Service port (extracted from config for convenience) */
+  port?: number;
+
+  /** Service type (extracted from config for convenience) */
+  type?: string;
 }
 
 /**

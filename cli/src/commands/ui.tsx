@@ -44,7 +44,9 @@ const HelpPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => (
       <Text>  Tab     Next tab</Text>
       <Text>  1-5     Direct tab access</Text>
       
-      <Text bold underline marginTop={1}>Actions</Text>
+      <Box marginTop={1}>
+        <Text bold underline>Actions</Text>
+      </Box>
       <Text>  a       Toggle all/pre-alpha services</Text>
       <Text>  m       Toggle mouse support</Text>
       <Text>  t       Toggle tooltips</Text>
