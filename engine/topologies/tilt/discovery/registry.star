@@ -544,7 +544,7 @@ project_root = os.environ.get('TDK_PROJECT_ROOT', '')
 if project_root:
     project_defaults = Config.load_project_defaults(project_root)
     if project_defaults:
-        print("📄 Loaded project defaults from: " + project_root + "/spec.master")
+        print("📄 Loaded project defaults from spec.master")
         print("   Pre-alpha services: " + str(len(project_defaults.FOCUS_PRE_ALPHA)))
         # Update Config with loaded values
         Config = struct(

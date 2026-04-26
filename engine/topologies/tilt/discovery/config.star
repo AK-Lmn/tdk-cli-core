@@ -26,13 +26,21 @@ def load_project_defaults(project_root):
     if not project_root:
         return None
     
-    spec_path = project_root + "/spec.master"
+    # Check multiple locations for spec.master (in order of preference)
+    spec_paths = [
+        project_root + "/.tdk-out/generated/spec.master",  # New unified output folder
+        project_root + "/spec.master",                       # Original location (legacy)
+    ]
     
-    # Check if spec.master exists
-    check_cmd = "test -f '{}' && echo 'yes' || echo 'no'".format(spec_path)
-    exists = str(local(check_cmd, quiet=True, echo_off=True)).strip() == 'yes'
+    spec_path = None
+    for path in spec_paths:
+        check_cmd = "test -f '{}' && echo 'yes' || echo 'no'".format(path)
+        exists = str(local(check_cmd, quiet=True, echo_off=True)).strip() == 'yes'
+        if exists:
+            spec_path = path
+            break
     
-    if not exists:
+    if not spec_path:
         return None
     
     # Read and parse the spec.master file
@@ -129,7 +137,9 @@ def load_project_defaults(project_root):
 # -----------------------------------------------------------------------------
 # 🎛️ SERVICE DEFAULTS
 # -----------------------------------------------------------------------------
-# LOADED FROM: spec.master (in project root)
+# LOADED FROM: spec.master (searched in order):
+#   1. .tdk-out/generated/spec.master (new unified output folder)
+#   2. spec.master (legacy location in project root)
 # PURPOSE: Single source of truth for service enable/disable configuration
 # 
 # 📖 To modify which services run, edit: spec.master
