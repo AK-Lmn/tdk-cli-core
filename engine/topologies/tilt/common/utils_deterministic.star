@@ -104,7 +104,7 @@ def sort_resources_by_name(resources):
     Returns:
         Sorted list (by name)
     """
-    if resources and isinstance(resources[0], dict):
+    if resources and type(resources[0]) == "dict":
         return sorted(resources, key=lambda x: x.get('name', ''))
     return sorted(resources)
 
