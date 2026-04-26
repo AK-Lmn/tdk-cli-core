@@ -22,27 +22,54 @@ npm install -g @tdk/cli
 ### Usage
 
 ```bash
-# Start all services
-tdk up
+# Initialize project (creates master configs)
+tdk project
 
-# Start specific services
-tdk up salon-management-backend identity-management-backend
+# Create a new resource
+tdk resource my-service --type backend --stack identity
 
-# Stop services
-tdk down
+# Organize resources into stacks
+tdk stack identity
 
-# Check status
-tdk status
+# List commands
+tdk projects      # Show project info
+tdk stacks        # List all stacks
+tdk resources     # List all resources
 
-# List services
-tdk list
+# Lifecycle commands
+tdk up identity              # Start a stack
+tdk down                     # Stop all services
+tdk status                   # Check service status
 
-# Initialize new service
-tdk init
-
-# Interactive UI
-tdk ui
+# Utility commands
+tdk ui                       # Interactive UI
+tdk doctor                   # Check environment
 ```
+
+## Project-Stack-Resource (PSR) Model
+
+TDK organizes your services using a clear hierarchy:
+
+```
+Project (1 per repo)
+├── TILT_SERVICE_DEFAULTS.star  (ports, health checks)
+├── TILT_TECH_STACK.star          (Bun, Vite, Prisma)
+└── Stacks (deployment groups)
+    ├── identity-stack
+    │   ├── identity-backend      (resource)
+    │   └── identity-frontend     (resource)
+    └── appointment-stack
+        ├── appointment-backend   (resource)
+        └── appointment-frontend  (resource)
+```
+
+### PSR Commands
+
+| Level | Action | List |
+|-------|--------|------|
+| **Project** | `tdk project` | `tdk projects` |
+| **Stack** | `tdk stack` | `tdk stacks` |
+| **Resource** | `tdk resource` | `tdk resources` |
 
 ## Repository Structure
 
@@ -108,6 +135,7 @@ Checks for:
 - Tilt CLI available
 - Required ports free
 - Tiltfile present
+- Master config files (TILT_SERVICE_DEFAULTS.star, TILT_TECH_STACK.star)
 
 ## License
 

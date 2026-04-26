@@ -149,6 +149,34 @@ function checkTilt(): CheckResult {
   }
 }
 
+// Check 7: Master configuration files exist
+function checkMasterConfigs(): CheckResult {
+  const defaultsPath = resolve(process.cwd(), "TILT_SERVICE_DEFAULTS.star");
+  const techStackPath = resolve(process.cwd(), "TILT_TECH_STACK.star");
+
+  const defaultsExists = existsSync(defaultsPath);
+  const techStackExists = existsSync(techStackPath);
+
+  if (defaultsExists && techStackExists) {
+    return {
+      name: "Master Configs",
+      passed: true,
+      message: "TILT_SERVICE_DEFAULTS.star and TILT_TECH_STACK.star found",
+    };
+  }
+
+  const missing = [];
+  if (!defaultsExists) missing.push("TILT_SERVICE_DEFAULTS.star");
+  if (!techStackExists) missing.push("TILT_TECH_STACK.star");
+
+  return {
+    name: "Master Configs",
+    passed: false,
+    message: `Master configs missing: ${missing.join(", ")}`,
+    fix: "Run: tdk project",
+  };
+}
+
 export const doctorCommand = new Command('doctor')
   .description('Check environment readiness for TDK')
   .action(async () => {
@@ -162,6 +190,7 @@ export const doctorCommand = new Command('doctor')
       checkPorts,
       checkTiltfile,
       checkDockerCompose,
+      checkMasterConfigs,
     ];
 
     let allPassed = true;

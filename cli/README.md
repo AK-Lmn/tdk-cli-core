@@ -1,51 +1,293 @@
-# TDK CLI
+# 🚀 TDK CLI
 
-Command line interface for the Tilt Development Kit (TDK).
+> **T**ilt **D**evelopment **K**it - All-in-one local development platform for microservices
 
-## Installation
+[![npm version](https://img.shields.io/npm/v/@tdk/cli.svg?style=flat&color=blue)](https://www.npmjs.com/package/@tdk/cli)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+---
+
+## 🎯 What is TDK?
+
+TDK CLI organizes your microservices using a clear **Project-Stack-Resource (PSR)** hierarchy:
+
+```
+📁 Project (1 per repo)
+├── ⚙️  TILT_SERVICE_DEFAULTS.star   # Ports, health checks, memory
+├── 🔧 TILT_TECH_STACK.star          # Bun, Vite, Prisma, NATS
+│
+└── 📦 Stacks (deployment groups)
+    ├── 🔐 identity-stack
+    │   ├── ⚡ identity-backend      # Resource
+    │   └── 🎨 identity-frontend     # Resource
+    │
+    └── 📅 appointment-stack
+        ├── ⚡ appointment-backend    # Resource
+        └── 🎨 appointment-frontend   # Resource
+```
+
+---
+
+## 📦 Installation
 
 ```bash
 npm install -g @tdk/cli
+# or
+bun install -g @tdk/cli
 ```
 
-## Usage
+---
+
+## 🏗️ Project-Stack-Resource Commands
+
+### 🌍 Project Level
+
+Initialize your project with master configuration files:
 
 ```bash
-# Start services
-tdk up
+# 🆕 Initialize project (creates master configs)
+tdk project
 
-# Start specific services
-tdk up salon-management-backend identity-management-backend
+# 📊 Check project info and config status
+tdk projects              # Overview
 
-# Stop services
-tdk down
-
-# Check status
-tdk status
-
-# List all services
-tdk list
-
-# Initialize a new service
-tdk init
-
-# Watch mode
-tdk watch
-
-# Interactive UI
-tdk ui
+tdk projects --check      # ✅ CI validation (exit 0/1)
 ```
 
-## Commands
+**Creates:**
+- ⚙️ `TILT_SERVICE_DEFAULTS.star` — Platform config (ports 3000-4999, health checks, memory limits)
+- 🔧 `TILT_TECH_STACK.star` — Tech stack lock (Bun v1.2, Vite v5, Prisma v7, NATS v2)
 
-- `up [services...]` - Start services via Tilt
-- `down` - Stop all services
-- `status` - Show service status
-- `list` - List all available services
-- `init` - Initialize a new service
-- `watch` - Watch mode for development
-- `ui` - Interactive terminal UI
+---
 
-## License
+### 📦 Stack Level
 
-MIT
+Organize resources into deployment groups:
+
+```bash
+# 📋 List all stacks
+tdk stacks
+tdk stacks --services     # 🔍 Include resources in each stack
+
+# 🗂️  Organize resources into stacks (interactive)
+tdk stack identity
+tdk stack appointment
+
+# ▶️ Start/stop a stack
+tdk up identity           # 🚀 Start identity stack
+tdk down                  # ⏹️  Stop all services
+```
+
+---
+
+### ⚡ Resource Level
+
+Create and manage individual services:
+
+```bash
+# 📋 List all resources
+tdk resources
+tdk resources --stack identity     # 🔍 Filter by stack
+tdk resources --no-stack           # ⚠️ Show unassigned only
+tdk resources --ports              # 🔌 Show port assignments
+
+# 🆕 Create new resource (interactive)
+tdk resource my-api --type backend --stack identity
+tdk resource my-app --type frontend --stack identity
+tdk resource my-worker --type worker --stack background
+```
+
+**Creates:**
+- 📄 `service.json` — Auto-assigned port from master config
+- 📦 `package.json` — Scripts, dependencies (Hono/Vite/Biome)
+- ⚙️ `tsconfig.json` — TypeScript configuration
+- 🐳 `Dockerfile` — Multi-stage build with health checks
+- 💻 `src/` — Starter code (Hono for backend, React for frontend)
+- 🧪 `tests/` — Vitest test file
+
+---
+
+## 🔄 Lifecycle Commands
+
+| Command | Description | Example |
+|---------|-------------|---------|
+| `tdk up` | 🚀 Start all services | `tdk up` |
+| `tdk up <stack>` | 🚀 Start a stack | `tdk up identity` |
+| `tdk up <resource>` | 🚀 Start specific resource | `tdk up identity-backend` |
+| `tdk down` | ⏹️ Stop all services | `tdk down` |
+| `tdk status` | 📊 Show resource status | `tdk status` |
+
+---
+
+## 🛠️ Utility Commands
+
+| Command | Description |
+|---------|-------------|
+| `tdk ui` | 🎨 Interactive terminal UI |
+| `tdk doctor` | 🔍 Check environment (Docker, Bun, Tilt, ports) |
+| `tdk version` | ℹ️  Show version |
+| `tdk --help` | ❓ Show help |
+
+---
+
+## 🚀 Quick Start Workflow
+
+```bash
+# 1️⃣  Initialize project
+cd my-project
+tdk project
+
+# 2️⃣  Create resources
+tdk resource identity-api --type backend --stack identity
+# → Creates service.json with port 4000
+# → Generates src/index.ts with Hono starter
+# → Creates Dockerfile, tests/, package.json
+
+tdk resource identity-app --type frontend --stack identity
+# → Creates service.json with port 3000
+# → Generates React starter with Vite
+
+# 3️⃣  Install dependencies
+cd identity-api && bun install
+cd ../identity-app && bun install
+
+# 4️⃣  Start development
+tdk up identity
+
+# 5️⃣  Check status
+tdk status
+tdk resources --stack identity
+```
+
+---
+
+## 📊 PSR Command Matrix
+
+| Level | 🔨 Create/Action | 📋 List |
+|-------|------------------|---------|
+| **🌍 Project** | `tdk project` | `tdk projects` |
+| **📦 Stack** | `tdk stack` | `tdk stacks` |
+| **⚡ Resource** | `tdk resource` | `tdk resources` |
+
+---
+
+## 🎨 Resource Types
+
+| Type | Port Range | Template | Use Case |
+|------|------------|----------|----------|
+| `backend` | 4000-4999 | 🏎️ Hono API | REST APIs, microservices |
+| `frontend` | 3000-3999 | ⚛️ React + Vite | Web apps, dashboards |
+| `worker` | (optional) | 🔧 Background worker | Queue processors, jobs |
+
+---
+
+## 🔒 Deterministic Operations
+
+Use `Determinism` in your Tiltfile for reproducible builds:
+
+```starlark
+load('ext://tdk-cli', 'Determinism')
+
+# Deterministic file discovery (sorted results)
+files = Determinism.deterministic_find('./services', 'service.json')
+
+# Deterministic service discovery
+services = Determinism.deterministic_service_discovery(['services/product'])
+
+# Check deterministic mode
+if Determinism.is_deterministic_mode():
+    print("✅ Running in deterministic mode")
+```
+
+---
+
+## 🔍 Environment Validation
+
+```bash
+🔧 tdk doctor
+```
+
+Checks for:
+- ✅ Docker daemon running
+- ✅ Bun runtime installed (v1.2+)
+- ✅ Tilt CLI available
+- ✅ Required ports free
+- ✅ Tiltfile present
+- ✅ Master config files exist
+
+---
+
+## 📁 Project Structure
+
+After `tdk project` + `tdk resource`:
+
+```
+my-project/
+├── ⚙️ TILT_SERVICE_DEFAULTS.star
+├── 🔧 TILT_TECH_STACK.star
+├── 📄 Tiltfile
+│
+├── services/
+│   └── identity/
+│       ├── identity-api/           # 🆕 Created by tdk resource
+│       │   ├── service.json      # Port 4000, stack: identity
+│       │   ├── package.json
+│       │   ├── tsconfig.json
+│       │   ├── Dockerfile
+│       │   ├── src/
+│       │   │   └── index.ts      # Hono starter
+│       │   └── tests/
+│       │       └── identity-api.test.ts
+│       │
+│       └── identity-app/         # 🆕 Created by tdk resource
+│           ├── service.json      # Port 3000, stack: identity
+│           ├── package.json
+│           ├── tsconfig.json
+│           ├── Dockerfile
+│           ├── index.html
+│           └── src/
+│               ├── main.tsx
+│               └── App.tsx
+│
+└── workers/
+    └── notification-worker/      # 🆕 Created by tdk resource
+        └── ...
+```
+
+---
+
+## 🆘 Getting Help
+
+```bash
+# General help
+tdk --help
+
+# Command help
+tdk resource --help
+tdk stack --help
+tdk up --help
+```
+
+---
+
+## 📚 Documentation
+
+- [Main Documentation](https://github.com/tdk-landscape/tdk-cli/tree/main/docs)
+- [Architecture](https://github.com/tdk-landscape/tdk-cli/tree/main/engine/docs)
+- [Tilt Extension](https://github.com/tdk-landscape/tdk-cli#using-as-tilt-extension)
+
+---
+
+## 📝 License
+
+MIT © [TDK Landscape](https://github.com/tdk-landscape)
+
+---
+
+<div align="center">
+
+**[⬆️ Back to Top](#-tdk-cli)**
+
+Made with 💚 for developers who ship
+
+</div>

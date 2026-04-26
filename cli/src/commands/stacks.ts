@@ -1,5 +1,5 @@
 /**
- * tdk list command
+ * tdk stacks command
  *
  * Lists all unique stacks discovered from service.json files across the project.
  */
@@ -8,9 +8,9 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { discoverStacks, discoverServices, getAllStacks } from '../utils/services.js';
 
-export const listCommand = new Command('list')
-  .description('List all stacks discovered from service.json files')
-  .alias('ls')
+export const stacksCommand = new Command('stacks')
+  .description('List all stacks and their resources')
+  .alias('ls')  // Keep 'tdk ls' as shorthand
   .option('-v, --verbose', 'Show detailed information about each stack', false)
   .option('--services', 'Include list of services in each stack', false)
   .action(async (options) => {
@@ -20,14 +20,10 @@ export const listCommand = new Command('list')
 
       if (stackNames.length === 0) {
         console.log(chalk.yellow('No stacks found.'));
-        console.log(chalk.gray('\nTo create a stack, add a "stack" field to your service.json files:'));
-        console.log(chalk.gray('  "stack": "my-stack-name"'));
-        console.log(chalk.gray('\nExample:'));
-        console.log(chalk.gray('  {'));
-        console.log(chalk.gray('    "appName": "my-service",'));
-        console.log(chalk.gray('    "stack": "booking-flow",'));
-        console.log(chalk.gray('    ...'));
-        console.log(chalk.gray('  }'));
+        console.log(chalk.gray('\nTo create a stack, use:'));
+        console.log(chalk.gray('  tdk stack <stack-name>'));
+        console.log(chalk.gray('\nOr create a new resource with a stack:'));
+        console.log(chalk.gray('  tdk resource --stack <stack-name>'));
         return;
       }
 
