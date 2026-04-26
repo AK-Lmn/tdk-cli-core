@@ -7,7 +7,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import Handlebars from "handlebars";
-import yaml from "js-yaml";
 import { PLATFORM_STANDARDS } from "../config/platform-standards.js";
 
 export interface ProjectConfig {
@@ -199,17 +198,17 @@ export class TemplateEngine {
 }
 
 /**
- * Read and parse project.yaml
+ * Read and parse project.json
  */
 export function readProjectConfig(projectRoot: string): ProjectConfig {
-  const projectYamlPath = path.join(projectRoot, ".tdk", "project.yaml");
+  const projectJsonPath = path.join(projectRoot, ".tdk", "project.json");
 
-  if (!fs.existsSync(projectYamlPath)) {
-    throw new Error(`Project config not found: ${projectYamlPath}. Run 'tdk project init' first.`);
+  if (!fs.existsSync(projectJsonPath)) {
+    throw new Error(`Project config not found: ${projectJsonPath}. Run 'tdk project init' first.`);
   }
 
-  const yamlContent = fs.readFileSync(projectYamlPath, "utf-8");
-  return yaml.load(yamlContent) as ProjectConfig;
+  const jsonContent = fs.readFileSync(projectJsonPath, "utf-8");
+  return JSON.parse(jsonContent) as ProjectConfig;
 }
 
 /**
