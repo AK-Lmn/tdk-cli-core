@@ -25,16 +25,30 @@ function detectInstallation(): InstallInfo {
     // Get the path to the current tdk binary
     const tdkPath = execSync('which tdk', { encoding: 'utf-8' }).trim();
     
-    // Check if it's in a global npm/bun directory
+    // Check if it's a symlink to a local git repo (bun link / npm link)
+    try {
+      const realPath = execSync('readlink -f ' + tdkPath, { encoding: 'utf-8' }).trim();
+      // If the real path contains tdk-cli and has .git, it's a linked git install
+      if (realPath.includes('tdk-cli')) {
+        const possibleGitRoot = resolve(realPath, '..', '..', '..');
+        if (existsSync(join(possibleGitRoot, '.git'))) {
+          return { method: 'git', path: possibleGitRoot };
+        }
+      }
+    } catch {
+      // readlink failed, not a symlink
+    }
+    
+    // Check if it's in a global npm/bun directory (actual install, not link)
     if (tdkPath.includes('node_modules') || tdkPath.includes('.npm') || tdkPath.includes('.bun')) {
       // Check if bun was used
-      if (tdkPath.includes('.bun') || existsSync(join(dirname(tdkPath), '..', 'bun.lockb'))) {
+      if (tdkPath.includes('.bun')) {
         return { method: 'bun', path: tdkPath };
       }
       return { method: 'npm', path: tdkPath };
     }
     
-    // Check if it's a git clone
+    // Check if current file is in a git repo (development)
     const cliRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
     if (existsSync(join(cliRoot, '.git'))) {
       return { method: 'git', path: cliRoot };
@@ -213,30 +227,59 @@ export const upgradeCommand = new Command('upgrade')
       process.exit(1);
     }
     
-    // Check for latest version
-    const latestVersion = await getLatestVersion();
+    let latestVersion: string | null = null;
     
-    if (!latestVersion) {
-      console.error(chalk.red('\n❌ Could not determine latest version'));
-      process.exit(1);
-    }
-    
-    // Compare versions
-    if (currentVersion === latestVersion && !options.force) {
-      console.log(chalk.green('\n✅ You are already on the latest version!'));
-      console.log(chalk.gray(`   ${currentVersion} (current) = ${latestVersion} (latest)`));
+    // For git installs, skip npm check and use git to check for updates
+    if (installInfo.method === 'git' && installInfo.path) {
+      console.log(chalk.blue('📦 Git installation detected - will pull latest from origin'));
       
-      if (installInfo.method === 'git') {
-        console.log(chalk.gray('\n   Tip: Use --force to pull latest commits anyway'));
+      try {
+        // Check if there are updates
+        execSync('git fetch origin', { cwd: installInfo.path, stdio: 'pipe' });
+        const localHash = execSync('git rev-parse HEAD', { cwd: installInfo.path, encoding: 'utf-8' }).trim();
+        const remoteHash = execSync('git rev-parse origin/main', { cwd: installInfo.path, encoding: 'utf-8' }).trim();
+        
+        if (localHash === remoteHash && !options.force) {
+          console.log(chalk.green('\n✅ Already up to date with origin/main!'));
+          console.log(chalk.gray(`   Current: ${localHash.substring(0, 7)}`));
+          console.log(chalk.gray('\n   Tip: Use --force to pull and rebuild anyway'));
+          process.exit(0);
+        }
+        
+        if (localHash !== remoteHash) {
+          console.log(chalk.yellow(`\n⬆️  Updates available:`));
+          console.log(chalk.gray(`   Local:  ${localHash.substring(0, 7)}`));
+          console.log(chalk.gray(`   Remote: ${remoteHash.substring(0, 7)}`));
+        } else {
+          console.log(chalk.yellow(`\n🔄 Force upgrade requested`));
+        }
+        
+        latestVersion = remoteHash.substring(0, 7);
+      } catch (err) {
+        console.warn(chalk.yellow('⚠️  Could not check git remote, will attempt upgrade anyway'));
+        latestVersion = 'latest';
+      }
+    } else {
+      // For npm/bun installs, check registry
+      latestVersion = await getLatestVersion();
+      
+      if (!latestVersion) {
+        console.error(chalk.red('\n❌ Could not determine latest version'));
+        process.exit(1);
       }
       
-      process.exit(0);
-    }
-    
-    if (currentVersion !== latestVersion) {
-      console.log(chalk.yellow(`\n⬆️  Upgrade available: ${currentVersion} → ${latestVersion}`));
-    } else if (options.force) {
-      console.log(chalk.yellow(`\n🔄 Force upgrade requested (currently ${currentVersion})`));
+      // Compare versions
+      if (currentVersion === latestVersion && !options.force) {
+        console.log(chalk.green('\n✅ You are already on the latest version!'));
+        console.log(chalk.gray(`   ${currentVersion} (current) = ${latestVersion} (latest)`));
+        process.exit(0);
+      }
+      
+      if (currentVersion !== latestVersion) {
+        console.log(chalk.yellow(`\n⬆️  Upgrade available: ${currentVersion} → ${latestVersion}`));
+      } else if (options.force) {
+        console.log(chalk.yellow(`\n🔄 Force upgrade requested (currently ${currentVersion})`));
+      }
     }
     
     // Dry run mode
@@ -246,7 +289,11 @@ export const upgradeCommand = new Command('upgrade')
       if (installInfo.path) {
         console.log(chalk.gray(`   Path: ${installInfo.path}`));
       }
-      console.log(chalk.gray(`   Action: Upgrade to ${latestVersion}`));
+      if (installInfo.method === 'git') {
+        console.log(chalk.gray('   Action: git pull origin main && bun install && bun link --force'));
+      } else {
+        console.log(chalk.gray(`   Action: Upgrade to ${latestVersion}`));
+      }
       console.log(chalk.yellow('\n   (Not actually upgrading due to --dry-run)'));
       process.exit(0);
     }
