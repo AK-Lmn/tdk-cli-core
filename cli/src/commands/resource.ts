@@ -145,8 +145,9 @@ EXPOSE 3000
 CMD ["bun", "run", "start"]
 `;
 
-// Backend index.ts template
-const BACKEND_INDEX_TEMPLATE = `import { Hono } from 'hono';
+// Backend index.ts template function
+function getBackendIndexTemplate(name: string) {
+  return `import { Hono } from 'hono';
 
 const app = new Hono();
 
@@ -170,17 +171,19 @@ app.get('/', (c) => {
 });
 
 const port = process.env.PORT || 3000;
-console.log(\`\\n🚀 \${name} running on http://localhost:\${port}\`);
-console.log(\`📊 Health check: http://localhost:\${port}/health\\n\`);
+console.log('\n🚀 ${name} running on http://localhost:' + port);
+console.log('📊 Health check: http://localhost:' + port + '/health\n');
 
 export default {
   port,
   fetch: app.fetch,
 };
 `;
+}
 
-// Frontend index.html template
-const FRONTEND_INDEX_TEMPLATE = `<!DOCTYPE html>
+// Frontend index.html template function
+function getFrontendIndexTemplate(name: string) {
+  return `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -193,6 +196,7 @@ const FRONTEND_INDEX_TEMPLATE = `<!DOCTYPE html>
   </body>
 </html>
 `;
+}
 
 // Frontend main.tsx template
 const FRONTEND_MAIN_TEMPLATE = `import React from 'react';
@@ -206,8 +210,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 );
 `;
 
-// Frontend App.tsx template
-const FRONTEND_APP_TEMPLATE = `function App() {
+// Frontend App.tsx template function
+function getFrontendAppTemplate(name: string) {
+  return `function App() {
   return (
     <div style={{ padding: '2rem', fontFamily: 'system-ui' }}>
       <h1>${name}</h1>
@@ -217,10 +222,11 @@ const FRONTEND_APP_TEMPLATE = `function App() {
 }
 
 export default App;
-`;
+`;}
 
-// Worker index.ts template
-const WORKER_INDEX_TEMPLATE = `console.log(\`🚀 \${name} worker started\`);
+// Worker index.ts template function
+function getWorkerIndexTemplate(name: string) {
+  return `console.log('🚀 ${name} worker started');
 
 // TODO: Implement your worker logic here
 // Example: Process jobs from a queue, handle background tasks, etc.
@@ -235,16 +241,18 @@ async function main() {
 
 main().catch(console.error);
 `;
+}
 
-// Test template
-const TEST_TEMPLATE = `import { describe, it, expect } from 'vitest';
+// Test template function
+function getTestTemplate(name: string) {
+  return `import { describe, it, expect } from 'vitest';
 
 describe('${name}', () => {
   it('should pass a basic test', () => {
     expect(true).toBe(true);
   });
 });
-`;
+`;}
 
 export const resourceCommand = new Command('resource')
   .description('Create a new resource (service) from scratch')
@@ -452,22 +460,20 @@ export const resourceCommand = new Command('resource')
       console.log(chalk.blue('💻 Generating source files...'));
       
       if (resourceType === 'backend') {
-        const indexContent = BACKEND_INDEX_TEMPLATE.replace(/\${name}/g, resourceName);
-        writeFileSync(resolve(fullPath, 'src', 'index.ts'), indexContent, 'utf-8');
+        writeFileSync(resolve(fullPath, 'src', 'index.ts'), getBackendIndexTemplate(resourceName), 'utf-8');
       } else if (resourceType === 'frontend') {
-        writeFileSync(resolve(fullPath, 'index.html'), FRONTEND_INDEX_TEMPLATE.replace('${name}', resourceName), 'utf-8');
+        writeFileSync(resolve(fullPath, 'index.html'), getFrontendIndexTemplate(resourceName), 'utf-8');
         writeFileSync(resolve(fullPath, 'src', 'main.tsx'), FRONTEND_MAIN_TEMPLATE, 'utf-8');
-        writeFileSync(resolve(fullPath, 'src', 'App.tsx'), FRONTEND_APP_TEMPLATE.replace('${name}', resourceName), 'utf-8');
+        writeFileSync(resolve(fullPath, 'src', 'App.tsx'), getFrontendAppTemplate(resourceName), 'utf-8');
       } else if (resourceType === 'worker') {
-        const indexContent = WORKER_INDEX_TEMPLATE.replace(/\${name}/g, resourceName);
-        writeFileSync(resolve(fullPath, 'src', 'index.ts'), indexContent, 'utf-8');
+        writeFileSync(resolve(fullPath, 'src', 'index.ts'), getWorkerIndexTemplate(resourceName), 'utf-8');
       }
 
       // Generate test file
       console.log(chalk.blue('🧪 Generating test file...'));
       writeFileSync(
         resolve(fullPath, 'tests', `${resourceName}.test.ts`),
-        TEST_TEMPLATE.replace('${name}', resourceName),
+        getTestTemplate(resourceName),
         'utf-8'
       );
 
