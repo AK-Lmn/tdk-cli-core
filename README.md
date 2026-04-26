@@ -1,9 +1,25 @@
+```
+╔════════════════════════════════════════════════════════════════╗
+║                                                                ║
+║     ████████╗██████╗ ██╗  ██╗    ██████╗██╗     ██╗            ║
+║     ╚══██╔══╝██╔══██╗██║ ██╔╝   ██╔════╝██║     ██║            ║
+║        ██║   ██║  ██║█████╔╝    ██║     ██║     ██║            ║
+║        ██║   ██║  ██║██╔═██╗    ██║     ██║     ██║            ║
+║        ██║   ██████╔╝██║  ██╗██╗╚██████╗███████╗██║            ║
+║        ╚═╝   ╚═════╝ ╚═╝  ╚═╝╚═╝ ╚═════╝╚══════╝╚═╝            ║
+║                                                                ║
+║          Tilt Development Kit - v1.x.x                        ║
+╚════════════════════════════════════════════════════════════════╝
+```
+
 # 🚀 TDK CLI
 
 > **T**ilt **D**evelopment **K**it — All-in-one local development platform for microservices
 
 [![npm version](https://img.shields.io/npm/v/@tdk/cli.svg?style=flat&color=blue)](https://www.npmjs.com/package/@tdk/cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Bun](https://img.shields.io/badge/Bun-1.2-black?logo=bun)](https://bun.sh)
+[![Tilt](https://img.shields.io/badge/Tilt-latest-blue?logo=tilt)](https://tilt.dev)
 
 ---
 
@@ -55,6 +71,62 @@ tdk up identity
 
 # 4️⃣  Check status
 tdk status
+```
+
+---
+
+## 🎬 Demo
+
+See TDK CLI in action:
+
+```bash
+$ tdk project
+
+╔══════════════════════════════════════════╗
+║     🚀  TDK - Tilt Development Kit        ║
+╚══════════════════════════════════════════╝
+
+TDK Project Configuration
+
+Project root: /my-project
+
+✓ TILT_SERVICE_DEFAULTS.star created
+✓ TILT_TECH_STACK.star created
+
+✅ Project configuration complete!
+
+Next steps:
+  1. Review and customize the generated files
+  2. Run `tdk resource <name>` to create resources
+  3. Run `tdk up` to start development
+```
+
+```bash
+$ tdk stack identity
+
+📦 Assign resources to stack: identity
+
+⚡ Unassigned Resources:
+  ☐ identity-api (backend, port 4000)
+  ☐ identity-app (frontend, port 3000)
+
+Select resources (space to toggle, enter to confirm): 
+✅ Updated 2 resources
+
+You can now run: tdk up identity
+```
+
+```bash
+$ tdk up identity
+
+🚀 Starting identity stack...
+
+identity-api      │ Building...
+identity-app      │ Building...
+identity-api      │ Running on http://localhost:4000
+identity-app      │ Running on http://localhost:3000
+
+✅ All services ready! (Press Ctrl+C to stop)
 ```
 
 ---
@@ -204,6 +276,30 @@ $ tdk doctor
 ✅ Tiltfile present
 ✅ Master config files exist
 ```
+
+---
+
+## 🐚 Shell Completions
+
+TDK CLI supports tab completion for bash, zsh, and fish:
+
+```bash
+# Install completions automatically
+tdk completion --install --shell bash    # Bash
+tdk completion --install --shell zsh     # Zsh
+tdk completion --install --shell fish    # Fish
+
+# Or generate and manually install
+tdk completion --shell bash > ~/.bash_completion.d/tdk
+tdk completion --shell zsh > ~/.zsh/completions/_tdk
+tdk completion --shell fish > ~/.config/fish/completions/tdk.fish
+```
+
+**Features:**
+- 🎯 Command completion: `tdk <TAB>` shows all commands
+- 📦 Stack completion: `tdk up <TAB>` shows available stacks
+- ⚡ Resource completion: `tdk up <TAB>` shows available resources
+- 🔧 Flag completion: `tdk resource --<TAB>` shows options
 
 ---
 

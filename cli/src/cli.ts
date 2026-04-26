@@ -15,9 +15,21 @@ import { versionCommand } from './commands/version.js';
 import { doctorCommand } from './commands/doctor.js';
 import { projectCommand } from './commands/project.js';
 import { resourceCommand } from './commands/resource.js';
+import { completionCommand } from './commands/completion.js';
 
 const require = createRequire(import.meta.url);
 const pkg = require('../package.json');
+
+// ASCII art banner for tdk
+const TDK_BANNER = `
+╔══════════════════════════════════════════╗
+║                                          ║
+║     🚀  TDK - Tilt Development Kit        ║
+║                                          ║
+║     Project → Stack → Resource           ║
+║                                          ║
+╚══════════════════════════════════════════╝
+`;
 
 const program = new Command();
 
@@ -28,6 +40,13 @@ program
   .option('--verbose', 'Enable verbose output', false)
   .configureOutput({
     outputError: (str, write) => write(chalk.red(str))
+  })
+  .hook('preAction', (thisCommand) => {
+    // Show banner on certain commands
+    const commandName = thisCommand.args[0];
+    if (!commandName || ['help', '-h', '--help'].includes(commandName)) {
+      console.log(chalk.cyan(TDK_BANNER));
+    }
   });
 
 // Public CLI commands
@@ -50,6 +69,7 @@ program.addCommand(projectCommand);
 program.addCommand(uiCommand);
 program.addCommand(versionCommand);
 program.addCommand(doctorCommand);
+program.addCommand(completionCommand);
 
 // Show help if no command provided
 if (process.argv.length === 2) {

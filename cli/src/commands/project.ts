@@ -13,7 +13,7 @@ import inquirer from 'inquirer';
 import { findProjectRoot } from '../utils/services.js';
 
 // Template for TILT_SERVICE_DEFAULTS.star
-const PLATFORM_CONFIG_TEMPLATE = `# =============================================================================
+export const PLATFORM_CONFIG_TEMPLATE = `# =============================================================================
 # TILT_SERVICE_DEFAULTS.star - Platform Runtime Configuration
 # =============================================================================
 # WHO SHOULD READ THIS:
@@ -135,7 +135,7 @@ exports = {
 `;
 
 // Template for TILT_TECH_STACK.star
-const TECH_STACK_TEMPLATE = `# =============================================================================
+export const TECH_STACK_TEMPLATE = `# =============================================================================
 # TILT_TECH_STACK.star - Technology Stack Configuration
 # =============================================================================
 # WHO SHOULD READ THIS:
