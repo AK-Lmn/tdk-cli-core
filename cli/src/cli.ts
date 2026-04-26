@@ -17,20 +17,10 @@ import { projectCommand } from './commands/project.js';
 import { resourceCommand } from './commands/resource.js';
 import { completionCommand } from './commands/completion.js';
 import { upgradeCommand } from './commands/upgrade.js';
+import { showHelp } from './commands/help.js';
 
 const require = createRequire(import.meta.url);
 const pkg = require('../package.json');
-
-// ASCII art banner for tdk
-const TDK_BANNER = `
-╔══════════════════════════════════════════╗
-║                                          ║
-║     🚀  TDK - Tilt Development Kit        ║
-║                                          ║
-║     Project → Stack → Resource           ║
-║                                          ║
-╚══════════════════════════════════════════╝
-`;
 
 const program = new Command();
 
@@ -40,15 +30,18 @@ program
   .version(pkg.version, '-v, --version', 'Display version number')
   .option('--verbose', 'Enable verbose output', false)
   .configureOutput({
-    outputError: (str, write) => write(chalk.red(str))
-  })
-  .hook('preAction', (thisCommand) => {
-    // Show banner on certain commands
-    const commandName = thisCommand.args[0];
-    if (!commandName || ['help', '-h', '--help'].includes(commandName)) {
-      console.log(chalk.cyan(TDK_BANNER));
-    }
+    outputError: (str, write) => write(chalk.red(str)),
+    writeOut: (str) => process.stdout.write(str),
+    writeErr: (str) => process.stderr.write(str)
   });
+
+// Override default help with colorful custom help
+program.helpCommand('help [command]', 'Show colorful help').on('--help', () => {
+  showHelp();
+  process.exit(0);
+});
+
+program.addHelpText('before', '');
 
 // Public CLI commands
 // List commands
@@ -73,9 +66,16 @@ program.addCommand(doctorCommand);
 program.addCommand(completionCommand);
 program.addCommand(upgradeCommand);
 
-// Show help if no command provided
+// Show colorful help if no command provided
 if (process.argv.length === 2) {
-  program.help();
+  showHelp();
+  process.exit(0);
+}
+
+// Show colorful help for -h and --help
+if (process.argv.length === 3 && ['-h', '--help', 'help'].includes(process.argv[2])) {
+  showHelp();
+  process.exit(0);
 }
 
 program.parse();
