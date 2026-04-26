@@ -1,97 +1,172 @@
-# TDK CLI
+# 🚀 TDK CLI
 
-Tilt Development Kit - All-in-one local development platform for microservices.
+> **T**ilt **D**evelopment **K**it — All-in-one local development platform for microservices
 
-## Overview
+[![npm version](https://img.shields.io/npm/v/@tdk/cli.svg?style=flat&color=blue)](https://www.npmjs.com/package/@tdk/cli)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-TDK CLI combines everything needed for local microservice development:
-- **Engine**: Core orchestration logic
-- **Discovery**: Service discovery and manifest management
-- **Specs**: Tech stack definitions and standards
-- **CLI**: Command-line interface (`tdk up`, `tdk down`, etc.)
-- **Ext**: UI enhancements and IDE components
+---
 
-## Quick Start
+## 🎯 Overview
 
-### Install the CLI
+TDK CLI combines everything needed for local microservice development using a clear **Project-Stack-Resource (PSR)** hierarchy.
 
-```bash
-npm install -g @tdk/cli
+```
+📁 Project (1 per repo)
+├── ⚙️  TILT_SERVICE_DEFAULTS.star   # Ports, health checks, memory
+├── 🔧 TILT_TECH_STACK.star          # Bun, Vite, Prisma, NATS
+│
+└── 📦 Stacks (deployment groups)
+    ├── 🔐 identity-stack
+    │   ├── ⚡ identity-backend      # Resource
+    │   └── 🎨 identity-frontend     # Resource
+    │
+    └── 📅 appointment-stack
+        ├── ⚡ appointment-backend    # Resource
+        └── 🎨 appointment-frontend   # Resource
 ```
 
-### Usage
+---
+
+## 📦 Installation
+
+```bash
+# Using npm
+npm install -g @tdk/cli
+
+# Using Bun (recommended)
+bun install -g @tdk/cli
+```
+
+---
+
+## 🚀 Quick Start
+
+```bash
+# 1️⃣  Initialize project
+tdk project
+
+# 2️⃣  Create resources
+tdk resource my-api --type backend --stack identity
+tdk resource my-app --type frontend --stack identity
+
+# 3️⃣  Start development
+tdk up identity
+
+# 4️⃣  Check status
+tdk status
+```
+
+---
+
+## 🏗️ Project-Stack-Resource (PSR) Model
+
+### 🌍 Project Level
 
 ```bash
 # Initialize project (creates master configs)
 tdk project
 
-# Create a new resource
-tdk resource my-service --type backend --stack identity
+# Show project info
+tdk projects
+tdk projects --check    # CI validation
+```
 
-# Organize resources into stacks
+**Creates:**
+- ⚙️ `TILT_SERVICE_DEFAULTS.star` — Platform config (ports 3000-3999 frontend, 4000-4999 backend, health checks, memory limits)
+- 🔧 `TILT_TECH_STACK.star` — Tech stack lock (Bun v1.2, Vite v5, Prisma v7, NATS v2)
+
+---
+
+### 📦 Stack Level
+
+```bash
+# List all stacks
+tdk stacks
+tdk stacks --services
+
+# Organize resources
 tdk stack identity
 
-# List commands
-tdk projects      # Show project info
-tdk stacks        # List all stacks
-tdk resources     # List all resources
-
-# Lifecycle commands
-tdk up identity              # Start a stack
-tdk down                     # Stop all services
-tdk status                   # Check service status
-
-# Utility commands
-tdk ui                       # Interactive UI
-tdk doctor                   # Check environment
+# Start/stop
+tdk up identity
+tdk down
 ```
 
-## Project-Stack-Resource (PSR) Model
+---
 
-TDK organizes your services using a clear hierarchy:
+### ⚡ Resource Level
 
+```bash
+# List resources
+tdk resources
+tdk resources --stack identity
+tdk resources --no-stack
+tdk resources --ports
+
+# Create new resource
+tdk resource my-service --type backend --stack identity
 ```
-Project (1 per repo)
-├── TILT_SERVICE_DEFAULTS.star  (ports, health checks)
-├── TILT_TECH_STACK.star          (Bun, Vite, Prisma)
-└── Stacks (deployment groups)
-    ├── identity-stack
-    │   ├── identity-backend      (resource)
-    │   └── identity-frontend     (resource)
-    └── appointment-stack
-        ├── appointment-backend   (resource)
-        └── appointment-frontend  (resource)
-```
+
+**Creates:**
+- 📄 `service.json` with auto-assigned port
+- 📦 `package.json`, `tsconfig.json`, `Dockerfile`
+- 💻 `src/` with starter code (Hono for backend, React for frontend)
+- 🧪 `tests/` with Vitest test file
+
+---
+
+## 📊 Complete Command Reference
 
 ### PSR Commands
 
-| Level | Action | List |
-|-------|--------|------|
-| **Project** | `tdk project` | `tdk projects` |
-| **Stack** | `tdk stack` | `tdk stacks` |
-| **Resource** | `tdk resource` | `tdk resources` |
+| Level | 🔨 Action | 📋 List |
+|-------|-----------|---------|
+| 🌍 **Project** | `tdk project` | `tdk projects` |
+| 📦 **Stack** | `tdk stack` | `tdk stacks` |
+| ⚡ **Resource** | `tdk resource` | `tdk resources` |
 
-## Repository Structure
+### Lifecycle Commands
+
+| Command | Description |
+|---------|-------------|
+| `tdk up [stack/resource]` | 🚀 Start services |
+| `tdk down` | ⏹️ Stop all services |
+| `tdk status` | 📊 Show status |
+
+### Utility Commands
+
+| Command | Description |
+|---------|-------------|
+| `tdk ui` | 🎨 Interactive UI |
+| `tdk doctor` | 🔍 Environment check |
+| `tdk version` | ℹ️ Show version |
+
+---
+
+## 📁 Repository Structure
 
 ```
 tdk-cli/
-├── cli/              # CLI package (@tdk/cli)
-│   ├── bin/          # CLI entry point
-│   ├── src/          # CLI source code
-│   │   ├── commands/ # CLI commands (up, down, list, etc.)
-│   │   ├── types/    # TypeScript types
-│   │   └── utils/    # Utilities
-│   ├── package.json
-│   └── tsconfig.json
-├── discovery/        # Service discovery logic
-├── engine/           # Core orchestration
-├── ext/              # UI enhancements
-├── specs/            # Tech stack specs
-├── Tiltfile          # Tilt extension entry point
-└── package.json      # Root workspace config
+├── 📦 cli/              # CLI package (@tdk/cli)
+│   ├── 📁 bin/          # CLI entry point
+│   ├── 📁 src/
+│   │   ├── 📁 commands/ # CLI commands
+│   │   ├── 📁 types/    # TypeScript types
+│   │   └── 📁 utils/    # Utilities
+│   └── 📄 package.json
+│
+├── 🔍 discovery/        # Service discovery
+├── ⚙️  engine/           # Core orchestration
+├── 🎨 ext/              # UI enhancements
+├── 📋 specs/            # Tech stack specs
+├── 📄 Tiltfile          # Tilt extension entry point
+└── 📄 package.json
 ```
 
-## Using as Tilt Extension
+---
+
+## 🔌 Using as Tilt Extension
 
 ```python
 # In your Tiltfile
@@ -101,11 +176,11 @@ v1alpha1.extension(name='tdk-cli', repo_name='tdk-cli', repo_path='')
 load('ext://tdk-cli', 'Utils', 'Manifest', 'Config', 'Determinism', ...)
 ```
 
-## Features
+---
+
+## ✨ Features
 
 ### 🔒 Deterministic Operations
-
-Use `Determinism` for reproducible builds:
 
 ```starlark
 load('ext://tdk-cli', 'Determinism')
@@ -115,28 +190,33 @@ files = Determinism.deterministic_find('./services', 'service.json')
 
 # Deterministic service discovery
 services = Determinism.deterministic_service_discovery(['services/product'])
-
-# Check deterministic mode
-if Determinism.is_deterministic_mode():
-    print("Running in deterministic mode")
 ```
 
 ### 🔍 Environment Validation
 
-Use `tdk doctor` to check your environment:
-
 ```bash
-tdk doctor
+$ tdk doctor
+
+✅ Docker daemon running
+✅ Bun v1.2 installed
+✅ Tilt CLI available
+✅ Required ports free
+✅ Tiltfile present
+✅ Master config files exist
 ```
 
-Checks for:
-- Docker daemon running
-- Bun runtime installed
-- Tilt CLI available
-- Required ports free
-- Tiltfile present
-- Master config files (TILT_SERVICE_DEFAULTS.star, TILT_TECH_STACK.star)
+---
 
-## License
+## 📝 License
 
-MIT
+MIT © [TDK Landscape](https://github.com/tdk-landscape)
+
+---
+
+<div align="center">
+
+**[⬆️ Back to Top](#-tdk-cli)**
+
+Made with 💚 for developers who ship
+
+</div>
