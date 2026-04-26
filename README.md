@@ -75,6 +75,23 @@ tdk status
 
 ---
 
+## 📦 Example Project
+
+See a complete working example with Identity and Appointment stacks:
+
+```bash
+git clone https://github.com/tdk-landscape/tdk-example.git
+cd tdk-example
+tdk up
+```
+
+**Includes:**
+- 🔐 Identity Stack (API + Frontend)
+- 📅 Appointment Stack (API + Frontend)  
+- Full health checks, Docker builds, React frontends
+
+---
+
 ## 🎬 Demo
 
 See TDK CLI in action:
