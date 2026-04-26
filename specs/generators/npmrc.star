@@ -67,7 +67,7 @@ def generate_bunfig(service_path, registry_url, is_docker, write_file_if_changed
     content = """{header}
 [install]
 linker = "isolated"
-linkWorkspacePackages = false
+linkWorkspacePackages = true
 registry = "https://registry.npmjs.org"
 
 [install.scopes]
