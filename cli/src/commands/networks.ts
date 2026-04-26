@@ -181,11 +181,10 @@ export const networksCommand = new Command('networks')
         const statusEmoji = service.status === 'running' ? chalk.green('●') : 
                            service.status === 'stopped' ? chalk.red('●') : chalk.gray('○');
         
-        const namePart = pad(service.name, 24);
-        const arrow = chalk.gray('→');
-        const pathPart = chalk.cyan('/' + service.basePath.replace(/^\//, ''));
+        const namePart = pad(service.name, 22);
+        const urlPart = chalk.cyan.underline(service.url);
         
-        console.log(`  ${statusEmoji} ${chalk.white(namePart)} ${arrow} ${pathPart}`);
+        console.log(`  ${statusEmoji} ${chalk.white(namePart)}  ${urlPart}`);
       }
     }
     
