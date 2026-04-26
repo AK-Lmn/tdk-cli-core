@@ -123,8 +123,8 @@ def generate_frontend_api_index(manifest, write_file_fn=None):
 // Source: .tilt/topologies/tilt/resources/orchestrator/generators/frontend.star
 // Purpose: Clean barrel exports for API client
 
-export {{ apiClient, default }} from './api-client';
-export {{ API_URL, default as API_URL_DEFAULT }} from './env';
+export { apiClient, default } from './api-client';
+export { API_URL, default as API_URL_DEFAULT } from './env';
 '''
     
     if write_file_fn:

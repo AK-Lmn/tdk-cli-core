@@ -139,7 +139,7 @@ def _parse_duration(duration_str):
 # 🔍 HEALTH CHECK ORCHESTRATION
 # =============================================================================
 
-def get_health_check_config(service_name, service_type='backend'):
+def get_health_check_config(service_name, service_type='backend', port=3000):
     """
     Generate health check configuration for a service.
     Ensures proper sequencing to prevent 504 errors.
@@ -148,7 +148,7 @@ def get_health_check_config(service_name, service_type='backend'):
     
     return {
         'test': ['CMD', 'curl', '-f', '--max-time', '5', 
-                 'http://localhost:3000/health'],
+                 'http://localhost:' + str(port) + '/health'],
         'interval': config['interval'],
         'timeout': config['timeout'],
         'retries': config['retries'],
