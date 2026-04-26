@@ -46,32 +46,47 @@ TDK CLI combines everything needed for local microservice development using a cl
 
 ## 📦 Installation
 
-Install TDK CLI directly from GitHub (npm package coming soon):
+### One-Line Install (Recommended)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/tdk-landscape/tdk-cli/main/install.sh | bash
+```
+
+This will:
+- ✅ Check for Bun/Node.js (install Bun if missing)
+- ✅ Clone the repository to `~/.tdk/tdk-cli`
+- ✅ Install dependencies
+- ✅ Link `tdk` command globally
+- ✅ Add `~/.bun/bin` to your PATH
+
+### Manual Install from GitHub
+
+If you prefer manual installation:
 
 ```bash
 # Using npm
 npm install -g github:tdk-landscape/tdk-cli
 
-# Using Bun (recommended)
+# Using Bun
 bun install -g github:tdk-landscape/tdk-cli
 ```
 
-### PATH Setup
-
-Ensure `~/.bun/bin` (for Bun) or npm global bin is in your PATH:
-
+Or clone and link manually:
 ```bash
-# Add to ~/.zshrc or ~/.bashrc
-export PATH="$HOME/.bun/bin:$PATH"
-
-# Apply changes
-source ~/.zshrc  # or source ~/.bashrc
+git clone https://github.com/tdk-landscape/tdk-cli.git ~/.tdk/tdk-cli
+cd ~/.tdk/tdk-cli/cli
+bun install
+bun link --force
 ```
 
-Verify installation:
+### Verify Installation
+
 ```bash
 tdk -v
 # Should print: 1.1.0
+
+tdk --help
+# Shows all available commands
 ```
 
 ---
