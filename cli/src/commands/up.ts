@@ -7,6 +7,7 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
+import { execSync } from 'node:child_process';
 import { getServicesForStack, stackExists, discoverServices, discoverStacks } from '../utils/services.js';
 import { runTilt, buildTiltUpArgs, isTiltAvailable } from '../utils/tilt.js';
 
@@ -16,6 +17,7 @@ export const upCommand = new Command('up')
   .argument('[stack-name]', 'Name of the stack to start (optional - runs all if omitted)')
   .option('-v, --verbose', 'Enable verbose output', false)
   .option('--dry-run', 'Show what would be started without starting', false)
+  .option('-f, --force', 'Kill existing Tilt process before starting', false)
   .action(async (stackName, options) => {
     try {
       // Check tilt is available
@@ -66,9 +68,22 @@ export const upCommand = new Command('up')
         return;
       }
 
+      // Handle force flag - kill existing Tilt if running
+      if (options.force) {
+        try {
+          console.log(chalk.yellow('Force flag set - killing any existing Tilt processes...'));
+          execSync('killall tilt 2>/dev/null || true', { shell: true, stdio: 'pipe' });
+          // Give it a moment to fully shut down
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        } catch {
+          // Ignore errors from killall (e.g., no processes to kill)
+        }
+      }
+
       // Build tilt up arguments
       const tiltArgs = buildTiltUpArgs(serviceNames, {
-        verbose: options.verbose
+        verbose: options.verbose,
+        force: options.force
       });
 
       // Run tilt up
@@ -79,6 +94,23 @@ export const upCommand = new Command('up')
       });
 
       if (result.exitCode !== 0) {
+        // Check if it's the port conflict error
+        if (result.stderr && result.stderr.includes('address already in use') || 
+            result.stdout && result.stdout.includes('address already in use')) {
+          console.error(chalk.red('\n❌ Tilt is already running on port 10350!'));
+          console.error(chalk.yellow('\nTo fix this, you have 3 options:\n'));
+          console.error(chalk.white('1. Kill existing Tilt and restart:'));
+          console.error(chalk.gray('   killall tilt'));
+          console.error(chalk.gray('   tdk up'));
+          console.error(chalk.gray('   # OR use --force flag to auto-kill:\n'));
+          console.error(chalk.white('2. Run with force flag (auto-kills existing Tilt):'));
+          console.error(chalk.cyan(stackName ? `   tdk up ${stackName} --force` : '   tdk up --force'));
+          console.error(chalk.gray('   # OR the short form:\n'));
+          console.error(chalk.cyan(stackName ? `   tdk up ${stackName} -f` : '   tdk up -f'));
+          console.error(chalk.white('3. Use a different port:'));
+          console.error(chalk.gray('   TILT_PORT=10351 tdk up\n'));
+          process.exit(1);
+        }
         console.error(chalk.red(`\ntilt up failed with exit code ${result.exitCode}`));
         process.exit(result.exitCode);
       }

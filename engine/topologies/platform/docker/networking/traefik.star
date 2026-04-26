@@ -140,6 +140,9 @@ def get_backend_traefik_labels(
             # Calculate priority based on path length (more specific = higher priority)
             router_priority = TRAEFIK_FRONTEND_PRIORITY_BASE + len(api_path)
             
+            # Generate old path pattern for redirect (e.g., /identity-management/api/v1/)
+            old_path_pattern = "/{domain}-management/api/v1".format(domain=domain)
+            
             labels += """
       - "traefik.http.routers.{service_entry_name}-beauty-crm.rule={beauty_crm_rule}"
       - "traefik.http.routers.{service_entry_name}-beauty-crm.entrypoints={beauty_crm_entrypoints}"
@@ -147,6 +150,11 @@ def get_backend_traefik_labels(
       - "traefik.http.routers.{service_entry_name}-beauty-crm.middlewares={middleware_name}-beauty-crm{maintenance_middleware}"
       - "traefik.http.middlewares.{middleware_name}-beauty-crm.stripprefix.prefixes={api_path}"
       - "traefik.http.routers.{service_entry_name}-beauty-crm.priority={router_priority}"
+      
+      # Redirect middleware for URL restructuring: old path -> new path
+      - "traefik.http.middlewares.{service_entry_name}-redirect.redirectregex.regex=^`{old_path_pattern}/(.*)`"
+      - "traefik.http.middlewares.{service_entry_name}-redirect.redirectregex.replacement=`{api_path}/$$1`"
+      - "traefik.http.middlewares.{service_entry_name}-redirect.redirectregex.permanent=true"
 """.format(
                 service_entry_name=service_entry_name,
                 traefik_service_name=traefik_service_name,
@@ -156,6 +164,7 @@ def get_backend_traefik_labels(
                 maintenance_middleware=maintenance_middleware,
                 api_path=api_path,
                 router_priority=router_priority,
+                old_path_pattern=old_path_pattern,
             )
 
     return labels

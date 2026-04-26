@@ -24,11 +24,15 @@ API_BASE_PATH = "/api"
 # =============================================================================
 
 def generate_api_path(domain, app_name):
-    """Generate API path from manifest domain and appName."""
-    # Pattern: /api/v1/{app-name} or /api/v1/{domain}-management
-    # Dynamic detection based on app_name patterns
-    # No hardcoded service names - all patterns derived from manifest
-    return "/api/v1/" + app_name
+    """Generate API path from manifest domain and appName.
+    
+    URL Restructuring: Changed from /api/v1/{app-name} to /api/{domain}-management
+    This provides clean separation between frontend (/identity-management) 
+    and backend (/api/identity-management) while removing version from path.
+    """
+    # NEW: Use /api/{domain}-management pattern
+    # Examples: /api/identity-management, /api/salon-management
+    return "/api/" + domain + "-management"
 
 # =============================================================================
 # SERVICE DOMAIN TO API PATH MAPPING (Dynamic)
@@ -95,20 +99,24 @@ def _pluralize_domain(domain):
 def get_api_path_for_domain(domain, manifest=None):
     """Returns the full API path for a service domain.
     
+    URL Restructuring: Changed from /api/v1/{domain}s to /api/{domain}-management
+    This aligns API paths with service naming conventions.
+    
     Args:
         domain: Service domain name from manifest.json
         manifest: Optional manifest dict that may contain 'apiPath' override
     
     Returns:
-        Full API path string (e.g., "/api/v1/{domain}-management")
-        Falls back to "/api/v1/{domain}s" if not found (properly pluralized)
+        Full API path string (e.g., "/api/identity-management")
+        Falls back to "/api/{domain}-management" if not found
         Returns apiPath from manifest if explicitly specified
     """
     # Check for explicit apiPath override in manifest
     if manifest and manifest.get("apiPath"):
         return manifest.get("apiPath")
     
-    return SERVICE_DOMAIN_TO_API_PATH.get(domain, "/api/v1/" + _pluralize_domain(domain))
+    # NEW: Use /api/{domain}-management pattern instead of /api/v1/{pluralized}
+    return SERVICE_DOMAIN_TO_API_PATH.get(domain, "/api/" + domain + "-management")
 
 def get_api_path_for_service(service_name):
     """Returns the full API path for a service name.

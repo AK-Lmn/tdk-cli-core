@@ -274,8 +274,27 @@ tdk resource my-service --type backend --stack identity
 | Command | Description |
 |---------|-------------|
 | `tdk up [stack/resource]` | 🚀 Start services |
+| `tdk up --force` | 🚀 Kill existing Tilt, then start |
 | `tdk down` | ⏹️ Stop all services |
 | `tdk status` | 📊 Show status |
+
+#### tdk up Options
+
+```bash
+# Start with verbose output
+tdk up --verbose
+tdk up -v
+
+# Dry run - see what would start without starting
+tdk up --dry-run
+
+# Force mode - kill existing Tilt first (fixes "port already in use")
+tdk up --force
+tdk up -f
+
+# Combine options
+tdk up identity --force --verbose
+```
 
 ### Utility Commands
 
@@ -372,6 +391,61 @@ tdk completion --shell fish > ~/.config/fish/completions/tdk.fish
 - 📦 Stack completion: `tdk up <TAB>` shows available stacks
 - ⚡ Resource completion: `tdk up <TAB>` shows available resources
 - 🔧 Flag completion: `tdk resource --<TAB>` shows options
+
+---
+
+## 🚑 Troubleshooting
+
+### ❌ "Tilt cannot start because you already have another process on port 10350"
+
+This happens when Tilt is already running. TDK provides several ways to fix this:
+
+**Quick Fix (Recommended):**
+```bash
+# Use --force flag to auto-kill existing Tilt
+tdk up --force
+
+# Or the short form
+tdk up -f
+
+# With a specific stack
+tdk up identity --force
+```
+
+**Manual Fix:**
+```bash
+# Kill Tilt manually
+killall tilt
+
+# Then start normally
+tdk up
+```
+
+**Alternative Fix (Use different port):**
+```bash
+# Run on a different port
+TILT_PORT=10351 tdk up
+```
+
+### 🔍 Other Common Issues
+
+**Tilt CLI not found:**
+```bash
+# Install Tilt
+brew install tilt
+
+# Verify
+tilt version
+```
+
+**Services not appearing:**
+```bash
+# Check service.json exists
+tdk resources --no-stack
+
+# Verify project root
+tdk doctor
+```
 
 ---
 

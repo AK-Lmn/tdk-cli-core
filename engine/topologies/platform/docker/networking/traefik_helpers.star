@@ -114,24 +114,28 @@ def _pluralize_domain(domain):
 
 
 def get_api_path(domain, manifest=None):
-    """Generate API path from domain. Converts domain to plural form.
+    """Generate API path from domain. Converts domain to proper service name.
+    
+    URL Restructuring: Changed from /api/v1/{domain} to /api/{service-name}
+    This separates frontend and backend namespaces while keeping URLs clean.
     
     Args:
         domain: Service domain from manifest (from platform-computing-provisioner.manifest.json)
         manifest: Optional manifest dict that may contain 'apiPath' override
     
     Returns:
-        str: API path like "/api/v1/{domain}" 
+        str: API path like "/api/{domain}-management" 
                or the apiPath from manifest if explicitly specified
     """
     # Check for explicit apiPath override in manifest
     if manifest and manifest.get("apiPath"):
         return manifest.get("apiPath")
     
-    return "{base}/{version}/{domain}".format(
+    # NEW: Use {domain}-management pattern instead of pluralized domain
+    # This matches the service naming convention (identity-management, salon-management, etc.)
+    return "{base}/{domain}-management".format(
         base=TRAEFIK_API_BASE_PATH,
-        version=TRAEFIK_API_VERSION,
-        domain=_pluralize_domain(domain),
+        domain=domain,
     )
 
 
