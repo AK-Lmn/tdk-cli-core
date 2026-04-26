@@ -16,6 +16,7 @@ import { doctorCommand } from './commands/doctor.js';
 import { projectCommand } from './commands/project.js';
 import { resourceCommand } from './commands/resource.js';
 import { completionCommand } from './commands/completion.js';
+import { upgradeCommand } from './commands/upgrade.js';
 
 const require = createRequire(import.meta.url);
 const pkg = require('../package.json');
@@ -70,6 +71,7 @@ program.addCommand(uiCommand);
 program.addCommand(versionCommand);
 program.addCommand(doctorCommand);
 program.addCommand(completionCommand);
+program.addCommand(upgradeCommand);
 
 // Show help if no command provided
 if (process.argv.length === 2) {
