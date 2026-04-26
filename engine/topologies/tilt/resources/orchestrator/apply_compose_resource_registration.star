@@ -134,7 +134,6 @@ def _register_docker_build(config, live_update_rules):
         dockerfile,
         live_update_rules,
         config['res_deps'],
-        env=config.get('env'),
     )
 
 

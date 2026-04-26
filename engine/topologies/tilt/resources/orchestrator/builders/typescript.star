@@ -146,24 +146,15 @@ def _build_typescript_service(name, context, dockerfile, live_update_rules, deps
     # Build context must be the project root (.) so that COPY commands can reference
     # shared-platform-engineering/, shared-ddd-layers/, and services/ directories
     # BUT we use 'only' to dramatically reduce the context size (from 7.4GB to ~100MB)
-    # Build kwargs dict to conditionally add env if provided
-    build_kwargs = {
-        'dockerfile': dockerfile,
-        'target': 'production',
-        'live_update': live_update_rules,
-        'only': _get_service_only_paths(service_path),
-        'ignore': ignore_patterns,
-        'network': 'host',
-    }
-    
-    # Add environment variables if provided
-    if env:
-        build_kwargs['env'] = env
-    
     docker_build(
         name,
         '.',
-        **build_kwargs
+        dockerfile=dockerfile,
+        target='production',
+        live_update=live_update_rules,
+        only=_get_service_only_paths(service_path),
+        ignore=ignore_patterns,
+        network='host',
     )
 
 
