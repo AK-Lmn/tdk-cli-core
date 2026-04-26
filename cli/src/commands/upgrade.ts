@@ -361,15 +361,43 @@ export const upgradeCommand = new Command('upgrade')
       verifySpinner.succeed(`Verified: now running ${chalk.green(newVersion)}`);
       
       console.log();
-      console.log(chalk.green('✨ Upgrade complete!'));
-      console.log(chalk.gray(`   ${currentVersion} → ${newVersion}`));
+      console.log(chalk.green.bold('✨ Upgrade complete!'));
+      console.log(chalk.gray(`   Version: ${currentVersion} → ${newVersion}`));
+      
+      // Show installation details
+      console.log();
+      console.log(chalk.cyan.bold('📍 Installation Details:'));
+      if (installInfo.method === 'git' && installInfo.path) {
+        console.log(chalk.gray(`   Location: ${installInfo.path}`));
+        console.log(chalk.gray(`   Method:   git clone + bun link`));
+      } else {
+        console.log(chalk.gray(`   Method:   ${installInfo.method}`));
+      }
+      console.log(chalk.gray(`   Binary:   ${execSync('which tdk', { encoding: 'utf-8' }).trim()}`));
+      
+      // Next steps
+      console.log();
+      console.log(chalk.cyan.bold('🚀 Quick Start:'));
+      console.log(chalk.white(`   tdk --help         Show all commands`));
+      console.log(chalk.white(`   tdk networks       View service URLs`));
+      console.log(chalk.white(`   tdk doctor         Check environment`));
       
       if (newVersion === currentVersion && !options.force) {
-        console.log(chalk.yellow('\n   Note: Version appears unchanged. You may need to restart your terminal.'));
+        console.log();
+        console.log(chalk.yellow('💡 Tip: Version appears unchanged. You may need to restart your terminal.'));
       }
+      
+      console.log();
+      console.log(chalk.green('Happy coding! 🎉'));
       
     } catch {
       verifySpinner.warn('Could not verify new version');
-      console.log(chalk.green('\n✨ Upgrade likely complete (restart terminal to verify)'));
+      console.log();
+      console.log(chalk.green.bold('✨ Upgrade likely complete!'));
+      console.log();
+      console.log(chalk.yellow('💡 Next steps:'));
+      console.log(chalk.white('   1. Restart your terminal'));
+      console.log(chalk.white('   2. Run: tdk -v'));
+      console.log(chalk.white('   3. Run: tdk --help'));
     }
   });
