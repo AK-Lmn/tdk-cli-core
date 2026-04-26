@@ -207,6 +207,7 @@ export const upgradeCommand = new Command('upgrade')
   .description('Upgrade TDK CLI to the latest version')
   .option('-f, --force', 'Force upgrade even if already on latest', false)
   .option('--dry-run', 'Show what would be upgraded without actually doing it', false)
+  .option('-y, --yes', 'Skip confirmation prompt', false)
   .action(async (options) => {
     console.log(chalk.cyan('🚀 TDK CLI Upgrade\n'));
     
@@ -298,18 +299,22 @@ export const upgradeCommand = new Command('upgrade')
       process.exit(0);
     }
     
-    // Confirm upgrade
-    console.log();
-    const { confirm } = await import('inquirer').then(m => m.default.prompt([{
-      type: 'confirm',
-      name: 'confirm',
-      message: 'Proceed with upgrade?',
-      default: true
-    }]));
-    
-    if (!confirm) {
-      console.log(chalk.yellow('Cancelled.'));
-      process.exit(0);
+    // Confirm upgrade (unless --yes flag)
+    if (!options.yes) {
+      console.log();
+      const { confirm } = await import('inquirer').then(m => m.default.prompt([{
+        type: 'confirm',
+        name: 'confirm',
+        message: 'Proceed with upgrade?',
+        default: true
+      }]));
+      
+      if (!confirm) {
+        console.log(chalk.yellow('Cancelled.'));
+        process.exit(0);
+      }
+    } else {
+      console.log(chalk.gray('⚡ Auto-confirming (--yes flag)\n'));
     }
     
     console.log();
