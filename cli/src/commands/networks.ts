@@ -9,6 +9,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { execSync } from 'node:child_process';
 import { findProjectRoot, discoverServices } from '../utils/services.js';
+import { readProjectConfig } from '../generator/template-engine.js';
 
 interface ServiceUrl {
   name: string;
@@ -196,8 +197,15 @@ export const networksCommand = new Command('networks')
     
     if (baseDomain === 'localhost') {
       console.log();
-      console.log(chalk.yellow('💡 Tip: Set custom domain with:'));
-      console.log(chalk.cyan('   export TDK_PUBLIC_HOST=beauty-crm.localhost'));
+      try {
+        const projectConfig = readProjectConfig(projectRoot);
+        const projectName = projectConfig.project.name;
+        console.log(chalk.yellow('💡 Tip: Set custom domain with:'));
+        console.log(chalk.cyan(`   export TDK_PUBLIC_HOST=${projectName}.localhost`));
+      } catch {
+        console.log(chalk.yellow('💡 Tip: Set custom domain with:'));
+        console.log(chalk.cyan('   export TDK_PUBLIC_HOST=localhost'));
+      }
     }
     
     console.log();

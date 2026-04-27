@@ -60,7 +60,7 @@ FROM oven/bun:1.3.11-alpine AS l1_golden
 
 LABEL layer="l1" \
       description="OS base with runtime environment" \
-      maintainer=\""" + prefix + """\"
+      maintainer="" + prefix + ""
 
 # System dependencies for all services
 RUN apk add --no-cache \

@@ -138,13 +138,19 @@ def _validate_path(path, strict=False):
     normalized = _normalize_path(path)
     
     # Check valid characters
-    valid_chars = set("abcdefghijklmnopqrstuvwxyz0123456789-_/")
-    invalid_chars = [c for c in normalized if c not in valid_chars]
-    if invalid_chars:
+    valid_chars = "abcdefghijklmnopqrstuvwxyz0123456789-_/"
+    invalid_chars = []
+    for c in normalized:
+        if c not in valid_chars:
+            invalid_chars.append(c)
+    if len(invalid_chars) > 0:
         errors.append("Invalid characters: {}".format(invalid_chars))
     
     # Check depth limit (Infisical max is 20)
-    parts = [p for p in normalized.split("/") if p]
+    parts = []
+    for p in normalized.split("/"):
+        if p:
+            parts.append(p)
     if len(parts) > 20:
         errors.append("Path depth {} exceeds maximum (20)".format(len(parts)))
     
