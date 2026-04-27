@@ -15,7 +15,7 @@ Display Traefik-routed URLs for all services in a clean, modern CLI format.
 ```
 ┌─────────────────────────────────────────────────────────┐
 │  🌐  TRAEFIK NETWORKS                                    │
-│  Domain: beauty-crm.localhost                            │
+│  Domain: {project}.localhost                             │
 ├─────────────────────────────────────────────────────────┤
 │                                                          │
 │  🔐 IDENTITY STACK                                       │

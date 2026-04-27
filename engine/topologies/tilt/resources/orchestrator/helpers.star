@@ -9,7 +9,7 @@ def _get_db_name_for_resource(service_name, res_name):
     """Get database name from manifest databaseName field dynamically."""
     # Database names now come from manifest.json databaseName field
     # No hardcoded mappings - all from platform-computing-provisioner.manifest.json
-    # Default: beauty_crm_{service_name}
+    # Default: {project}_{service_name}
     return service_name
 
 

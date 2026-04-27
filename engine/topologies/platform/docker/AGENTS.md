@@ -56,4 +56,4 @@ digest = GoldenImage.get_digest("l2")
 
 - Golden images use digests for cache invalidation
 - L2 layer caches `node_modules` for faster rebuilds
-- Each service's Dockerfile starts `FROM beauty-crm/golden-image-l4:latest`
+- Each service's Dockerfile starts `FROM {project}/golden-image-l4:latest`

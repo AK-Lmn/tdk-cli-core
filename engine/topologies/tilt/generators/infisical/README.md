@@ -244,7 +244,7 @@ Generates complete organization configuration.
 
 ```starlark
 org = Infisical.Org.generate_config(
-    org_name="beauty-crm",
+    org_name="{project}",
     env_names=["dev", "staging", "prod"],
     service_names=["salon", "appointment", "payment"],
 )

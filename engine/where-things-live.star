@@ -62,7 +62,7 @@
 
 # PROJECT_ROOT is automatically set by Tiltfile based on where you run `tilt up`.
 # You don't need to set it. Example:
-#   - If you run in /home/dev/beauty-crm, PROJECT_ROOT = "/home/dev/beauty-crm"
+#   - If you run in /home/dev/my-project, PROJECT_ROOT = "/home/dev/my-project"
 #   - All other paths are built from this root.
 #
 # This file is manually maintained to match the directory structure.
@@ -564,10 +564,19 @@ FEATURES = struct(
 # =============================================================================
 
 # Load project name for system identity
-_SYSTEM_NAME_PREFIX = 'tdk-project'
-if os.path.exists('.tdk/project.json'):
-    _project_json = read_json('.tdk/project.json')
-    _SYSTEM_NAME_PREFIX = _project_json.get('project', {}).get('name', 'tdk-project')
+# Use TDK_PROJECT_ROOT env var set by Tilt, fallback to current directory
+def _load_system_name_prefix():
+    project_root = os.environ.get('TDK_PROJECT_ROOT', '')
+    project_json_path = '.tdk/project.json'
+    if project_root:
+        project_json_path = project_root + '/' + project_json_path
+    
+    if os.path.exists(project_json_path):
+        _project_json = read_json(project_json_path)
+        return _project_json.get('project', {}).get('name', 'tdk-project')
+    return 'tdk-project'
+
+_SYSTEM_NAME_PREFIX = _load_system_name_prefix()
 
 CONSTANTS = struct(
     # System identity - EXPLICIT (dynamic from project.json)

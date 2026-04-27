@@ -45,10 +45,19 @@ def build_synthetic_monitor(ctx):
         The docker image name for synthetic-monitor
     """
     # Load project name for dynamic image naming
-    _project_name = 'tdk-project'
-    if os.path.exists('.tdk/project.json'):
-        _project_json = read_json('.tdk/project.json')
-        _project_name = _project_json.get('project', {}).get('name', 'tdk-project')
+    # Use TDK_PROJECT_ROOT env var set by Tilt, fallback to current directory
+    def _load_project_name():
+        project_root = os.environ.get('TDK_PROJECT_ROOT', '')
+        project_json_path = '.tdk/project.json'
+        if project_root:
+            project_json_path = project_root + '/' + project_json_path
+        
+        if os.path.exists(project_json_path):
+            _project_json = read_json(project_json_path)
+            return _project_json.get('project', {}).get('name', 'tdk-project')
+        return 'tdk-project'
+    
+    _project_name = _load_project_name()
     image_name = _project_name + '/synthetic-monitor:latest'
     
     # Use docker_build_with_restart for live update support

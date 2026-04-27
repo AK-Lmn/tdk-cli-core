@@ -81,7 +81,7 @@ You don't just manage services; you map, design, and optimize the topology that 
   "runtime": "bun",
   "replicas": 2,
   "traefik": {
-    "host": "salon.backend.beauty.local",
+    "host": "salon.backend.{project}.local",
     "pathPrefix": "/api/salons"
   },
   "internalDependencies": ["identity", "platform-eventing"]

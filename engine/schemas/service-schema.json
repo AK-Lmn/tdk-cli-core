@@ -263,7 +263,7 @@
           "type": "string"
         },
         "host": {
-          "description": "Custom hostname (e.g., 'salon.backend.beauty.local')",
+          "description": "Custom hostname (e.g., 'salon.backend.{project}.local')",
           "type": "string"
         },
         "pathPrefix": {

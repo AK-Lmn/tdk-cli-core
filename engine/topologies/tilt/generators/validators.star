@@ -139,7 +139,7 @@ def validate_dependency_graph(service_path, manifest, all_services):
     causing Tilt warnings and runtime failures.
     
     Solution:
-      - Check all @beauty-crm/* dependencies exist in library_roots
+      - Check all @{npm_scope}/* dependencies exist in library_roots
       - Check internalDependencies in manifest exist as services
       - Generate missing dependency report
     
@@ -346,13 +346,13 @@ def generate_db_readiness_check(service_name, db_name, db_config, write_fn=None)
 
 def validate_package_publishing(service_path, manifest, verdaccio_url):
     """
-    Validates that all @beauty-crm dependencies are published to Verdaccio.
+    Validates that all @{npm_scope} dependencies are published to Verdaccio.
     
     Problem: Docker builds fail because shared packages aren't published,
     causing 'npm package not found' errors.
     
     Solution:
-      - Check each @beauty-crm dependency exists in Verdaccio
+      - Check each @{npm_scope} dependency exists in Verdaccio
       - Compare local package version with published version
       - Warn if local is newer than published
     

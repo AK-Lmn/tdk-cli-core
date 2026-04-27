@@ -64,7 +64,7 @@ def generate_frontend_tsconfig(service_path, write_file_if_changed, internal_dep
                 len(internal_deps),
                 service_path
             ))
-            print("   Docker build will resolve @beauty-crm/* from node_modules")
+            print("   Docker build will resolve @{npm_scope}/* from node_modules")
     content = {
         "compilerOptions": {
             "target": "ES2022",

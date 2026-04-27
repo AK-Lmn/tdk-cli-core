@@ -22,16 +22,16 @@ def generate_frontend_tsconfig_fixed(service_path, write_file_if_changed, intern
     Generate tsconfig for frontend services - FIXED VERSION
     
     CRITICAL FIX: When is_docker=True, we DO NOT include path aliases for
-    internal dependencies (@beauty-crm/* packages). This prevents the
+    internal dependencies (@{npm_scope}/* packages). This prevents the
     "Module not found" errors in Docker builds.
     
     In Docker builds:
-      - Resolve @beauty-crm/* from node_modules (published packages)
+      - Resolve @{npm_scope}/* from node_modules (published packages)
       - Only have @/* alias for local source
       
     In Local builds:
       - Can use path aliases to source for faster development
-      - Maps @beauty-crm/* to shared-*-engineering/*/src
+      - Maps @{npm_scope}/* to shared-*-engineering/*/src
     
     Args:
         service_path: Path to the service (e.g., "services/product/appointment-planner/appointment-planner-frontend")
@@ -72,7 +72,7 @@ def generate_frontend_tsconfig_fixed(service_path, write_file_if_changed, intern
             len(internal_deps),
             service_path
         ))
-        print("   Docker build will resolve @beauty-crm/* from node_modules")
+        print("   Docker build will resolve @{npm_scope}/* from node_modules")
     
     content = {
         "compilerOptions": {
@@ -118,7 +118,7 @@ def generate_frontend_tsconfig_docker_only(service_path, write_file_if_changed):
     """
     paths = {
         "@/*": ["../src/*"]
-        # NO @beauty-crm/* aliases - resolve from node_modules
+        # NO @{npm_scope}/* aliases - resolve from node_modules
     }
     
     content = {

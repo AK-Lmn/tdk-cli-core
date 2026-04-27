@@ -22,7 +22,7 @@ load("./proxy.star", "generate_traefik_labels")
 labels = generate_traefik_labels(
     service_name="appointment-management-backend",
     port=4000,
-    host="appointment.backend.beauty.localhost",
+    host="appointment.backend.{project}.localhost",
     path_prefix="/api/appointments"
 )
 ```
@@ -31,7 +31,7 @@ labels = generate_traefik_labels(
 ```python
 {
     "traefik.enable": "true",
-    "traefik.http.routers.appointment-management-backend.rule": "Host(`appointment.backend.beauty.localhost`) && PathPrefix(`/api/appointments`)",
+    "traefik.http.routers.appointment-management-backend.rule": "Host(`appointment.backend.{project}.localhost`) && PathPrefix(`/api/appointments`)",
     "traefik.http.routers.appointment-management-backend.entrypoints": "web",
     "traefik.http.services.appointment-management-backend.loadbalancer.server.port": "4000"
 }
@@ -58,7 +58,7 @@ Internet/localhost
 ## Local Development
 
 Services accessible at:
-- `{service}.backend.beauty.localhost`
-- `{service}.frontend.beauty.localhost`
+- `{service}.backend.{project}.localhost`
+- `{service}.frontend.{project}.localhost`
 
 Managed in `/etc/hosts` automatically.

@@ -108,14 +108,14 @@ class TestComposePortAnchors:
       - INSTANCE_ID=0
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.identity-management-backend.rule=Host(`identity.backend.beauty.local`)"
+      - "traefik.http.routers.identity-management-backend.rule=Host(`identity.backend.{project}.local`)"
       - "traefik.http.routers.identity-management-backend.entrypoints=web"
       - "traefik.http.routers.identity-management-backend.service=identity-management-backend"
       - "traefik.http.services.identity-management-backend.loadbalancer.server.port=4004"
       - "traefik.http.services.identity-management-backend.loadbalancer.healthcheck.path=/api/v1/health"
     networks:
-      - beauty_crm_traefik-public
-      - beauty_crm_backend
+      - {project}_traefik-public
+      - {project}_backend
     healthcheck:
       test: ["CMD", "curl", "-f", "--max-time", "5", "http://localhost:4004/api/v1/health"]
     deploy:
@@ -142,9 +142,9 @@ class TestComposePortAnchors:
       - "traefik.http.routers.identity-management-frontend.rule=Host(`identity-management-frontend.localhost`)"
       - "traefik.http.routers.identity-management-frontend.entrypoints=web,websecure"
       - "traefik.http.services.identity-management-frontend.loadbalancer.server.port=4000"
-      - "traefik.docker.network=beauty_crm_traefik-public"
+      - "traefik.docker.network={project}_traefik-public"
     networks:
-      - beauty_crm_traefik-public
+      - {project}_traefik-public
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:4000"]
     <<: *frontend-memory-limit

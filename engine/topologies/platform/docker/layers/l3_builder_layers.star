@@ -95,7 +95,7 @@ def L3_generate_backend_compiler(res_path, build_cmd = RUNTIME_CONFIG["bun"]["ba
         prisma_generate,
         prisma_compat,
     ]
-    # shared libs (@beauty-crm/*) are resolved from Verdaccio by l2_deps_manifest
+    # shared libs (@{npm_scope}/*) are resolved from Verdaccio by l2_deps_manifest
     # and already present in node_modules — no COPY of shared-* source dirs needed.
     # Use InfisicalDocker generator for CLI setup (if not using golden image)
     if use_infisical and not use_golden:
@@ -151,7 +151,7 @@ def L3_generate_frontend_builder(res_path, build_cmd = RUNTIME_CONFIG["bun"]["ba
         "COPY " + res_path_rel + "/public ./public\n",
         "COPY " + res_path_rel + "/index.html ./index.html\n",
     ]
-    # shared libs (@beauty-crm/*) are resolved from Verdaccio by l2_deps_manifest
+    # shared libs (@{npm_scope}/*) are resolved from Verdaccio by l2_deps_manifest
     # and already present in node_modules — no COPY of shared-* source dirs needed.
     # Use InfisicalDocker generator for CLI setup (if not using golden image)
     if use_infisical and not use_golden:

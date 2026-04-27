@@ -202,7 +202,7 @@ def _apply_manifest_defaults(manifest, service_path):
     Convention over Configuration:
     - features: ["nats", "prisma"] -> usePrisma=True, useNats=True
     - domain: "appointment" -> databaseName="TDK_appointment"
-    - domain: "appointment" -> traefik.host="appointment.backend.beauty.local"
+    - domain: "appointment" -> traefik.host="appointment.backend.{project}.local"
     - domain: "appointment" -> nats.queueGroup="appointment_backend_svc"
     """
     result = dict(manifest)
@@ -223,7 +223,7 @@ def _apply_manifest_defaults(manifest, service_path):
     
     # 🎯 CEO REVIEW: Traefik-native port strategy
     # Port is constant per appType, not dynamically assigned
-    # Traefik routes by hostname (e.g., booking.backend.beauty.local), not port
+    # Traefik routes by hostname (e.g., booking.backend.{project}.local), not port
     app_type = result.get('appType', 'backend')
     
     # Set constant port per appType with override detection
@@ -295,7 +295,7 @@ def _apply_manifest_defaults(manifest, service_path):
         default_path_prefix = root_api_path if root_api_path else '/api/' + domain
         
         computed_traefik = {
-            'host': domain + '.backend.beauty.local',
+            'host': domain + '.backend.' + _PROJECT_NAME + '.local',
             'pathPrefix': default_path_prefix,
             'healthCheck': HEALTH_CHECK_PATH,
         }

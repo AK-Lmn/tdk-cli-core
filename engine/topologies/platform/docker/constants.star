@@ -18,7 +18,7 @@ def _load_project_names():
     if os.path.exists(project_json_path):
         _project_json = read_json(project_json_path)
         _PROJECT_NAME_HYPHEN = _project_json.get('project', {}).get('name', 'tdk-project')
-        # Convert hyphenated name to underscore (e.g., "beauty-crm" -> "beauty_crm")
+        # Convert hyphenated name to underscore (e.g., "my-project" -> "my_project")
         _PROJECT_NAME = _PROJECT_NAME_HYPHEN.replace('-', '_')
         return _PROJECT_NAME, _PROJECT_NAME_HYPHEN
     return "tdk_project", "tdk-project"

@@ -23,7 +23,7 @@
 #   machine = Infisical.Identity.generate_development_machine("dev-machine")
 #   
 #   # Organization setup
-#   org = Infisical.Org.generate_config("beauty-crm", ["dev", "staging", "prod"])
+#   org = Infisical.Org.generate_config("my-project", ["dev", "staging", "prod"])
 # =============================================================================
 
 # Load all Infisical submodules
