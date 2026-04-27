@@ -137,10 +137,15 @@ def _validate_path(path, strict=False):
     
     normalized = _normalize_path(path)
     
+    # Ensure normalized is a string
+    if type(normalized) != "string":
+        normalized = str(normalized)
+    
     # Check valid characters
     valid_chars = "abcdefghijklmnopqrstuvwxyz0123456789-_/"
     invalid_chars = []
-    for c in normalized:
+    for i in range(len(normalized)):
+        c = normalized[i]
         if c not in valid_chars:
             invalid_chars.append(c)
     if len(invalid_chars) > 0:
