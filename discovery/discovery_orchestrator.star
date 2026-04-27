@@ -296,7 +296,7 @@ def _scan_services():
         if len(path_parts) < 2:
             continue
         
-        service_dir = path_parts[-2]  # e.g., "appointment-management-frontend"
+        service_dir = path_parts[-2]  # e.g., "user-management-frontend"
         
         # Phase 2: Use explicit domain extraction patterns
         # Determine which root this manifest came from
@@ -317,7 +317,7 @@ def _scan_services():
             domain_dir = path_parts[-2] if len(path_parts) >= 2 else ""  # Fallback to parent
         
         # Build paths relative to project root (for use by other modules)
-        base_path = "/".join(path_parts[:-2])  # e.g., "services/product/appointment"
+        base_path = "/".join(path_parts[:-2])  # e.g., "services/product/users"
         service_path = base_path  # This is the DOMAIN path
         full_service_path = project_relative_path.rsplit("/", 1)[0]  # Full path to service
         

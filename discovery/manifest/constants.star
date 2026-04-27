@@ -61,11 +61,9 @@ VALIDATION_THRESHOLDS = {
     "max_replicas": 10,
 }
 
-# Valid domains (common ones)
-VALID_DOMAINS = [
-    "identity", "appointment", "salon", "staff", "inventory", 
-    "payment", "treatment", "reporting", "website", "gdpr"
-]
+# Valid domains - loaded dynamically from project config
+# Projects define their own domains in .tdk/project.json
+VALID_DOMAINS = []
 
 # Valid features
 VALID_FEATURES = ["nats", "prisma", "vite-node", "websocket", "cron"]

@@ -75,10 +75,10 @@ def _pluralize_domain(domain):
     Handles irregular plurals and special cases domains.
     
     Args:
-        domain: Singular domain name (e.g., "identity", "salon", "appointment")
+        domain: Singular domain name (e.g., "user", "order", "product")
     
     Returns:
-        str: Pluralized domain name (e.g., "identities", "salons", "appointments")
+        str: Pluralized domain name (e.g., "users", "orders", "products")
     """
     # Already plural
     if domain.endswith("s"):
@@ -86,7 +86,7 @@ def _pluralize_domain(domain):
     
     # Special cases - irregular plurals
     irregulars = {
-        "identity": "identities",
+        "user": "users",
         "category": "categories",
         "story": "stories",
         "city": "cities",
@@ -132,7 +132,7 @@ def get_api_path(domain, manifest=None):
         return manifest.get("apiPath")
     
     # NEW: Use {domain}-management pattern instead of pluralized domain
-    # This matches the service naming convention (identity-management, salon-management, etc.)
+    # This matches the service naming convention ({domain}-management)
     return "{base}/{domain}-management".format(
         base=TRAEFIK_API_BASE_PATH,
         domain=domain,

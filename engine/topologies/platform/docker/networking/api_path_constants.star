@@ -27,11 +27,10 @@ def generate_api_path(domain, app_name):
     """Generate API path from manifest domain and appName.
     
     URL Restructuring: Changed from /api/v1/{app-name} to /api/{domain}-management
-    This provides clean separation between frontend (/identity-management) 
-    and backend (/api/identity-management) while removing version from path.
+    This provides clean separation between frontend and backend while removing version from path.
     """
     # NEW: Use /api/{domain}-management pattern
-    # Examples: /api/identity-management, /api/salon-management
+    # Examples: /api/user-management, /api/order-management
     return "/api/" + domain + "-management"
 
 # =============================================================================
@@ -58,10 +57,10 @@ def _pluralize_domain(domain):
     Handles irregular plurals and special cases for platform domains.
     
     Args:
-        domain: Singular domain name (e.g., "identity", "salon", "appointment")
+        domain: Singular domain name (e.g., "user", "order", "product")
     
     Returns:
-        str: Pluralized domain name (e.g., "identities", "salons", "appointments")
+        str: Pluralized domain name (e.g., "users", "orders", "products")
     """
     # Already plural
     if domain.endswith("s"):

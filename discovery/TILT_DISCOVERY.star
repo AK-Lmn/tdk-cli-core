@@ -125,8 +125,8 @@ def get_synthesis_config():
         # Enable auto-computation of basePath for frontends
         "auto_compute_base_path": True,
 
-        # Database naming pattern: TDK_{domain}_{service_function}
-        # Example: services/product/salon/salon-management-backend -> TDK_salon_management
+        # Database naming pattern: {project}_{domain}_{service_function}
+        # Example: services/product/users/user-management-backend -> {project}_user_management
         "database_name_pattern": "TDK_{domain}_{function}",
 
         # Backend name pattern for frontends: {domain}-management-backend
@@ -143,32 +143,19 @@ def get_synthesis_config():
 # =============================================================================
 # DOMAIN CONFIGURATION
 # =============================================================================
-# Valid business domains for service categorization.
+# Business domains are defined in .tdk/project.json per project.
+# This function returns an empty list - domains are discovered dynamically.
 
 
 def get_valid_domains():
-    """Return list of valid business domains.
+    """Return list of valid business domains from project config.
 
     Returns:
-        list: Valid domain names
+        list: Valid domain names (loaded from .tdk/project.json)
     """
-    return [
-        "accounting",
-        "appointment",
-        "appointment-planner",
-        "billing",
-        "gdpr",
-        "identity",
-        "inventory",
-        "mdblaster",
-        "payment",
-        "platform",
-        "reporting",
-        "salon",
-        "staff",
-        "treatment",
-        "website",
-    ]
+    # Domains are project-specific and loaded from project.json
+    # Return empty list - actual domains discovered from filesystem
+    return []
 
 
 # =============================================================================
