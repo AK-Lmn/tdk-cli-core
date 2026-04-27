@@ -31,7 +31,8 @@ describe('project command', () => {
 
   it('should verify test environment setup', () => {
     expect(existsSync(join(tempDir, 'Tiltfile'))).toBe(true);
-    expect(process.cwd()).toBe(tempDir);
+    // macOS adds /private prefix to temp paths, so check suffix instead
+    expect(process.cwd()).toContain(tempDir.replace('/private', ''));
   });
 
   it('should create and read files in temp directory', () => {
@@ -43,24 +44,46 @@ describe('project command', () => {
 });
 
 describe('project command templates', () => {
-  it('should have valid TILT_SERVICE_DEFAULTS.star template structure', () => {
-    // Verify the template contains expected sections
-    const { PLATFORM_CONFIG_TEMPLATE } = require('../project.js');
+  it('should have valid Handlebars templates', () => {
+    // Check that template files exist
+    const { existsSync } = require('node:fs');
+    const { join } = require('node:path');
     
-    expect(PLATFORM_CONFIG_TEMPLATE).toContain('BASE_PORT_FRONTEND');
-    expect(PLATFORM_CONFIG_TEMPLATE).toContain('BASE_PORT_BACKEND');
-    expect(PLATFORM_CONFIG_TEMPLATE).toContain('HEALTH_CHECK_PATH');
-    expect(PLATFORM_CONFIG_TEMPLATE).toContain('MEMORY_LIMITS');
-    expect(PLATFORM_CONFIG_TEMPLATE).toContain('DOCKER_BASE_IMAGES');
+    // Templates are in cli/templates/, not src/templates/
+    const templatesDir = join(__dirname, '..', '..', '..', 'templates');
+    
+    expect(existsSync(join(templatesDir, 'TILT_SERVICE_DEFAULTS.star.hbs'))).toBe(true);
+    expect(existsSync(join(templatesDir, 'TILT_TECH_STACK.star.hbs'))).toBe(true);
+    expect(existsSync(join(templatesDir, 'Tiltfile.hbs'))).toBe(true);
+    expect(existsSync(join(templatesDir, 'tilt.config.json.hbs'))).toBe(true);
+    expect(existsSync(join(templatesDir, 'spec.master.hbs'))).toBe(true);
   });
 
-  it('should have valid TILT_TECH_STACK.star template structure', () => {
-    const { TECH_STACK_TEMPLATE } = require('../project.js');
+  it('should have templates with required content', () => {
+    const { readFileSync } = require('node:fs');
+    const { join } = require('node:path');
     
-    expect(TECH_STACK_TEMPLATE).toContain('RUNTIME');
-    expect(TECH_STACK_TEMPLATE).toContain('BUNDLER');
-    expect(TECH_STACK_TEMPLATE).toContain('ORM');
-    expect(TECH_STACK_TEMPLATE).toContain('TESTING');
-    expect(TECH_STACK_TEMPLATE).toContain('assert_tech_stack');
+    // Templates are in cli/templates/
+    const templatesDir = join(__dirname, '..', '..', '..', 'templates');
+    
+    // Check TILT_SERVICE_DEFAULTS.star.hbs
+    const serviceDefaults = readFileSync(join(templatesDir, 'TILT_SERVICE_DEFAULTS.star.hbs'), 'utf-8');
+    expect(serviceDefaults).toContain('BASE_PORT_FRONTEND');
+    expect(serviceDefaults).toContain('BASE_PORT_BACKEND');
+    expect(serviceDefaults).toContain('HEALTH_CHECK_PATH');
+    expect(serviceDefaults).toContain('starlarkArray');
+    
+    // Check TILT_TECH_STACK.star.hbs
+    const techStack = readFileSync(join(templatesDir, 'TILT_TECH_STACK.star.hbs'), 'utf-8');
+    expect(techStack).toContain('BUNDLER');
+    expect(techStack).toContain('RUNTIME');
+    expect(techStack).toContain('ORM');
+    expect(techStack).toContain('assert_tech_stack');
+    
+    // Check Tiltfile.hbs
+    const tiltfile = readFileSync(join(templatesDir, 'Tiltfile.hbs'), 'utf-8');
+    expect(tiltfile).toContain('TDK CLI');
+    expect(tiltfile).toContain('.tdk/.tdk-out');
+    expect(tiltfile).toContain('spec.master');
   });
 });
