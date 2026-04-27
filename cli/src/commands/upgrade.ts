@@ -195,6 +195,18 @@ async function upgradeViaGit(path: string): Promise<boolean> {
       });
     }
     
+    // Re-link to ensure tdk command is available
+    spinner.text = 'Re-linking CLI...';
+    try {
+      execSync('bun link --force', {
+        cwd: join(path, 'cli'),
+        stdio: 'pipe',
+        timeout: 30000
+      });
+    } catch {
+      // Link might fail if already linked, that's ok
+    }
+    
     spinner.succeed('Upgraded successfully via git pull');
     return true;
   } catch (err) {

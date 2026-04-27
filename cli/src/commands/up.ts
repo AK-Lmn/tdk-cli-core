@@ -80,7 +80,7 @@ export const upCommand = new Command('up')
         }
       }
 
-      // Build tilt up arguments
+      // Build tilt up arguments (includes Tiltfile path)
       const tiltArgs = buildTiltUpArgs(serviceNames, {
         verbose: options.verbose,
         force: options.force
@@ -88,6 +88,7 @@ export const upCommand = new Command('up')
 
       // Run tilt up
       console.log(chalk.gray('\nRunning tilt up...'));
+      console.log(chalk.gray(`Using Tiltfile: .tdk/.tdk-out/Tiltfile`));
       const result = await runTilt('up', tiltArgs, {
         verbose: options.verbose,
         inheritStdio: true  // Pass through tilt's output

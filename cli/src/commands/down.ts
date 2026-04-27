@@ -27,7 +27,7 @@ export const downCommand = new Command('down')
         return;
       }
 
-      // Build tilt down arguments
+      // Build tilt down arguments (includes Tiltfile path)
       const tiltArgs = buildTiltDownArgs({
         force: options.force
       });
@@ -36,7 +36,7 @@ export const downCommand = new Command('down')
       console.log(chalk.blue('Stopping all tilt resources...'));
 
       if (options.verbose) {
-        console.log(chalk.gray('Running: tilt down'));
+        console.log(chalk.gray('Running: tilt down -f .tdk/.tdk-out/Tiltfile'));
       }
 
       const result = await runTilt('down', tiltArgs, {

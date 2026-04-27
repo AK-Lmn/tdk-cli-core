@@ -10,12 +10,17 @@ import { cwd } from 'node:process';
 import { execSync } from 'node:child_process';
 const SERVICE_JSON_FILENAME = 'service.json';
 /**
- * Find the project root by looking for Tiltfile
+ * Find the project root by looking for .tdk/project.json
  */
 export function findProjectRoot(startDir = cwd()) {
     let currentDir = resolve(startDir);
     const root = resolve('/');
     while (currentDir !== root) {
+        // Check for new TDK project structure (.tdk/project.json)
+        if (existsSync(join(currentDir, '.tdk', 'project.json'))) {
+            return currentDir;
+        }
+        // Legacy: Check for Tiltfile in root (deprecated)
         if (existsSync(join(currentDir, 'Tiltfile'))) {
             return currentDir;
         }

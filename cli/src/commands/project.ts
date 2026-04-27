@@ -74,7 +74,7 @@ export const projectCommand = new Command('project')
       // Check mode - verify files exist and are in sync
       if (options.check) {
         const allFilesExist = ['tilt.config.json', 'TILT_TECH_STACK.star', 'TILT_SERVICE_DEFAULTS.star', 'spec.master']
-          .every(f => existsSync(join(projectRoot, '.tdk-out', f)));
+          .every(f => existsSync(join(projectRoot, '.tdk', '.tdk-out', f)));
         const projectJsonExists = existsSync(projectJsonPath);
 
         if (allFilesExist && projectJsonExists) {
@@ -96,8 +96,8 @@ export const projectCommand = new Command('project')
           if (!projectJsonExists) console.log(chalk.gray('   - .tdk/project.json (not found)'));
           if (!allFilesExist) {
             ['tilt.config.json', 'TILT_TECH_STACK.star', 'TILT_SERVICE_DEFAULTS.star', 'spec.master']
-              .filter(f => !existsSync(join(projectRoot, '.tdk-out', f)))
-              .forEach(f => console.log(chalk.gray(`   - .tdk-out/${f} (not found)`)));
+              .filter(f => !existsSync(join(projectRoot, '.tdk/.tdk-out', f)))
+              .forEach(f => console.log(chalk.gray(`   - .tdk/.tdk-out/${f} (not found)`)));
           }
           console.log(chalk.gray('\nRun `tdk project` to create them.'));
           process.exit(1);
@@ -125,7 +125,7 @@ export const projectCommand = new Command('project')
         try {
           generateMasterConfigs(projectRoot);
       console.log(chalk.green('\n✅ Project configuration regenerated!'));
-      console.log(chalk.gray('\nGenerated in .tdk-out/:'));
+      console.log(chalk.gray('\nGenerated in .tdk/.tdk-out/:'));
       console.log(chalk.gray('  - tilt.config.json (Tilt UI settings)'));
       console.log(chalk.gray('  - TILT_TECH_STACK.star (tech stack constants)'));
       console.log(chalk.gray('  - TILT_SERVICE_DEFAULTS.star (service defaults)'));
@@ -260,7 +260,7 @@ export const projectCommand = new Command('project')
       generateMasterConfigs(projectRoot);
 
       console.log(chalk.green('\n✅ Project configuration complete!'));
-      console.log(chalk.gray('\nGenerated files in .tdk-out/:'));
+      console.log(chalk.gray('\nGenerated files in .tdk/.tdk-out/:'));
       console.log(chalk.gray('  - tilt.config.json (Tilt UI settings)'));
       console.log(chalk.gray('  - TILT_TECH_STACK.star (tech stack constants)'));
       console.log(chalk.gray('  - TILT_SERVICE_DEFAULTS.star (service defaults)'));

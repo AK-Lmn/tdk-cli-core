@@ -7,7 +7,7 @@
 import type { DiscoveredService, DiscoveredStack } from '../types/index.js';
 import type { FileType } from '../components/FileTree.js';
 /**
- * Find the project root by looking for Tiltfile
+ * Find the project root by looking for .tdk/project.json
  */
 export declare function findProjectRoot(startDir?: string): string | null;
 /**

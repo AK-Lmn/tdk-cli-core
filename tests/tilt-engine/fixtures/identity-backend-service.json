@@ -1,0 +1,12 @@
+{
+  "name": "identity-backend",
+  "type": "backend",
+  "domain": "identity",
+  "port": 4001,
+  "path": "services/product/identity/identity-backend",
+  "databaseName": "beauty_crm_identity",
+  "features": ["prisma", "nats", "health-check"],
+  "replicas": 2,
+  "healthCheck": true,
+  "healthCheckPath": "/health"
+}

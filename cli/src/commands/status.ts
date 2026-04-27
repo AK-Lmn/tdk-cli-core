@@ -7,7 +7,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { discoverStacks, discoverServices } from '../utils/services.js';
-import { isTiltAvailable, runTilt } from '../utils/tilt.js';
+import { isTiltAvailable, runTilt, getTiltfilePath } from '../utils/tilt.js';
 
 export const statusCommand = new Command('status')
   .description('Show status of services and stacks')
@@ -70,7 +70,8 @@ export const statusCommand = new Command('status')
         console.log();
         console.log(chalk.blue('Tilt Resources:'));
 
-        const result = await runTilt('get', ['resources'], { inheritStdio: false });
+        const tiltfilePath = getTiltfilePath();
+        const result = await runTilt('get', ['-f', tiltfilePath, 'resources'], { inheritStdio: false });
 
         if (result.exitCode === 0) {
           console.log(result.stdout || chalk.gray('  No active tilt resources'));

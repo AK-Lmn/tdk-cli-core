@@ -23,6 +23,12 @@ export declare function runTilt(command: string, args?: string[], options?: {
  */
 export declare function isTiltAvailable(): Promise<boolean>;
 /**
+ * Get the path to the generated Tiltfile
+ *
+ * @returns Path to Tiltfile
+ */
+export declare function getTiltfilePath(): string;
+/**
  * Build tilt up command arguments for specific services
  *
  * @param serviceNames - Names of services to start

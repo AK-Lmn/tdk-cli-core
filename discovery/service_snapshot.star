@@ -5,7 +5,7 @@
 # =============================================================================
 
 # Python script path (relative to Tiltfile)
-_SNAPSHOT_SCRIPT = ".tdk-out/snapshots/service_snapshot.py"
+_SNAPSHOT_SCRIPT = ".tdk/.tdk-out/snapshots/service_snapshot.py"
 
 def _run_snapshot_command(cmd):
     """Run a snapshot command via Python script."""
@@ -122,7 +122,7 @@ def get_current_services(scan_roots=["services/product"]):
 def snapshot_exists():
     """Check if snapshot file exists."""
     result = local(
-        "test -f .tdk-out/snapshots/service-snapshot.json && echo 'yes' || echo 'no'",
+        "test -f .tdk/.tdk-out/snapshots/service-snapshot.json && echo 'yes' || echo 'no'",
         quiet=True,
         echo_off=True
     )
@@ -131,7 +131,7 @@ def snapshot_exists():
 # Get the path to the service snapshot file
 def get_service_snapshot_path():
     """Return the path to the service snapshot JSON file."""
-    return ".tdk-out/snapshots/service-snapshot.json"
+    return ".tdk/.tdk-out/snapshots/service-snapshot.json"
 
 # Export public API
 ServiceSnapshot = struct(

@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import List, Dict, Set, Tuple, Optional
 from datetime import datetime, timezone
 
-SNAPSHOT_FILE = Path(".tdk-out/snapshots/service-snapshot.json")
+SNAPSHOT_FILE = Path(".tdk/.tdk-out/snapshots/service-snapshot.json")
 
 
 def compute_service_hash(service_path: str) -> Optional[str]:

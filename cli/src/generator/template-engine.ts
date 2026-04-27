@@ -92,6 +92,57 @@ export class TemplateEngine {
     // Handle both ESM and CommonJS contexts
     const currentDir = import.meta.dirname || path.dirname(new URL(import.meta.url).pathname);
     this.templatesDir = templatesDir || path.join(currentDir, "..", "..", "templates");
+
+    // Register Handlebars helpers for Starlark formatting
+    this.registerHelpers();
+  }
+
+  /**
+   * Register Handlebars helpers for Starlark-compatible output
+   */
+  private registerHelpers(): void {
+    // Helper to format values for Starlark (arrays, objects, primitives)
+    Handlebars.registerHelper("starlark", function(value: unknown): Handlebars.SafeString {
+      const formatValue = (val: unknown): string => {
+        if (val === null || val === undefined) {
+          return "None";
+        }
+        if (typeof val === "string") {
+          return `"${val.replace(/"/g, '\\"')}"`;
+        }
+        if (typeof val === "boolean") {
+          return val ? "True" : "False";
+        }
+        if (typeof val === "number") {
+          return String(val);
+        }
+        if (Array.isArray(val)) {
+          const items = val.map((item) => formatValue(item));
+          return `[${items.join(", ")}]`;
+        }
+        if (typeof val === "object") {
+          const entries = Object.entries(val as Record<string, unknown>).map(([key, v]) => {
+            return `"${key}": ${formatValue(v)}`;
+          });
+          return `{${entries.join(", ")}}`;
+        }
+        return String(val);
+      };
+      return new Handlebars.SafeString(formatValue(value));
+    });
+
+    // Helper to format arrays as Starlark lists
+    Handlebars.registerHelper("starlarkArray", function(value: unknown[]): Handlebars.SafeString {
+      if (!Array.isArray(value)) return new Handlebars.SafeString("[]");
+      const starlarkHelper = Handlebars.helpers.starlark as (v: unknown) => Handlebars.SafeString;
+      const items = value.map((item) => starlarkHelper(item).toString());
+      return new Handlebars.SafeString(`[${items.join(", ")}]`);
+    });
+
+    // Helper for JSON-compatible output (for JSON files)
+    Handlebars.registerHelper("json", function(value: unknown): string {
+      return JSON.stringify(value);
+    });
   }
 
   /**
@@ -178,13 +229,22 @@ export class TemplateEngine {
   }
 
   /**
-   * Generate all 4 files
+   * Generate Tiltfile (project root entrypoint)
+   */
+  generateTiltfile(context: GeneratorContext): string {
+    const template = this.loadTemplate("Tiltfile");
+    return template(context);
+  }
+
+  /**
+   * Generate all 5 files (4 in .tdk-out/ + Tiltfile in root)
    */
   generateAll(projectConfig: ProjectConfig): {
     "tilt.config.json": string;
     "TILT_TECH_STACK.star": string;
     "TILT_SERVICE_DEFAULTS.star": string;
     "spec.master": string;
+    "Tiltfile": string;
   } {
     const context = this.buildContext(projectConfig);
 
@@ -193,6 +253,7 @@ export class TemplateEngine {
       "TILT_TECH_STACK.star": this.generateTechStack(context),
       "TILT_SERVICE_DEFAULTS.star": this.generateServiceDefaults(context),
       "spec.master": this.generateSpecMaster(context),
+      "Tiltfile": this.generateTiltfile(context),
     };
   }
 }
@@ -217,8 +278,8 @@ export function readProjectConfig(projectRoot: string): ProjectConfig {
 export function generateMasterConfigs(projectRoot: string): void {
   const projectConfig = readProjectConfig(projectRoot);
 
-  // Ensure .tdk-out directory exists
-  const outputDir = path.join(projectRoot, ".tdk-out");
+  // Ensure .tdk/.tdk-out directory exists
+  const outputDir = path.join(projectRoot, ".tdk", ".tdk-out");
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
   }
@@ -227,12 +288,24 @@ export function generateMasterConfigs(projectRoot: string): void {
   const engine = new TemplateEngine();
   const files = engine.generateAll(projectConfig);
 
-  // Write files to .tdk-out/
-  for (const [filename, content] of Object.entries(files)) {
+  // Write ALL generated files to .tdk/.tdk-out/ (including Tiltfile)
+  const allGeneratedFiles = [
+    "tilt.config.json",
+    "TILT_TECH_STACK.star",
+    "TILT_SERVICE_DEFAULTS.star",
+    "spec.master",
+    "Tiltfile",
+  ];
+
+  for (const filename of allGeneratedFiles) {
+    const content = files[filename as keyof typeof files];
     const filePath = path.join(outputDir, filename);
     fs.writeFileSync(filePath, content, "utf-8");
-    console.log(`✓ Generated: .tdk-out/${filename}`);
+    console.log(`✓ Generated: .tdk/.tdk-out/${filename}`);
   }
+
+  console.log("");
+  console.log("💡 To start Tilt: tdk up");
 }
 
 /**
@@ -245,20 +318,36 @@ export function verifyMasterConfigs(projectRoot: string): { valid: boolean; erro
     const projectConfig = readProjectConfig(projectRoot);
     const engine = new TemplateEngine();
     const expectedFiles = engine.generateAll(projectConfig);
-    const outputDir = path.join(projectRoot, ".tdk-out");
 
-    for (const [filename, expectedContent] of Object.entries(expectedFiles)) {
+    // Verify all generated files in .tdk/.tdk-out/
+    const outputDir = path.join(projectRoot, ".tdk", ".tdk-out");
+    const allGeneratedFiles = [
+      "tilt.config.json",
+      "TILT_TECH_STACK.star",
+      "TILT_SERVICE_DEFAULTS.star",
+      "spec.master",
+      "Tiltfile",
+    ];
+
+    for (const filename of allGeneratedFiles) {
+      const expectedContent = expectedFiles[filename as keyof typeof expectedFiles];
       const filePath = path.join(outputDir, filename);
 
       if (!fs.existsSync(filePath)) {
-        errors.push(`Missing file: .tdk-out/${filename}`);
+        errors.push(`Missing file: .tdk/.tdk-out/${filename}`);
         continue;
       }
 
       const actualContent = fs.readFileSync(filePath, "utf-8");
       if (actualContent !== expectedContent) {
-        errors.push(`Out of sync: .tdk-out/${filename} (run 'tdk config regenerate')`);
+        errors.push(`Out of sync: .tdk/.tdk-out/${filename} (run 'tdk config regenerate')`);
       }
+    }
+
+    // Check for old Tiltfile in project root (should not exist anymore)
+    const oldTiltfilePath = path.join(projectRoot, "Tiltfile");
+    if (fs.existsSync(oldTiltfilePath)) {
+      errors.push(`Deprecated: Tiltfile in project root (should be in .tdk/.tdk-out/, run 'tdk config regenerate')`);
     }
   } catch (error) {
     errors.push(`Verification error: ${error instanceof Error ? error.message : String(error)}`);

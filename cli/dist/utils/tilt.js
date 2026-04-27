@@ -65,6 +65,20 @@ export async function isTiltAvailable() {
         return false;
     }
 }
+import { findProjectRoot as servicesFindProjectRoot } from './services.js';
+import { join } from 'node:path';
+/**
+ * Get the path to the generated Tiltfile
+ *
+ * @returns Path to Tiltfile
+ */
+export function getTiltfilePath() {
+    const projectRoot = servicesFindProjectRoot();
+    if (!projectRoot) {
+        throw new Error('Not in a TDK project (no .tdk/project.json found)');
+    }
+    return join(projectRoot, '.tdk', '.tdk-out', 'Tiltfile');
+}
 /**
  * Build tilt up command arguments for specific services
  *
@@ -74,6 +88,9 @@ export async function isTiltAvailable() {
  */
 export function buildTiltUpArgs(serviceNames, options = {}) {
     const args = [];
+    // Add Tiltfile path (generated in .tdk/.tdk-out/)
+    const tiltfilePath = getTiltfilePath();
+    args.push('-f', tiltfilePath);
     // Add service names as arguments
     args.push(...serviceNames);
     if (options.verbose) {
@@ -92,6 +109,9 @@ export function buildTiltUpArgs(serviceNames, options = {}) {
  */
 export function buildTiltDownArgs(options = {}) {
     const args = [];
+    // Add Tiltfile path (generated in .tdk/.tdk-out/)
+    const tiltfilePath = getTiltfilePath();
+    args.push('-f', tiltfilePath);
     if (options.force) {
         args.push('--force');
     }

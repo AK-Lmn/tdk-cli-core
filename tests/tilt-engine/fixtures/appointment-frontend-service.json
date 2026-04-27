@@ -1,0 +1,11 @@
+{
+  "name": "appointment-frontend",
+  "type": "frontend",
+  "domain": "appointment",
+  "port": 3001,
+  "path": "services/product/appointment/appointment-frontend",
+  "backendName": "appointment-backend",
+  "basePath": "/appointments",
+  "features": ["vite"],
+  "replicas": 1
+}

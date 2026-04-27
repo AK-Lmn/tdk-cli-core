@@ -28,7 +28,8 @@ def load_project_defaults(project_root):
     
     # Check multiple locations for spec.master (in order of preference)
     spec_paths = [
-        project_root + "/.tdk-out/generated/spec.master",  # New unified output folder
+        project_root + "/.tdk/.tdk-out/spec.master",       # TDK CLI output folder
+        project_root + "/.tdk-out/generated/spec.master",  # Legacy unified output folder
         project_root + "/spec.master",                       # Original location (legacy)
     ]
     
@@ -138,8 +139,9 @@ def load_project_defaults(project_root):
 # 🎛️ SERVICE DEFAULTS
 # -----------------------------------------------------------------------------
 # LOADED FROM: spec.master (searched in order):
-#   1. .tdk-out/generated/spec.master (new unified output folder)
-#   2. spec.master (legacy location in project root)
+#   1. .tdk/.tdk-out/spec.master (TDK CLI output folder)
+#   2. .tdk-out/generated/spec.master (legacy unified output folder)
+#   3. spec.master (legacy location in project root)
 # PURPOSE: Single source of truth for service enable/disable configuration
 # 
 # 📖 To modify which services run, edit: spec.master
