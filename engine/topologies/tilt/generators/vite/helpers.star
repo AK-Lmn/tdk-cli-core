@@ -105,7 +105,7 @@ def generate_proxy_block(api_base_path, backend_port, additional_routes, domain=
     api_path = get_api_path_for_domain(domain)
     
     # Build Traefik gateway URL using the full API path
-    # Format: http://beauty-crm.localhost/api/v1/{full-service-name}
+    # Format: http://{project}.localhost/api/v1/{full-service-name}
     local_target = build_traefik_url(api_path)
     
     routes = [
