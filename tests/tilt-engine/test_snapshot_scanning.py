@@ -23,7 +23,7 @@ class TestSnapshotScanning:
         services = [
             ("services/product/identity/identity-backend", "identity-backend"),
             ("services/product/identity/identity-frontend", "identity-frontend"),
-            ("services/product/appointment/appointment-backend", "appointment-backend"),
+            ("services/product/order/order-backend", "order-backend"),
         ]
         
         for service_path, service_name in services:

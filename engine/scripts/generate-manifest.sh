@@ -5,12 +5,12 @@
 # Usage: ./generate-manifest.sh <domain> <service-name> <type> [port]
 #
 # Examples:
-#   ./generate-manifest.sh salon salon-management backend 4000
-#   ./generate-manifest.sh appointment booking frontend 3002
+#   ./generate-manifest.sh user user-management backend 4000
+#   ./generate-manifest.sh order booking frontend 3002
 #   ./generate-manifest.sh notification email worker 6001
 #
 # Debug Mode:
-#   TILT_DEBUG=true ./generate-manifest.sh salon salon-management backend 4000
+#   TILT_DEBUG=true ./generate-manifest.sh user user-management backend 4000
 # =============================================================================
 
 set -euo pipefail
@@ -42,14 +42,14 @@ ${YELLOW}Usage:${NC}
   $0 <domain> <service-name> <type> [port]
 
 ${YELLOW}Arguments:${NC}
-  domain        Business domain (salon, staff, appointment, treatment, etc.)
+  domain        Business domain (user, order, product, service, etc.)
   service-name  Service name without type suffix (e.g., 'management', 'booking')
   type          Service type: backend, frontend, worker, sdk
   port          (Optional) Port number. Auto-assigned if not specified.
 
 ${YELLOW}Examples:${NC}
-  $0 salon management backend 4000
-  $0 appointment booking frontend 3002
+  $0 user management backend 4000
+  $0 order booking frontend 3002
   $0 notification email worker
 
 ${YELLOW}Port Conventions:${NC}
@@ -65,7 +65,7 @@ EOF
 }
 
 # Validate domain
-VALID_DOMAINS=("salon" "staff" "identity" "appointment" "treatment" "inventory" "billing" "notification" "analytics")
+VALID_DOMAINS=("user" "order" "product" "service" "notification" "analytics")
 
 validate_domain() {
     local domain=$1

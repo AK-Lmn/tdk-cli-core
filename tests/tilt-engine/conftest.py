@@ -25,7 +25,7 @@ def mock_services_dir(temp_dir: Path) -> Path:
     services_dir.mkdir(parents=True)
     
     # Create test services
-    for domain in ["identity", "appointment"]:
+    for domain in ["identity", "order"]:
         domain_dir = services_dir / domain
         for service in [f"{domain}-backend", f"{domain}-frontend"]:
             service_dir = domain_dir / service
@@ -166,7 +166,7 @@ def focus_mode_config() -> dict:
     """Return focus mode configuration for testing."""
     return {
         "enabled": True,
-        "domains": ["identity", "appointment"],
+        "domains": ["identity", "order"],
         "excluded_paths": []
     }
 

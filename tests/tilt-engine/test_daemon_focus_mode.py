@@ -22,7 +22,7 @@ class TestDaemonFocusMode:
         # Simulate focus mode config
         focus_config = {
             "enabled": True,
-            "domains": ["identity", "appointment"],
+            "domains": ["identity", "order"],
             "excluded_paths": []
         }
         
@@ -46,7 +46,7 @@ class TestDaemonFocusMode:
         # Create service in focus domain
         focus_config = {
             "enabled": True,
-            "domains": ["identity", "appointment"],
+            "domains": ["identity", "order"],
             "excluded_paths": []
         }
         
@@ -79,7 +79,7 @@ class TestDaemonFocusMode:
         test_cases = [
             ({"enabled": True, "domains": ["identity"]}, "identity", True),
             ({"enabled": True, "domains": ["identity"]}, "billing", False),
-            ({"enabled": True, "domains": ["identity", "appointment"]}, "appointment", True),
+            ({"enabled": True, "domains": ["identity", "order"]}, "order", True),
             ({"enabled": False, "domains": ["identity"]}, "billing", True),
         ]
         

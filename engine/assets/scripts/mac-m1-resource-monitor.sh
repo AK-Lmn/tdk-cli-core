@@ -32,9 +32,9 @@ echo -e "${BLUE}💻 System Memory:${NC} $SYSTEM_MEMORY"
 echo ""
 
 # Check running TDK Landscape containers
-BEAUTY_CONTAINERS=$(docker ps --format "{{.Names}}" | grep -E "(TDK Landscape|appointment|salon|staff|treatment|postgres|redis|nats|kafka|traefik|clickhouse|elasticsearch)" | sort)
+PROJECT_CONTAINERS=$(docker ps --format "{{.Names}}" | grep -E "(postgres|redis|nats|kafka|traefik|clickhouse|elasticsearch|verdaccio|infisical)" | sort)
 
-if [ -z "$BEAUTY_CONTAINERS" ]; then
+if [ -z "$PROJECT_CONTAINERS" ]; then
     echo -e "${YELLOW}⚠️  No TDK Landscape containers are currently running${NC}"
     echo "Run 'tilt up' to start services"
     exit 0
@@ -102,7 +102,7 @@ if (( $(echo "$TOTAL_MEMORY_MB > 3000" | bc -l 2>/dev/null || echo 0) )); then
     echo -e "${RED}⚠️  HIGH MEMORY USAGE DETECTED!${NC}"
     echo "• Consider stopping unnecessary services with 'tilt down'"
     echo "• Avoid running monitoring + elk + all apps simultaneously"
-    echo "• Use selective service loading: 'tilt up -- --appointment' instead of all services"
+    echo "• Use selective service loading: 'tilt up --focus <domain>' instead of all services"
 elif (( $(echo "$TOTAL_MEMORY_MB > 2000" | bc -l 2>/dev/null || echo 0) )); then
     echo -e "${YELLOW}⚡ MODERATE MEMORY USAGE${NC}"
     echo "• Memory usage is acceptable for Mac M1"
