@@ -23,10 +23,19 @@ load('../../common/utils.star', 'Utils')
 load('../../../platform/docker/constants.star', 'PlatformDockerConstants')
 
 # Load project name for environment variable prefixes
-_PROJECT_NAME = 'tdk-project'
-if os.path.exists('.tdk/project.json'):
-    _project_json = read_json('.tdk/project.json')
-    _PROJECT_NAME = _project_json.get('project', {}).get('name', 'tdk-project')
+# Use TDK_PROJECT_ROOT env var set by Tilt, fallback to current directory
+def _load_project_name():
+    project_root = os.environ.get('TDK_PROJECT_ROOT', '')
+    project_json_path = '.tdk/project.json'
+    if project_root:
+        project_json_path = project_root + '/' + project_json_path
+    
+    if os.path.exists(project_json_path):
+        _project_json = read_json(project_json_path)
+        return _project_json.get('project', {}).get('name', 'tdk-project')
+    return 'tdk-project'
+
+_PROJECT_NAME = _load_project_name()
 
 # Environment variable to disable deprecation warnings (uses project name prefix)
 _DISABLE_WARNINGS = os.environ.get(_PROJECT_NAME.upper().replace('-', '_') + '_DISABLE_MANIFEST_WARNINGS', '') == 'true'

@@ -22,10 +22,19 @@ load("../auth/auth.star", "AuthConfig")
 load("../constants.star", "PlatformDockerConstants")
 
 # Load project name for dynamic host naming
-_PROJECT_NAME = 'tdk-project'
-if os.path.exists('.tdk/project.json'):
-    _project_json = read_json('.tdk/project.json')
-    _PROJECT_NAME = _project_json.get('project', {}).get('name', 'tdk-project')
+# Use TDK_PROJECT_ROOT env var set by Tilt, fallback to current directory
+def _load_project_name():
+    project_root = os.environ.get('TDK_PROJECT_ROOT', '')
+    project_json_path = '.tdk/project.json'
+    if project_root:
+        project_json_path = project_root + '/' + project_json_path
+    
+    if os.path.exists(project_json_path):
+        _project_json = read_json(project_json_path)
+        return _project_json.get('project', {}).get('name', 'tdk-project')
+    return 'tdk-project'
+
+_PROJECT_NAME = _load_project_name()
 
 
 def _compute_env_file_rel_path(service_path, full_service_path, env_filename):
@@ -204,7 +213,7 @@ def _generate_single_backend_entry(service_path, service_name, res, manifest, in
     build_config = compose_build_config(service_path, res_name)
     
     # REMOVED: External port exposure - all services accessed via Traefik only
-    # Services are available at beauty-crm.localhost/api/v1/{service}
+    # Services are available at {project}.localhost/api/v1/{service}
     # Internal port 3000 is accessible within Docker network for service-to-service communication
     ports_section = ""  # No external ports - Traefik-only access
     

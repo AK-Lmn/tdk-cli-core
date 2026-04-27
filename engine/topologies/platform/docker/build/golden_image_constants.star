@@ -4,10 +4,19 @@
 
 # Load project configuration to get the project name as prefix
 # Falls back to 'tdk-project' if project.json is not found
-_GOLDEN_IMAGE_PREFIX = 'tdk-project'
-if os.path.exists('.tdk/project.json'):
-    _project_json = read_json('.tdk/project.json')
-    _GOLDEN_IMAGE_PREFIX = _project_json.get('project', {}).get('name', 'tdk-project')
+# Use TDK_PROJECT_ROOT env var set by Tilt, fallback to current directory
+def _load_golden_prefix():
+    project_root = os.environ.get('TDK_PROJECT_ROOT', '')
+    project_json_path = '.tdk/project.json'
+    if project_root:
+        project_json_path = project_root + '/' + project_json_path
+    
+    if os.path.exists(project_json_path):
+        _project_json = read_json(project_json_path)
+        return _project_json.get('project', {}).get('name', 'tdk-project')
+    return 'tdk-project'
+
+_GOLDEN_IMAGE_PREFIX = _load_golden_prefix()
 
 GOLDEN_IMAGE_PREFIX = _GOLDEN_IMAGE_PREFIX
 GOLDEN_DOCKERFILE = '.tdk/.tdk-out/golden-layers.Dockerfile'

@@ -17,12 +17,21 @@
 # =============================================================================
 
 # Load project name for dynamic defaults
-_PROJECT_NAME = 'tdk-project'
-_PROJECT_NAME_DISPLAY = 'Tdk Project'
-if os.path.exists('.tdk/project.json'):
-    _project_json = read_json('.tdk/project.json')
-    _PROJECT_NAME = _project_json.get('project', {}).get('name', 'tdk-project')
-    _PROJECT_NAME_DISPLAY = _PROJECT_NAME.replace('-', ' ').title()
+# Use TDK_PROJECT_ROOT env var set by Tilt, fallback to current directory
+def _load_project_names():
+    project_root = os.environ.get('TDK_PROJECT_ROOT', '')
+    project_json_path = '.tdk/project.json'
+    if project_root:
+        project_json_path = project_root + '/' + project_json_path
+    
+    if os.path.exists(project_json_path):
+        _project_json = read_json(project_json_path)
+        _PROJECT_NAME = _project_json.get('project', {}).get('name', 'tdk-project')
+        _PROJECT_NAME_DISPLAY = _PROJECT_NAME.replace('-', ' ').title()
+        return _PROJECT_NAME, _PROJECT_NAME_DISPLAY
+    return 'tdk-project', 'Tdk Project'
+
+_PROJECT_NAME, _PROJECT_NAME_DISPLAY = _load_project_names()
 
 def _get_timestamp():
     """Get current timestamp string"""

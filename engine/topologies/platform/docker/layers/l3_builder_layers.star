@@ -31,10 +31,19 @@ load('./prisma/prisma_build.star',
 load('./infisical/infisical_docker.star', 'InfisicalDocker')
 
 # Load project name for dynamic golden image naming
-_GOLDEN_PREFIX = 'tdk-project'
-if os.path.exists('.tdk/project.json'):
-    _project_json = read_json('.tdk/project.json')
-    _GOLDEN_PREFIX = _project_json.get('project', {}).get('name', 'tdk-project')
+# Use TDK_PROJECT_ROOT env var set by Tilt, fallback to current directory
+def _load_golden_prefix():
+    project_root = os.environ.get('TDK_PROJECT_ROOT', '')
+    project_json_path = '.tdk/project.json'
+    if project_root:
+        project_json_path = project_root + '/' + project_json_path
+    
+    if os.path.exists(project_json_path):
+        _project_json = read_json(project_json_path)
+        return _project_json.get('project', {}).get('name', 'tdk-project')
+    return 'tdk-project'
+
+_GOLDEN_PREFIX = _load_golden_prefix()
 
 _docker_cfg = GLOBAL_CONFIG['docker']
 GOLDEN_L3_BACKEND_IMAGE = _docker_cfg.get('golden_l3_backend_image', _GOLDEN_PREFIX + '-l3-backend:latest')

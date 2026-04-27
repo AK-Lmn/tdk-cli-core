@@ -8,10 +8,19 @@
 load('../../../../topologies/tilt/common/utils.star', 'Utils')
 
 # Load npm scope from project.json (or use project name as default)
-_NPM_SCOPE = 'tdk-project'
-if os.path.exists('.tdk/project.json'):
-    _project_json = read_json('.tdk/project.json')
-    _NPM_SCOPE = _project_json.get('project', {}).get('name', 'tdk-project')
+# Use TDK_PROJECT_ROOT env var set by Tilt, fallback to current directory
+def _load_npm_scope():
+    project_root = os.environ.get('TDK_PROJECT_ROOT', '')
+    project_json_path = '.tdk/project.json'
+    if project_root:
+        project_json_path = project_root + '/' + project_json_path
+    
+    if os.path.exists(project_json_path):
+        _project_json = read_json(project_json_path)
+        return _project_json.get('project', {}).get('name', 'tdk-project')
+    return 'tdk-project'
+
+_NPM_SCOPE = _load_npm_scope()
 # =============================================================================
 # API PATH CONSTANTS - Import for full descriptive API naming
 # =============================================================================
