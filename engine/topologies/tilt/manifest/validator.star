@@ -7,7 +7,7 @@
 # =============================================================================
 
 # === INLINED CONSTANTS for pure extension loading ===
-VALID_DOMAINS = ()  # Domains are project-specific, discovered dynamically
+VALID_STACKS = ()  # Stacks are project-specific, discovered dynamically
 VALID_FEATURES = "nats", "prisma", "redis", "infisical", "vitest", "traefik", "websocket", "graphql", "grpc", "vite-node", "maintenance"
 PORT_RANGES = {"frontend": {"min": 3000, "max": 5999}, "backend": {"min": 4000, "max": 5999}, "worker": {"min": 6000, "max": 6999}, "migrator": {"min": 7000, "max": 7999}, "sdk": {"min": 3000, "max": 9999}, "library": {"min": 3000, "max": 9999}}
 DEFAULTS = {}
@@ -24,7 +24,7 @@ load("./constants.star",
 
 load("./schema.star", "ManifestSchema")
 load("./errors.star", "ManifestErrors")
-load("./parser.star", "extract_domain_from_path")
+load("./parser.star", "extract_stack_from_path")
 
 def validate(manifest, context=None, level='all'):
     """
@@ -34,13 +34,13 @@ def validate(manifest, context=None, level='all'):
         manifest: Manifest dict to validate
         context: Optional context dict:
             - all_manifests: List of all manifests for cross-validation
-            - service_path: Path for error context
+            - resource_path: Path for error context
             - strict: Boolean for strict mode (treats warnings as errors)
         level: Validation level
             - 'schema': Structure and types only
             - 'values': Value constraints
             - 'cross_field': Cross-field dependencies
-            - 'cross_service': Cross-service dependencies (requires all_manifests)
+            - 'cross_resource': Cross-resource dependencies (requires all_manifests)
             - 'all': All validations (default)
     
     Returns:
@@ -104,8 +104,8 @@ def validate(manifest, context=None, level='all'):
         stats['rules_passed'] += cross_field_result.stats['rules_passed']
         stats['rules_failed'] += cross_field_result.stats['rules_failed']
     
-    # Run cross-service validation
-    if 'cross_service' in levels_to_run and context.get('all_manifests'):
+    # Run cross-resource validation
+    if 'cross_resource' in levels_to_run and context.get('all_manifests'):
         cross_service_result = _validate_cross_service(manifest, context)
         errors.extend(cross_service_result.errors)
         warnings.extend(cross_service_result.warnings)
@@ -150,7 +150,7 @@ def _validate_schema(manifest, context):
             message="Manifest is empty or None",
             category=ManifestErrors.CATEGORY['SCHEMA'],
             severity=ManifestErrors.SEVERITY['CRITICAL'],
-            context={'path': context.get('service_path', '')},
+            context={'path': context.get('resource_path', '')},
         ))
         return struct(errors=errors, warnings=warnings, stats=stats)
     
@@ -164,7 +164,7 @@ def _validate_schema(manifest, context):
                 message="Missing required field: " + field_name,
                 category=ManifestErrors.CATEGORY['SCHEMA'],
                 severity=ManifestErrors.SEVERITY['ERROR'],
-                context={'field': field_name, 'path': context.get('service_path', '')},
+                context={'field': field_name, 'path': context.get('resource_path', '')},
             ))
             stats['rules_failed'] += 1
         else:
@@ -352,7 +352,7 @@ def _validate_cross_field(manifest, context):
         
         if not manifest.get('backendName'):
             errors.append(ManifestErrors.new(
-                message="Frontend service must specify backendName",
+                message="Frontend resource must specify backendName",
                 category=ManifestErrors.CATEGORY['VALIDATION'],
                 severity=ManifestErrors.SEVERITY['ERROR'],
                 context={'field': 'backendName', 'appType': 'frontend'},
@@ -365,7 +365,7 @@ def _validate_cross_field(manifest, context):
         stats['fields_checked'] += 1
         if not manifest.get('basePath'):
             warnings.append(ManifestErrors.new(
-                message="Frontend service should specify basePath for routing",
+                message="Frontend resource should specify basePath for routing",
                 category=ManifestErrors.CATEGORY['VALIDATION'],
                 severity=ManifestErrors.SEVERITY['WARNING'],
                 context={'field': 'basePath', 'appType': 'frontend'},
