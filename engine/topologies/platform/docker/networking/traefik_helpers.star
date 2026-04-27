@@ -139,14 +139,14 @@ def get_api_path(domain, manifest=None):
     )
 
 
-def beauty_crm_backend_rule(manifest):
-    """Generate routing rule for beauty-crm.localhost from manifest.
-    
+def project_backend_rule(manifest):
+    """Generate routing rule for {project}.localhost from manifest.
+
     Args:
         manifest: Service manifest dictionary
-    
+
     Returns:
-        str: Traefik routing rule for beauty-crm.localhost
+        str: Traefik routing rule for project localhost domain
     """
     if not manifest:
         return ""

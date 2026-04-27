@@ -22,12 +22,12 @@ load(
     "TRAEFIK_STARTUP_GRACE_PERIOD",
     "TRAEFIK_API_BASE_PATH",
 )
-load("./traefik_helpers.star", 
-    "backend_rule", 
-    "build_entrypoints", 
+load("./traefik_helpers.star",
+    "backend_rule",
+    "build_entrypoints",
     "frontend_rule",
     "get_api_path",
-    "beauty_crm_backend_rule",
+    "project_backend_rule",
 )
 
 
@@ -127,30 +127,30 @@ def get_backend_traefik_labels(
         traefik_network=TRAEFIK_DOCKER_NETWORK,
     )
 
-    # Generate beauty-crm.localhost routing from manifest domain
+    # Generate project localhost routing from manifest domain
     if manifest:
         domain = manifest.get("domain", "")
         if domain:
             api_path = get_api_path(domain, manifest)
-            beauty_crm_rule = beauty_crm_backend_rule(manifest)
-            beauty_crm_entrypoints = build_entrypoints(
+            project_rule = project_backend_rule(manifest)
+            project_entrypoints = build_entrypoints(
                 TRAEFIK_BACKEND_ENABLE_HTTP,
                 TRAEFIK_BACKEND_ENABLE_HTTPS,
             )
             # Calculate priority based on path length (more specific = higher priority)
             router_priority = TRAEFIK_FRONTEND_PRIORITY_BASE + len(api_path)
-            
+
             # Generate old path pattern for redirect (e.g., /identity-management/api/v1/)
             old_path_pattern = "/{domain}-management/api/v1".format(domain=domain)
-            
+
             labels += """
-      - "traefik.http.routers.{service_entry_name}-beauty-crm.rule={beauty_crm_rule}"
-      - "traefik.http.routers.{service_entry_name}-beauty-crm.entrypoints={beauty_crm_entrypoints}"
-      - "traefik.http.routers.{service_entry_name}-beauty-crm.service={traefik_service_name}"
-      - "traefik.http.routers.{service_entry_name}-beauty-crm.middlewares={middleware_name}-beauty-crm{maintenance_middleware}"
-      - "traefik.http.middlewares.{middleware_name}-beauty-crm.stripprefix.prefixes={api_path}"
-      - "traefik.http.routers.{service_entry_name}-beauty-crm.priority={router_priority}"
-      
+      - "traefik.http.routers.{service_entry_name}-project.rule={project_rule}"
+      - "traefik.http.routers.{service_entry_name}-project.entrypoints={project_entrypoints}"
+      - "traefik.http.routers.{service_entry_name}-project.service={traefik_service_name}"
+      - "traefik.http.routers.{service_entry_name}-project.middlewares={middleware_name}-project{maintenance_middleware}"
+      - "traefik.http.middlewares.{middleware_name}-project.stripprefix.prefixes={api_path}"
+      - "traefik.http.routers.{service_entry_name}-project.priority={router_priority}"
+
       # Redirect middleware for URL restructuring: old path -> new path
       - "traefik.http.middlewares.{service_entry_name}-redirect.redirectregex.regex=^`{old_path_pattern}/(.*)`"
       - "traefik.http.middlewares.{service_entry_name}-redirect.redirectregex.replacement=`{api_path}/$$1`"
@@ -158,8 +158,8 @@ def get_backend_traefik_labels(
 """.format(
                 service_entry_name=service_entry_name,
                 traefik_service_name=traefik_service_name,
-                beauty_crm_rule=beauty_crm_rule,
-                beauty_crm_entrypoints=beauty_crm_entrypoints,
+                project_rule=project_rule,
+                project_entrypoints=project_entrypoints,
                 middleware_name=middleware_name,
                 maintenance_middleware=maintenance_middleware,
                 api_path=api_path,

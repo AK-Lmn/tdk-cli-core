@@ -157,17 +157,25 @@ def get_domain_for_api_path(api_path):
     """
     return API_PATH_TO_SERVICE_DOMAIN.get(api_path, "")
 
-def build_traefik_url(api_path, host="beauty-crm.localhost", scheme="http"):
+# Load project name for dynamic localhost domain
+_PROJECT_LOCALHOST = "tdk-project.localhost"
+if os.path.exists('.tdk/project.json'):
+    _project_json = read_json('.tdk/project.json')
+    _PROJECT_LOCALHOST = _project_json.get('project', {}).get('name', 'tdk-project') + ".localhost"
+
+def build_traefik_url(api_path, host=None, scheme="http"):
     """Builds full Traefik gateway URL from API path.
-    
+
     Args:
         api_path: API path
-        host: Gateway host (default: beauty-crm.localhost)
+        host: Gateway host (default: {project}.localhost from project.json)
         scheme: URL scheme (default: http)
-    
+
     Returns:
         Full URL string
     """
+    if host == None:
+        host = _PROJECT_LOCALHOST
     return scheme + "://" + host + api_path
 
 def build_health_endpoint(api_path, health_path="/health"):
