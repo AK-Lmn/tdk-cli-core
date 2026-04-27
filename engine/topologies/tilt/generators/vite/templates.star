@@ -5,6 +5,12 @@
 # Purpose: Vite config templates used by generators
 # =============================================================================
 
+# Load npm scope from project.json (or use project name as default)
+_NPM_SCOPE = 'tdk-project'
+if os.path.exists('.tdk/project.json'):
+    _project_json = read_json('.tdk/project.json')
+    _NPM_SCOPE = _project_json.get('project', {}).get('name', 'tdk-project')
+
 TEMPLATE_VITE_FRONTEND = """{header}
 import {{ resolve }} from 'node:path';
 import react from '@vitejs/plugin-react';
@@ -272,7 +278,7 @@ export default defineConfig({{
     rollupOptions: {{
       external: [
         /^node:.*/,
-        /^@beauty-crm\\/.*$/,
+        /^@" + _NPM_SCOPE + "\\/.*$/,
         'react',
         'react-dom',
         'react/jsx-runtime',
@@ -392,7 +398,7 @@ export default defineConfig({{
     rollupOptions: {{
       external: [
         /^node:.*/,
-        /^@beauty-crm\\/.*$/,
+        /^@" + _NPM_SCOPE + "\\/.*$/,
         'react',
         'react-dom',
         'react/jsx-runtime',
@@ -480,7 +486,7 @@ export default defineConfig({{
     rollupOptions: {{
       external: [
         /^node:.*/,
-        /^@beauty-crm\\/.*$/,
+        /^@" + _NPM_SCOPE + "\\/.*$/,
         'react',
         'react-dom',
         'react/jsx-runtime',

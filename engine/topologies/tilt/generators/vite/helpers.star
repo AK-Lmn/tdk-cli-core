@@ -6,6 +6,12 @@
 # =============================================================================
 
 load('../../../../topologies/tilt/common/utils.star', 'Utils')
+
+# Load npm scope from project.json (or use project name as default)
+_NPM_SCOPE = 'tdk-project'
+if os.path.exists('.tdk/project.json'):
+    _project_json = read_json('.tdk/project.json')
+    _NPM_SCOPE = _project_json.get('project', {}).get('name', 'tdk-project')
 # =============================================================================
 # API PATH CONSTANTS - Import for full descriptive API naming
 # =============================================================================
@@ -29,24 +35,24 @@ def generate_frontend_internal_aliases(service_path, manifest, config_depth_offs
     Generate internal package aliases for frontend Vite config.
     
     Convention over Configuration:
-        @beauty-crm/platform-x → {rel_to_root}shared-platform-engineering/platform-x/src
-        @beauty-crm/product-x  → {rel_to_root}shared-product-engineering/product-x/src
+        @{npm_scope}/platform-x → {rel_to_root}shared-platform-engineering/platform-x/src
+        @{npm_scope}/product-x  → {rel_to_root}shared-product-engineering/product-x/src
     """
     internal_deps = manifest.get('_internalDeps', [])
-    
+
     if not internal_deps:
         return '      // No internal dependencies detected'
-    
+
     # Calculate depth for relative paths
     service_parts = [p for p in service_path.split('/') if p]
     depth = len(service_parts) + config_depth_offset
     rel_to_root = '../' * depth
-    
+
     lines = ['      // 🔥 Auto-generated internal package aliases (from package.json)']
-    
+
     for dep in sorted(internal_deps):
-        if dep.startswith('@beauty-crm/'):
-            lib_name = dep.replace('@beauty-crm/', '')
+        if dep.startswith('@' + _NPM_SCOPE + '/'):
+            lib_name = dep.replace('@' + _NPM_SCOPE + '/', '')
             
             # Determine library root by naming convention
             if lib_name.startswith('platform-'):
@@ -70,7 +76,7 @@ def generate_frontend_optimize_deps(manifest):
     if not internal_deps:
         return ''
     
-    optimize_deps = [dep for dep in internal_deps if dep.startswith('@beauty-crm/')]
+    optimize_deps = [dep for dep in internal_deps if dep.startswith('@' + _NPM_SCOPE + '/')]
     
     if not optimize_deps:
         return ''
@@ -147,8 +153,8 @@ def generate_backend_path_aliases(service_path, manifest):
     
     internal_deps = manifest.get('_internalDeps', [])
     for dep in sorted(internal_deps):
-        if dep.startswith('@beauty-crm/'):
-            lib_name = dep.replace('@beauty-crm/', '')
+        if dep.startswith('@' + _NPM_SCOPE + '/'):
+            lib_name = dep.replace('@' + _NPM_SCOPE + '/', '')
             
             if lib_name.startswith('platform-'):
                 lib_path = rel_to_root + 'shared-platform-engineering/' + lib_name + '/dist'
@@ -186,7 +192,7 @@ def generate_externals_config(manifest):
 def generate_vitest_inline_deps(manifest):
     """Generate Vitest inline deps for internal packages."""
     internal_deps = manifest.get('_internalDeps', [])
-    inline_deps = [dep for dep in internal_deps if dep.startswith('@beauty-crm/')]
+    inline_deps = [dep for dep in internal_deps if dep.startswith('@' + _NPM_SCOPE + '/')]
     
     if not inline_deps:
         return ''
