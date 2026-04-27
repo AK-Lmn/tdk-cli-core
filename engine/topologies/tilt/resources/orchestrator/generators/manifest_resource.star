@@ -330,11 +330,11 @@ def _generate_all_configs_for_resource(
         use_nginx = 'nginx' in target_path or target_path == '/usr/share/nginx/html'
         port = resource_config.get('port', manifest.get('port', BASE_PORT_FRONTEND))
         dockerfile_content = Docker.frontend(
-            resource_path,
-            resource_config['name'],
-            port,
-            target_path,
-            use_nginx,
+            res_path=resource_path,
+            service_name=resource_config['name'],
+            port=port,
+            target_path=target_path,
+            use_nginx=use_nginx,
             use_golden=should_enable('golden-image')
         )
     else:

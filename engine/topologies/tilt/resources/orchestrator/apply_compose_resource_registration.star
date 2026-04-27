@@ -211,11 +211,11 @@ def _process_frontend_resource(res, manifest, full_res_path, service_path, servi
     use_nginx = 'nginx' in target_path or target_path == '/usr/share/nginx/html'
     port = res.get('port', manifest.get('port', BASE_PORT_FRONTEND))
     Docker.frontend(
-        full_res_path,
-        res['name'],
-        port,
-        target_path,
-        use_nginx,
+        res_path=full_res_path,
+        service_name=res['name'],
+        port=port,
+        target_path=target_path,
+        use_nginx=use_nginx,
         use_golden=should_enable('golden-image'),
     )
     return Docker.frontend_compose(service_path, service_name, res, manifest)
