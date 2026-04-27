@@ -44,7 +44,12 @@ def build_synthetic_monitor(ctx):
     Returns:
         The docker image name for synthetic-monitor
     """
-    image_name = 'beauty-crm/synthetic-monitor:latest'
+    # Load project name for dynamic image naming
+    _project_name = 'tdk-project'
+    if os.path.exists('.tdk/project.json'):
+        _project_json = read_json('.tdk/project.json')
+        _project_name = _project_json.get('project', {}).get('name', 'tdk-project')
+    image_name = _project_name + '/synthetic-monitor:latest'
     
     # Use docker_build_with_restart for live update support
     # This allows the container to restart when code changes
@@ -125,7 +130,7 @@ def generate_synthetic_monitor_compose(image_name):
         'restart': 'unless-stopped',
         'labels': [
             'traefik.enable=true',
-            'traefik.http.routers.synthetic-monitor.rule=Host(`synthetic-monitor.beauty-crm.localhost`)',
+            'traefik.http.routers.synthetic-monitor.rule=Host(`synthetic-monitor.' + _project_name + '.localhost`)',
             'traefik.http.routers.synthetic-monitor.entrypoints=web',
             'traefik.http.services.synthetic-monitor.loadbalancer.server.port={}'.format(SYNTHETIC_MONITOR_PORT),
         ],

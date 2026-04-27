@@ -1,7 +1,7 @@
 /**
  * Platform Standards for TDK CLI
  *
- * These are hardcoded platform-wide standards that all Beauty CRM projects
+ * These are hardcoded platform-wide standards that all projects
  * must follow. They are NOT configurable per-project.
  *
  * To change platform standards, update this file and release a new CLI version.

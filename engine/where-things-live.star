@@ -563,9 +563,15 @@ FEATURES = struct(
 # CONSTANTS - System-wide constants
 # =============================================================================
 
+# Load project name for system identity
+_SYSTEM_NAME_PREFIX = 'tdk-project'
+if os.path.exists('.tdk/project.json'):
+    _project_json = read_json('.tdk/project.json')
+    _SYSTEM_NAME_PREFIX = _project_json.get('project', {}).get('name', 'tdk-project')
+
 CONSTANTS = struct(
-    # System identity - EXPLICIT
-    SYSTEM_NAME = "beauty-crm-tilt-platform",
+    # System identity - EXPLICIT (dynamic from project.json)
+    SYSTEM_NAME = _SYSTEM_NAME_PREFIX + "-tilt-platform",
     SYSTEM_VERSION = "2.0.0",
     
     # Runtimes - EXPLICIT supported options

@@ -11,7 +11,7 @@ LANGUAGE = "typescript"
 
 
 """
-C4 Diagram Generator for Beauty CRM
+C4 Diagram Generator
 Auto-generates C4 model data from service manifests with proper borders
 and internal dependency tracking.
 """

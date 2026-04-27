@@ -1,4 +1,4 @@
-# Beauty CRM - Makefile
+# Makefile
 # Common development tasks
 
 .PHONY: help test-tilt-engine test test-coverage lint

@@ -28,8 +28,16 @@ _discovery_config = get_discovery_config()
 # Database Configuration Constants
 # =============================================================================
 
+# Load project name for dynamic database naming
+_PROJECT_NAME = 'tdk_project'
+_PROJECT_NAME_HYPHEN = 'tdk-project'
+if os.path.exists('.tdk/project.json'):
+    _project_json = read_json('.tdk/project.json')
+    _PROJECT_NAME_HYPHEN = _project_json.get('project', {}).get('name', 'tdk-project')
+    _PROJECT_NAME = _PROJECT_NAME_HYPHEN.replace('-', '_')
+
 DEFAULT_DB_CONFIG = {
-    "host": "beauty_crm_postgres",
+    "host": _PROJECT_NAME + "_postgres",
     "port": 5432,
     "user": "postgres",
     # ⚠️ SECURITY: No default password - must be provided via POSTGRES_PASSWORD env var
@@ -40,7 +48,7 @@ DEFAULT_DB_CONFIG = {
 }
 
 # Database naming conventions
-DB_NAME_PREFIX = "beauty_crm_"
+DB_NAME_PREFIX = _PROJECT_NAME + "_"
 
 # =============================================================================
 # Database Provisioning
@@ -74,7 +82,7 @@ def provision_database_for_service(service_name, db_name, db_config=None):
     # Docker Compose entry
     compose_entry = {
         "image": "postgres:16-alpine",
-        "container_name": "beauty-crm-{}-db".format(service_name.replace("_", "-")),
+        "container_name": _PROJECT_NAME_HYPHEN + "-{}-db".format(service_name.replace("_", "-")),
         "environment": {
             "POSTGRES_DB": full_db_name,
             "POSTGRES_USER": config["superuser"],
@@ -82,10 +90,10 @@ def provision_database_for_service(service_name, db_name, db_config=None):
             "PGDATA": "/var/lib/postgresql/data/pgdata",
         },
         "volumes": [
-            "beauty_crm_{}_data:/var/lib/postgresql/data".format(full_db_name),
+            _PROJECT_NAME + "_{}_data:/var/lib/postgresql/data".format(full_db_name),
         ],
         "ports": [],  # Internal only
-        "networks": ["beauty_crm_network"],
+        "networks": [_PROJECT_NAME + "_network"],
         "healthcheck": {
             "test": ["CMD-SHELL", "pg_isready -U {}".format(config["superuser"])],
             "interval": "10s",
@@ -357,8 +365,8 @@ def validate_database_credentials(service_name, db_name, connection_string, db_c
                     "message": "Database password is empty",
                 })
             
-            # Check against expected user
-            expected_user = "beauty_crm"
+            # Check against expected user (dynamic from project name)
+            expected_user = _PROJECT_NAME
             if user != expected_user and user != "postgres":
                 errors.append({
                     "type": "credentials",

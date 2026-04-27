@@ -72,7 +72,7 @@ def backend_rule(traefik_host, traefik_path):
 def _pluralize_domain(domain):
     """Convert domain to proper plural form.
     
-    Handles irregular plurals and special cases for Beauty CRM domains.
+    Handles irregular plurals and special cases domains.
     
     Args:
         domain: Singular domain name (e.g., "identity", "salon", "appointment")
