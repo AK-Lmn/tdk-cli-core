@@ -123,7 +123,7 @@ function parseService(serviceJsonPath) {
 export function discoverServices() {
     const projectRoot = findProjectRoot();
     if (!projectRoot) {
-        throw new Error('Could not find project root (no Tiltfile found). Make sure you\'re in a Beauty CRM project.');
+        throw new Error('Could not find project root (no Tiltfile found). Make sure you\'re in a root project.');
     }
     // Find all service.json files
     const serviceJsonPaths = findServiceJsonFiles(projectRoot);
