@@ -84,13 +84,13 @@ def parse(content, path=""):
         warnings=warnings,
     )
 
-def normalize(manifest, service_path=""):
+def normalize(manifest, resource_path=""):
     """
     Normalize manifest with default values and computed fields.
     
     Args:
         manifest: Raw parsed manifest dict
-        service_path: Service directory path for context
+        resource_path: Resource directory path for context
     
     Returns:
         Normalized manifest dict with all fields populated
@@ -111,11 +111,11 @@ def normalize(manifest, service_path=""):
     
     # Compute appType from path if missing
     if not normalized.get('appType'):
-        normalized['appType'] = _determine_app_type(normalized, service_path)
+        normalized['appType'] = _determine_app_type(normalized, resource_path)
     
-    # Compute stack from path if missing (supports legacy 'domain' field)
-    if not normalized.get('stack') and not normalized.get('domain'):
-        extracted = extract_domain_from_path(service_path)
+    # Compute stack from path if missing
+    if not normalized.get('stack'):
+        extracted = extract_stack_from_path(resource_path)
         normalized['stack'] = extracted
     
     # Compute syncs if not provided
@@ -153,7 +153,7 @@ def normalize(manifest, service_path=""):
         # Fail loudly - pathPrefix is required
         error_msg = """MANIFEST ERROR: Missing required 'traefik.pathPrefix' in {}
 
-Service: {}
+Resource: {}
 File: platform-computing-provisioner.manifest.json
 
 To fix, add:
@@ -164,7 +164,7 @@ To fix, add:
 Example:
   "traefik": {{
     "pathPrefix": "/api/v1/order-management"
-  }}""".format(service_path, app_name)
+  }}""".format(resource_path, app_name)
         fail(error_msg)
     
     # Add default priority if not set
@@ -173,20 +173,20 @@ Example:
     
     # 4. Add internal metadata
     normalized['_manifest'] = manifest  # Original manifest
-    normalized['_service_path'] = service_path
+    normalized['_resource_path'] = resource_path
     normalized['_normalized'] = True
     
     return normalized
 
-def extract_service_path(manifest_path):
+def extract_resource_path(manifest_path):
     """
-    Extract service directory path from manifest file path.
+    Extract resource directory path from manifest file path.
     
     Args:
         manifest_path: Path to manifest JSON file
     
     Returns:
-        Service directory path
+        Resource directory path
     """
     # Remove manifest filename
     if manifest_path.endswith("/" + MANIFEST_FILENAME):
@@ -199,45 +199,45 @@ def extract_service_path(manifest_path):
     
     return manifest_path
 
-def extract_domain_from_path(service_path):
+def extract_stack_from_path(resource_path):
     """
-    Extract domain from service path.
+    Extract stack from resource path.
     
     Args:
-        service_path: Service directory path
+        resource_path: Resource directory path
     
     Returns:
-        Domain string from manifest (e.g., 'identity', 'booking')
+        Stack string from manifest (e.g., 'identity', 'booking')
     """
-    parts = service_path.split("/")
+    parts = resource_path.split("/")
     
-    # Expected path: services/product/{domain}/{service-name}
+    # Expected path: services/product/{stack}/{resource-name}
     if len(parts) >= 4 and parts[0] == "services" and parts[1] == "product":
-        domain = parts[2]
+        stack = parts[2]
         # Handle special cases
-        if domain == "profile":
+        if stack == "profile":
             return "identity"
-        if domain == "order-planner":
+        if stack == "order-planner":
             return "order-planner"
-        return domain
+        return stack
     
-        # Fallback: try to extract from service name
+        # Fallback: try to extract from resource name
     if len(parts) >= 1:
-        service_name = parts[-1]
-        # Extract domain from service name (e.g., {domain}-management-backend -> {domain})
-        name_parts = service_name.split("-")
+        resource_name = parts[-1]
+        # Extract stack from resource name (e.g., {stack}-management-backend -> {stack})
+        name_parts = resource_name.split("-")
         if len(name_parts) >= 1:
             return name_parts[0]
     
     return "unknown"
 
-def _determine_app_type(manifest, service_path):
+def _determine_app_type(manifest, resource_path):
     """
-    Determine app type from manifest or service path.
+    Determine app type from manifest or resource path.
     
     Args:
         manifest: Manifest dict
-        service_path: Service directory path
+        resource_path: Resource directory path
     
     Returns:
         App type string ('frontend', 'backend', 'library', etc.)
@@ -247,7 +247,7 @@ def _determine_app_type(manifest, service_path):
         return manifest["appType"]
     
     # Extract from path
-    dir_name = service_path.split("/")[-1] if service_path else ""
+    dir_name = resource_path.split("/")[-1] if resource_path else ""
     
     if dir_name.endswith("-frontend"):
         return "frontend"
@@ -344,13 +344,13 @@ def merge_manifests(base, overlay):
     
     return merged
 
-def get_normalized_manifest(manifest, service_path=""):
+def get_normalized_manifest(manifest, resource_path=""):
     """
     Convenience function to parse and normalize in one call.
     
     Args:
         manifest: Raw manifest (dict or JSON string)
-        service_path: Service directory path
+        resource_path: Resource directory path
     
     Returns:
         struct(
@@ -361,7 +361,7 @@ def get_normalized_manifest(manifest, service_path=""):
     """
     # If it's a string, parse it
     if type(manifest) == "string":
-        parse_result = parse(manifest, service_path)
+        parse_result = parse(manifest, resource_path)
         if parse_result.error:
             return parse_result
         manifest = parse_result.manifest
@@ -370,7 +370,7 @@ def get_normalized_manifest(manifest, service_path=""):
         warnings = []
     
     # Normalize
-    normalized = normalize(manifest, service_path)
+    normalized = normalize(manifest, resource_path)
     
     return struct(
         manifest=normalized,
@@ -378,9 +378,9 @@ def get_normalized_manifest(manifest, service_path=""):
         warnings=warnings,
     )
 
-def get_service_type_description(manifest):
+def get_resource_type_description(manifest):
     """
-    Get human-readable service type description.
+    Get human-readable resource type description.
     
     Args:
         manifest: Manifest dict
@@ -389,11 +389,11 @@ def get_service_type_description(manifest):
         String description
     """
     app_type = manifest.get('appType', 'unknown')
-    domain = manifest.get('domain', 'unknown')
+    stack = manifest.get('stack', 'unknown')
     name = manifest.get('appName', 'unknown')
     
-    return "{domain}/{app_type}/{name}".format(
-        domain=domain,
+    return "{stack}/{app_type}/{name}".format(
+        stack=stack,
         app_type=app_type,
         name=name,
     )
@@ -402,10 +402,10 @@ def get_service_type_description(manifest):
 ManifestParser = struct(
     parse=parse,
     normalize=normalize,
-    extract_service_path=extract_service_path,
-    extract_domain=extract_domain_from_path,
+    extract_resource_path=extract_resource_path,
+    extract_stack=extract_stack_from_path,
     parse_traefik=parse_traefik_config,
     merge=merge_manifests,
     get_normalized=get_normalized_manifest,
-    get_description=get_service_type_description,
+    get_description=get_resource_type_description,
 )
