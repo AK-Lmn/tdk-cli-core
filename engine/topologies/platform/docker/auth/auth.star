@@ -3,7 +3,7 @@
 # =============================================================================
 # Path: .tilt/topologies/platform/docker/auth.star
 # Purpose: Centralized authentication configuration helpers for docker-compose
-#          and environment file generation across the Beauty CRM platform.
+#          and environment file generation across the platform.
 # 
 # Design Principle: This module is decoupled from manifest.json structure.
 #          It accepts auth configuration as a dictionary parameter and does

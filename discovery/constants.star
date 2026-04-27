@@ -1,5 +1,5 @@
 # =============================================================================
-# 📍 TOPOLOGIES - DISCOVERY CONSTANTS (PATCHED for Beauty CRM)
+# 📍 TOPOLOGIES - DISCOVERY CONSTANTS
 # =============================================================================
 
 # Import manifest filename from local manifest folder (self-contained)

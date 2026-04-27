@@ -149,7 +149,7 @@ def generate_c4_model(services):
         "levels": {
             "1": {
                 "name": "System Context",
-                "description": "Beauty CRM system domains",
+                "description": "System domains",
                 "elements": list(domains.values())
             },
             "2": {

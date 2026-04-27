@@ -55,7 +55,7 @@ API_PATH_TO_SERVICE_DOMAIN = {}
 def _pluralize_domain(domain):
     """Convert domain to proper plural form.
     
-    Handles irregular plurals and special cases for Beauty CRM domains.
+    Handles irregular plurals and special cases for platform domains.
     
     Args:
         domain: Singular domain name (e.g., "identity", "salon", "appointment")

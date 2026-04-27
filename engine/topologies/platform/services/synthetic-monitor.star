@@ -6,7 +6,7 @@
 # =============================================================================
 #
 # This module defines the Tilt resources for synthetic monitoring, providing
-# health checks and observability for the Beauty CRM platform.
+# health checks and observability for the platform.
 #
 # Key Features:
 #   - Docker-based synthetic monitor service
