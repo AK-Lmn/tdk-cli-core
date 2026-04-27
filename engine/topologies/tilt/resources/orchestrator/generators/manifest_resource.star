@@ -339,8 +339,8 @@ def _generate_all_configs_for_resource(
         )
     else:
         dockerfile_content = Docker.backend(
-            resource_path,
-            service_name,
+            res_path=resource_path,
+            service_name=service_name,
             use_golden=should_enable('golden-image')
         )
     

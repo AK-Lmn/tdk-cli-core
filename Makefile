@@ -42,3 +42,26 @@ test-safety: ## Run safety guard tests only
 
 test-cache: ## Run registry cache tests only
 	pytest tests/tilt-engine/test_cache_*.py -v -m cache
+
+# Fast tests (for pre-commit)
+test-fast: ## Run fast unit tests only (no external deps)
+	@echo "⚡ Running fast tests..."
+	pytest -m fast --no-cov -q
+
+test-generator: ## Run generator bug tests only
+	@echo "🔧 Running generator tests..."
+	pytest -m generator -v --no-cov
+
+# Pre-commit hooks
+pre-commit-install: ## Install pre-commit hooks
+	@echo "🔧 Installing pre-commit hooks..."
+	pip install pre-commit
+	pre-commit install
+
+pre-commit-run: ## Run pre-commit hooks on all files
+	@echo "🔍 Running pre-commit hooks..."
+	pre-commit run --all-files
+
+pre-commit-fast: ## Run only fast tests (pre-commit style)
+	@echo "⚡ Running fast pre-commit tests..."
+	pytest -m fast --no-cov -q

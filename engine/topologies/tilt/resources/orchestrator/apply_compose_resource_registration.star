@@ -224,9 +224,10 @@ def _process_frontend_resource(res, manifest, full_res_path, service_path, servi
 def _process_backend_resource(res, manifest, full_res_path, service_path, service_name, should_enable):
     """Process a backend resource and return compose entry."""
     Docker.backend(
-        full_res_path,
-        res['name'],
-        res.get('start_command'),
+        res_path=full_res_path,
+        service_name=res['name'],
+        port=None,  # Use default BASE_PORT_BACKEND
+        build_cmd=res.get('start_command'),
         use_golden=should_enable('golden-image'),
     )
     return Docker.backend_compose(service_path, service_name, res, manifest)
