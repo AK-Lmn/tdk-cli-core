@@ -376,7 +376,7 @@ def _generate_port_anchors(service_entries):
 
     # Build anchors - use extracted port or fall back to default
     anchors = []
-    anchors.append("x-backend-port: &backend-port {}".format(backend_port if backend_port else 3000))
+    anchors.append("x-backend-port: &backend-port {}".format(backend_port if backend_port else BASE_PORT_BACKEND))
     if has_frontend and frontend_port:
         anchors.append("x-frontend-port: &frontend-port {}".format(frontend_port))
     if has_sdk and sdk_port:
@@ -399,13 +399,32 @@ def _detect_frontend_in_entries(service_entries):
             return True
     return False
 
+def _detect_backend_in_entries(service_entries):
+    """Check if any entry is a backend."""
+    for entry in service_entries:
+        if _is_backend_entry(entry):
+            return True
+    return False
+
 def _is_sdk_entry(entry):
     """Check if a specific entry is an SDK."""
     return "-sdk:" in entry or entry.strip().startswith("identity-sdk:")
 
-def _replace_ports_with_anchors(entry, has_sdk=False, has_frontend=False):
+def _is_backend_entry(entry):
+    """Check if a specific entry is a backend (not frontend, not SDK)."""
+    if "-sdk:" in entry or entry.strip().startswith("identity-sdk:"):
+        return False
+    if "<<: *frontend-memory-limit" in entry:
+        return False
+    # Backend entries have healthcheck with backend port pattern
+    if "healthcheck:" in entry and "curl" in entry:
+        return True
+    return False
+
+def _replace_ports_with_anchors(entry, has_sdk=False, has_frontend=False, has_backend=False):
     """Replace hardcoded ports with YAML anchors in an entry."""
     is_sdk = _is_sdk_entry(entry)
+    is_backend = _is_backend_entry(entry)
     lines = entry.split("\n")
     result = []
 
@@ -419,7 +438,7 @@ def _replace_ports_with_anchors(entry, has_sdk=False, has_frontend=False):
         # Replace Traefik loadbalancer port for backend
         if "loadbalancer.server.port=3000" in line and "traefik.http.services." in line:
             new_line = line.replace("loadbalancer.server.port=3000", "loadbalancer.server.port=*backend-port")
-        # Replace Traefik loadbalancer port for frontend/SDK
+        # Replace Traefik loadbalancer port for frontend/SDK/backend
         elif "loadbalancer.server.port=" in line and "traefik.http.services." in line:
             # Extract the port value
             port_part = line.split("loadbalancer.server.port=")[-1].split('"')[0]
@@ -428,13 +447,18 @@ def _replace_ports_with_anchors(entry, has_sdk=False, has_frontend=False):
                 if port_val == 3000:
                     new_line = line.replace("loadbalancer.server.port=3000", "loadbalancer.server.port=*backend-port")
                 elif port_val != 3000:
-                    # Use sdk-port for SDKs, frontend-port for frontends
+                    # Use correct anchor based on entry type, not global flags
                     if is_sdk and has_sdk:
                         new_line = line.replace("loadbalancer.server.port={}".format(port_val),
                                                 "loadbalancer.server.port=*sdk-port")
-                    elif has_frontend:
+                    elif is_backend and has_backend:
                         new_line = line.replace("loadbalancer.server.port={}".format(port_val),
-                                                "loadbalancer.server.port=*frontend-port")
+                                                "loadbalancer.server.port=*backend-port")
+                    elif has_frontend:
+                        # Only use frontend-port if this is actually a frontend
+                        if "<<: *frontend-memory-limit" in entry:
+                            new_line = line.replace("loadbalancer.server.port={}".format(port_val),
+                                                    "loadbalancer.server.port=*frontend-port")
         # NOTE: We do NOT replace healthcheck URLs with YAML anchors because anchors
         # don't work inside quoted strings. The wget healthcheck URLs must use actual
         # port numbers (e.g., http://127.0.0.1:3000), not anchor references.
@@ -449,11 +473,11 @@ def _replace_ports_with_anchors(entry, has_sdk=False, has_frontend=False):
 
     return "\n".join(result)
 
-def _process_entries_with_anchors(service_entries, has_sdk, has_frontend):
+def _process_entries_with_anchors(service_entries, has_sdk, has_frontend, has_backend):
     """Replace ports with anchors in all entries."""
     result = []
     for entry in service_entries:
-        result.append(_replace_ports_with_anchors(entry, has_sdk, has_frontend))
+        result.append(_replace_ports_with_anchors(entry, has_sdk, has_frontend, has_backend))
     return result
 
 def generate_app_compose_from_entries(service_path, service_entries, write_file_if_changed_fn=None):
@@ -462,9 +486,10 @@ def generate_app_compose_from_entries(service_path, service_entries, write_file_
     # Detect service types
     has_sdk = _detect_sdk_in_entries(service_entries)
     has_frontend = _detect_frontend_in_entries(service_entries)
+    has_backend = _detect_backend_in_entries(service_entries)
 
     # Replace ports with anchors in entries
-    processed_entries = _process_entries_with_anchors(service_entries, has_sdk, has_frontend)
+    processed_entries = _process_entries_with_anchors(service_entries, has_sdk, has_frontend, has_backend)
 
     # Generate port anchors
     port_anchors = _generate_port_anchors(service_entries)
