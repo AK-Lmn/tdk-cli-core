@@ -82,7 +82,7 @@ if _AUTO_DISCOVER_ENABLED:
     # Use unique name to avoid conflicts on reload
     local_resource(
         name="service-discovery-daemon-v2",
-        serve_cmd="cd {} && python3 .tilt-engine/topologies/tilt/discovery/service_snapshot.py watch".format(os.getcwd()),
+        serve_cmd="cd {} && python3 discovery/service_snapshot.py watch".format(os.getcwd()),
         deps=["services/product"],
         auto_init=True,
         labels=["infra", "discovery"],

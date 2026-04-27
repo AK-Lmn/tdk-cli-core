@@ -77,14 +77,14 @@ class ConfigInspectorHandler(BaseHTTPRequestHandler):
         return is_valid
     
     def discover_master_configs(self) -> list:
-        """Discover all .star files in .tilt-engine/topologies/ and project root master configs"""
+        """Discover all .star files in engine/topologies/ and project root master configs"""
         configs = []
         
         # First, add project root master configs
         root_configs = [
             'TILT_SERVICE_DEFAULTS.star',
             'spec.master',
-            '.tilt-engine/spec.master',
+            'engine/spec.master',
         ]
         
         for config_name in root_configs:
@@ -96,8 +96,8 @@ class ConfigInspectorHandler(BaseHTTPRequestHandler):
                     'category': 'Project Root',
                 })
         
-        # Then discover from .tilt-engine/topologies/
-        topologies_dir = PROJECT_ROOT / '.tilt-engine' / 'topologies'
+        # Then discover from engine/topologies/
+        topologies_dir = PROJECT_ROOT / 'engine' / 'topologies'
         
         if topologies_dir.exists():
             for root, dirs, files in os.walk(topologies_dir):

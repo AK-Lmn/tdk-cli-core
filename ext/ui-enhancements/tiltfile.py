@@ -2,7 +2,7 @@
 # Injects CSS and JavaScript into the Tilt web UI for improved UX.
 #
 # Usage:
-#   load('./.tilt-engine/extensions/ui-enhancements/tiltfile.py', 'load_ui_enhancements')
+#   load('./ext/ui-enhancements/tiltfile.py', 'load_ui_enhancements')
 #   load_ui_enhancements({'enable_tooltips': True, 'enable_icons': True})
 
 def load_ui_enhancements(ctx):
@@ -22,20 +22,20 @@ def load_ui_enhancements(ctx):
     js_files = []
 
     if enable_tooltips:
-        css_files.append(read_file('./.tilt-engine/extensions/ui-enhancements/ui/tooltips.css'))
-        js_files.append(read_file('./.tilt-engine/extensions/ui-enhancements/ui/tooltips.js'))
+        css_files.append(read_file('./ext/ui-enhancements/ui/tooltips.css'))
+        js_files.append(read_file('./ext/ui-enhancements/ui/tooltips.js'))
 
     if enable_icons:
-        css_files.append(read_file('./.tilt-engine/extensions/ui-enhancements/ui/icons.css'))
-        js_files.append(read_file('./.tilt-engine/extensions/ui-enhancements/ui/icons.js'))
+        css_files.append(read_file('./ext/ui-enhancements/ui/icons.css'))
+        js_files.append(read_file('./ext/ui-enhancements/ui/icons.js'))
 
     if enable_help_panel:
-        css_files.append(read_file('./.tilt-engine/extensions/ui-enhancements/ui/help-panel.css'))
-        js_files.append(read_file('./.tilt-engine/extensions/ui-enhancements/ui/help-panel.js'))
+        css_files.append(read_file('./ext/ui-enhancements/ui/help-panel.css'))
+        js_files.append(read_file('./ext/ui-enhancements/ui/help-panel.js'))
 
     if enable_cron_jobs_tab:
-        css_files.append(read_file('./.tilt-engine/extensions/ui-enhancements/ui/cron-jobs-tab.css'))
-        js_files.append(read_file('./.tilt-engine/extensions/ui-enhancements/ui/cron-jobs-tab.js'))
+        css_files.append(read_file('./ext/ui-enhancements/ui/cron-jobs-tab.css'))
+        js_files.append(read_file('./ext/ui-enhancements/ui/cron-jobs-tab.js'))
 
     # Combine all CSS and JS
     # Convert blobs to strings using str()

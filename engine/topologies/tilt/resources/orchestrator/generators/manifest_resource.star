@@ -413,7 +413,9 @@ def _generate_yaml_manifest(resource_path, manifest, write_file):
         return
     
     # Generate YAML using the json_to_yaml.py converter
-    converter_path = config.main_dir + "/.tilt-engine/topologies/tilt/manifest/json_to_yaml.py"
+    # NOTE: Path relative to TDK CLI installation root (where this file is located)
+    # json_to_yaml.py is in engine/topologies/tilt/manifest/ relative to tdk-cli root
+    converter_path = "engine/topologies/tilt/manifest/json_to_yaml.py"
     yaml_content = str(local("python3 " + converter_path + " " + json_path, quiet=True)).strip()
     write_file(yaml_path, yaml_content)
 

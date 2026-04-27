@@ -139,7 +139,7 @@ def setup_dependency_sync_status():
         cmd='''
 echo "🔄 ═══════════════════════════════════════════════════════════════"
 echo "🔄  AUTOMATED DEPENDENCY SYNCHRONIZATION STATUS v2.0"
-echo "🔄  SDK: .tilt-engine/ directory structure"
+echo "🔄  SDK: engine/ directory structure"
 echo "🔄 ═══════════════════════════════════════════════════════════════"
 echo ""
 echo "🚀 AUTOMATIC BRIDGE - HOW IT WORKS:"

@@ -30,15 +30,16 @@ class ConfigService:
     """
     
     # Allowed paths for write operations
+    # NOTE: These are paths within the TDK CLI installation
     ALLOWED_PATH_PREFIXES = [
-        '.tilt-engine/topologies/',
+        'engine/topologies/',
     ]
     
     # Master configs allowed at project root
     ALLOWED_ROOT_CONFIGS = [
         'TILT_SERVICE_DEFAULTS.star',
         'spec.master',
-        '.tilt-engine/spec.master',
+        'engine/spec.master',
     ]
     
     # Allowed file extensions
@@ -64,8 +65,8 @@ class ConfigService:
         and ensuring the resolved path is within allowed directories.
         
         Allowed paths:
-        - Within .tilt-engine/topologies/
-        - Project root master configs: TILT_SERVICE_DEFAULTS.star, spec.master, .tilt-engine/spec.master
+        - Within engine/topologies/
+        - Project root master configs: TILT_SERVICE_DEFAULTS.star, spec.master, engine/spec.master
         
         Returns: Absolute Path if valid, None if invalid.
         """
@@ -429,10 +430,10 @@ if __name__ == '__main__':
     
     # Test validate_write_path
     test_paths = [
-        '.tilt-engine/topologies/tilt/discovery/registry.star',
+        'engine/topologies/tilt/discovery/registry.star',
         'TILT_SERVICE_DEFAULTS.star',
         'spec.master',
-        '.tilt-engine/spec.master',
+        'engine/spec.master',
         '../outside',  # Should fail
         '/etc/passwd',  # Should fail
         'some/random/file.star',  # Should fail - not in allowed paths
@@ -448,7 +449,7 @@ if __name__ == '__main__':
     # Test validate_file_type
     print("\n=== Testing validate_file_type ===")
     test_files = [
-        '.tilt-engine/topologies/tilt.star',
+        'engine/topologies/tilt.star',
         'spec.master',
         'README.md',
         'file.txt',
