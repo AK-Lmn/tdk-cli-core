@@ -28,6 +28,7 @@ load('./prisma/prisma_runtime.star',
 )
 
 load('./bun_helpers.star', 'bun_hoisted_packages_symlink_fix')
+load('./infisical/infisical_docker.star', 'InfisicalDocker')
 
 
 _docker_cfg = GLOBAL_CONFIG['docker']
@@ -111,18 +112,16 @@ def L4_generate_backend_runtime(res_path, port = BASE_PORT_BACKEND, cmd = 'bun r
         ))
     
     if use_infisical:
-        # Copy entrypoint script only - Infisical CLI is NOT included in golden images
-        # to avoid Cloudsmith CDN build hangs. Secrets are injected via env vars at runtime.
-        # The entrypoint.sh gracefully handles missing CLI by falling back to env vars.
-        # See: https://github.com/san4osq/beauty-crm/blob/main/KNOWN_ISSUES.md
-        parts.append("COPY --chmod=0755 shared-platform-engineering/docker-templates/infisical-entrypoint.sh /entrypoint.sh\n")
-        
-        parts.append(
-            "ENV SERVICE_NAME=" + service_name + "\n"
-            + "ENV INFISICAL_SECRET_PATH=/services/" + service_name + "\n"
-            + "ENTRYPOINT [\"/entrypoint.sh\"]\n"
-            + "CMD [\"bun\", \"run\", \"start\"]\n"
+        # Use InfisicalDocker generator for proper secret injection setup
+        # This uses Starlark generators instead of hardcoded values
+        infisical_setup = InfisicalDocker.runtime_setup(
+            service_name=service_name,
+            secret_path=None,  # Auto-generate from service_name
+            service_type="backend",
+            command=cmd,
+            use_entrypoint=True,
         )
+        parts.append(infisical_setup)
     else:
         parts.append("CMD [\"" + cmd + "\"]\n")
 

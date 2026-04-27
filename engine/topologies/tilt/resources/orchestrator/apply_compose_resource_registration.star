@@ -227,7 +227,7 @@ def _process_backend_resource(res, manifest, full_res_path, service_path, servic
         res_path=full_res_path,
         service_name=res['name'],
         port=None,  # Use default BASE_PORT_BACKEND
-        build_cmd=res.get('start_command'),
+        build_cmd=res.get('start_command', 'bun run build'),
         use_golden=should_enable('golden-image'),
     )
     return Docker.backend_compose(service_path=service_path, service_name=service_name, res=res, manifest=manifest)

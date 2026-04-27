@@ -28,6 +28,7 @@ load('./prisma/prisma_build.star',
     'prisma_normalize_output',
     'L3_generate_migration_engine',
 )
+load('./infisical/infisical_docker.star', 'InfisicalDocker')
 
 _docker_cfg = GLOBAL_CONFIG['docker']
 GOLDEN_L3_BACKEND_IMAGE = _docker_cfg.get('golden_l3_backend_image', 'beauty-crm-l3-backend:latest')
@@ -81,21 +82,12 @@ def L3_generate_backend_compiler(res_path, build_cmd = RUNTIME_CONFIG["bun"]["ba
     ]
     # shared libs (@beauty-crm/*) are resolved from Verdaccio by l2_deps_manifest
     # and already present in node_modules — no COPY of shared-* source dirs needed.
-    # Only install Infisical CLI if explicitly not skipped AND not using golden image
-    # Golden images already have Infisical CLI installed or we rely on env vars
+    # Use InfisicalDocker generator for CLI setup (if not using golden image)
     if use_infisical and not use_golden:
-        parts.append(
-            "# Conditionally install Infisical CLI only if not skipped\n"
-            + "RUN if [ \"\"$SKIP_INFISICAL_SETUP\"\" != \"\"1\"\" ]; then \\\n"
-            + "        echo \"\u26a0\ufe0f Installing Infisical CLI...\" && \\\n"
-            + "        apk add --no-cache bash curl netcat-openbsd && \\\n"
-            + "        curl -sL https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.alpine.sh | bash && \\\n"
-            + "        apk add --no-cache infisical; \\\n"
-            + "    else \\\n"
-            + "        echo \"\u2705 Skipping Infisical CLI installation (SKIP_INFISICAL_SETUP=1)\"; \\\n"
-            + "    fi\n"
-            + "COPY --chmod=0755 shared-platform-engineering/docker-templates/infisical-entrypoint.sh /entrypoint.sh\n"
-        )
+        parts.append(InfisicalDocker.builder_setup(
+            use_infisical=use_infisical,
+            use_golden=use_golden,
+        ))
     parts.append("ENV NODE_ENV=production\n")
     parts.append("RUN " + build_cmd + "\n")
     parts.append("# Fix " + WEB_FRAMEWORK + "/cors subpath import for Bun runtime compatibility\n")
@@ -146,20 +138,12 @@ def L3_generate_frontend_builder(res_path, build_cmd = RUNTIME_CONFIG["bun"]["ba
     ]
     # shared libs (@beauty-crm/*) are resolved from Verdaccio by l2_deps_manifest
     # and already present in node_modules — no COPY of shared-* source dirs needed.
-    # Only install Infisical CLI if explicitly not skipped AND not using golden image
+    # Use InfisicalDocker generator for CLI setup (if not using golden image)
     if use_infisical and not use_golden:
-        parts.append(
-            "# Conditionally install Infisical CLI only if not skipped\n"
-            + "RUN if [ \"\"$SKIP_INFISICAL_SETUP\"\" != \"\"1\"\" ]; then \\\n"
-            + "        echo \"\u26a0\ufe0f Installing Infisical CLI...\" && \\\n"
-            + "        apk add --no-cache bash curl netcat-openbsd && \\\n"
-            + "        curl -sL https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.alpine.sh | bash && \\\n"
-            + "        apk add --no-cache infisical; \\\n"
-            + "    else \\\n"
-            + "        echo \"\u2705 Skipping Infisical CLI installation (SKIP_INFISICAL_SETUP=1)\"; \\\n"
-            + "    fi\n"
-            + "COPY --chmod=0755 shared-platform-engineering/docker-templates/infisical-entrypoint.sh /entrypoint.sh\n"
-        )
+        parts.append(InfisicalDocker.builder_setup(
+            use_infisical=use_infisical,
+            use_golden=use_golden,
+        ))
     parts.append("ENV NODE_ENV=production\n")
     parts.append("RUN " + build_cmd + "\n")
     return "".join(parts)

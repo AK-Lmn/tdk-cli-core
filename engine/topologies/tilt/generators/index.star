@@ -32,6 +32,13 @@ load("./dependency_manifest.star", "DependencyManifest")
 load("./database_provisioner.star", "DatabaseProvisioner")
 
 # =============================================================================
+# 🔐 INFISICAL Secrets Management Generators
+# =============================================================================
+# Provides complete Infisical integration for secret management
+
+load("./infisical/index.star", "Infisical")
+
+# =============================================================================
 # Legacy Exports (for backward compatibility)
 # =============================================================================
 
@@ -56,6 +63,13 @@ Dependency = DependencyManifest
 
 # Database Provisioning
 Database = DatabaseProvisioner
+
+# =============================================================================
+# 🔐 INFISICAL Secrets Management Exports
+# =============================================================================
+
+# Complete Infisical integration
+SecretsManagement = Infisical
 
 # =============================================================================
 # Master Generation Orchestrator
@@ -167,16 +181,19 @@ Generators = struct(
     generate_prisma_config=generate_prisma_config,
     generate_playwright_config=generate_playwright_config,
     Vite=Vite,
-    
+
     # NEW: Pre-flight validation
     Validate=Validate,
     FixedTSConfig=FixedTSConfig,
     Dependency=Dependency,
     Database=Database,
-    
+
     # NEW: Orchestrators
     run_pre_flight_validations=run_pre_flight_validations,
     generate_fixed_frontend_tsconfig=generate_fixed_frontend_tsconfig,
     resolve_missing_dependencies=resolve_missing_dependencies,
     provision_service_database=provision_service_database,
+
+    # 🔐 NEW: Infisical Secrets Management
+    SecretsManagement=SecretsManagement,
 )
