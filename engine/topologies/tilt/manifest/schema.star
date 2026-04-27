@@ -172,7 +172,7 @@ MANIFEST_SCHEMA = {
         'constraints': {
             'max_keys': VALIDATION_THRESHOLDS['max_env_vars'],
         },
-        'description': 'Environment variables for the service',
+        'description': 'Environment variables for the resource',
         'default': {},
     },
     
@@ -183,7 +183,7 @@ MANIFEST_SCHEMA = {
         'constraints': {
             'pattern': r'^[a-z][a-z0-9-]*$',
         },
-        'description': 'Associated backend service name (required for frontends)',
+        'description': 'Associated backend resource name (required for frontends)',
         'condition': "appType == 'frontend'",  # Required only for frontends
         'example': 'user-management-backend',
     },
@@ -293,26 +293,26 @@ CROSS_FIELD_CONSTRAINTS = {
         'condition': {'field': 'appType', 'equals': 'frontend'},
         'requires': ['backendName', 'basePath'],
         'severity': 'error',
-        'message': 'Frontend services must specify backendName and basePath',
+        'message': 'Frontend resources must specify backendName and basePath',
     },
     'prisma_requires_database': {
         'condition': {'field': 'features', 'contains': 'prisma'},
         'requires': ['databaseName'],
         'severity': 'warning',
-        'message': 'Services using Prisma should specify databaseName',
+        'message': 'Resources using Prisma should specify databaseName',
     },
     'traefik_for_backends': {
         'condition': {'field': 'appType', 'equals': 'backend'},
         'requires': ['traefik'],
         'severity': 'warning',
-        'message': 'Backend services should have Traefik configuration',
+        'message': 'Backend resources should have Traefik configuration',
     },
 }
 
 # Schema-level constraints
 SCHEMA_CONSTRAINTS = {
     'unique_ports': True,
-    'unique_service_names': True,
+    'unique_resource_names': True,
     'valid_dependency_references': True,
     'no_circular_dependencies': True,
 }

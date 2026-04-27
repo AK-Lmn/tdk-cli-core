@@ -1,10 +1,10 @@
 # =============================================================================
-# 👁️ DISCOVERY DAEMON - Continuous Service Monitoring
+# 👁️ DISCOVERY DAEMON - Continuous Resource Monitoring
 # =============================================================================
-# Monitors filesystem for new services and triggers incremental registration
+# Monitors filesystem for new resources and triggers incremental registration
 # =============================================================================
 
-load("./service_snapshot.star", "ServiceSnapshot")
+load("./service_snapshot.star", "ResourceSnapshot")
 load("./registry.star", "CacheOps")
 load("../manifest/loader.star", "ManifestLoader")
 
