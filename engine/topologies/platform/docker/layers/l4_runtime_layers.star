@@ -31,9 +31,15 @@ load('./bun_helpers.star', 'bun_hoisted_packages_symlink_fix')
 load('./infisical/infisical_docker.star', 'InfisicalDocker')
 
 
+# Load project name for dynamic golden image naming
+_GOLDEN_PREFIX = 'tdk-project'
+if os.path.exists('.tdk/project.json'):
+    _project_json = read_json('.tdk/project.json')
+    _GOLDEN_PREFIX = _project_json.get('project', {}).get('name', 'tdk-project')
+
 _docker_cfg = GLOBAL_CONFIG['docker']
-GOLDEN_L4_BACKEND_IMAGE = _docker_cfg.get('golden_l4_backend_image', 'beauty-crm-l4-backend:latest')
-GOLDEN_L4_FRONTEND_IMAGE = _docker_cfg.get('golden_l4_frontend_image', 'beauty-crm-l4-frontend:latest')
+GOLDEN_L4_BACKEND_IMAGE = _docker_cfg.get('golden_l4_backend_image', _GOLDEN_PREFIX + '-l4-backend:latest')
+GOLDEN_L4_FRONTEND_IMAGE = _docker_cfg.get('golden_l4_frontend_image', _GOLDEN_PREFIX + '-l4-frontend:latest')
 
 # Load Docker healthcheck configuration
 _docker_health = get_docker_healthcheck_config()

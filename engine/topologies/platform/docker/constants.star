@@ -6,9 +6,19 @@
 # shared constants are defined here to ensure consistency across the topology.
 # =============================================================================
 
+# Load project name from project.json (makes TDK CLI portable across projects)
+# Falls back to 'tdk_project' / 'tdk-project' if project.json not found
+_PROJECT_NAME = "tdk_project"
+_PROJECT_NAME_HYPHEN = "tdk-project"
+if os.path.exists('.tdk/project.json'):
+    _project_json = read_json('.tdk/project.json')
+    _PROJECT_NAME_HYPHEN = _project_json.get('project', {}).get('name', 'tdk-project')
+    # Convert hyphenated name to underscore (e.g., "beauty-crm" -> "beauty_crm")
+    _PROJECT_NAME = _PROJECT_NAME_HYPHEN.replace('-', '_')
+
 # Project name constants
-PROJECT_NAME = "beauty_crm"
-PROJECT_NAME_HYPHEN = "beauty-crm"
+PROJECT_NAME = _PROJECT_NAME
+PROJECT_NAME_HYPHEN = _PROJECT_NAME_HYPHEN
 
 # Domain constants
 LOCAL_DOMAIN = PROJECT_NAME_HYPHEN + ".localhost"

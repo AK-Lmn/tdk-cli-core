@@ -30,9 +30,15 @@ load('./prisma/prisma_build.star',
 )
 load('./infisical/infisical_docker.star', 'InfisicalDocker')
 
+# Load project name for dynamic golden image naming
+_GOLDEN_PREFIX = 'tdk-project'
+if os.path.exists('.tdk/project.json'):
+    _project_json = read_json('.tdk/project.json')
+    _GOLDEN_PREFIX = _project_json.get('project', {}).get('name', 'tdk-project')
+
 _docker_cfg = GLOBAL_CONFIG['docker']
-GOLDEN_L3_BACKEND_IMAGE = _docker_cfg.get('golden_l3_backend_image', 'beauty-crm-l3-backend:latest')
-GOLDEN_L3_FRONTEND_IMAGE = _docker_cfg.get('golden_l3_frontend_image', 'beauty-crm-l3-frontend:latest')
+GOLDEN_L3_BACKEND_IMAGE = _docker_cfg.get('golden_l3_backend_image', _GOLDEN_PREFIX + '-l3-backend:latest')
+GOLDEN_L3_FRONTEND_IMAGE = _docker_cfg.get('golden_l3_frontend_image', _GOLDEN_PREFIX + '-l3-frontend:latest')
 
 
 def L3_generate_backend_compiler(res_path, build_cmd = RUNTIME_CONFIG["bun"]["backend_start_command"], use_prisma = True, use_shared_libs = True, use_infisical = True, use_golden = True, has_prisma_config = False):
