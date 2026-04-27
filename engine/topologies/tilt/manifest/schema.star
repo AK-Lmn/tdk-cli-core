@@ -7,7 +7,7 @@
 # =============================================================================
 
 # === INLINED CONSTANTS for pure extension loading ===
-VALID_DOMAINS = ()  # Domains are project-specific, discovered dynamically
+VALID_STACKS = ()  # Stacks are project-specific, discovered dynamically
 VALID_FEATURES = "nats", "prisma", "redis", "infisical", "vitest", "traefik", "websocket", "graphql", "grpc", "vite-node", "maintenance"
 PORT_RANGES = {"frontend": {"min": 3000, "max": 5999}, "backend": {"min": 4000, "max": 5999}, "worker": {"min": 6000, "max": 6999}, "migrator": {"min": 7000, "max": 7999}, "sdk": {"min": 3000, "max": 9999}, "library": {"min": 3000, "max": 9999}}
 RUNTIME = "bun"
@@ -51,7 +51,7 @@ MANIFEST_SCHEMA = {
             'min_length': 3,
             'max_length': 50,
         },
-        'description': 'Unique service name in kebab-case',
+        'description': 'Unique resource name in kebab-case',
         'example': 'user-management-backend',
     },
     'appType': {
@@ -63,13 +63,13 @@ MANIFEST_SCHEMA = {
         'description': 'Type of application',
         'default': 'backend',
     },
-    'domain': {
+    'stack': {
         'type': 'enum',
         'required': True,
         'constraints': {
-            'values': VALID_DOMAINS,
+            'values': VALID_STACKS,
         },
-        'description': 'Business domain this service belongs to',
+        'description': 'Technology stack this resource belongs to',
         'example': 'user',
     },
     
@@ -82,7 +82,7 @@ MANIFEST_SCHEMA = {
             'max': 65535,
             'port_range_check': True,  # Must be in appType range
         },
-        'description': 'External service port',
+        'description': 'External resource port',
         'example': 4000,
     },
     'internalPort': {
@@ -150,7 +150,7 @@ MANIFEST_SCHEMA = {
             'item_type': 'string',
             'max_length': VALIDATION_THRESHOLDS['max_dependencies'],
         },
-        'description': 'Other services this service depends on',
+        'description': 'Other resources this resource depends on',
         'default': [],
     },
     'dependencies': {

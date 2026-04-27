@@ -151,7 +151,7 @@
           "uniqueItems": true
         },
         "optional": {
-          "description": "Optional secret names. Service starts but warns if missing.",
+          "description": "Optional secret names. Resource starts but warns if missing.",
           "items": {
             "type": "string",
             "pattern": "^[A-Z_][A-Z0-9_]*$"
@@ -237,14 +237,14 @@
     },
     "replicas": {
       "default": 1,
-      "description": "Container instances to run.\nCreates separate containers (service-1, service-2).\nTraefik load-balances between all replicas.",
+      "description": "Container instances to run.\nCreates separate containers (resource-1, resource-2).\nTraefik load-balances between all replicas.",
       "maximum": 10,
       "minimum": 1,
       "type": "integer"
     },
     "runtime": {
       "default": "bun",
-      "description": "Runtime to use for this service",
+      "description": "Runtime to use for this resource",
       "enum": ["node", "bun"],
       "type": "string"
     },
@@ -275,6 +275,6 @@
     }
   },
   "required": ["appName", "appType", "stack"],
-  "title": "TDK Landscape Service Configuration",
+  "title": "TDK Landscape Resource Configuration",
   "type": "object"
 }
