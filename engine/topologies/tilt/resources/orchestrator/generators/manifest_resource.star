@@ -383,15 +383,15 @@ def _generate_all_configs_for_resource(
         # Prisma config
         db_name = _get_db_name_for_resource(service_name, resource_config['name'])
         service_display_name = _get_service_display_name(service_name, resource_config['name'])
-        TSConfig.prisma(resource_path, service_display_name, db_name, write_file)
+        TSConfig.prisma(service_path=resource_path, service_name=service_display_name, db_name=db_name, write_file_if_changed=write_file)
     
     # ==========================================================================
     # 8. PACKAGE CONFIGS (npmrc, bunfig)
     # ==========================================================================
-    PackageConfig.npmrc(resource_path, global_config['verdaccio_url_docker'], True, write_file)
-    PackageConfig.bunfig(resource_path, global_config['verdaccio_url_docker'], True, write_file)
-    PackageConfig.npmrc(resource_path, global_config['verdaccio_url_local'], False, write_file)
-    PackageConfig.bunfig(resource_path, global_config['verdaccio_url_local'], False, write_file)
+    PackageConfig.npmrc(service_path=resource_path, registry_url=global_config['verdaccio_url_docker'], is_docker=True, write_file_if_changed=write_file)
+    PackageConfig.bunfig(service_path=resource_path, registry_url=global_config['verdaccio_url_docker'], is_docker=True, write_file_if_changed=write_file)
+    PackageConfig.npmrc(service_path=resource_path, registry_url=global_config['verdaccio_url_local'], is_docker=False, write_file_if_changed=write_file)
+    PackageConfig.bunfig(service_path=resource_path, registry_url=global_config['verdaccio_url_local'], is_docker=False, write_file_if_changed=write_file)
     
     # ==========================================================================
     # 9. YAML MANIFEST (for verification)

@@ -394,6 +394,63 @@ tdk completion --shell fish > ~/.config/fish/completions/tdk.fish
 
 ---
 
+## 🎣 Pre-Commit Hooks
+
+TDK CLI includes pre-commit hooks to catch generator bugs before they reach production.
+
+### Setup
+
+```bash
+# Quick setup
+./scripts/setup-pre-commit.sh
+
+# Or manual setup
+pip install pre-commit
+pre-commit install
+```
+
+### What's Checked
+
+**Fast tests** (run on every commit, ~1s):
+- Docker/Compose generator parameter validation
+- Port anchor selection (`*backend-port` vs `*frontend-port`)
+- `EXPOSE` statement validation (ports, not paths)
+- Function signature checks (keyword args enforcement)
+
+**Code quality**:
+- Python formatting (Black)
+- Python linting (Flake8)
+- Trailing whitespace
+- JSON/YAML validation
+
+### Running Tests
+
+```bash
+# Run only fast tests (what pre-commit runs)
+make test-fast
+
+# Run generator-specific tests
+make test-generator
+
+# Run all tilt-engine tests
+make test-tilt-engine
+
+# Run with coverage
+make test-tilt-engine-coverage
+```
+
+### Skipping Hooks
+
+```bash
+# Skip pre-commit for a single commit (emergency only)
+git commit -m "WIP" --no-verify
+
+# Run all hooks manually
+pre-commit run --all-files
+```
+
+---
+
 ## 🚑 Troubleshooting
 
 ### ❌ "Tilt cannot start because you already have another process on port 10350"
