@@ -6,7 +6,7 @@
 # =============================================================================
 
 # === INLINED CONSTANTS for pure extension loading ===
-VALID_DOMAINS = "accounting", "appointment", "appointment-planner", "billing", "gdpr", "identity", "inventory", "mdblaster", "payment", "platform", "reporting", "salon", "staff", "treatment", "website"
+VALID_DOMAINS = ()  # Domains are project-specific, discovered dynamically
 VALID_FEATURES = "nats", "prisma", "redis", "infisical", "vitest", "traefik", "websocket", "graphql", "grpc", "vite-node", "maintenance"
 PORT_RANGES = {"frontend": {"min": 3000, "max": 5999}, "backend": {"min": 4000, "max": 5999}, "worker": {"min": 6000, "max": 6999}, "migrator": {"min": 7000, "max": 7999}, "sdk": {"min": 3000, "max": 9999}, "library": {"min": 3000, "max": 9999}}
 # === END INLINED CONSTANTS ===

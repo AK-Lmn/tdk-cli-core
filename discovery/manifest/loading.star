@@ -201,9 +201,9 @@ def _apply_manifest_defaults(manifest, service_path):
     
     Convention over Configuration:
     - features: ["nats", "prisma"] -> usePrisma=True, useNats=True
-    - domain: "appointment" -> databaseName="TDK_appointment"
-    - domain: "appointment" -> traefik.host="appointment.backend.{project}.local"
-    - domain: "appointment" -> nats.queueGroup="appointment_backend_svc"
+    - domain: "order" -> databaseName="TDK_order"
+    - domain: "order" -> traefik.host="order.backend.{project}.local"
+    - domain: "order" -> nats.queueGroup="order_backend_svc"
     """
     result = dict(manifest)
     

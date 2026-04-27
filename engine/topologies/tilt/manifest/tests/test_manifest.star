@@ -108,9 +108,8 @@ def _test_constants():
     assert_in('frontend', ManifestConstants.VALID_APP_TYPES, "frontend should be valid app type")
     assert_in('backend', ManifestConstants.VALID_APP_TYPES, "backend should be valid app type")
     
-    # Test VALID_DOMAINS
-    assert_in('salon', ManifestConstants.VALID_DOMAINS, "salon should be valid domain")
-    assert_in('appointment', ManifestConstants.VALID_DOMAINS, "appointment should be valid domain")
+    # Test VALID_DOMAINS (now empty - domains discovered dynamically from filesystem)
+    assert_true(type(ManifestConstants.VALID_DOMAINS) == "list", "VALID_DOMAINS should be a list")
     
     # Test VALID_FEATURES
     assert_in('nats', ManifestConstants.VALID_FEATURES, "nats should be valid feature")

@@ -140,7 +140,7 @@ def get_backend_traefik_labels(
             # Calculate priority based on path length (more specific = higher priority)
             router_priority = TRAEFIK_FRONTEND_PRIORITY_BASE + len(api_path)
 
-            # Generate old path pattern for redirect (e.g., /identity-management/api/v1/)
+            # Generate old path pattern for redirect (e.g., /{domain}-management/api/v1/)
             old_path_pattern = "/{domain}-management/api/v1".format(domain=domain)
 
             labels += """

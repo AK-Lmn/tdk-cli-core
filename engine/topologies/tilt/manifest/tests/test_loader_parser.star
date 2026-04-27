@@ -80,7 +80,7 @@ def _test_loader_functions():
     assert_not_none(Manifest.get_manifest_path, "get_manifest_path should be accessible")
     
     # Test get_manifest_path
-    path = Manifest.get_manifest_path("services/product/salon/salon-management-backend")
+    path = Manifest.get_manifest_path("services/product/user/user-management-backend")
     assert_true(
         path.endswith("platform-computing-provisioner.manifest.json"),
         "get_manifest_path should include manifest filename"
@@ -126,7 +126,7 @@ def _test_parse_and_normalize():
     {
         "appName": "test-service",
         "appType": "backend",
-        "domain": "salon",
+        "domain": "user",
         "port": 4001
     }
     '''
@@ -136,11 +136,11 @@ def _test_parse_and_normalize():
     assert_equal(None, result.error, "Should have no error for valid JSON")
     
     # Test normalization
-    normalized = Manifest.normalize(result.manifest, "services/product/salon/test-service")
+    normalized = Manifest.normalize(result.manifest, "services/product/user/test-service")
     assert_not_none(normalized, "Should normalize manifest")
     assert_equal("test-service", normalized['appName'], "Should preserve appName")
     assert_equal("backend", normalized['appType'], "Should preserve appType")
-    assert_equal("salon", normalized['domain'], "Should preserve domain")
+    assert_equal("user", normalized['domain'], "Should preserve domain")
     assert_equal(4001, normalized['port'], "Should preserve port")
     
     # Test defaults are applied
@@ -164,18 +164,18 @@ def _test_domain_extraction():
     print("🔍 Testing domain extraction...")
     
     # Standard paths
-    domain = Manifest.extract_domain("services/product/salon/salon-management-backend")
-    assert_equal("salon", domain, "Should extract salon domain")
+    domain = Manifest.extract_domain("services/product/user/user-management-backend")
+    assert_equal("user", domain, "Should extract user domain")
     
-    domain = Manifest.extract_domain("services/product/appointment/appointment-management-backend")
-    assert_equal("appointment", domain, "Should extract appointment domain")
+    domain = Manifest.extract_domain("services/product/order/order-management-backend")
+    assert_equal("order", domain, "Should extract order domain")
     
     domain = Manifest.extract_domain("services/product/identity/identity-management-backend")
     assert_equal("identity", domain, "Should extract identity domain")
     
-    # Special case: appointment-planner
-    domain = Manifest.extract_domain("services/product/appointment-planner/appointment-planner-backend")
-    assert_equal("appointment-planner", domain, "Should extract appointment-planner domain")
+    # Special case: order-planner
+    domain = Manifest.extract_domain("services/product/order-planner/order-planner-backend")
+    assert_equal("order-planner", domain, "Should extract order-planner domain")
     
     # Special case: profile -> identity
     domain = Manifest.extract_domain("services/product/profile/profile-management-backend")
@@ -193,32 +193,32 @@ def _test_frontend_normalization():
     
     frontend_json = '''
     {
-        "appName": "salon-management-frontend",
+        "appName": "user-management-frontend",
         "appType": "frontend",
-        "domain": "salon",
+        "domain": "user",
         "port": 3000,
-        "backendName": "salon-management-backend"
+        "backendName": "user-management-backend"
     }
     '''
     
     result = Manifest.parse(frontend_json)
-    normalized = Manifest.normalize(result.manifest, "services/product/salon/salon-management-frontend")
+    normalized = Manifest.normalize(result.manifest, "services/product/user/user-management-frontend")
     
     assert_equal("frontend", normalized['appType'], "Should preserve frontend appType")
-    assert_equal("salon-management-backend", normalized['backendName'], "Should preserve backendName")
+    assert_equal("user-management-backend", normalized['backendName'], "Should preserve backendName")
     
     # Test backendName auto-computation
     frontend_json_no_backend = '''
     {
         "appName": "test-frontend",
         "appType": "frontend",
-        "domain": "salon",
+        "domain": "user",
         "port": 3001
     }
     '''
     
     result2 = Manifest.parse(frontend_json_no_backend)
-    normalized2 = Manifest.normalize(result2.manifest, "services/product/salon/test-frontend")
+    normalized2 = Manifest.normalize(result2.manifest, "services/product/user/test-frontend")
     assert_equal("test-backend", normalized2['backendName'], "Should auto-compute backendName")
     
     print("✅ Frontend normalization tests complete\n")
@@ -234,21 +234,21 @@ def _test_traefik_config():
     # Backend with explicit traefik config
     backend_json = '''
     {
-        "appName": "salon-management-backend",
+        "appName": "user-management-backend",
         "appType": "backend",
-        "domain": "salon",
+        "domain": "user",
         "port": 4000,
         "traefik": {
-            "pathPrefix": "/api/v1/salons",
+            "pathPrefix": "/api/v1/users",
             "priority": 200
         }
     }
     '''
     
     result = Manifest.parse(backend_json)
-    normalized = Manifest.normalize(result.manifest, "services/product/salon/salon-management-backend")
+    normalized = Manifest.normalize(result.manifest, "services/product/user/user-management-backend")
     
-    assert_equal("/api/v1/salons", normalized['traefik']['pathPrefix'], "Should preserve pathPrefix")
+    assert_equal("/api/v1/users", normalized['traefik']['pathPrefix'], "Should preserve pathPrefix")
     assert_equal(200, normalized['traefik']['priority'], "Should preserve priority")
     
     # Test auto-generated pathPrefix
@@ -256,13 +256,13 @@ def _test_traefik_config():
     {
         "appName": "test-management-backend",
         "appType": "backend",
-        "domain": "salon",
+        "domain": "user",
         "port": 4001
     }
     '''
     
     result2 = Manifest.parse(backend_json_no_traefik)
-    normalized2 = Manifest.normalize(result2.manifest, "services/product/salon/test-management-backend")
+    normalized2 = Manifest.normalize(result2.manifest, "services/product/user/test-management-backend")
     
     assert_not_none(normalized2['traefik']['pathPrefix'], "Should auto-generate pathPrefix")
     assert_not_none(normalized2['traefik']['priority'], "Should set default priority")
@@ -318,12 +318,12 @@ def _test_get_normalized():
     {
         "appName": "test-service",
         "appType": "backend",
-        "domain": "salon",
+        "domain": "user",
         "port": 4001
     }
     '''
     
-    result = Manifest.get_normalized(json_content, "services/product/salon/test-service")
+    result = Manifest.get_normalized(json_content, "services/product/user/test-service")
     
     assert_not_none(result.manifest, "Should return normalized manifest")
     assert_equal(None, result.error, "Should have no error")
@@ -342,13 +342,13 @@ def _test_service_description():
     print("🔍 Testing service description...")
     
     manifest = {
-        'appName': 'salon-management-backend',
+        'appName': 'user-management-backend',
         'appType': 'backend',
-        'domain': 'salon',
+        'domain': 'user',
     }
     
     desc = Manifest.get_description(manifest)
-    assert_equal("salon/backend/salon-management-backend", desc, "Should generate correct description")
+    assert_equal("user/backend/user-management-backend", desc, "Should generate correct description")
     
     print("✅ Service description tests complete\n")
 

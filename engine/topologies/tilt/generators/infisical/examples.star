@@ -31,10 +31,10 @@ load("engine/topologies/platform/security/secrets.star", "Secrets")
 def example_service_secrets():
     """Example: Configure secrets for a single service."""
     
-    # Generate configuration for salon service
+    # Generate configuration for user service
     config = Infisical.Secrets.generate_for_service(
-        service_name="salon-management-backend",
-        secret_path="/services/salon",
+        service_name="user-management-backend",
+        secret_path="/services/user",
         service_type="backend",
         command="bun run src/index.ts",
     )
@@ -55,18 +55,18 @@ def example_path_planning():
     """Example: Plan Infisical folder structure."""
     
     # Plan a single service path
-    salon_path = Infisical.Paths.plan_service_path(
-        service_name="salon-management-backend",
+    user_path = Infisical.Paths.plan_service_path(
+        service_name="user-management-backend",
         service_type="backend",
     )
-    print("Salon Path:", salon_path["full_path"])
-    print("Subpaths:", salon_path["subpaths"])
+    print("User Path:", user_path["full_path"])
+    print("Subpaths:", user_path["subpaths"])
     
     # Plan multiple services at once
     batch_paths = Infisical.Paths.plan_batch_service_paths([
-        "salon-management-backend",
-        "appointment-management-backend",
-        "staff-management-backend",
+        "user-management-backend",
+        "order-management-backend",
+        "team-management-backend",
     ])
     
     for name, plan in batch_paths.items():
@@ -76,11 +76,11 @@ def example_path_planning():
     org_structure = Infisical.Paths.plan_organization_structure(
         org_name="my-project",
         service_names=[
-            "salon",
-            "appointment",
-            "staff",
-            "treatment",
-            "inventory",
+            "user",
+            "order",
+            "team",
+            "service",
+            "products",
             "website",
             "gdpr",
             "payment",
@@ -108,7 +108,7 @@ def example_machine_identity():
     
     # Service-specific machine with restricted access
     service_machine = Infisical.Identity.generate_service_specific_machine(
-        service_name="salon",
+        service_name="user",
         project_id="bc7cf07f-4002-4148-bca8-78a05c95dea2",
     )
     print("Service Machine Access:", service_machine["config"]["access_paths"])
@@ -132,11 +132,11 @@ def example_organization():
         org_name="my-project",
         env_names=["dev", "staging", "prod"],
         service_names=[
-            "salon",
-            "appointment",
-            "staff",
-            "treatment",
-            "inventory",
+            "user",
+            "order",
+            "team",
+            "service",
+            "products",
             "website",
             "gdpr",
             "payment",
@@ -158,8 +158,8 @@ def example_batch_configuration():
     
     services_config = [
         {
-            "name": "salon-management-backend",
-            "path": "/services/salon",
+            "name": "user-management-backend",
+            "path": "/services/user",
             "type": "backend",
             "command": "bun run src/index.ts",
         },
@@ -194,7 +194,7 @@ def example_predefined_services():
     
     # Get configuration for a predefined service
     config = Secrets.configure_predefined_service(
-        service_name="salon-management-backend",
+        service_name="user-management-backend",
         command="bun run src/index.ts",
     )
     
@@ -240,7 +240,7 @@ def configure_service_with_secrets(service_name):
     dc_resource(service_name, env=docker_compose_env)
 
 # Configure all services
-for service in ["salon", "appointment", "staff"]:
+for service in ["user", "order", "team"]:
     configure_service_with_secrets(service)
 """
 
@@ -290,8 +290,8 @@ def example_env_templates():
     
     # Generate service-specific template
     config = Infisical.Secrets.generate_for_service(
-        "salon-management-backend",
-        "/services/salon",
+        "user-management-backend",
+        "/services/user",
         "backend",
     )
     print("\nService local template:")

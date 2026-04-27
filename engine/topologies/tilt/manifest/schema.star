@@ -7,7 +7,7 @@
 # =============================================================================
 
 # === INLINED CONSTANTS for pure extension loading ===
-VALID_DOMAINS = "accounting", "appointment", "appointment-planner", "billing", "gdpr", "identity", "inventory", "mdblaster", "payment", "platform", "reporting", "salon", "staff", "treatment", "website"
+VALID_DOMAINS = ()  # Domains are project-specific, discovered dynamically
 VALID_FEATURES = "nats", "prisma", "redis", "infisical", "vitest", "traefik", "websocket", "graphql", "grpc", "vite-node", "maintenance"
 PORT_RANGES = {"frontend": {"min": 3000, "max": 5999}, "backend": {"min": 4000, "max": 5999}, "worker": {"min": 6000, "max": 6999}, "migrator": {"min": 7000, "max": 7999}, "sdk": {"min": 3000, "max": 9999}, "library": {"min": 3000, "max": 9999}}
 RUNTIME = "bun"
@@ -52,7 +52,7 @@ MANIFEST_SCHEMA = {
             'max_length': 50,
         },
         'description': 'Unique service name in kebab-case',
-        'example': 'salon-management-backend',
+        'example': 'user-management-backend',
     },
     'appType': {
         'type': 'enum',
@@ -70,7 +70,7 @@ MANIFEST_SCHEMA = {
             'values': VALID_DOMAINS,
         },
         'description': 'Business domain this service belongs to',
-        'example': 'salon',
+        'example': 'user',
     },
     
     # Network Configuration
@@ -139,7 +139,7 @@ MANIFEST_SCHEMA = {
             'max_length': 63,
         },
         'description': 'PostgreSQL database name (required if using prisma)',
-        'example': 'TDK_salon',
+        'example': 'TDK_user',
     },
     
     # Dependency Configuration
@@ -185,7 +185,7 @@ MANIFEST_SCHEMA = {
         },
         'description': 'Associated backend service name (required for frontends)',
         'condition': "appType == 'frontend'",  # Required only for frontends
-        'example': 'salon-management-backend',
+        'example': 'user-management-backend',
     },
     'basePath': {
         'type': 'string',
@@ -195,7 +195,7 @@ MANIFEST_SCHEMA = {
         },
         'description': 'URL base path for frontend (required for frontends)',
         'condition': "appType == 'frontend'",
-        'example': '/salons',
+        'example': '/users',
     },
     'targetPath': {
         'type': 'string',
@@ -242,13 +242,13 @@ MANIFEST_SCHEMA = {
                     'pattern': r'^/[a-z][a-z0-9/-]*$',
                 },
                 'description': 'URL path prefix for routing',
-                'example': '/api/v1/salon-management',
+                'example': '/api/v1/user-management',
             },
             'host': {
                 'type': 'string',
                 'required': False,
                 'description': 'Custom host for routing',
-                'example': 'salon.backend.localhost',
+                'example': 'user.backend.localhost',
             },
             'priority': {
                 'type': 'integer',

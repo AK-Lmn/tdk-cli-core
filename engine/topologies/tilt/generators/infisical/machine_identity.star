@@ -13,7 +13,7 @@
 #
 # Usage:
 #   load("./infisical/machine_identity.star", "MachineIdentity")
-#   config = MachineIdentity.generate_universal_auth("my-machine", "/services/salon")
+#   config = MachineIdentity.generate_universal_auth("my-machine", "/services/user")
 # =============================================================================
 
 def _get_timestamp():

@@ -13,7 +13,7 @@
 #
 # Usage:
 #   load("./infisical/path_manager.star", "PathManager")
-#   paths = PathManager.plan_service_paths(["salon", "appointment"])
+#   paths = PathManager.plan_service_paths(["user", "order"])
 # =============================================================================
 
 def _get_timestamp():
@@ -404,18 +404,18 @@ def _path_to_env_var(path):
 # Predefined service paths for known services
 KNOWN_SERVICE_PATHS = {
     # Simple services
-    "salon-management-backend": "/services/salon",
-    "appointment-management-backend": "/services/appointment",
-    "appointment-planner-backend": "/services/appointment-planner",
-    "staff-management-backend": "/services/staff",
-    "treatment-management-backend": "/services/treatment",
-    "inventory-management-backend": "/services/inventory",
+    "user-management-backend": "/services/user",
+    "order-management-backend": "/services/order",
+    "order-planner-backend": "/services/order-planner",
+    "team-management-backend": "/services/team",
+    "service-management-backend": "/services/service",
+    "products-management-backend": "/services/products",
     "website-management-backend": "/services/website",
     "gdpr-compliance-backend": "/services/gdpr",
     
     # Complex services
     "payment-management-backend": "/services/payment",
-    "payment-processing-backend": "/services/billing",
+    "payment-processing-backend": "/services/payments",
     "notification-backend": "/services/notification",
     
     # Platform services

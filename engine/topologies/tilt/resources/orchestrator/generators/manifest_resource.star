@@ -10,7 +10,7 @@
 # specific service.
 #
 # Benefits:
-# - Granular tracking (see "salon-backend-config-gen" in Tilt UI)
+# - Granular tracking (see "my-service-config-gen" in Tilt UI)
 # - Efficient updates (only regenerate changed manifests)
 # - Better dependency management (explicit resource deps)
 # - Cleaner architecture (manifest → resource → 10 generators)
@@ -257,9 +257,9 @@ def _generate_all_configs_for_resource(
     It generates 10+ config files for one service based on its manifest.
     
     Args:
-        service_name: Parent service name (e.g., 'salon')
+        service_name: Parent service name (e.g., 'my-service')
         resource_config: Resource dict from registry
-        resource_path: Full path to resource (e.g., 'services/product/salon/salon-backend')
+        resource_path: Full path to resource (e.g., 'services/product/users/user-backend')
         manifest: Loaded manifest for this resource
         backend_manifest: Backend manifest (for frontends only)
         ctx: Tilt context with write_file, should_enable, etc.
@@ -447,7 +447,7 @@ def create_manifest_config_resource(
     """
     Create a Tilt local_resource for manifest-driven config generation.
     
-    This creates a visible Tilt resource (e.g., "salon-backend-config-gen")
+    This creates a visible Tilt resource (e.g., "my-service-config-gen")
     that watches the manifest and package.json, regenerating all configs
     when they change.
     
@@ -460,7 +460,7 @@ def create_manifest_config_resource(
         ctx: Tilt context
         
     Returns:
-        Resource name (e.g., "salon-backend-config-gen")
+        Resource name (e.g., "my-service-config-gen")
     """
     resource_name = resource_config['name']
     # service_path is now correctly passed from apply_manifest_orchestration.star

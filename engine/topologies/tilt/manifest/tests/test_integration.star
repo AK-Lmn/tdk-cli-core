@@ -77,38 +77,38 @@ def _test_convert_to_resource():
     
     # Test backend conversion
     backend_manifest = {
-        'appName': 'salon-management-backend',
+        'appName': 'user-management-backend',
         'appType': 'backend',
-        'domain': 'salon',
+        'domain': 'user',
         'port': 4000,
         'syncs': ['src', 'prisma'],
-        '_service_path': 'services/product/salon/salon-management-backend',
+        '_service_path': 'services/product/user/user-management-backend',
         '_manifest': {'runtime': 'bun'},
     }
     
     resource = Manifest.convert_to_resource(backend_manifest)
     
-    assert_equal('salon-management-backend', resource['name'], "Should preserve name")
+    assert_equal('user-management-backend', resource['name'], "Should preserve name")
     assert_equal(4000, resource['port'], "Should preserve port")
-    assert_equal('salon', resource['domain'], "Should preserve domain")
+    assert_equal('user', resource['domain'], "Should preserve domain")
     assert_true('frontend' not in resource or not resource['frontend'], "Should not mark as frontend")
-    assert_equal('services/product/salon/salon-management-backend', resource['_service_path'], "Should preserve service path")
+    assert_equal('services/product/user/user-management-backend', resource['_service_path'], "Should preserve service path")
     
     # Test frontend conversion
     frontend_manifest = {
-        'appName': 'salon-management-frontend',
+        'appName': 'user-management-frontend',
         'appType': 'frontend',
-        'domain': 'salon',
+        'domain': 'user',
         'port': 3000,
-        'backendName': 'salon-management-backend',
-        '_service_path': 'services/product/salon/salon-management-frontend',
+        'backendName': 'user-management-backend',
+        '_service_path': 'services/product/user/user-management-frontend',
     }
     
     resource = Manifest.convert_to_resource(frontend_manifest)
     
-    assert_equal('salon-management-frontend', resource['name'], "Should preserve name")
+    assert_equal('user-management-frontend', resource['name'], "Should preserve name")
     assert_true(resource.get('frontend', False), "Should mark as frontend")
-    assert_equal('salon-management-backend', resource['backendName'], "Should preserve backendName")
+    assert_equal('user-management-backend', resource['backendName'], "Should preserve backendName")
     
     print("✅ Convert to resource tests complete\n")
 
@@ -124,13 +124,13 @@ def _test_validation_summary():
         {
             'appName': 'valid-service',
             'appType': 'backend',
-            'domain': 'salon',
+            'domain': 'user',
             'port': 4000,
         },
         {
             'appName': 'valid-frontend',
             'appType': 'frontend',
-            'domain': 'salon',
+            'domain': 'user',
             'port': 3000,
             'backendName': 'valid-service',
         },
@@ -191,23 +191,23 @@ def _test_dependency_validation():
             'port': 4004,
         },
         {
-            'appName': 'salon-backend',
+            'appName': 'user-backend',
             'appType': 'backend',
-            'domain': 'salon',
+            'domain': 'user',
             'port': 4000,
             'internalDependencies': ['identity-backend'],  # Valid
         },
         {
-            'appName': 'salon-frontend',
+            'appName': 'user-frontend',
             'appType': 'frontend',
-            'domain': 'salon',
+            'domain': 'user',
             'port': 3000,
-            'backendName': 'salon-backend',  # Valid
+            'backendName': 'user-backend',  # Valid
         },
         {
             'appName': 'bad-service',
             'appType': 'backend',
-            'domain': 'salon',
+            'domain': 'user',
             'port': 4001,
             'internalDependencies': ['nonexistent-service'],  # Invalid
         },

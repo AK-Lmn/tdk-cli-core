@@ -21,9 +21,9 @@ TDK CLI organizes your microservices using a clear **Project-Stack-Resource (PSR
     │   ├── ⚡ identity-backend      # Resource
     │   └── 🎨 identity-frontend     # Resource
     │
-    └── 📅 appointment-stack
-        ├── ⚡ appointment-backend    # Resource
-        └── 🎨 appointment-frontend   # Resource
+    └── 📅 order-stack
+        ├── ⚡ order-backend    # Resource
+        └── 🎨 order-frontend   # Resource
 ```
 
 ---
@@ -71,7 +71,7 @@ tdk stacks --services     # 🔍 Include resources in each stack
 
 # 🗂️  Organize resources into stacks (interactive)
 tdk stack identity
-tdk stack appointment
+tdk stack order
 
 # ▶️ Start/stop a stack
 tdk up identity           # 🚀 Start identity stack

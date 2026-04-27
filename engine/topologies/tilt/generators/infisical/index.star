@@ -17,7 +17,7 @@
 #   config = Infisical.Secrets.generate_for_service("my-service", "/services/my-service")
 #   
 #   # Plan folder structure
-#   paths = Infisical.Paths.plan_batch_service_paths(["salon", "appointment"])
+#   paths = Infisical.Paths.plan_batch_service_paths(["user", "order"])
 #   
 #   # Get machine identity
 #   machine = Infisical.Identity.generate_development_machine("dev-machine")

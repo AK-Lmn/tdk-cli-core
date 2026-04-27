@@ -20,10 +20,10 @@ Traefik reverse proxy, networking configuration, and service routing.
 ```starlark
 load("./proxy.star", "generate_traefik_labels")
 labels = generate_traefik_labels(
-    service_name="appointment-management-backend",
+    service_name="order-management-backend",
     port=4000,
-    host="appointment.backend.{project}.localhost",
-    path_prefix="/api/appointments"
+    host="order.backend.{project}.localhost",
+    path_prefix="/api/orders"
 )
 ```
 
@@ -31,9 +31,9 @@ labels = generate_traefik_labels(
 ```python
 {
     "traefik.enable": "true",
-    "traefik.http.routers.appointment-management-backend.rule": "Host(`appointment.backend.{project}.localhost`) && PathPrefix(`/api/appointments`)",
-    "traefik.http.routers.appointment-management-backend.entrypoints": "web",
-    "traefik.http.services.appointment-management-backend.loadbalancer.server.port": "4000"
+    "traefik.http.routers.order-management-backend.rule": "Host(`order.backend.{project}.localhost`) && PathPrefix(`/api/orders`)",
+    "traefik.http.routers.order-management-backend.entrypoints": "web",
+    "traefik.http.services.order-management-backend.loadbalancer.server.port": "4000"
 }
 ```
 

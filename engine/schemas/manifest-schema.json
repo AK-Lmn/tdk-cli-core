@@ -71,8 +71,8 @@
       "type": "string"
     },
     "appName": {
-      "description": "Unique service identifier. Must match directory name.\nFormat: {domain}-{function}-{type}\nExample: 'salon-management-backend'",
-      "examples": ["salon-management-backend", "appointment-planner-frontend"],
+      "description": "Unique service identifier. Must match directory name.\nFormat: {domain}-{function}-{type}\nExample: 'user-management-backend'",
+      "examples": ["user-management-backend", "order-planner-frontend"],
       "maxLength": 64,
       "minLength": 3,
       "pattern": "^[a-z][a-z0-9-]*[a-z0-9]$",
@@ -99,7 +99,7 @@
       "type": "string"
     },
     "dependencies": {
-      "description": "Service dependencies used for startup ordering and frontend dependency env generation.\nEach entry can be a domain (e.g. 'treatment') or service name (e.g. 'treatment-management-backend').",
+      "description": "Service dependencies used for startup ordering and frontend dependency env generation.\nEach entry can be a domain (e.g. 'service') or service name (e.g. 'service-management-backend').",
       "items": {
         "pattern": "^[a-z][a-z0-9-]*$",
         "type": "string"
@@ -115,12 +115,12 @@
     "domain": {
       "description": "Business domain this service belongs to.\nUsed for:\n• Database naming: TDK_{domain}\n• Traefik routing: /api/{domain}\n• NATS queue: {domain}_backend_svc",
       "enum": [
-        "salon",
-        "staff",
-        "identity",
-        "appointment",
-        "appointment-planner",
-        "treatment",
+        "user",
+        "team",
+        "auth",
+        "order",
+        "order-planner",
+        "service",
         "inventory",
         "billing",
         "notification",
@@ -192,11 +192,11 @@
       "description": "Legacy alias of dependencies. Domain dependencies for Tilt's dependency graph.\nServices listed here start before this service.\nUsed for focus mode, health checks, migration order.",
       "items": {
         "enum": [
-          "identity",
-          "salon",
-          "staff",
-          "appointment",
-          "treatment",
+          "auth",
+          "user",
+          "team",
+          "order",
+          "service",
           "inventory",
           "billing",
           "notification"
@@ -229,7 +229,7 @@
       "type": "boolean"
     },
     "port": {
-      "description": "External dev port (internal always 3000).\nAssignments:\n• 4000: salon\n• 4001: treatment\n• 4002: appointment\n• 4003: staff\n• 4004: identity",
+      "description": "External dev port (internal always 3000).\nAssignments:\n• 4000: user\n• 4001: service\n• 4002: order\n• 4003: team\n• 4004: auth",
       "examples": [4000, 4001, 4002, 4003, 4004],
       "maximum": 9999,
       "minimum": 3000,
@@ -263,11 +263,11 @@
           "type": "string"
         },
         "host": {
-          "description": "Custom hostname (e.g., 'salon.backend.{project}.local')",
+          "description": "Custom hostname (e.g., 'user.backend.{project}.local')",
           "type": "string"
         },
         "pathPrefix": {
-          "description": "URL path prefix (e.g., '/api/salon')",
+          "description": "URL path prefix (e.g., '/api/user')",
           "type": "string"
         }
       },

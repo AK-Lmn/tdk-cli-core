@@ -64,15 +64,15 @@ load("engine/topologies/platform/security/secrets.star", "Secrets")
 ```starlark
 # Generate complete configuration for a service
 config = Infisical.Secrets.generate_for_service(
-    service_name="salon-management-backend",
-    secret_path="/services/salon",
+    service_name="user-management-backend",
+    secret_path="/services/user",
     service_type="backend",
     command="bun run src/index.ts",
 )
 
 # Access generated configuration
-print(config["service_name"])        # "salon-management-backend"
-print(config["secret_path"])         # "/services/salon"
+print(config["service_name"])        # "user-management-backend"
+print(config["secret_path"])         # "/services/user"
 print(config["required_secrets"])    # ["DATABASE_URL", "JWT_SECRET", "SERVICE_API_KEY"]
 print(config["docker_compose"]["environment"])
 ```
@@ -105,12 +105,12 @@ def generate_backend_runtime(service_name, cmd="bun run start"):
 ```starlark
 # Generate environment variables for docker-compose
 env = Infisical.Docker.generate_compose_env(
-    service_name="salon-management-backend",
+    service_name="user-management-backend",
     service_type="backend",
 )
 
 # Use in dc_resource
-dc_resource("salon-management-backend", env=env)
+dc_resource("user-management-backend", env=env)
 ```
 
 ## Detailed API Reference
@@ -122,8 +122,8 @@ dc_resource("salon-management-backend", env=env)
 Generates complete secret configuration for a service.
 
 **Parameters:**
-- `service_name` (str): Name of the service (e.g., "salon-management-backend")
-- `secret_path` (str): Infisical path (e.g., "/services/salon")
+- `service_name` (str): Name of the service (e.g., "user-management-backend")
+- `secret_path` (str): Infisical path (e.g., "/services/user")
 - `service_type` (str): Type of service (backend, frontend, payment, notification)
 - `command` (str): Command to run after secret injection (optional)
 - `additional_vars` (dict): Additional environment variables (optional)
@@ -149,7 +149,7 @@ Batch configuration for multiple services.
 
 ```starlark
 services = [
-    {"name": "salon", "path": "/services/salon", "type": "backend"},
+    {"name": "user", "path": "/services/user", "type": "backend"},
     {"name": "payment", "path": "/services/payment", "type": "payment"},
 ]
 configs = Infisical.Secrets.generate_for_services_batch(services)
@@ -163,19 +163,19 @@ Plans the Infisical path for a service.
 
 ```starlark
 plan = Infisical.Paths.plan_service_path(
-    service_name="salon-management-backend",
+    service_name="user-management-backend",
     service_type="backend",
 )
 
 # Returns:
 # {
-#     "service_name": "salon-management-backend",
+#     "service_name": "user-management-backend",
 #     "service_type": "backend",
 #     "parent_path": "/services",
-#     "service_folder": "salon",
-#     "full_path": "/services/salon",
+#     "service_folder": "user",
+#     "full_path": "/services/user",
 #     "validation": {"valid": True, "errors": [], "warnings": []},
-#     "subpaths": ["/services/salon/database", ...],
+#     "subpaths": ["/services/user/database", ...],
 # }
 ```
 
@@ -188,15 +188,15 @@ plan = Infisical.Paths.plan_service_path(
 print(Infisical.Paths.known_paths)
 
 # Get specific service path
-path = Infisical.Paths.get_known_service_path("salon-management-backend")
-# Returns: "/services/salon"
+path = Infisical.Paths.get_known_service_path("user-management-backend")
+# Returns: "/services/user"
 ```
 
 | Service | Path |
 |---------|------|
-| salon-management-backend | /services/salon |
-| appointment-management-backend | /services/appointment |
-| appointment-planner-backend | /services/appointment-planner |
+| user-management-backend | /services/user |
+| order-management-backend | /services/order |
+| order-planner-backend | /services/order-planner |
 | staff-management-backend | /services/staff |
 | treatment-management-backend | /services/treatment |
 | inventory-management-backend | /services/inventory |
@@ -233,7 +233,7 @@ dev_machine = Infisical.Identity.generate_development_machine("dev-machine")
 ci_machine = Infisical.Identity.generate_ci_machine("github-actions")
 
 # Service-specific machine (restricted access)
-service_machine = Infisical.Identity.generate_service_specific_machine("salon")
+service_machine = Infisical.Identity.generate_service_specific_machine("user")
 ```
 
 ### Organization
@@ -246,7 +246,7 @@ Generates complete organization configuration.
 org = Infisical.Org.generate_config(
     org_name="{project}",
     env_names=["dev", "staging", "prod"],
-    service_names=["salon", "appointment", "payment"],
+    service_names=["user", "order", "payment"],
 )
 
 # Returns complete setup including:
@@ -306,8 +306,8 @@ load("engine/topologies/tilt/generators/infisical/index.star", "Infisical")
 
 # Define services to configure
 services = [
-    "salon-management-backend",
-    "appointment-management-backend",
+    "user-management-backend",
+    "order-management-backend",
     "payment-management-backend",
 ]
 

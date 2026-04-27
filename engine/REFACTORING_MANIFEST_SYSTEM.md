@@ -94,7 +94,7 @@ Manifest = struct(
 load("../manifest/__init__.star", "Manifest")
 
 # Load and validate in one call
-result = Manifest.load_from_file("services/product/salon/salon-management-backend/platform-computing-provisioner.manifest.json")
+result = Manifest.load_from_file("services/product/user/user-management-backend/platform-computing-provisioner.manifest.json")
 if result.error:
     print("Failed to load manifest:", result.error)
 else:
@@ -144,7 +144,7 @@ def load_all(services_root, filters=None):
         services_root: Root directory to search (e.g., "services/product")
         filters: Optional dict of filters:
             - appType: ['frontend', 'backend', 'library', ...]
-            - domain: ['salon', 'appointment', ...]
+            - domain: ['user', 'order', ...]
             - features: ['nats', 'prisma', ...]
     
     Returns:
@@ -250,7 +250,7 @@ def extract_domain(service_path):
         service_path: Service directory path
     
     Returns:
-        Domain string (e.g., 'salon', 'appointment')
+        Domain string (e.g., 'user', 'order')
     """
 
 def determine_app_type(manifest, service_path):
@@ -325,7 +325,7 @@ MANIFEST_SCHEMA = {
         'min_length': 3,
         'max_length': 50,
         'description': 'Unique service name (kebab-case)',
-        'example': 'salon-management-backend',
+        'example': 'user-management-backend',
     },
     'appType': {
         'type': 'string',
@@ -337,7 +337,7 @@ MANIFEST_SCHEMA = {
     'domain': {
         'type': 'string',
         'required': True,
-        'enum': ['salon', 'staff', 'identity', 'appointment', 'treatment', 
+        'enum': ['user', 'staff', 'identity', 'order', 'treatment', 
                  'platform', 'inventory', 'billing', 'notification', 'analytics'],
         'description': 'Business domain this service belongs to',
     },

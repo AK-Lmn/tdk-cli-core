@@ -66,18 +66,12 @@ def _pluralize_domain(domain):
     if domain.endswith("s"):
         return domain
     
-    # Special cases - irregular plurals
+    # Special cases - irregular plurals (common English patterns)
     irregulars = {
-        "identity": "identities",
         "category": "categories",
-        "story": "stories",
         "city": "cities",
-        "body": "bodies",
-        "activity": "activities",
-        "ability": "abilities",
-        "specialty": "specialties",
-        "therapy": "therapies",
-        "inventory": "inventories",
+        "company": "companies",
+        "story": "stories",
     }
     
     if domain in irregulars:
@@ -106,7 +100,7 @@ def get_api_path_for_domain(domain, manifest=None):
         manifest: Optional manifest dict that may contain 'apiPath' override
     
     Returns:
-        Full API path string (e.g., "/api/identity-management")
+        Full API path string (e.g., "/api/user-management")
         Falls back to "/api/{domain}-management" if not found
         Returns apiPath from manifest if explicitly specified
     """

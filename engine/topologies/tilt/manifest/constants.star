@@ -50,23 +50,8 @@ TRAEFIK_CONFIG = {
 RUNTIME = "bun"
 
 # From TILT_DISCOVERY.star
-VALID_DOMAINS = [
-    "accounting",
-    "appointment",
-    "appointment-planner",
-    "billing",
-    "gdpr",
-    "identity",
-    "inventory",
-    "mdblaster",
-    "payment",
-    "platform",
-    "reporting",
-    "salon",
-    "staff",
-    "treatment",
-    "website",
-]
+# Domains are project-specific and discovered dynamically from filesystem
+VALID_DOMAINS = []
 
 VALID_SERVICE_TYPES = [
     "frontend",

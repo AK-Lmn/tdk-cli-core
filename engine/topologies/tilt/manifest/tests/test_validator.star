@@ -75,7 +75,7 @@ def _test_schema_validation():
     valid_manifest = {
         'appName': 'test-service',
         'appType': 'backend',
-        'domain': 'salon',
+        'domain': 'user',
         'port': 4001,
     }
     
@@ -86,7 +86,7 @@ def _test_schema_validation():
     # Missing required field
     invalid_manifest = {
         'appType': 'backend',
-        'domain': 'salon',
+        'domain': 'user',
         'port': 4001,
     }
     
@@ -98,7 +98,7 @@ def _test_schema_validation():
     wrong_type_manifest = {
         'appName': 'test-service',
         'appType': 'invalid-type',
-        'domain': 'salon',
+        'domain': 'user',
         'port': 4001,
     }
     
@@ -119,7 +119,7 @@ def _test_value_validation():
     manifest_low_port = {
         'appName': 'test-service',
         'appType': 'backend',
-        'domain': 'salon',
+        'domain': 'user',
         'port': 100,  # Invalid: below 1024
     }
     
@@ -130,7 +130,7 @@ def _test_value_validation():
     manifest_high_port = {
         'appName': 'test-service',
         'appType': 'backend',
-        'domain': 'salon',
+        'domain': 'user',
         'port': 70000,  # Invalid: above 65535
     }
     
@@ -141,7 +141,7 @@ def _test_value_validation():
     manifest_valid_port = {
         'appName': 'test-service',
         'appType': 'backend',
-        'domain': 'salon',
+        'domain': 'user',
         'port': 4001,
     }
     
@@ -152,7 +152,7 @@ def _test_value_validation():
     manifest_bad_name = {
         'appName': 'TestService',  # Invalid: uppercase
         'appType': 'backend',
-        'domain': 'salon',
+        'domain': 'user',
         'port': 4001,
     }
     
@@ -164,7 +164,7 @@ def _test_value_validation():
     manifest_many_replicas = {
         'appName': 'test-service',
         'appType': 'backend',
-        'domain': 'salon',
+        'domain': 'user',
         'port': 4001,
         'replicas': 10,  # Exceeds max
     }
@@ -186,7 +186,7 @@ def _test_cross_field_validation():
     frontend_no_backend = {
         'appName': 'test-frontend',
         'appType': 'frontend',
-        'domain': 'salon',
+        'domain': 'user',
         'port': 3000,
         # Missing backendName
     }
@@ -198,7 +198,7 @@ def _test_cross_field_validation():
     frontend_valid = {
         'appName': 'test-frontend',
         'appType': 'frontend',
-        'domain': 'salon',
+        'domain': 'user',
         'port': 3000,
         'backendName': 'test-backend',
     }
@@ -211,7 +211,7 @@ def _test_cross_field_validation():
     prisma_no_db = {
         'appName': 'test-service',
         'appType': 'backend',
-        'domain': 'salon',
+        'domain': 'user',
         'port': 4001,
         'features': ['prisma'],
         # Missing databaseName
@@ -239,31 +239,31 @@ def _test_cross_service_validation():
             'port': 4004,
         },
         {
-            'appName': 'salon-backend',
+            'appName': 'user-backend',
             'appType': 'backend',
-            'domain': 'salon',
+            'domain': 'user',
             'port': 4000,
             'internalDependencies': ['identity-backend'],  # Valid
         },
         {
-            'appName': 'salon-frontend',
+            'appName': 'user-frontend',
             'appType': 'frontend',
-            'domain': 'salon',
+            'domain': 'user',
             'port': 3000,
-            'backendName': 'salon-backend',  # Valid
+            'backendName': 'user-backend',  # Valid
         },
     ]
     
     # Test valid dependency
-    salon_manifest = manifests[1]
-    result = Manifest.validate_dependencies(salon_manifest, manifests)
+    user_manifest = manifests[1]
+    result = Manifest.validate_dependencies(user_manifest, manifests)
     assert_true(result.valid, "Valid dependency should pass")
     
     # Test invalid dependency
     bad_dep_manifest = {
         'appName': 'bad-service',
         'appType': 'backend',
-        'domain': 'salon',
+        'domain': 'user',
         'port': 4002,
         'internalDependencies': ['nonexistent-service'],  # Invalid
     }
@@ -275,8 +275,8 @@ def _test_cross_service_validation():
     conflict_manifest = {
         'appName': 'conflict-service',
         'appType': 'backend',
-        'domain': 'salon',
-        'port': 4000,  # Same as salon-backend
+        'domain': 'user',
+        'port': 4000,  # Same as user-backend
     }
     
     result = Manifest.validate_dependencies(conflict_manifest, manifests)
@@ -286,7 +286,7 @@ def _test_cross_service_validation():
     bad_frontend = {
         'appName': 'bad-frontend',
         'appType': 'frontend',
-        'domain': 'salon',
+        'domain': 'user',
         'port': 3001,
         'backendName': 'nonexistent-backend',
     }
@@ -306,17 +306,17 @@ def _test_full_validation():
     
     # Valid complete manifest
     valid_manifest = {
-        'appName': 'salon-management-backend',
+        'appName': 'user-management-backend',
         'appType': 'backend',
-        'domain': 'salon',
+        'domain': 'user',
         'port': 4000,
         'replicas': 1,
         'runtime': 'bun',
         'features': ['nats', 'prisma'],
-        'databaseName': 'TDK_salon',
+        'databaseName': 'TDK_user',
         'internalDependencies': [],
         'traefik': {
-            'pathPrefix': '/api/v1/salons',
+            'pathPrefix': '/api/v1/users',
             'priority': 100,
         },
     }
@@ -343,7 +343,7 @@ def _test_is_valid():
     valid = {
         'appName': 'test-service',
         'appType': 'backend',
-        'domain': 'salon',
+        'domain': 'user',
         'port': 4001,
     }
     
@@ -352,7 +352,7 @@ def _test_is_valid():
     
     invalid = {
         'appType': 'backend',  # Missing appName
-        'domain': 'salon',
+        'domain': 'user',
         'port': 4001,
     }
     
@@ -372,7 +372,7 @@ def _test_validation_report():
     manifest = {
         'appName': 'test-service',
         'appType': 'backend',
-        'domain': 'salon',
+        'domain': 'user',
         'port': 4001,
     }
     
@@ -385,7 +385,7 @@ def _test_validation_report():
     # Test with errors
     bad_manifest = {
         'appType': 'backend',  # Missing required fields
-        'domain': 'salon',
+        'domain': 'user',
     }
     
     report = Manifest.get_validation_report(bad_manifest)
@@ -406,7 +406,7 @@ def _test_strict_mode():
     manifest = {
         'appName': 'test-service',
         'appType': 'frontend',
-        'domain': 'salon',
+        'domain': 'user',
         'port': 3000,
         'backendName': 'test-backend',
         # Missing basePath - might cause warning

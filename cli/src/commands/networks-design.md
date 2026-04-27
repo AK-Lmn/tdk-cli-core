@@ -23,10 +23,10 @@ Display Traefik-routed URLs for all services in a clean, modern CLI format.
 │  🟢 identity-api           localhost:4004 → /identity/api │
 │  🟢 identity-app           localhost:3000 → /identity     │
 │                                                          │
-│  📅 APPOINTMENT STACK                                    │
+│  📅 ORDER STACK                                          │
 │  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
-│  🟢 appointment-api        localhost:4001 → /appointment│
-│  🟢 appointment-app        localhost:3001 → /appointments│
+│  🟢 order-api        localhost:4001 → /order│
+│  🟢 order-app        localhost:3001 → /orders│
 │                                                          │
 └─────────────────────────────────────────────────────────┘
 ```

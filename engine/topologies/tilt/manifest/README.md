@@ -19,7 +19,7 @@ print(Manifest.filename)  # platform-computing-provisioner.manifest.json
 print(Manifest.defaults)  # Default field values
 
 # Load and validate a manifest
-result = Manifest.load_from_file("services/product/salon/salon-management-backend/platform-computing-provisioner.manifest.json")
+result = Manifest.load_from_file("services/product/user/user-management-backend/platform-computing-provisioner.manifest.json")
 if result.error:
     print("Error:", result.error)
 else:
@@ -111,9 +111,9 @@ manifest/
 | Function | Description | Example |
 |----------|-------------|---------|
 | `load_from_file(path)` | Load manifest from file | `Manifest.load_from_file("path/to/manifest.json")` |
-| `load_from_path(service_path)` | Load from service directory | `Manifest.load_from_path("services/product/salon/my-service")` |
+| `load_from_path(service_path)` | Load from service directory | `Manifest.load_from_path("services/product/user/my-service")` |
 | `load_all(root, filters)` | Load all with optional filters | `Manifest.load_all("services/product", {'appType': 'backend'})` |
-| `get_manifest_path(path)` | Get expected manifest path | `Manifest.get_manifest_path("services/product/salon/my-service")` |
+| `get_manifest_path(path)` | Get expected manifest path | `Manifest.get_manifest_path("services/product/user/my-service")` |
 | `clear_cache()` | Clear manifest cache | `Manifest.clear_cache()` |
 | `get_cache_stats()` | Get cache statistics | `Manifest.get_cache_stats()` |
 | `is_cached(path)` | Check if path is cached | `Manifest.is_cached("path/to/manifest.json")` |
@@ -150,7 +150,7 @@ result = Manifest.load_all("services/product")
 | `normalize(manifest, path)` | Apply defaults and compute fields | `Manifest.normalize(manifest, service_path)` |
 | `get_normalized(content, path)` | Parse + normalize in one call | `Manifest.get_normalized(json_string, service_path)` |
 | `extract_service_path(manifest_path)` | Extract service path | `Manifest.extract_service_path("path/to/manifest.json")` |
-| `extract_domain(service_path)` | Extract domain from path | `Manifest.extract_domain("services/product/salon/...")` |
+| `extract_domain(service_path)` | Extract domain from path | `Manifest.extract_domain("services/product/user/...")` |
 | `parse_traefik(manifest)` | Parse Traefik config | `Manifest.parse_traefik(manifest)` |
 | `merge_manifests(base, overlay)` | Merge two manifests | `Manifest.merge_manifests(base, overlay)` |
 | `get_description(manifest)` | Get human-readable description | `Manifest.get_description(manifest)` |
@@ -273,7 +273,7 @@ result = Manifest.load_all_integration("services/product")
 ```starlark
 load("../manifest/__init__.star", "Manifest")
 
-manifest_path = "services/product/salon/salon-management-backend/platform-computing-provisioner.manifest.json"
+manifest_path = "services/product/user/user-management-backend/platform-computing-provisioner.manifest.json"
 
 result = Manifest.load_from_file(manifest_path)
 
@@ -299,13 +299,13 @@ json_content = '''
 {
     "appName": "my-new-service",
     "appType": "backend",
-    "domain": "salon",
+    "domain": "user",
     "port": 4001,
     "features": ["nats", "prisma"]
 }
 '''
 
-result = Manifest.get_normalized(json_content, "services/product/salon/my-new-service")
+result = Manifest.get_normalized(json_content, "services/product/user/my-new-service")
 
 if result.error:
     print("Error:", result.error)
@@ -329,7 +329,7 @@ result = Manifest.load_all(
     "services/product",
     filters={
         'appType': 'backend',
-        'domain': ['salon', 'appointment'],
+        'domain': ['user', 'order'],
     }
 )
 
@@ -368,7 +368,7 @@ else:
 manifest = {
     'appName': 'my-service',
     'appType': 'backend',
-    'domain': 'salon',
+    'domain': 'user',
     'port': 4001,
     'features': ['nats', 'prisma'],
     'databaseName': 'my_db',
@@ -396,9 +396,9 @@ all_manifests = Manifest.load_all("services/product").manifests
 new_manifest = {
     'appName': 'new-frontend',
     'appType': 'frontend',
-    'domain': 'salon',
+    'domain': 'user',
     'port': 3005,
-    'backendName': 'salon-management-backend',  # References existing service
+    'backendName': 'user-management-backend',  # References existing service
 }
 
 result = Manifest.validate_dependencies(new_manifest, all_manifests)
@@ -417,7 +417,7 @@ else:
 manifest = {
     'appName': 'test-service',
     'appType': 'backend',
-    'domain': 'salon',
+    'domain': 'user',
     'port': 4001,
 }
 
@@ -487,7 +487,7 @@ if dep_issues:
 ```starlark
 # Use integration layer for discovery system
 result = Manifest.load_and_validate_integration(
-    manifest_path="services/product/salon/salon-management-backend/platform-computing-provisioner.manifest.json",
+    manifest_path="services/product/user/user-management-backend/platform-computing-provisioner.manifest.json",
     all_manifests=all_manifests,  # For cross-validation
 )
 

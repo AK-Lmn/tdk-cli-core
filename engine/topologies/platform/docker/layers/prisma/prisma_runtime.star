@@ -45,7 +45,7 @@ def prisma_runtime_copy(res_path):
     Copy .prisma generated client and prisma schema from the build stage.
 
     Args:
-        res_path: Service directory relative to /app (e.g. 'services/product/salon/...')
+        res_path: Service directory relative to /app (e.g. 'services/product/users/...')
     """
     base = app_service_dir(res_path)
     return (

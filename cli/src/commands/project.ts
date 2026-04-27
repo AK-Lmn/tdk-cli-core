@@ -206,9 +206,9 @@ export const projectCommand = new Command('project')
             name: 'alphaServices',
             message: 'Select Alpha services (core business):',
             choices: [
-              { name: 'appointment', value: 'appointment' },
-              { name: 'appointment-planner', value: 'appointment-planner' },
-              { name: 'salon', value: 'salon' },
+              { name: 'order', value: 'order' },
+              { name: 'order-planner', value: 'order-planner' },
+              { name: 'user', value: 'user' },
               { name: 'gdpr', value: 'gdpr' }
             ]
           },

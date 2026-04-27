@@ -34,7 +34,7 @@ def generate_frontend_tsconfig_fixed(service_path, write_file_if_changed, intern
       - Maps @{npm_scope}/* to shared-*-engineering/*/src
     
     Args:
-        service_path: Path to the service (e.g., "services/product/appointment-planner/appointment-planner-frontend")
+        service_path: Path to the service (e.g., "services/product/order-planner/order-planner-frontend")
         write_file_if_changed: Function to write file if content changed
         internal_deps: Dict of {package_name: source_path} - ONLY used when NOT Docker
         is_docker: If True, generates Docker-safe config (no path aliases to source)

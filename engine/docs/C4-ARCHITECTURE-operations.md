@@ -80,7 +80,7 @@ lifecycle/
 
 ```
 config.star               # Global config & Focus Mode
-focus-mode.star           # Service filtering (--focus=salon)
+focus-mode.star           # Service filtering (--focus=user)
 ```
 
 **Responsibilities**:
@@ -154,8 +154,8 @@ graph TB
     end
     
     subgraph "Per-Service Builds (Fast)"
-        S1[salon-backend]
-        S2[appointment-backend]
+        S1[user-backend]
+        S2[order-backend]
         S3[treatment-backend]
     end
     

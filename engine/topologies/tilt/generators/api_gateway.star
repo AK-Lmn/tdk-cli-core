@@ -107,7 +107,7 @@ def build_referer_map_block(frontend_manifest = None):
     """
     Build the nginx map block by scanning all manifests.
     Routes are sorted by specificity (longest path first) to ensure proper matching.
-    Uses flexible matching to handle both /appointment/ and /appointments paths.
+    Uses flexible matching to handle both /order/ and /orders paths.
     """
     routing_map, default_backend = get_backend_routing_map(frontend_manifest)
     

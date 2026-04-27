@@ -34,7 +34,7 @@ def provision_database(service_name, db_name=None):
     instead of 120 separate containers consuming 32GB+ RAM on Mac M1/M2.
     
     Args:
-        service_name: Service name (e.g., 'salon', 'appointment')
+        service_name: Service name (e.g., 'users', 'orders')
         db_name: Optional custom database name (defaults to TDK_{service_name})
     
     Returns:
@@ -159,13 +159,13 @@ echo "🗃️  DATABASE VIRTUALIZATION STATUS (BigTech Pattern)"
 echo "🗃️ ═══════════════════════════════════════════════════════════════"
 echo ""
 
-if ! docker exec ''' + PlatformDockerConstants.DB_HOST + ''' pg_isready -U ''' + PlatformDockerConstants.DB_USER + ''' -d ''' + PlatformDockerConstants.get_db_name('appointment') + ''' >/dev/null 2>&1; then
+if ! docker exec ''' + PlatformDockerConstants.DB_HOST + ''' pg_isready -U ''' + PlatformDockerConstants.DB_USER + ''' -d ''' + PlatformDockerConstants.get_db_name('example') + ''' >/dev/null 2>&1; then
   echo "⚠️  PostgreSQL container not running"
   exit 0
 fi
 
 echo "📊 LOGICAL DATABASES:"
-docker exec ''' + PlatformDockerConstants.DB_HOST + ''' psql -U ''' + PlatformDockerConstants.DB_USER + ''' -d ''' + PlatformDockerConstants.get_db_name('appointment') + ''' -c "
+docker exec ''' + PlatformDockerConstants.DB_HOST + ''' psql -U ''' + PlatformDockerConstants.DB_USER + ''' -d ''' + PlatformDockerConstants.get_db_name('example') + ''' -c "
   SELECT 
     datname as \\"Database Name\\",
     pg_size_pretty(pg_database_size(datname)) as \\"Size\\",

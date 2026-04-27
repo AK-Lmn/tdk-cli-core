@@ -188,7 +188,7 @@ tilt up -- --golden-image=false  # Disable
 
 **Via Focus Mode**:
 ```bash
-tilt up -- --focus salon          # Golden image auto-enabled (in ALWAYS_ENABLED_INFRA)
+tilt up -- --focus user          # Golden image auto-enabled (in ALWAYS_ENABLED_INFRA)
 ```
 
 ### Rebuild Golden Image

@@ -95,7 +95,7 @@ def _pluralize_domain(domain):
         "ability": "abilities",
         "specialty": "specialties",
         "therapy": "therapies",
-        "inventory": "inventories",
+
     }
     
     if domain in irregulars:

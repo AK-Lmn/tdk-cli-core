@@ -214,11 +214,11 @@ export const networksCommand = new Command('networks')
 function getStackEmoji(stackName: string): string {
   const emojiMap: Record<string, string> = {
     'identity': '🔐',
-    'appointment': '📅',
+    'order': '📅',
     'payment': '💳',
     'staff': '👥',
     'inventory': '📦',
-    'salon': '💈',
+    'user': '💈',
     'website': '🌐',
     'treatment': '💆',
     'gdpr': '🔒',

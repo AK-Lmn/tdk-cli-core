@@ -163,7 +163,7 @@ To fix, add:
 
 Example:
   "traefik": {{
-    "pathPrefix": "/api/v1/appointment-management"
+    "pathPrefix": "/api/v1/order-management"
   }}""".format(service_path, app_name)
         fail(error_msg)
     
@@ -217,8 +217,8 @@ def extract_domain_from_path(service_path):
         # Handle special cases
         if domain == "profile":
             return "identity"
-        if domain == "appointment-planner":
-            return "appointment-planner"
+        if domain == "order-planner":
+            return "order-planner"
         return domain
     
         # Fallback: try to extract from service name

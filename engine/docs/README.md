@@ -70,7 +70,7 @@ local_resource('init-networks', cmd=Utils.fix_docker_networks(), labels=['infra'
 ```starlark
 load('./.tilt/core/utils.star', 'Utils')
 
-Utils.get_internal_deps("services/product/salon/salon-management-backend")
+Utils.get_internal_deps("services/product/user/user-management-backend")
 Utils.resolve_lib_path("@tdk/platform-eventing")
 Utils.write_file_if_changed("path/to/file.txt", "content")
 Utils.fix_docker_networks()
@@ -84,7 +84,7 @@ Utils.detect_circular_deps(["path1", "path2"])
 load('./.tilt/core/manifest.star', 'Manifest')
 
 # Load and expand manifest with Smart Defaults
-manifest = Manifest.load_manifest("services/product/salon/salon-management-backend")
+manifest = Manifest.load_manifest("services/product/user/user-management-backend")
 
 # Load related backend for frontend
 backend = Manifest.load_related(frontend_manifest)
@@ -102,10 +102,10 @@ db_url = Manifest.get_database_url(manifest)
 ```starlark
 load('./.tilt/core/dependency-sync.star', 'DepSync')
 
-deps = DepSync.extract_internal_deps("services/product/salon/salon-management-backend")
+deps = DepSync.extract_internal_deps("services/product/user/user-management-backend")
 paths = DepSync.generate_tsconfig_paths(deps)
 aliases = DepSync.generate_vite_aliases(deps)
-DepSync.sync_all_configs_for_service("services/product/salon/salon-management-backend")
+DepSync.sync_all_configs_for_service("services/product/user/user-management-backend")
 ```
 
 ---
@@ -178,8 +178,8 @@ library_map = Libs.setup_libraries(ctx, should_enable, DDD_LIBS, PLATFORM_LIBS, 
 ```starlark
 load('./.tilt/provisioner/databases.star', 'Database')
 
-Database.provision("salon")  # Creates TDK_salon
-url = Database.get_database_url("salon")
+Database.provision("user")  # Creates TDK_user
+url = Database.get_database_url("user")
 Database.status_resource(enabled=True)
 Database.memory_summary()
 ```
@@ -191,7 +191,7 @@ Database.memory_summary()
 ```starlark
 load('./.tilt/config.star', 'Config')
 
-# Focus Mode (tilt up -- --focus=salon,treatment)
+# Focus Mode (tilt up -- --focus=user,treatment)
 FOCUS_MODE, FOCUS_ALL, FOCUS_RESOURCES = Config.apply_focus(cfg)
 
 # Build context
@@ -257,10 +257,10 @@ APP_SERVICES.append({
 ### Focus Mode Development
 
 ```bash
-tilt up -- --focus=salon                    # Only salon + dependencies
-tilt up -- --focus=salon,treatment          # Multiple services
-tilt up -- --focus=salon --no-frontend      # Skip frontends
-tilt up -- --focus=salon --include-monitoring
+tilt up -- --focus=user                    # Only user + dependencies
+tilt up -- --focus=user,treatment          # Multiple services
+tilt up -- --focus=user --no-frontend      # Skip frontends
+tilt up -- --focus=user --include-monitoring
 ```
 
 ### Automatic Dependency Sync

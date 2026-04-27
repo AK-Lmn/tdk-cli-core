@@ -10,8 +10,8 @@
 ║                                                                      ║
 ║  ┌─ Stacks ───────────────────────────┐  ┌─ Stack Details ───────┐   ║
 ║  │                                      │  │                        │   ║
-║  │  ▸ appointment-planner (4 svcs)      │  │  identity              │   ║
-║  │    appointment (3 svcs)              │  │  5 services • Ready    │   ║
+║  │  ▸ order-planner (4 svcs)      │  │  identity              │   ║
+║  │    order (3 svcs)              │  │  5 services • Ready    │   ║
 ║  │  ▓▒░ identity (5 svcs) ░▒▓          │  │                        │   ║
 ║  │    billing (1 svc)                   │  │  ├─ id-mgmt-backend    │   ║
 ║  │    platform (7 svcs)                 │  │  ├─ id-mgmt-frontend │   ║
@@ -102,7 +102,7 @@ Full (120+ cols):
 │  [1] Overview  [2] Resources  [3] Events  [4] Files  [5] Config            │
 │  ┌─ Stacks ──────────────────────┐  ┌─ Details ──────────────────────┐     │
 │  │  identity (5 services)        │  │  Name: identity                  │     │
-│  │  appointment (3 services)     │  │  Status: ✓ Ready                 │     │
+│  │  order (3 services)     │  │  Status: ✓ Ready                 │     │
 │  │  platform (7 services)      │  │  Services: 5                     │     │
 │  └───────────────────────────────┘  └──────────────────────────────────┘     │
 └────────────────────────────────────────────────────────────────────────────┘
@@ -113,7 +113,7 @@ Compact (80-119 cols):
 │  [1]Overview [2]Resources [3]Events [4]Files [5]Config  │
 │  ┌─ Stacks ───────────────────┐  ┌─ Details ───────┐   │
 │  │  identity (5 svcs)          │  │  identity       │   │
-│  │  appointment (3 svcs)     │  │  ✓ Ready        │   │
+│  │  order (3 svcs)     │  │  ✓ Ready        │   │
 │  └─────────────────────────────┘  └─────────────────┘   │
 └────────────────────────────────────────────────────────┘
 
@@ -123,7 +123,7 @@ Mobile (<80 cols):
 │  [1][2][3][4][5]                │
 │  ┌─ Stacks ───────────────────┐
 │  │  identity (5 svcs)          │
-│  │  ▸ appointment (3 svcs)     │
+│  │  ▸ order (3 svcs)     │
 │  │  platform (7 svcs)         │
 │  └───────────────────────────────┘
 │  ┌─ Details ───────────────────┐
@@ -179,8 +179,8 @@ Rules:
 Correct:
 ┌─ Stacks ───────────────────────────┐
 │                                      │
-│  appointment-planner (4 svcs)        │
-│  appointment (3 svcs)                │
+│  order-planner (4 svcs)        │
+│  order (3 svcs)                │
 │  ▓▒░ identity (5 svcs) ░▒▓          │  ← Only selected has neon
 │  billing (1 svc)                     │
 │  platform (7 svcs)                   │
@@ -190,12 +190,12 @@ Correct:
 Wrong:
 ┌▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░┐
 │▒▓                                  ▓▒│
-│▓▒  appointment-planner (4 svcs)   ▒▓│
-│▒▓  appointment (3 svcs)           ▓▒│
+│▓▒  order-planner (4 svcs)   ▒▓│
+│▒▓  order (3 svcs)           ▓▒│
 │▓▒  ▓▒░ identity (5 svcs) ░▒▓     ▒▓│
 │▒▓  billing (1 svc)                 ▓▒│
 │▓▒                                  ▒▓│
-│▒▓  appointment-planner (4 svcs)  ▓▒│
+│▒▓  order-planner (4 svcs)  ▓▒│
 └▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒┘
 
 Rules:

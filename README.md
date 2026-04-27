@@ -37,9 +37,9 @@ TDK CLI combines everything needed for local microservice development using a cl
     │   ├── ⚡ identity-backend      # Resource
     │   └── 🎨 identity-frontend     # Resource
     │
-    └── 📅 appointment-stack
-        ├── ⚡ appointment-backend    # Resource
-        └── 🎨 appointment-frontend   # Resource
+    └── 📅 order-stack
+        ├── ⚡ order-backend    # Resource
+        └── 🎨 order-frontend   # Resource
 ```
 
 ---
@@ -131,7 +131,7 @@ tdk status
 
 ## 📦 Example Project
 
-See a complete working example with Identity and Appointment stacks:
+See a complete working example with Identity and Order stacks:
 
 ```bash
 git clone https://github.com/tdk-landscape/tdk-example.git
@@ -141,7 +141,7 @@ tdk up
 
 **Includes:**
 - 🔐 Identity Stack (API + Frontend)
-- 📅 Appointment Stack (API + Frontend)  
+- 📅 Order Stack (API + Frontend)  
 - Full health checks, Docker builds, React frontends
 
 ---

@@ -25,14 +25,14 @@ PostgreSQL database virtualization, per-service database provisioning, and state
 ### Provision database for service
 ```starlark
 load("./relational.star", "provision_database")
-compose_entry = provision_database("appointment-management-backend", "{project}_appointment")
+compose_entry = provision_database("order-management-backend", "{project}_order")
 ```
 
 ### Get database URL
 ```starlark
 load("./relational.star", "get_database_url")
-url = get_database_url("appointment-management-backend")
-# Returns: postgresql://postgres:postgres@appointment-management-backend-db:5432/{project}_appointment
+url = get_database_url("order-management-backend")
+# Returns: postgresql://postgres:postgres@order-management-backend-db:5432/{project}_order
 ```
 
 ### Wait for database
@@ -58,7 +58,7 @@ Each service with `databaseName` in manifest gets:
 ## Database Naming
 
 ```
-{project}_{domain}  // e.g., {project}_appointment, {project}_salon
+{project}_{domain}  // e.g., {project}_order, {project}_user
 ```
 
 Each domain gets one database shared by its services (backend, migrator, etc).

@@ -271,10 +271,10 @@ def _generate_components(service, parent_id):
 def _get_domain_color(domain):
     """Get border color for domain boundary"""
     colors = {
-        "salon": "#1f77b4",
+        "user": "#1f77b4",
         "identity": "#ff7f0e",
-        "appointment": "#2ca02c",
-        "billing": "#d62728",
+        "order": "#2ca02c",
+        "payments": "#d62728",
         "inventory": "#9467bd",
         "staff": "#8c564b",
         "treatment": "#e377c2",

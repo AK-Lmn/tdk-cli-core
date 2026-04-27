@@ -55,7 +55,7 @@ def migrate_sh_content(service_name):
 
     Args:
         service_name: Used in SERVICE_NAME env var and Infisical secret path
-                      (e.g. 'identity', 'salon').
+                      (e.g. 'user-service', 'order-service').
     """
     done_msg = (
         _log("echo \"\\U0001f389 Database migration completed successfully!\"\n")

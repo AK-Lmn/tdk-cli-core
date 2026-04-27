@@ -37,7 +37,7 @@ def _runtime_setup(service_name, secret_path=None, service_type="backend", comma
     Args:
         service_name: Name of the service
         secret_path: Infisical path (default: auto-generated from service_name)
-        service_type: Type of service (backend, frontend, payment, etc.)
+        service_type: Type of service (backend, frontend, worker, etc.)
         command: Command to run after secret injection
         use_entrypoint: Whether to use entrypoint.sh (default: True)
     

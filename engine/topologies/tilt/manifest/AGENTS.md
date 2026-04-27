@@ -47,7 +47,7 @@ load("./constants.star", "MANIFEST_FILENAME")
 {
   "appName": "service-name-backend",
   "appType": "backend",  // frontend, backend, library, migrator, sdk, worker
-  "domain": "appointment",
+  "domain": "order",
   "port": 4000,
   "features": ["nats", "prisma", "vite-node"],
   "internalDependencies": ["identity"]

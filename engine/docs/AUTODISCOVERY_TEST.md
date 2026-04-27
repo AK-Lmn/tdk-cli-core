@@ -89,28 +89,28 @@ tilt up
 ### Backend with Prisma
 ```json
 {
-  "appName": "appointment-backend",
+  "appName": "order-backend",
   "appType": "backend",
-  "domain": "appointment",
+  "domain": "order",
   "port": 4002,
   "features": ["nats", "prisma"],
-  "internalDependencies": ["identity", "salon"]
+  "internalDependencies": ["identity", "user"]
 }
 ```
 
 **Auto-detects:**
 - ✅ Adds `prisma/` to syncs
-- ✅ Enables migrator (`appointment-db-migrator`)
+- ✅ Enables migrator (`order-db-migrator`)
 - ✅ Creates dependency graph
 
 ### Frontend with Backend Proxy
 ```json
 {
-  "appName": "salon-frontend",
+  "appName": "user-frontend",
   "appType": "frontend",
-  "domain": "salon",
+  "domain": "user",
   "port": 3001,
-  "backendName": "salon-management-backend"
+  "backendName": "user-management-backend"
 }
 ```
 
@@ -132,14 +132,14 @@ When Tilt starts, you'll see:
    📂 Working directory: /private/var/www/2025/ollamar1/tdk/.tilt/core
    📂 Services root check: ../../services/product
    📋 Found 8 manifest files
-   ✅ salon-management-backend | backend | Port: 4000 | Domain: salon
-   ✅ salon-management-frontend | frontend | Port: 3001 | Domain: salon
-   ✅ appointment-management-backend | backend | Port: 4002 | Domain: appointment
+   ✅ user-management-backend | backend | Port: 4000 | Domain: user
+   ✅ user-management-frontend | frontend | Port: 3001 | Domain: user
+   ✅ order-management-backend | backend | Port: 4002 | Domain: order
    ✅ staff-management-backend | backend | Port: 4004 | Domain: staff
    ✅ identity-management-backend | backend | Port: 4006 | Domain: identity
    ✅ treatment-management-backend | backend | Port: 4008 | Domain: treatment
    ✅ inventory-management-backend | backend | Port: 4012 | Domain: inventory
-   ✅ appointment-planner-backend | backend | Port: 4014 | Domain: appointment-planner
+   ✅ order-planner-backend | backend | Port: 4014 | Domain: order-planner
 🔍 ═══════════════════════════════════════════════════════════════
    🎯 Discovered 8 domains with 8 resources
 🔍 ═══════════════════════════════════════════════════════════════

@@ -218,9 +218,9 @@ def _apply_manifest_defaults(manifest, service_path):
     
     Convention over Configuration:
     - features: ["nats", "prisma"] -> usePrisma=True, useNats=True
-    - domain: "appointment" -> databaseName="{project}_appointment".format(project=_PROJECT_NAME.replace('-', '_'))
-    - domain: "appointment" -> traefik.host="appointment.backend.{project}.local".format(project=_PROJECT_NAME)
-    - domain: "appointment" -> nats.queueGroup="appointment_backend_svc"
+    - domain: "order" -> databaseName="{project}_order".format(project=_PROJECT_NAME.replace('-', '_'))
+    - domain: "order" -> traefik.host="order.backend.{project}.local".format(project=_PROJECT_NAME)
+    - domain: "order" -> nats.queueGroup="order_backend_svc"
     """
     result = dict(manifest)
     

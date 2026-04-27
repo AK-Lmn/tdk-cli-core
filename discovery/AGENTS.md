@@ -135,7 +135,7 @@ Phase 2 discovers **all manifests** from all scan roots, creating a "pool of can
 📁 Scanned 9 manifests from ../../../../services/platform
 📁 Scanned 3 manifests from ../../../../shared-product-engineering
 📁 Scanned 1 manifests from ../../../../cli-platform-engineering
-⚠️  Validation: services/product/appointment/management/manifest.json: appName too short
+⚠️  Validation: services/product/order/management/manifest.json: appName too short
 ✅ Discovery complete: 38/39 manifests valid
 ⚠️  1 manifest(s) with 1 validation warning(s)
 ```
@@ -158,7 +158,7 @@ This reverts to single-root scanning of `services/product/` only.
 
 **Issue: Warning about overlapping roots**
 ```
-⚠️  Warning: ../../../../services/product/salon is subdirectory of ../../../../services/product
+⚠️  Warning: ../../../../services/product/user is subdirectory of ../../../../services/product
 ```
 **Solution:** Check `DISCOVERY_SCAN_ROOTS` in `constants.star` - one root should not be inside another.
 
@@ -205,8 +205,8 @@ The discovery system now validates all manifests during the scan process:
 
 ```
 📄 FIRST PASS: Loading services from JSON manifests...
-⚠️  Validation: services/product/appointment/management/manifest.json: appName too short: 'ab'. Minimum 3 characters
-⚠️  Validation: services/product/salon/provider/manifest.json: Invalid appType: microservice. Must be one of: backend, frontend...
+⚠️  Validation: services/product/order/management/manifest.json: appName too short: 'ab'. Minimum 3 characters
+⚠️  Validation: services/product/user/provider/manifest.json: Invalid appType: microservice. Must be one of: backend, frontend...
 ✅ Discovery complete: 24/26 manifests valid
 ⚠️  2 manifest(s) with 3 validation warning(s)
 ```
@@ -296,7 +296,7 @@ services = get_app_services()
 ### Get service by name
 ```starlark
 load("./registry.star", "get_service_by_name")
-svc = get_service_by_name("appointment-management-backend")
+svc = get_service_by_name("order-management-backend")
 ```
 
 ### Manual scan for manifests (Manual Scanner)
