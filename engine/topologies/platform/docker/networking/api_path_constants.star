@@ -1,5 +1,5 @@
 # =============================================================================
-# 🌐 BEAUTY CRM - API PATH CONSTANTS (Dynamic)
+# 🌐 - API PATH CONSTANTS (Dynamic)
 # =============================================================================
 # API paths are generated dynamically from manifest domain and appName fields
 # No hardcoded service names - all from platform-computing-provisioner.manifest.json

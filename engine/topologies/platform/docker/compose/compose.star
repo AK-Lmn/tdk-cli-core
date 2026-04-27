@@ -21,6 +21,12 @@ load("../auth/auth.star", "AuthConfig")
 
 load("../constants.star", "PlatformDockerConstants")
 
+# Load project name for dynamic host naming
+_PROJECT_NAME = 'tdk-project'
+if os.path.exists('.tdk/project.json'):
+    _project_json = read_json('.tdk/project.json')
+    _PROJECT_NAME = _project_json.get('project', {}).get('name', 'tdk-project')
+
 
 def _compute_env_file_rel_path(service_path, full_service_path, env_filename):
     """
@@ -64,7 +70,7 @@ def generate_frontend_compose(service_path, service_name, res, manifest=None):
     # Read port from manifest (service.json), fallback to BASE_PORT_FRONTEND or 80 for nginx
     port = manifest.get('port', 80 if use_nginx else BASE_PORT_FRONTEND)
     
-    # Base path for routing on beauty-crm.localhost
+    # Base path for routing on {project}.localhost
     base_path = '/' + manifest.get('basePath', domain + 's').lstrip('/')
     
     traefik_cfg = manifest.get('traefik', {}) if manifest else {}
@@ -157,7 +163,7 @@ def _generate_single_backend_entry(service_path, service_name, res, manifest, in
     health_path = manifest.get('healthCheckPath', HEALTH_CHECK_PATH) if manifest else HEALTH_CHECK_PATH
     
     traefik_cfg = manifest.get('traefik', {}) if manifest else {}
-    traefik_host = traefik_cfg.get('host', domain + '.backend.beauty.local')
+    traefik_host = traefik_cfg.get('host', domain + '.backend.' + _PROJECT_NAME + '.local')
     # ALPHA: Use proper API v1 path with -management suffix via api_path_constants
     # Old default: '/api/' + domain
     # New default: get_api_path_for_domain → /api/v1/{domain}-management

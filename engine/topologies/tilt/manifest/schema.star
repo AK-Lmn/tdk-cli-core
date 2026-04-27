@@ -248,7 +248,7 @@ MANIFEST_SCHEMA = {
                 'type': 'string',
                 'required': False,
                 'description': 'Custom host for routing',
-                'example': 'salon.backend.beauty.local',
+                'example': 'salon.backend.localhost',
             },
             'priority': {
                 'type': 'integer',

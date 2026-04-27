@@ -22,9 +22,15 @@ load('../../../tilt/manifest/constants.star',
 load('../../common/utils.star', 'Utils')
 load('../../../platform/docker/constants.star', 'PlatformDockerConstants')
 
-# Environment variable to disable deprecation warnings
-_DISABLE_WARNINGS = os.environ.get('BEAUTY_CRM_DISABLE_MANIFEST_WARNINGS', '') == 'true'
-_LEGACY_LOADER_ONLY = os.environ.get('BEAUTY_CRM_LEGACY_LOADER_ONLY', '') == 'true'
+# Load project name for environment variable prefixes
+_PROJECT_NAME = 'tdk-project'
+if os.path.exists('.tdk/project.json'):
+    _project_json = read_json('.tdk/project.json')
+    _PROJECT_NAME = _project_json.get('project', {}).get('name', 'tdk-project')
+
+# Environment variable to disable deprecation warnings (uses project name prefix)
+_DISABLE_WARNINGS = os.environ.get(_PROJECT_NAME.upper().replace('-', '_') + '_DISABLE_MANIFEST_WARNINGS', '') == 'true'
+_LEGACY_LOADER_ONLY = os.environ.get(_PROJECT_NAME.upper().replace('-', '_') + '_LEGACY_LOADER_ONLY', '') == 'true'
 
 
 def _check_prisma_folder(service_path):
@@ -203,8 +209,8 @@ def _apply_manifest_defaults(manifest, service_path):
     
     Convention over Configuration:
     - features: ["nats", "prisma"] -> usePrisma=True, useNats=True
-    - domain: "appointment" -> databaseName="beauty_crm_appointment"
-    - domain: "appointment" -> traefik.host="appointment.backend.beauty.local"
+    - domain: "appointment" -> databaseName="{project}_appointment".format(project=_PROJECT_NAME.replace('-', '_'))
+    - domain: "appointment" -> traefik.host="appointment.backend.{project}.local".format(project=_PROJECT_NAME)
     - domain: "appointment" -> nats.queueGroup="appointment_backend_svc"
     """
     result = dict(manifest)
@@ -225,7 +231,7 @@ def _apply_manifest_defaults(manifest, service_path):
     
     # 🎯 CEO REVIEW: Traefik-native port strategy
     # Port is constant per appType, not dynamically assigned
-    # Traefik routes by hostname (e.g., booking.backend.beauty.local), not port
+    # Traefik routes by hostname (e.g., booking.backend.{project}.local), not port
     app_type = result.get('appType', 'backend')
     
     # Set constant port per appType with override detection
@@ -299,7 +305,7 @@ def _apply_manifest_defaults(manifest, service_path):
         default_path_prefix = root_api_path if root_api_path else '/api/' + domain
         
         computed_traefik = {
-            'host': domain + '.backend.beauty.local',
+            'host': domain + '.backend.' + _PROJECT_NAME + '.local',
             'pathPrefix': default_path_prefix,
             'healthCheck': HEALTH_CHECK_PATH,
         }
