@@ -237,7 +237,7 @@ export class TemplateEngine {
   }
 
   /**
-   * Generate all 5 files (4 in .tdk-out/ + Tiltfile in root)
+   * Generate all 5 files (4 in .tdk/.tdk-out/ + Tiltfile in root)
    */
   generateAll(projectConfig: ProjectConfig): {
     "tilt.config.json": string;

@@ -78,14 +78,14 @@ def setup_utility_resources():
     )
     
     local_resource('prune-images',
-        cmd='./.tdk-out/ext/assets/scripts/cleanup-tilt-images.sh --keep 0 --force && docker image prune -f',
+        cmd='./.tdk/.tdk-out/ext/assets/scripts/cleanup-tilt-images.sh --keep 0 --force && docker image prune -f',
         resource_deps=[],
         labels=['dev.maintenance'],
         auto_init=False
     )
 
     local_resource('memory-optimizer',
-        cmd='./.tdk-out/ext/assets/scripts/mac-m1-resource-monitor.sh && ./.tdk-out/ext/assets/scripts/cleanup-tilt-images.sh --keep 0 --force && docker image prune -f && docker builder prune -af --filter "until=24h"',
+        cmd='./.tdk/.tdk-out/ext/assets/scripts/mac-m1-resource-monitor.sh && ./.tdk/.tdk-out/ext/assets/scripts/cleanup-tilt-images.sh --keep 0 --force && docker image prune -f && docker builder prune -af --filter "until=24h"',
         resource_deps=[],
         labels=['dev.maintenance', 'mac-m1'],
         auto_init=False
@@ -123,7 +123,7 @@ def setup_utility_resources():
         serve_cmd='''
             echo "🧹 Migrator image cleanup started (every 45s)"
             while true; do
-                ./.tdk-out/ext/assets/scripts/cleanup-completed-migrator-images.sh || true
+                ./.tdk/.tdk-out/ext/assets/scripts/cleanup-completed-migrator-images.sh || true
                 sleep 45
             done
         ''',
@@ -162,7 +162,7 @@ def setup_cron_resources():
     """Set up cron job resources that run periodically."""
     # Initialize status tracking
     local_resource('cron-status-init',
-        cmd='./.tdk-out/ext/ui-enhancements/cron-status-tracker.sh init',
+        cmd='./.tdk/.tdk-out/ext/ui-enhancements/cron-status-tracker.sh init',
         labels=['dev.quality', 'cron', 'setup'],
         auto_init=True,
     )
@@ -171,7 +171,7 @@ def setup_cron_resources():
     local_resource('cron-lint',
         serve_cmd='''
             echo "🧹 Cron lint started (every 60s) - auto-fixing issues..."
-            ./.tdk-out/ext/ui-enhancements/cron-status-tracker.sh update cron-lint running
+            ./.tdk/.tdk-out/ext/ui-enhancements/cron-status-tracker.sh update cron-lint running
             while true; do
                 start_time=$(date +%s)
 
@@ -189,18 +189,18 @@ def setup_cron_resources():
                 fi
 
                 echo "$(date +%H:%M:%S) 🧹 Running lint..."
-                ./.tdk-out/ext/ui-enhancements/cron-status-tracker.sh update cron-lint running
+                ./.tdk/.tdk-out/ext/ui-enhancements/cron-status-tracker.sh update cron-lint running
 
                 if bun biome lint --write . 2>&1; then
                     end_time=$(date +%s)
                     duration=$((end_time - start_time))
                     echo "$(date +%H:%M:%S) ✅ Lint complete (${duration}s)"
-                    ./.tdk-out/ext/ui-enhancements/cron-status-tracker.sh update cron-lint success "${duration}s"
+                    ./.tdk/.tdk-out/ext/ui-enhancements/cron-status-tracker.sh update cron-lint success "${duration}s"
                 else
                     end_time=$(date +%s)
                     duration=$((end_time - start_time))
                     echo "$(date +%H:%M:%S) ⚠️  Lint found issues (${duration}s)"
-                    ./.tdk-out/ext/ui-enhancements/cron-status-tracker.sh update cron-lint failure "${duration}s"
+                    ./.tdk/.tdk-out/ext/ui-enhancements/cron-status-tracker.sh update cron-lint failure "${duration}s"
                 fi
 
                 echo "$(date +%H:%M:%S) 😴 Sleeping 60s..."
@@ -216,7 +216,7 @@ def setup_cron_resources():
     local_resource('cron-format',
         serve_cmd='''
             echo "🎨 Cron format started (every 60s) - auto-fixing formatting..."
-            ./.tdk-out/ext/ui-enhancements/cron-status-tracker.sh update cron-format running
+            ./.tdk/.tdk-out/ext/ui-enhancements/cron-status-tracker.sh update cron-format running
             while true; do
                 start_time=$(date +%s)
 
@@ -234,18 +234,18 @@ def setup_cron_resources():
                 fi
 
                 echo "$(date +%H:%M:%S) 🎨 Running format..."
-                ./.tdk-out/ext/ui-enhancements/cron-status-tracker.sh update cron-format running
+                ./.tdk/.tdk-out/ext/ui-enhancements/cron-status-tracker.sh update cron-format running
 
                 if bun biome check --write . && bun biome format --write . 2>&1; then
                     end_time=$(date +%s)
                     duration=$((end_time - start_time))
                     echo "$(date +%H:%M:%S) ✅ Format complete (${duration}s)"
-                    ./.tdk-out/ext/ui-enhancements/cron-status-tracker.sh update cron-format success "${duration}s"
+                    ./.tdk/.tdk-out/ext/ui-enhancements/cron-status-tracker.sh update cron-format success "${duration}s"
                 else
                     end_time=$(date +%s)
                     duration=$((end_time - start_time))
                     echo "$(date +%H:%M:%S) ⚠️  Format had issues (${duration}s)"
-                    ./.tdk-out/ext/ui-enhancements/cron-status-tracker.sh update cron-format failure "${duration}s"
+                    ./.tdk/.tdk-out/ext/ui-enhancements/cron-status-tracker.sh update cron-format failure "${duration}s"
                 fi
 
                 echo "$(date +%H:%M:%S) 😴 Sleeping 60s..."
@@ -259,7 +259,7 @@ def setup_cron_resources():
 
     # Status HTTP server for cron jobs
     local_resource('cron-jobs-status-server',
-        serve_cmd='./.tdk-out/ext/ui-enhancements/cron-status-server.sh',
+        serve_cmd='./.tdk/.tdk-out/ext/ui-enhancements/cron-status-server.sh',
         resource_deps=['cron-status-init'],
         labels=['dev.quality', 'cron', 'api'],
         auto_init=True,

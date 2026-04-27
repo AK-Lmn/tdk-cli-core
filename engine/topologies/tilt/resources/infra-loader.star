@@ -207,7 +207,7 @@ def _generate_golden_dockerfile(should_enable, docker_provider, write_file_fn):
     if not should_enable('golden-image'):
         return
     
-    dockerfile_path = '.tdk-out/golden-layers.Dockerfile'
+    dockerfile_path = '.tdk/.tdk-out/golden-layers.Dockerfile'
     content = docker_provider.golden_image.generate_dockerfile()
     write_file_fn(dockerfile_path, content)
 

@@ -3,7 +3,7 @@
 # =============================================================================
 
 GOLDEN_IMAGE_PREFIX = 'beauty-crm'
-GOLDEN_DOCKERFILE = '.tdk-out/golden-layers.Dockerfile'
+GOLDEN_DOCKERFILE = '.tdk/.tdk-out/golden-layers.Dockerfile'
 
 GOLDEN_LAYERS = {
     'l1': {
