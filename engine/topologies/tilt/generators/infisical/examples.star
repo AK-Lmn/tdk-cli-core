@@ -72,9 +72,9 @@ def example_path_planning():
     for name, plan in batch_paths.items():
         print("Service: {}, Path: {}".format(name, plan["full_path"]))
     
-    # Plan complete organization structure
+    # Plan complete organization structure (example org name)
     org_structure = Infisical.Paths.plan_organization_structure(
-        org_name="beauty-crm",
+        org_name="my-project",
         service_names=[
             "salon",
             "appointment",
@@ -127,9 +127,9 @@ def example_machine_identity():
 def example_organization():
     """Example: Generate organization configuration."""
     
-    # Complete organization setup
+    # Complete organization setup (example org name)
     org = Infisical.Org.generate_config(
-        org_name="beauty-crm",
+        org_name="my-project",
         env_names=["dev", "staging", "prod"],
         service_names=[
             "salon",

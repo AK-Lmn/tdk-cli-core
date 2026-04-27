@@ -13,8 +13,16 @@
 #
 # Usage:
 #   load("./infisical/organization.star", "Organization")
-#   config = Organization.generate_config("beauty-crm", ["dev", "staging", "prod"])
+#   config = Organization.generate_config("my-project", ["dev", "staging", "prod"])
 # =============================================================================
+
+# Load project name for dynamic defaults
+_PROJECT_NAME = 'tdk-project'
+_PROJECT_NAME_DISPLAY = 'Tdk Project'
+if os.path.exists('.tdk/project.json'):
+    _project_json = read_json('.tdk/project.json')
+    _PROJECT_NAME = _project_json.get('project', {}).get('name', 'tdk-project')
+    _PROJECT_NAME_DISPLAY = _PROJECT_NAME.replace('-', ' ').title()
 
 def _get_timestamp():
     """Get current timestamp string"""
@@ -25,17 +33,17 @@ def _get_timestamp():
 # =============================================================================
 
 DEFAULT_ORGANIZATION = {
-    "name": "beauty-crm",
-    "display_name": "Beauty CRM",
-    "slug": "beauty-crm",
-    "description": "Beauty CRM Platform - Multi-tenant SaaS for Beauty Industry",
+    "name": _PROJECT_NAME,
+    "display_name": _PROJECT_NAME_DISPLAY,
+    "slug": _PROJECT_NAME,
+    "description": _PROJECT_NAME_DISPLAY + " Platform - Multi-tenant SaaS",
 }
 
 DEFAULT_PROJECT = {
-    "name": "beauty-crm-secrets",
-    "display_name": "Beauty CRM Secrets",
-    "slug": "beauty-crm-secrets",
-    "description": "Secrets management for Beauty CRM platform services",
+    "name": _PROJECT_NAME + "-secrets",
+    "display_name": _PROJECT_NAME_DISPLAY + " Secrets",
+    "slug": _PROJECT_NAME + "-secrets",
+    "description": "Secrets management for " + _PROJECT_NAME_DISPLAY + " platform services",
 }
 
 # =============================================================================
@@ -271,7 +279,7 @@ SECRET_TEMPLATES = {
         "DB_NAME": {
             "type": "string",
             "description": "Database name",
-            "example": "beauty_crm_service",
+            "example": _PROJECT_NAME + "_service",
         },
         "DB_USER": {
             "type": "string",
@@ -298,7 +306,7 @@ SECRET_TEMPLATES = {
         "JWT_ISSUER": {
             "type": "string",
             "description": "JWT issuer",
-            "example": "beauty-crm",
+            "example": _PROJECT_NAME,
         },
     },
     "api": {
@@ -426,13 +434,13 @@ def _generate_secrets_for_service(service_type="backend"):
 def _generate_organization_config(org_name=None, project_name=None, env_names=None, service_names=None):
     """
     Generate complete organization configuration.
-    
+
     Args:
-        org_name: Organization name (default: beauty-crm)
-        project_name: Project name (default: beauty-crm-secrets)
+        org_name: Organization name (default: from project.json or 'tdk-project')
+        project_name: Project name (default: {org_name}-secrets)
         env_names: List of environments (default: [dev, staging, prod])
         service_names: List of services to create folders for
-    
+
     Returns:
         Dict with complete organization configuration
     """
