@@ -380,7 +380,7 @@ def _validate_cross_field(manifest, context):
         
         if not manifest.get('databaseName'):
             warnings.append(ManifestErrors.new(
-                message="Service with 'prisma' feature should specify databaseName",
+                message="Resource with 'prisma' feature should specify databaseName",
                 category=ManifestErrors.CATEGORY['VALIDATION'],
                 severity=ManifestErrors.SEVERITY['WARNING'],
                 context={'field': 'databaseName', 'features': features},
