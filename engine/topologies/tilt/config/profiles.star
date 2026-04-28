@@ -12,6 +12,7 @@ load(
     "DEFAULTS_EXPORT",
     "RESOURCE_DEPENDENCIES",
     "RESOURCE_ALIASES",
+    "get_app_resources",
 )
 load("../discovery/config.star", "Config")
 
@@ -125,6 +126,16 @@ def get_all_needed_services(targets, skip_frontend = False):
 
 
 def apply_focus_filter(cfg):
+    # Ensure discovery is complete before applying focus filter
+    # This is needed because APP_RESOURCES might be empty during initial load
+    if len(APP_RESOURCES) == 0:
+        print("🔄 Triggering discovery before focus filter...")
+        get_app_resources()
+    
+    print("DEBUG: APP_RESOURCES has {} services".format(len(APP_RESOURCES)))
+    for svc in APP_RESOURCES:
+        print("DEBUG:   - {}".format(svc.get("name", "unknown")))
+    
     focus_targets = cfg.get("focus", [])
 
     # Default to pre-alpha if no focus targets specified
