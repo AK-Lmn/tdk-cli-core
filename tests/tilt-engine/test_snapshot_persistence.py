@@ -16,7 +16,7 @@ class TestSnapshotPersistence:
     def test_saving_snapshot_creates_file(self, temp_dir):
         """
         Scenario: Saving snapshot creates file
-        WHEN a snapshot is saved to `.tdk/.tdk-out/snapshots/service-snapshot.json`
+        WHEN a snapshot is saved to `.tdk/.tdk-out/snapshots/resource-snapshot.json`
         THEN the file SHALL exist with valid JSON containing all service data
         """
         import sys
@@ -33,7 +33,7 @@ class TestSnapshotPersistence:
             ]
             save_snapshot(services)
             
-            snapshot_file = Path(".tdk/.tdk-out/snapshots/service-snapshot.json")
+            snapshot_file = Path(".tdk/.tdk-out/snapshots/resource-snapshot.json")
             assert snapshot_file.exists(), "Snapshot file should be created"
             
             # Verify content
@@ -49,7 +49,7 @@ class TestSnapshotPersistence:
     def test_loading_snapshot_reads_file(self, temp_dir):
         """
         Scenario: Loading snapshot reads file
-        WHEN a snapshot is loaded from an existing `.tdk/.tdk-out/snapshots/service-snapshot.json`
+        WHEN a snapshot is loaded from an existing `.tdk/.tdk-out/snapshots/resource-snapshot.json`
         THEN it SHALL return the previously saved service data
         """
         import sys
@@ -76,7 +76,7 @@ class TestSnapshotPersistence:
     def test_loading_missing_snapshot(self, temp_dir):
         """
         Scenario: Loading missing snapshot
-        WHEN a snapshot is loaded from a non-existent `.tdk/.tdk-out/snapshots/service-snapshot.json`
+        WHEN a snapshot is loaded from a non-existent `.tdk/.tdk-out/snapshots/resource-snapshot.json`
         THEN it SHALL return an empty list without error
         """
         import sys
@@ -125,7 +125,7 @@ class TestSnapshotPersistence:
         try:
             # Create invalid JSON file
             Path(".tilt").mkdir(parents=True, exist_ok=True)
-            with open(".tilt/service-snapshot.json", "w") as f:
+            with open(".tilt/resource-snapshot.json", "w") as f:
                 f.write("not valid json {{{")
             
             snapshot = load_snapshot()
@@ -153,7 +153,7 @@ class TestSnapshotPersistence:
             services = ["services/test/service.json"]
             save_snapshot(services, include_hashes=True)
             
-            with open(".tdk/.tdk-out/snapshots/service-snapshot.json") as f:
+            with open(".tdk/.tdk-out/snapshots/resource-snapshot.json") as f:
                 data = json.load(f)
                 
             assert "resource_hashes" in data

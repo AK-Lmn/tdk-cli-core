@@ -194,7 +194,7 @@ print("🎯 Focus mode: {} resources".format(len(FOCUS_ENABLED_RESOURCES)))
 # 👁️ AUTO-DISCOVERY DAEMON
 # =============================================================================
 if _AUTO_DISCOVER_ENABLED:
-watch_file('.tdk/.tdk-out/snapshots/service-snapshot.json')
+watch_file('.tdk/.tdk-out/snapshots/resource-snapshot.json')
 
 # Get extension install path
 discovery_path = str(local("echo $HOME/Library/Application
@@ -210,7 +210,7 @@ local_resource('service-discovery-daemon',
 serve_cmd=daemon_cmd,
 deps=[daemon_script],
 auto_init=True, labels=['discovery'],
-links=[link('file:///.tdk/.tdk-out/snapshots/service-snapshot.json', 'Service Snapshot')]
+links=[link('file:///.tdk/.tdk-out/snapshots/resource-snapshot.json', 'Resource Snapshot')]
 )
 
 print("\n👁️ Discovery daemon running")

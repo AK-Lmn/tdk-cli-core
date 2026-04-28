@@ -656,28 +656,28 @@ VALIDATION_RULES = {
 
 ### 6. `manifest/fetch.star` - Remote Manifest Fetching (Future)
 
-**Purpose:** Fetch manifests from remote sources (for distributed teams or external services)
+**Purpose:** Fetch manifests from remote sources (for distributed teams or external resources)
 
 ```starlark
 def fetch_from_git(repo_url, branch="main", path=""):
     """
     Fetch manifest from git repository.
     
-    Future use case: External service definitions
+    Future use case: External resource definitions
     """
 
 def fetch_from_http(url):
     """
     Fetch manifest from HTTP endpoint.
-    
-    Future use case: Service registry API
+
+    Future use case: Resource registry API
     """
 
 def fetch_from_registry(resource_name, registry_url):
     """
-    Fetch manifest from service registry.
-    
-    Future use case: Centralized service catalog
+    Fetch manifest from resource registry.
+
+    Future use case: Centralized resource catalog
     """
 ```
 
@@ -897,7 +897,7 @@ def test_full_manifest_pipeline():
         validation = Manifest.validate(manifest, level='all')
         assert validation.valid, validation.errors
     
-    # Check cross-service dependencies
+    # Check cross-resource dependencies
     deps_validation = Manifest.validate_dependencies(
         result.manifests
     )

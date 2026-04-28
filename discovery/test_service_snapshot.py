@@ -37,7 +37,7 @@ class TestSaveSnapshot:
             services = ["services/a/service.json", "services/b/service.json"]
             save_snapshot(services)
             
-            snapshot_file = Path(".tilt/service-snapshot.json")
+            snapshot_file = Path(".tilt/resource-snapshot.json")
             assert snapshot_file.exists(), "Snapshot file should be created"
             
             # Verify content
@@ -107,7 +107,7 @@ class TestLoadSnapshot:
         try:
             # Create invalid snapshot
             Path(".tilt").mkdir(parents=True, exist_ok=True)
-            with open(".tilt/service-snapshot.json", "w") as f:
+            with open(".tilt/resource-snapshot.json", "w") as f:
                 f.write("not valid json")
             
             snapshot = load_snapshot()
