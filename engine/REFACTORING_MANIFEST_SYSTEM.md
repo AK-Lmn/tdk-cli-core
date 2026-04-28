@@ -555,11 +555,11 @@ def validate_cross_field(manifest):
 
 def validate_dependencies(manifest, all_manifests):
     """
-    Level 4: Cross-Service Validation
-    - internalDependencies exist as services
+    Level 4: Cross-Resource Validation
+    - internalDependencies exist as resources
     - No circular dependencies
     - Backend references are valid
-    - Port uniqueness across services
+    - Port uniqueness across resources
     """
 
 def validate_ports_unique(manifests):

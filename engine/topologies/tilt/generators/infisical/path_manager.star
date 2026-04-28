@@ -402,7 +402,7 @@ def _path_to_env_var(path):
 # =============================================================================
 
 # Predefined service paths for known services
-KNOWN_SERVICE_PATHS = {
+KNOWN_RESOURCE_PATHS = {
     # Simple services
     "user-management-backend": "/services/user",
     "order-management-backend": "/services/order",
@@ -433,12 +433,12 @@ KNOWN_SERVICE_PATHS = {
 
 def _get_known_resource_path(service_name):
     """Get predefined path for a known service."""
-    return KNOWN_SERVICE_PATHS.get(service_name)
+    return KNOWN_RESOURCE_PATHS.get(service_name)
 
 def _register_resource_path(service_name, path):
     """Register a new service path."""
     normalized = _normalize_path(path)
-    KNOWN_SERVICE_PATHS[service_name] = normalized
+    KNOWN_RESOURCE_PATHS[service_name] = normalized
     return normalized
 
 # =============================================================================
@@ -465,7 +465,7 @@ PathManager = struct(
     # Registry
     get_known_resource_path=_get_known_resource_path,
     register_resource_path=_register_resource_path,
-    known_paths=KNOWN_SERVICE_PATHS,
+    known_paths=KNOWN_RESOURCE_PATHS,
     
     # Constants
     ROOT_PATHS=ROOT_PATHS,
