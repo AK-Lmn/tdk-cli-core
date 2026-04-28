@@ -1,15 +1,15 @@
 ## 1. Discovery Directory - Registry and Core Functions
 
-- [ ] 1.1 Fix parameter names in `discovery/registry.star` - standardize `write_fn` parameter names (lines 1-50)
-- [ ] 1.2 Fix parameter names in `discovery/registry.star` - standardize `write_fn` parameter names (lines 51-100)
-- [ ] 1.3 Fix parameter names in `discovery/registry.star` - standardize `write_fn` parameter names (lines 101-150)
-- [ ] 1.4 Fix parameter ordering in `discovery/registry.star` - move optional parameters to end
-- [ ] 1.5 Add parameter documentation to `discovery/registry.star` functions
-- [ ] 1.6 Fix parameter names in `discovery/discovery_orchestrator.star` - standardize all `write_fn` parameters
-- [ ] 1.7 Fix parameter ordering in `discovery/discovery_orchestrator.star`
-- [ ] 1.8 Add parameter documentation to `discovery/discovery_orchestrator.star`
-- [ ] 1.9 Fix parameter names in `discovery/incremental_discovery.star` - standardize `write_fn` parameters
-- [ ] 1.10 Fix function naming alignment in `discovery/incremental_discovery.star` - ensure `register_new_service` naming
+- [x] 1.1 Fix parameter names in `discovery/registry.star` - standardize `write_fn` parameter names (lines 1-50)
+- [x] 1.2 Fix parameter names in `discovery/registry.star` - standardize `write_fn` parameter names (lines 51-100)
+- [x] 1.3 Fix parameter names in `discovery/registry.star` - standardize `write_fn` parameter names (lines 101-150)
+- [x] 1.4 Fix parameter ordering in `discovery/registry.star` - move optional parameters to end
+- [x] 1.5 Add parameter documentation to `discovery/registry.star` functions
+- [x] 1.6 Fix parameter names in `discovery/discovery_orchestrator.star` - standardize all `write_fn` parameters
+- [x] 1.7 Fix parameter ordering in `discovery/discovery_orchestrator.star`
+- [x] 1.8 Add parameter documentation to `discovery/discovery_orchestrator.star`
+- [x] 1.9 Fix parameter names in `discovery/incremental_discovery.star` - standardize `write_fn` parameters
+- [x] 1.10 Fix function naming alignment in `discovery/incremental_discovery.star` - ensure `register_new_service` naming
 
 ## 2. Discovery Directory - Manifest Functions
 

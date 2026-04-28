@@ -79,11 +79,19 @@ def _build_dependency_env_lines(manifest):
     return lines
 
 
-def _generate_params_env(manifest, backend_manifest=None, write_file_fn=None):
+def _generate_params_env(manifest, backend_manifest=None, write_fn=None):
     """Generate params (non-secret) environment variables from manifest.
-    
+
     This generates config like BASE_URL, PORT, etc. - NEVER secrets.
     Secrets are handled separately by _generate_secrets_env().
+
+    Args:
+        manifest: Service manifest dict with configuration
+        backend_manifest: Optional backend manifest for frontend services
+        write_fn: Optional write function for file output (callable)
+
+    Returns:
+        str: Generated environment file content
     """
     resource_path = manifest.get('_servicePath', '')
     app_type = manifest.get('appType', 'backend')
@@ -171,19 +179,26 @@ DATABASE_URL=""" + PlatformDockerConstants.get_database_url_for_env(db_name) + "
             value = params.get(key)
             content += key + '=' + str(value) + '\n'
     
-    if write_file_fn and resource_path:
-        write_file_fn(resource_path + target_filename, content)
+    if write_fn and resource_path:
+        write_fn(resource_path + target_filename, content)
     
     return content
 
 
-def _generate_secrets_env(manifest, write_file_fn=None):
+def _generate_secrets_env(manifest, write_fn=None):
     """Generate secrets environment variables from Infisical.
-    
+
     This function returns a dict of secrets that will be resolved
     from Infisical at runtime. The actual values are NOT embedded here.
-    
+
     CRITICAL: This function NEVER reads secrets from files - only from Infisical.
+
+    Args:
+        manifest: Service manifest dict with secrets configuration
+        write_fn: Optional write function for file output (callable)
+
+    Returns:
+        dict: Map of secret names to Infisical placeholder values
     """
     resource_path = manifest.get('_servicePath', '')
     secrets_config = manifest.get('secrets', {})
@@ -208,17 +223,25 @@ def _generate_secrets_env(manifest, write_file_fn=None):
     return secrets_env
 
 
-def _get_all_env(manifest, backend_manifest=None, write_file_fn=None):
+def _get_all_env(manifest, backend_manifest=None, write_fn=None):
     """Generate complete environment (params + secrets placeholder).
-    
+
     Returns a dict with both params and secrets keys.
     Actual secret values resolved by Infisical at container runtime.
+
+    Args:
+        manifest: Service manifest dict with configuration
+        backend_manifest: Optional backend manifest for frontend services
+        write_fn: Optional write function for file output (callable)
+
+    Returns:
+        dict: Contains 'params' (str) and 'secrets' (dict) keys
     """
     # Phase 1: Generate params (non-secret config)
-    params_content = _generate_params_env(manifest, backend_manifest, write_file_fn)
+    params_content = _generate_params_env(manifest, backend_manifest, write_fn)
     
     # Phase 2: Get secrets configuration (resolved by Infisical)
-    secrets_env = _generate_secrets_env(manifest, write_file_fn)
+    secrets_env = _generate_secrets_env(manifest, write_fn)
     
     return {
         'params': params_content,
