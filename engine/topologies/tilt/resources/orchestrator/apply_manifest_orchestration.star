@@ -28,6 +28,9 @@ def prepare_resource_manifests(resource_config, ctx):
         resource_path = resource.get('_resource_path', resource_config['path'] + '/' + resource['name'])
         print("   DEBUG prepare_resource_manifests: resource='{}', _resource_path='{}', computed path='{}'".format(
             resource.get('name'), resource.get('_resource_path', 'NOT SET'), resource_path))
+        
+        # Load the manifest from the resource path
+        manifest = Manifest.load_manifest(resource_path)
         resource_manifests[resource['name']] = manifest
 
         app_name = manifest.get('appName', resource['name'])
