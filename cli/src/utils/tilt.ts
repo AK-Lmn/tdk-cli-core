@@ -5,7 +5,46 @@
  */
 
 import { spawn } from 'node:child_process';
+import { createConnection } from 'node:net';
 import type { TiltCommandResult } from '../types/index.js';
+
+/**
+ * Check if a port is available (not in use)
+ * 
+ * @param port - Port number to check
+ * @returns Promise resolving to boolean
+ */
+export function isPortAvailable(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const server = createConnection({ port, host: '127.0.0.1' }, () => {
+      // Connection succeeded - port is in use
+      server.destroy();
+      resolve(false);
+    });
+    
+    server.on('error', () => {
+      // Connection failed - port is available
+      resolve(true);
+    });
+  });
+}
+
+/**
+ * Find next available port starting from base port
+ * 
+ * @param basePort - Starting port number
+ * @param maxAttempts - Maximum ports to try
+ * @returns Promise resolving to available port or null
+ */
+export async function findAvailablePort(basePort: number = 10350, maxAttempts: number = 10): Promise<number | null> {
+  for (let i = 0; i < maxAttempts; i++) {
+    const port = basePort + i;
+    if (await isPortAvailable(port)) {
+      return port;
+    }
+  }
+  return null;
+}
 
 /**
  * Execute a tilt command with given arguments
