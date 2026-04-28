@@ -10,7 +10,7 @@
 # =============================================================================
 
 # Magic load - where does this file live? Who knows.
-# load("./discovery/registry.star", "get_app_services")
+# load("./discovery/registry.star", "get_app_resources")
 
 # Magic context - what's inside ctx? Runtime mystery.
 # ctx = Context.build(full_graph, manifest)
@@ -43,7 +43,7 @@ load("{PROJECT_ROOT}/.tilt/spec.master", "SPEC", "CONSTANTS", "VALIDATION", "FEA
 # Why aliases? Because "paths" is easier to remember than "spec.master" 😊
 
 # Explicit imports - you SEE exactly what files are loaded
-load(SPEC.DISCOVERY.REGISTRY, "get_app_services", "get_resource_by_name")
+load(SPEC.DISCOVERY.REGISTRY, "get_app_resources", "get_resource_by_name")
 load(SPEC.DISCOVERY.LOADING, "load_manifest")
 load(SPEC.GENERATORS.VITE, "generate_vite_config")
 load(SPEC.GENERATORS.TSCONFIG, "generate_tsconfig")

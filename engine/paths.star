@@ -682,12 +682,12 @@ This spec file makes EVERYTHING explicit:
 COMPARISON:
 
 ❌ BEFORE (Implicit):
-    load("./discovery/registry.star", "get_app_services")
+    load("./discovery/registry.star", "get_app_resources")
     # Where does this file live? Magic.
     # What does it return? Runtime mystery.
 
 ✅ AFTER (Explicit):
-    load(SPEC.DISCOVERY.REGISTRY, "get_app_services")
+    load(SPEC.DISCOVERY.REGISTRY, "get_app_resources")
     # Path is: {PROJECT_ROOT}/.tilt/topologies/tilt/discovery/registry.star
     # Behavior defined in this spec file.
 

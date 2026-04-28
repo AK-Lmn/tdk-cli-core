@@ -37,7 +37,7 @@ db_resources = create_db_resources(ctx, resource_name, db_name)
 ### Full orchestration
 ```starlark
 load("./orchestrator.star", "Orchestrator")
-Orchestrator.orchestrate_all(ctx, app_services, options)
+Orchestrator.orchestrate_all(ctx, app_resources, options)
 ```
 
 ## Resource Chain

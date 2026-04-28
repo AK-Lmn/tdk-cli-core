@@ -3,7 +3,7 @@
 # =============================================================================
 
 
-def print_resource_summary(infra_services, app_services, should_enable_fn):
+def print_resource_summary(infra_services, app_resources, should_enable_fn):
     """Print summary of enabled services and estimated memory usage."""
     enabled_services = []
     estimated_memory = 0
@@ -17,7 +17,7 @@ def print_resource_summary(infra_services, app_services, should_enable_fn):
             else:
                 estimated_memory += 512  # Default 512MB
 
-    for s in app_services:
+    for s in app_resources:
         if should_enable_fn(s['name']):
             enabled_services.append(s['name'])
             svc_memory = s.get('memory')

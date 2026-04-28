@@ -4,7 +4,7 @@
 # Handles registration of newly detected services without full Tilt restart
 # =============================================================================
 
-load("./registry.star", "CacheOps", "get_app_services", "_DISCOVERY_CACHE")
+load("./registry.star", "CacheOps", "get_app_resources", "_DISCOVERY_CACHE")
 load("./discovery_orchestrator.star", "_normalize_manifest")
 load("../resources/orchestrator/generators/manifest_resource.star", "ManifestResource")
 load("../manifest/loader.star", "ManifestLoader")
@@ -192,7 +192,7 @@ def check_duplicate_service(resource_name):
     """
     if CacheOps.has(resource_name):
         # Find existing service path
-        for svc in get_app_services():
+        for svc in get_app_resources():
             if svc.get("name") == resource_name:
                 return struct(
                     duplicate=True,

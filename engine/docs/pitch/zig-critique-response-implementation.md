@@ -347,9 +347,9 @@ DEBUG = struct(
 ### BEFORE (Implicit, Magic)
 ```starlark
 # Tiltfile
-load("./discovery/registry.star", "get_app_services")
+load("./discovery/registry.star", "get_app_resources")
 
-services = get_app_services()  # Where does this look? Magic.
+services = get_app_resources()  # Where does this look? Magic.
 
 for svc in services:
     manifest = load_manifest(svc.path)  # What path? Magic.
@@ -363,11 +363,11 @@ for svc in services:
 load("{}/.tilt/spec.master".format(PROJECT_ROOT), 
      "SPEC", "CONSTANTS", "VALIDATION", "OUTPUT", "DEBUG")
 
-load(SPEC.DISCOVERY.REGISTRY, "get_app_services")
+load(SPEC.DISCOVERY.REGISTRY, "get_app_resources")
 
 # EXPLICIT: Where services live
 print("Searching in: {}".format(SPEC.RESOURCES_DIR))
-services = get_app_services(search_paths=DISCOVERY.RESOURCE_SEARCH_PATHS)
+services = get_app_resources(search_paths=DISCOVERY.RESOURCE_SEARCH_PATHS)
 
 for svc in services:
     # EXPLICIT: Path construction

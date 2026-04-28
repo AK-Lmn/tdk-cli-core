@@ -31,7 +31,7 @@ load("./manifest/constants.star", "MANIFEST_FILENAME", "MANIFEST_FILENAME_NEW", 
 
 _DISCOVERY_CACHE = {
     "initialized": False,
-    "app_services": [],
+    "app_resources": [],
     "resource_dependencies": {},
     "resource_aliases": {},
     "resource_path_map": {},
@@ -57,13 +57,13 @@ def add_resource_to_cache(resource_dict):
         return False
     
     # Check for duplicates
-    for existing in _DISCOVERY_CACHE["app_services"]:
+    for existing in _DISCOVERY_CACHE["app_resources"]:
         existing_name = existing["name"] if "name" in existing else ""
         if existing_name == resource_name:
             return False
     
     # Add to cache
-    _DISCOVERY_CACHE["app_services"].append(resource_dict)
+    _DISCOVERY_CACHE["app_resources"].append(resource_dict)
     
     # Update path map
     resource_path = resource_dict["path"] if "path" in resource_dict else ""
@@ -85,12 +85,12 @@ def remove_resource_from_cache(resource_name):
     Returns:
         True if removed, False if not found
     """
-    # Find and remove from app_services
+    # Find and remove from app_resources
     found = False
-    for i, svc in enumerate(_DISCOVERY_CACHE["app_services"]):
+    for i, svc in enumerate(_DISCOVERY_CACHE["app_resources"]):
         svc_name = svc["name"] if "name" in svc else ""
         if svc_name == resource_name:
-            _DISCOVERY_CACHE["app_services"].pop(i)
+            _DISCOVERY_CACHE["app_resources"].pop(i)
             found = True
             break
     
@@ -127,7 +127,7 @@ def has_resource_in_cache(resource_name):
     Returns:
         True if service exists
     """
-    for svc in _DISCOVERY_CACHE["app_services"]:
+    for svc in _DISCOVERY_CACHE["app_resources"]:
         svc_name = svc["name"] if "name" in svc else ""
         if svc_name == resource_name:
             return True
@@ -147,7 +147,7 @@ def get_resource_by_path_from_cache(resource_path):
     if resource_path in _DISCOVERY_CACHE["resource_path_map"]:
         resource_name = _DISCOVERY_CACHE["resource_path_map"][resource_path]
     if resource_name:
-        for svc in _DISCOVERY_CACHE["app_services"]:
+        for svc in _DISCOVERY_CACHE["app_resources"]:
             svc_name = svc["name"] if "name" in svc else ""
             if svc_name == resource_name:
                 return svc
@@ -170,7 +170,7 @@ def get_cache_stats():
     """
     initialized_val = _DISCOVERY_CACHE["initialized"] if "initialized" in _DISCOVERY_CACHE else False
     return struct(
-        resource_count=len(_DISCOVERY_CACHE["app_services"]),
+        resource_count=len(_DISCOVERY_CACHE["app_resources"]),
         initialized=initialized_val,
         aliases_count=len(_DISCOVERY_CACHE["resource_aliases"]),
     )
@@ -186,7 +186,7 @@ CacheOps = struct(
 )
 
 
-def get_app_services():
+def get_app_resources():
     # TWO PASS DISCOVERY (both passes use JSON - source of truth):
     # Pass 1: Load JSON manifests and generate YAML files for Tilt resource tracking
     # Pass 2: Re-load from JSON (data refresh) and create Tilt local_resource from YAML
@@ -200,32 +200,32 @@ def get_app_services():
         _DISCOVERY_CACHE["initialized"] = False
         initialize_discovery(_DISCOVERY_CACHE, second_pass=True)
         print("")
-    return _DISCOVERY_CACHE["app_services"]
+    return _DISCOVERY_CACHE["app_resources"]
 
 
 def get_resource_dependencies():
     initialized = _DISCOVERY_CACHE["initialized"] if "initialized" in _DISCOVERY_CACHE else False
     if not initialized:
-        get_app_services()  # Trigger two-pass discovery
+        get_app_resources()  # Trigger two-pass discovery
     return _DISCOVERY_CACHE["resource_dependencies"]
 
 
 def get_resource_aliases():
     initialized = _DISCOVERY_CACHE["initialized"] if "initialized" in _DISCOVERY_CACHE else False
     if not initialized:
-        get_app_services()  # Trigger two-pass discovery
+        get_app_resources()  # Trigger two-pass discovery
     return _DISCOVERY_CACHE["resource_aliases"]
 
 
 def get_resource_path_map():
     initialized = _DISCOVERY_CACHE["initialized"] if "initialized" in _DISCOVERY_CACHE else False
     if not initialized:
-        get_app_services()  # Trigger two-pass discovery
+        get_app_resources()  # Trigger two-pass discovery
     return _DISCOVERY_CACHE["resource_path_map"]
 
 
 def get_resource_by_name(name):
-    for service in get_app_services():
+    for service in get_app_resources():
         if service["name"] == name:
             return service
     return None
@@ -233,7 +233,7 @@ def get_resource_by_name(name):
 
 def get_all_backend_resources():
     backends = []
-    for service in get_app_services():
+    for service in get_app_resources():
         resources = service["resources"] if "resources" in service else []
         for resource in resources:
             is_frontend = resource["frontend"] if "frontend" in resource else False
@@ -246,7 +246,7 @@ def get_all_backend_resources():
 
 def get_all_frontend_resources():
     frontends = []
-    for service in get_app_services():
+    for service in get_app_resources():
         resources = service["resources"] if "resources" in service else []
         for resource in resources:
             is_frontend = resource["frontend"] if "frontend" in resource else False
@@ -360,7 +360,7 @@ def _render_index():
         "load('./" + PRODUCT_SNAPSHOT_FILES["paths"] + "', 'RESOURCE_PATH_MAP_AUTOGENERATED')",
         "",
         "ProductSnapshotTopology = struct(",
-        "    app_services = APP_RESOURCES_AUTOGENERATED,",
+        "    app_resources = APP_RESOURCES_AUTOGENERATED,",
         "    resource_dependencies = RESOURCE_DEPENDENCIES_AUTOGENERATED,",
         "    resource_aliases = RESOURCE_ALIASES_AUTOGENERATED,",
         "    resource_path_map = RESOURCE_PATH_MAP_AUTOGENERATED,",
@@ -417,7 +417,7 @@ def _render_product_domain_file(service):
     )
 
 
-def _render_product_domains_index(app_services):
+def _render_product_domains_index(app_resources):
     lines = [
         "# ----------------------------------------------------------------------------",
         "# AUTOGENERATED FILE - DO NOT EDIT",
@@ -426,7 +426,7 @@ def _render_product_domains_index(app_services):
     ]
 
     domain_rows = []
-    for service in app_services:
+    for service in app_resources:
         domain = service["name"] if "name" in service else "unknown"
         symbol = _sanitize_symbol(domain) + "_domain"
         lines.append("load('./" + domain + "/" + PRODUCT_DOMAIN_RESOURCES_FILE + "', " + symbol + " = 'ProductDomain')")
@@ -515,7 +515,7 @@ def _ensure_initialized():
     """Ensure discovery is initialized with two-pass approach."""
     initialized = _DISCOVERY_CACHE["initialized"] if "initialized" in _DISCOVERY_CACHE else False
     if not initialized:
-        get_app_services()
+        get_app_resources()
 
 # Run two-pass discovery NOW at module load
 # This ensures APP_RESOURCES is populated before exports
@@ -524,7 +524,7 @@ print("🚀 Initializing service discovery...")
 _ensure_initialized()
 print("📦 Exporting services...")
 
-APP_RESOURCES = _DISCOVERY_CACHE["app_services"]
+APP_RESOURCES = _DISCOVERY_CACHE["app_resources"]
 RESOURCE_DEPENDENCIES = _DISCOVERY_CACHE["resource_dependencies"]
 RESOURCE_ALIASES = _DISCOVERY_CACHE["resource_aliases"]
 RESOURCE_PATH_MAP = _DISCOVERY_CACHE["resource_path_map"]

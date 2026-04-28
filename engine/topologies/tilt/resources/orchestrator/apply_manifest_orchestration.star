@@ -18,13 +18,19 @@ def prepare_resource_manifests(resource_config, ctx):
     resource_manifests = {}
     backend_manifest_cache = {}
     config_gen_resources = {}
+    
+    print("   DEBUG prepare_resource_manifests for: " + resource_name)
+    all_resources = resource_config.get('resources', [])
+    print("   DEBUG resources count: " + str(len(all_resources)))
 
     # First pass: load all manifests.
     for resource in resource_config.get('resources', []):
         # Use the resource's _resource_path if available (for services from different scan roots)
         # Otherwise fall back to constructing path from resource_config path + resource name
         resource_path = resource.get('_resource_path', resource_config['path'] + '/' + resource['name'])
+        print("   DEBUG loading manifest from: " + resource_path)
         manifest = Manifest.load_manifest(resource_path)
+        print("   DEBUG loaded manifest: " + str(manifest.get('appName', 'NOT FOUND')))
         resource_manifests[resource['name']] = manifest
 
         app_name = manifest.get('appName', resource['name'])

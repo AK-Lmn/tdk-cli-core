@@ -140,18 +140,18 @@ load("./discovery.star", "initialize_discovery")
 
 _DISCOVERY_CACHE = {
     "initialized": False,
-    "app_services": [],           # All discovered services
+    "app_resources": [],           # All discovered services
     "resource_dependencies": {}, # Dependency graph
     "resource_aliases": {},       # Name → path mapping
     "resource_path_map": {},      # Path → service mapping
 }
 
-def get_app_services():
+def get_app_resources():
     initialize_discovery(_DISCOVERY_CACHE)
-    return _DISCOVERY_CACHE["app_services"]
+    return _DISCOVERY_CACHE["app_resources"]
 
 def get_resource_by_name(name):
-    for service in get_app_services():
+    for service in get_app_resources():
         if service["name"] == name:
             return service
     return None

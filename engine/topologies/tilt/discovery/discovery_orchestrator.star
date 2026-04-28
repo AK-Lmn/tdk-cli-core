@@ -179,7 +179,7 @@ def initialize_discovery(cache, second_pass=False):
                 dependencies[name] = deps
     
     # Populate cache
-    cache["app_services"] = services
+    cache["app_resources"] = services
     cache["resource_dependencies"] = dependencies
     cache["resource_aliases"] = aliases
     cache["resource_path_map"] = path_map
