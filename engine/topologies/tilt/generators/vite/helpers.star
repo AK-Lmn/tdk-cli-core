@@ -52,8 +52,11 @@ def generate_frontend_internal_aliases(service_path, manifest, config_depth_offs
     if not internal_deps:
         return '      // No internal dependencies detected'
 
-    # Calculate depth for relative paths
-    service_parts = [p for p in service_path.split('/') if p]
+    # Calculate depth for relative paths (Starlark-compatible)
+    service_parts = []
+    for p in service_path.split('/'):
+        if p:
+            service_parts.append(p)
     depth = len(service_parts) + config_depth_offset
     rel_to_root = '../' * depth
 
@@ -85,12 +88,21 @@ def generate_frontend_optimize_deps(manifest):
     if not internal_deps:
         return ''
     
-    optimize_deps = [dep for dep in internal_deps if dep.startswith('@' + _NPM_SCOPE + '/')]
+    # Filter optimize deps (Starlark-compatible)
+    optimize_deps = []
+    for dep in internal_deps:
+        if dep.startswith('@' + _NPM_SCOPE + '/'):
+            optimize_deps.append(dep)
     
     if not optimize_deps:
         return ''
     
-    return '\n      ' + ',\n      '.join(["'" + dep + "'" for dep in sorted(optimize_deps)]) + ',\n    '
+    # Build quoted deps list (Starlark-compatible)
+    quoted_deps = []
+    for dep in sorted(optimize_deps):
+        quoted_deps.append("'" + dep + "'")
+    
+    return '\n      ' + ',\n      '.join(quoted_deps) + ',\n    '
 
 
 def generate_proxy_block(api_base_path, backend_port, additional_routes, stack='app'):
@@ -156,7 +168,10 @@ def generate_backend_path_aliases(resource_path, manifest):
     for alias, rel_path in ddd_aliases:
         lines.append("      '" + alias + "': path.resolve(__dirname, '" + rel_path + "'),")
     
-    resource_parts = [p for p in resource_path.split('/') if p]
+    resource_parts = []
+    for p in resource_path.split('/'):
+        if p:
+            resource_parts.append(p)
     depth = len(resource_parts)
     rel_to_root = '../' * depth
     
@@ -195,17 +210,35 @@ def generate_externals_config(manifest):
     if manifest.get('useNats'):
         externals.append('nats')
     
-    return '[' + ', '.join(["'" + e + "'" if not e.startswith('/') else e for e in externals]) + ']'
+    # Build externals config (Starlark-compatible)
+    externals_quoted = []
+    for e in externals:
+        if not e.startswith('/'):
+            externals_quoted.append("'" + e + "'")
+        else:
+            externals_quoted.append(e)
+    
+    return '[' + ', '.join(externals_quoted) + ']'
 
 
 def generate_vitest_inline_deps(manifest):
     """Generate Vitest inline deps for internal packages."""
     internal_deps = manifest.get('_internalDeps', [])
-    inline_deps = [dep for dep in internal_deps if dep.startswith('@' + _NPM_SCOPE + '/')]
+    
+    # Filter inline deps (Starlark-compatible)
+    inline_deps = []
+    for dep in internal_deps:
+        if dep.startswith('@' + _NPM_SCOPE + '/'):
+            inline_deps.append(dep)
     
     if not inline_deps:
         return ''
     
-    return '\n        ' + ',\n        '.join(["'" + dep + "'" for dep in inline_deps]) + ',\n      '
+    # Build quoted deps list (Starlark-compatible)
+    quoted_deps = []
+    for dep in inline_deps:
+        quoted_deps.append("'" + dep + "'")
+    
+    return '\n        ' + ',\n        '.join(quoted_deps) + ',\n      '
 
 CONSTANTS = {}

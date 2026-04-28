@@ -52,7 +52,7 @@ export interface GeneratorContext {
   project: ProjectConfig["project"];
   stacks: ProjectConfig["stacks"];
   optionalInfra: ProjectConfig["optional_infra"];
-  validDomains: string[];
+  allServices: string[];
   serviceDescriptions: Record<string, string>;
   infraDescriptions: Record<string, string>;
 }
@@ -68,7 +68,7 @@ const SERVICE_DESCRIPTIONS: Record<string, string> = {
   "order-planner": "Order planner UI",
   user: "User management",
   gdpr: "GDPR compliance",
-  accounting: "Accounting domain",
+  accounting: "Accounting system",
   website: "Website builder",
   payment: "Payment processing",
   reporting: "Reporting & analytics",
@@ -149,8 +149,8 @@ export class TemplateEngine {
    * Build the generator context from platform standards + project config
    */
   buildContext(projectConfig: ProjectConfig): GeneratorContext {
-    // Collect all valid domains (services from all stacks except out_of_scope)
-    const validDomains = [
+    // Collect all services from all stacks
+    const allServices = [
       ...projectConfig.stacks.pre_alpha.services,
       ...projectConfig.stacks.alpha.services,
       ...projectConfig.stacks.beta.services,
@@ -178,7 +178,7 @@ export class TemplateEngine {
       project: projectConfig.project,
       stacks: projectConfig.stacks,
       optionalInfra: projectConfig.optional_infra,
-      validDomains,
+      allServices,
       serviceDescriptions: SERVICE_DESCRIPTIONS,
       infraDescriptions: INFRA_DESCRIPTIONS,
     };

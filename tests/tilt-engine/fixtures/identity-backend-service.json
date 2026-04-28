@@ -1,7 +1,7 @@
 {
   "name": "identity-backend",
   "type": "backend",
-  "domain": "identity",
+  "stack": "identity",
   "port": 4001,
   "path": "services/product/identity/identity-backend",
   "databaseName": "{project}_identity",

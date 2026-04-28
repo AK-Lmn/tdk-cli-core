@@ -9,15 +9,14 @@
 RUNTIME = "bun"
 # === END INLINED CONSTANTS ===
 
+load("../common/utils.star", "Utils")
+load("../../platform/docker/constants.star", "PlatformDockerConstants")
+load("../common/utils.star", "LIBRARY_ROOTS")
+
 
 def _get_timestamp():
     """Get current timestamp string"""
     return str(local("date +%Y-%m-%dT%H:%M:%S", quiet=True)).strip()
-
-load("../common/utils.star", "Utils")
-load("../../platform/docker/constants.star", "PlatformDockerConstants")
-
-load("../common/utils.star", "LIBRARY_ROOTS")
 
 # =============================================================================
 # Dependency Registry
@@ -133,7 +132,13 @@ def discover_missing_dependencies(all_resources, library_roots):
                 if lib_name not in found:
                     found.append(lib_name)
             else:
-                if lib_name not in [m["name"] for m in missing]:
+                # Check if lib_name is already in missing (Starlark-compatible)
+                already_missing = False
+                for m in missing:
+                    if m["name"] == lib_name:
+                        already_missing = True
+                        break
+                if not already_missing:
                     missing.append({
                         "name": lib_name,
                         "full_name": dep_name,

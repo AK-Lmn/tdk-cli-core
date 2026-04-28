@@ -1,8 +1,7 @@
 /**
- * LDK (Local Development Kit)
+ * TDK (Tilt Development Kit)
  *
- * A minimal CLI tool that adds cross-domain "stack" filtering on top of
- * existing Tilt infrastructure.
+ * A CLI tool for managing resources and stacks in Tilt-based microservice projects.
  *
  * Stacks are discovered dynamically from service.json files - no stack.master needed.
  *

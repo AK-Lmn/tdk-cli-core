@@ -152,7 +152,7 @@ export const Errors = {
     `Invalid service.json at ${path}: ${reason}`,
     [
       'Check JSON syntax with: `cat ' + path + ' | jq .`',
-      'Ensure all required fields are present (appName, domain, type)',
+      'Ensure all required fields are present (appName, stack, type)',
       'Run `tdk doctor` to check for configuration issues'
     ]
   ),

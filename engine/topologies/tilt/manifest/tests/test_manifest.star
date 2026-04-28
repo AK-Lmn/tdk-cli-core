@@ -108,8 +108,8 @@ def _test_constants():
     assert_in('frontend', ManifestConstants.VALID_APP_TYPES, "frontend should be valid app type")
     assert_in('backend', ManifestConstants.VALID_APP_TYPES, "backend should be valid app type")
     
-    # Test VALID_DOMAINS (now empty - domains discovered dynamically from filesystem)
-    assert_true(type(ManifestConstants.VALID_DOMAINS) == "list", "VALID_DOMAINS should be a list")
+    # Test VALID_STACKS (stacks discovered dynamically from filesystem)
+    assert_true(type(ManifestConstants.VALID_STACKS) == "list", "VALID_STACKS should be a list")
     
     # Test VALID_FEATURES
     assert_in('nats', ManifestConstants.VALID_FEATURES, "nats should be valid feature")
@@ -144,7 +144,7 @@ def _test_schema():
     required_fields = ManifestSchema.get_required_fields()
     assert_in('appName', required_fields, "appName should be required")
     assert_in('appType', required_fields, "appType should be required")
-    assert_in('domain', required_fields, "domain should be required")
+    assert_in('stack', required_fields, "stack should be required")
     
     # Test get_default
     default_port = ManifestSchema.get_default('port')
