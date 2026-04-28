@@ -30,7 +30,7 @@ load("../manifest/parser.star", "extract_stack_from_path")
 load("../manifest/loader.star", "ManifestLoader")
 load("./manifest/loading.star", "get_default_syncs_for_type")
 
-load("../manifest/constants.star", "MANIFEST_FILENAME", "MANIFEST_FILENAME_YAML")
+load("../manifest/constants.star", "MANIFEST_FILENAME", "MANIFEST_FILENAME_NEW", "MANIFEST_FILENAME_YAML")
 
 
 # Phase 1: Use json_manifest_scanner for manifest discovery (enables Phase 2 multi-source discovery)
@@ -465,10 +465,13 @@ def scan_services_with_patterns(patterns):
     Scan for services using the provided patterns (instead of DISCOVERY_SCAN_ROOTS).
     This is used for re-initialization with project-specific patterns.
     """
+    print("DEBUG: scan_services_with_patterns called with patterns: " + str(patterns))
     if not patterns:
+        print("DEBUG: no patterns, returning None")
         return None
     
     services = []
+    print("DEBUG: initialized services list")
     validation_stats = {
         "total_manifests": 0,
         "valid_manifests": 0,
@@ -484,9 +487,12 @@ def scan_services_with_patterns(patterns):
     
     # Scan all patterns and collect manifest paths
     all_manifest_paths = []
+    print("DEBUG: about to loop through patterns")
     
     for root in patterns:
+        print("DEBUG: processing root: " + str(root))
         paths = discover_json_manifests(root)
+        print("DEBUG: discover_json_manifests returned: " + str(len(paths)) + " paths")
         if paths:
             if len(paths) > MAX_MANIFESTS_PER_ROOT:
                 print("  ⚠️  Large root: {} has {} manifests (max: {})".format(
@@ -529,8 +535,8 @@ def scan_services_with_patterns(patterns):
         
         validation_stats["valid_manifests"] += 1
         
-        # Extract resource info
-        resource_path = manifest_path[:-len("/" + MANIFEST_FILENAME)]
+        # Extract resource info (use MANIFEST_FILENAME_NEW since that's what discover_json_manifests finds)
+        resource_path = manifest_path[:-len("/" + MANIFEST_FILENAME_NEW)]
         app_name = manifest.get("appName", "")
         stack = manifest.get("stack", "")
         
@@ -582,5 +588,10 @@ def scan_services_with_patterns(patterns):
             validation_stats["total_manifests"],
             validation_stats["valid_manifests"],
             total_skipped))
+    
+    # Debug: print services structure
+    for svc in services:
+        res_count = len(svc.get("resources", []))
+        print("DEBUG scan_services_with_patterns: service {} has {} resources".format(svc.get("name"), res_count))
     
     return services

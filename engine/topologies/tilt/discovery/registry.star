@@ -213,40 +213,54 @@ def reinitialize_with_project_root():
     """
     Force re-initialization of the registry with project-specific discovery patterns.
     Call this after TDK_PROJECT_ROOT is set to pick up project-specific patterns.
+    
+    NOTE: spec.master is a Starlark file, not JSON. We extract RESOURCE_PATTERNS
+    by reading it as text and parsing the specific line.
     """
     project_root = os.environ.get('TDK_PROJECT_ROOT', '')
-    print("DEBUG reinitialize: project_root = " + project_root)
     if not project_root:
-        print("DEBUG reinitialize: no project root, returning cached")
         return _DISCOVERY_CACHE["app_resources"]  # No project root, return current
     
     # Check if we have project-specific discovery patterns
     # spec.master is generated in .tdk/.tdk-out/ by tdk project
     spec_master_path = project_root + '/.tdk/.tdk-out/spec.master'
-    print("DEBUG reinitialize: spec_master_path = " + spec_master_path)
-    spec = None
     test_cmd = "test -f " + spec_master_path + " && echo yes || echo no"
     file_exists_result = local(test_cmd, quiet=True, echo_off=True)
     file_exists = str(file_exists_result).strip()
-    print("DEBUG reinitialize: file_exists = " + file_exists)
     
     if file_exists == "yes":
-        spec = read_json(spec_master_path)
-        print("DEBUG reinitialize: spec loaded = " + str(spec != None))
-    
-    if spec and 'RESOURCE_PATTERNS' in spec and spec['RESOURCE_PATTERNS']:
-        patterns = spec['RESOURCE_PATTERNS']
-        print("🔄 Re-initializing discovery with project patterns: " + str(patterns))
-        # Directly call discovery with project patterns
-        from_discovery = scan_services_with_patterns(patterns)
-        print("DEBUG reinitialize: from_discovery count = " + str(len(from_discovery)))
-        if from_discovery:
-            return from_discovery
-    else:
-        print("DEBUG reinitialize: no RESOURCE_PATTERNS in spec")
+        print("DEBUG: spec.master found at: " + spec_master_path)
+        # Read spec.master as text and extract RESOURCE_PATTERNS
+        # Format in spec.master: RESOURCE_PATTERNS = ["identity-*"]
+        read_cmd = "grep '^RESOURCE_PATTERNS' " + spec_master_path + " || echo 'NOT_FOUND'"
+        print("DEBUG: running cmd: " + read_cmd)
+        patterns_line_result = local(read_cmd, quiet=True, echo_off=True)
+        patterns_line = str(patterns_line_result).strip()
+        print("DEBUG: patterns_line result: " + patterns_line)
+        
+        if patterns_line and patterns_line != "NOT_FOUND":
+            # Extract patterns from line like: RESOURCE_PATTERNS = ["identity-*"]
+            # Simple parsing: find content between [ and ]
+            start_idx = patterns_line.find("[")
+            end_idx = patterns_line.rfind("]")
+            if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+                patterns_str = patterns_line[start_idx+1:end_idx]
+                # Split by commas and clean up
+                raw_patterns = patterns_str.split(",")
+                patterns = []
+                for p in raw_patterns:
+                    # Remove quotes and whitespace
+                    cleaned = p.strip().strip('"').strip("'")
+                    if cleaned:
+                        patterns.append(cleaned)
+                
+                if patterns:
+                    print("🔄 Re-initializing discovery with project patterns: " + str(patterns))
+                    from_discovery = scan_services_with_patterns(patterns)
+                    if from_discovery and len(from_discovery) > 0:
+                        return from_discovery
     
     # Fall back to cached resources
-    print("DEBUG reinitialize: falling back to cached")
     return _DISCOVERY_CACHE["app_resources"]
 
 
