@@ -15,6 +15,7 @@ def discover_json_manifests(root_path):
     Args:
         root_path: Path relative to project root (e.g., "services/product")
                    or absolute path. Uses TDK_PROJECT_ROOT env var if set.
+                   Supports glob patterns like "identity-*" for flat structures.
     
     Returns:
         List of manifest file paths (strings)
@@ -22,15 +23,22 @@ def discover_json_manifests(root_path):
     # Get project root from environment variable set by main Tiltfile
     project_root = os.environ.get('TDK_PROJECT_ROOT', '.')
     
-    # Construct absolute path from project root
-    if root_path.startswith('/'):
-        full_path = root_path
+    # Check if root_path contains glob patterns
+    if '*' in root_path or '?' in root_path:
+        # Use bash to expand glob and find files
+        # The pattern like identity-* needs shell expansion
+        cmd = "cd " + project_root + " && bash -c 'for dir in " + root_path + "; do if [ -d \"$dir\" ]; then find \"$dir\" -maxdepth 1 -type f -name \"" + MANIFEST_FILENAME_NEW + "\" 2>/dev/null; fi; done'"
+        result = str(local(cmd, quiet=True, echo_off=True))
     else:
-        full_path = project_root + "/" + root_path
-    
-    # Search for service.json files (silent)
-    cmd = "find " + full_path + " -type f -name '" + MANIFEST_FILENAME_NEW + "' 2>/dev/null | sort"
-    result = str(local(cmd, quiet=True, echo_off=True))
+        # Construct absolute path from project root
+        if root_path.startswith('/'):
+            full_path = root_path
+        else:
+            full_path = project_root + "/" + root_path
+        
+        # Search for service.json files (silent)
+        cmd = "find " + full_path + " -type f -name '" + MANIFEST_FILENAME_NEW + "' 2>/dev/null | sort"
+        result = str(local(cmd, quiet=True, echo_off=True))
     
     manifests = []
     if result:
@@ -38,5 +46,9 @@ def discover_json_manifests(root_path):
             line = line.strip()
             if line and MANIFEST_FILENAME_NEW in line:
                 manifests.append(line)
-
+    
+    # Debug output
+    if manifests:
+        print("  🔍 Found {} manifests in {}".format(len(manifests), root_path))
+    
     return manifests

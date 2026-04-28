@@ -17,10 +17,67 @@ MANIFEST_FILENAME_YAML = _manifest_file_yaml
 RESOURCES_ROOT = "services/product"
 RESOURCES_ROOT_PREFIX = ""
 
+# Check for project-specific discovery patterns
+def _get_project_discovery_roots():
+    """Get discovery roots from project spec.master if available."""
+    project_root = os.environ.get('TDK_PROJECT_ROOT', '')
+    if not project_root:
+        return []
+    
+    # Try to read spec.master for custom discovery patterns
+    spec_paths = [
+        project_root + "/.tdk/.tdk-out/spec.master",
+        project_root + "/spec.master",
+    ]
+    
+    for spec_path in spec_paths:
+        check_cmd = "test -f '{}' && echo 'yes' || echo 'no'".format(spec_path)
+        exists = str(local(check_cmd, quiet=True, echo_off=True)).strip() == 'yes'
+        if exists:
+            # Read and parse spec.master for RESOURCE_PATTERNS
+            spec_content = str(read_file(spec_path, default=""))
+            if "RESOURCE_PATTERNS" in spec_content:
+                # Extract patterns from the array
+                start = spec_content.find("RESOURCE_PATTERNS = [")
+                if start != -1:
+                    start = spec_content.find("[", start)
+                    end = spec_content.find("]", start)
+                    if start != -1 and end != -1:
+                        array_content = spec_content[start+1:end]
+                        patterns = []
+                        for line in array_content.split("\n"):
+                            line = line.strip()
+                            if line and not line.startswith("#"):
+                                # Find quoted strings
+                                if '"' in line:
+                                    quote_char = '"'
+                                elif "'" in line:
+                                    quote_char = "'"
+                                else:
+                                    continue
+                                key_start = line.find(quote_char)
+                                key_end = line.find(quote_char, key_start + 1)
+                                if key_start != -1 and key_end != -1:
+                                    pattern = line[key_start+1:key_end]
+                                    patterns.append(pattern)
+                        if patterns:
+                            print("📍 Using project-specific discovery patterns: " + str(patterns))
+                            return patterns
+    return []
+
+# Get project-specific roots or fall back to defaults
+_PROJECT_DISCOVERY_ROOTS = _get_project_discovery_roots()
+
+# Debug: Show what patterns are being used
+if _PROJECT_DISCOVERY_ROOTS:
+    print("📍 Discovery patterns: " + str(_PROJECT_DISCOVERY_ROOTS))
+else:
+    print("📍 Using default discovery patterns")
+
 # Phase 2: Universal Discovery - Scan roots configuration
 # Each root is scanned for service.json files
 # Paths are relative to PROJECT_ROOT (where Tiltfile is located)
-DISCOVERY_SCAN_ROOTS = [
+DISCOVERY_SCAN_ROOTS = _PROJECT_DISCOVERY_ROOTS if _PROJECT_DISCOVERY_ROOTS else [
     RESOURCES_ROOT,                           # services/product/*/*/
     "services/platform",                     # services/platform/*/*/
     "shared-product-engineering",            # shared-product-engineering/*/

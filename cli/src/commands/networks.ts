@@ -27,20 +27,79 @@ function getBaseDomain(): string {
   if (process.env.TDK_PUBLIC_HOST) {
     return process.env.TDK_PUBLIC_HOST;
   }
-  
+
+  // Try to read from project config first (most reliable)
   try {
-    const traefikLabels = execSync(
-      'docker ps --filter "label=traefik.enable=true" --format "{{.Labels}}" 2>/dev/null | head -1',
-      { encoding: 'utf-8' }
-    );
-    const domainMatch = traefikLabels.match(/traefik\.http\.routers\.[\w-]+\.rule=Host\(`([^`]+)`\)/);
-    if (domainMatch) {
-      return domainMatch[1];
+    const projectRoot = findProjectRoot();
+    if (projectRoot) {
+      const projectConfig = readProjectConfig(projectRoot);
+      const projectName = projectConfig.project?.name;
+      if (projectName && projectName !== 'tdk-project') {
+        return `${projectName}.localhost`;
+      }
     }
   } catch {
-    // Ignore
+    // Ignore - config might not exist or be readable
   }
-  
+
+  // Collect all unique domains from Traefik containers
+  const domains = new Set<string>();
+  try {
+    const traefikLabels = execSync(
+      'docker ps --filter "label=traefik.enable=true" --format "{{.Labels}}" 2>/dev/null',
+      { encoding: 'utf-8' }
+    );
+
+    // Extract all Host() domains from all containers
+    const domainRegex = /traefik\.http\.routers\.[\w-]+\.rule=Host\(`([^`]+)`\)/g;
+    let match;
+    while ((match = domainRegex.exec(traefikLabels)) !== null) {
+      domains.add(match[1]);
+    }
+  } catch {
+    // Ignore - docker might not be running
+  }
+
+  // Filter out service-specific domains (ones that look like individual services)
+  // Service domains typically contain the full service name like "identity-management-frontend.localhost"
+  const domainList = Array.from(domains);
+  const projectDomains = domainList.filter(domain => {
+    // Skip domains that look like specific service instances
+    // These are long, hyphen-heavy domains for individual services
+    const servicePatterns = [
+      /\w+-\w+-frontend\.localhost$/,
+      /\w+-\w+-backend\.localhost$/,
+      /\w+-\w+-worker\.localhost$/,
+      /\w+-\w+-migrator\.localhost$/,
+    ];
+    return !servicePatterns.some(pattern => pattern.test(domain));
+  });
+
+  // Prefer project-level domains (shorter, simpler ones)
+  if (projectDomains.length > 0) {
+    // Sort by length - shortest is likely the project domain
+    projectDomains.sort((a, b) => a.length - b.length);
+    return projectDomains[0];
+  }
+
+  // If only service-specific domains found, extract base from first one
+  // e.g., "identity-management-frontend.localhost" -> try to find "beauty-crm.localhost"
+  if (domainList.length > 0) {
+    const firstDomain = domainList[0];
+    const localhostMatch = firstDomain.match(/([\w-]+)\.localhost$/);
+    if (localhostMatch) {
+      const prefix = localhostMatch[1];
+      // If it looks like a service domain, try common project names
+      const commonProjects = ['beauty-crm', 'tdk', 'project', 'app', 'api'];
+      for (const project of commonProjects) {
+        const testDomain = `${project}.localhost`;
+        if (domainList.includes(testDomain)) {
+          return testDomain;
+        }
+      }
+    }
+  }
+
   return 'localhost';
 }
 

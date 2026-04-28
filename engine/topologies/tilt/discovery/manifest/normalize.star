@@ -14,7 +14,7 @@ DEFAULTS = {}
 # === END INLINED CONSTANTS ===
 
 
-load('../../../tilt/manifest/constants.star', 'MANIFEST_DEFAULTS', 'MANIFEST_FILENAME')
+load('../../../tilt/manifest/constants.star', 'MANIFEST_DEFAULTS', 'MANIFEST_FILENAME', 'MANIFEST_FILENAME_NEW')
 load('./loading.star', 'apply_manifest_defaults', 'check_prisma_folder', 'get_default_syncs_for_type')
 load('./validation.star', 'validate_manifest')
 load('../../common/utils.star', 'Utils')
@@ -87,6 +87,9 @@ def _load_and_normalize(manifest_path, warn_only=True):
     stack = normalized.get('stack', '')
     features = normalized.get('features', [])
     
+    # Add 'name' field for orchestrator compatibility (alias for appName)
+    normalized['name'] = app_name
+    
     # 🎯 AUTO-COMPUTE labels from stack
     normalized['labels'] = ['app.' + stack]
     
@@ -127,10 +130,18 @@ def _discover_manifests_in_path(root_path):
     Returns:
         List of manifest file paths
     """
-    find_cmd = "find {root} -name '{filename}' -type f 2>/dev/null | sort".format(
-        root=root_path,
-        filename=MANIFEST_FILENAME
-    )
+    # Check if root_path contains glob patterns (for flat structures like identity-*)
+    if '*' in root_path or '?' in root_path:
+        # Use bash to expand glob and find service.json files
+        find_cmd = "bash -c 'for dir in {root}; do if [ -d \"$dir\" ]; then find \"$dir\" -maxdepth 1 -name \"{filename}\" -type f 2>/dev/null; fi; done'".format(
+            root=root_path,
+            filename=MANIFEST_FILENAME_NEW
+        )
+    else:
+        find_cmd = "find {root} -name '{filename}' -type f 2>/dev/null | sort".format(
+            root=root_path,
+            filename=MANIFEST_FILENAME_NEW
+        )
     result = str(local(find_cmd, quiet=True, echo_off=True))
     
     manifests = []
