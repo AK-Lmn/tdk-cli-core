@@ -201,14 +201,14 @@ def _generate_development_machine(identity_name="dev-machine", project_id=None):
         environment="dev",
     )
 
-def _generate_production_machine(identity_name="prod-machine", project_id=None, service_paths=None):
+def _generate_production_machine(identity_name="prod-machine", project_id=None, resource_paths=None):
     """Generate a production machine identity with restricted access."""
-    if not service_paths:
-        service_paths = ["/services/${SERVICE_NAME}"]
+    if not resource_paths:
+        resource_paths = ["/services/${SERVICE_NAME}"]
     
     return _generate_universal_auth_config(
         identity_name=identity_name,
-        access_paths=service_paths,
+        access_paths=resource_paths,
         project_id=project_id,
         environment="prod",
     )

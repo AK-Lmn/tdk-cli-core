@@ -18,18 +18,18 @@ from datetime import datetime, timezone
 SNAPSHOT_FILE = Path(".tdk/.tdk-out/snapshots/service-snapshot.json")
 
 
-def compute_service_hash(service_path: str) -> Optional[str]:
+def compute_service_hash(resource_path: str) -> Optional[str]:
     """
     Compute MD5 hash of a service.json file for efficient change detection.
     
     Args:
-        service_path: Path to service.json file
+        resource_path: Path to service.json file
     
     Returns:
         MD5 hash string or None if file cannot be read
     """
     try:
-        with open(service_path, 'rb') as f:
+        with open(resource_path, 'rb') as f:
             content = f.read()
             return hashlib.md5(content).hexdigest()[:16]  # First 16 chars sufficient
     except (IOError, OSError):

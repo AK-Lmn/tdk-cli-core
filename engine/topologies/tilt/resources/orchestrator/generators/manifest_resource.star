@@ -388,15 +388,15 @@ def _generate_all_configs_for_resource(
         # Prisma config
         db_name = _get_db_name_for_resource(service_name, resource_config['name'])
         service_display_name = _get_service_display_name(service_name, resource_config['name'])
-        TSConfig.prisma(service_path=resource_path, service_name=service_display_name, db_name=db_name, write_file_if_changed=write_file)
+        TSConfig.prisma(resource_path=resource_path, service_name=service_display_name, db_name=db_name, write_file_if_changed=write_file)
     
     # ==========================================================================
     # 8. PACKAGE CONFIGS (npmrc, bunfig)
     # ==========================================================================
-    PackageConfig.npmrc(service_path=resource_path, registry_url=global_config['verdaccio_url_docker'], is_docker=True, write_file_if_changed=write_file)
-    PackageConfig.bunfig(service_path=resource_path, registry_url=global_config['verdaccio_url_docker'], is_docker=True, write_file_if_changed=write_file)
-    PackageConfig.npmrc(service_path=resource_path, registry_url=global_config['verdaccio_url_local'], is_docker=False, write_file_if_changed=write_file)
-    PackageConfig.bunfig(service_path=resource_path, registry_url=global_config['verdaccio_url_local'], is_docker=False, write_file_if_changed=write_file)
+    PackageConfig.npmrc(resource_path=resource_path, registry_url=global_config['verdaccio_url_docker'], is_docker=True, write_file_if_changed=write_file)
+    PackageConfig.bunfig(resource_path=resource_path, registry_url=global_config['verdaccio_url_docker'], is_docker=True, write_file_if_changed=write_file)
+    PackageConfig.npmrc(resource_path=resource_path, registry_url=global_config['verdaccio_url_local'], is_docker=False, write_file_if_changed=write_file)
+    PackageConfig.bunfig(resource_path=resource_path, registry_url=global_config['verdaccio_url_local'], is_docker=False, write_file_if_changed=write_file)
     
     # ==========================================================================
     # 9. YAML MANIFEST (for verification)
@@ -439,7 +439,7 @@ def _generate_yaml_manifest(resource_path, manifest, write_file):
 def create_manifest_config_resource(
     service_name,
     resource_config,
-    service_path,
+    resource_path,
     manifest,
     backend_manifest,
     ctx
@@ -454,7 +454,7 @@ def create_manifest_config_resource(
     Args:
         service_name: Parent service name
         resource_config: Resource dict from registry
-        service_path: Base service path
+        resource_path: Base service path
         manifest: Loaded manifest
         backend_manifest: Backend manifest (for frontends)
         ctx: Tilt context
@@ -463,9 +463,9 @@ def create_manifest_config_resource(
         Resource name (e.g., "my-service-config-gen")
     """
     resource_name = resource_config['name']
-    # service_path is now correctly passed from apply_manifest_orchestration.star
-    # which uses resource.get('_service_path', ...) to get the actual path
-    resource_path = service_path
+    # resource_path is now correctly passed from apply_manifest_orchestration.star
+    # which uses resource.get('_resource_path', ...) to get the actual path
+    resource_path = resource_path
     config_gen_resource_name = resource_name + '-config-gen'
     auto_init_config_gen = ctx.get('auto_init_config_gen', True)
     

@@ -28,7 +28,7 @@ def generate_library(manifest, write_fn=None):
     3. Both ESM and CJS output formats
     4. Vitest for testing
     """
-    service_path = manifest.get('_servicePath', '')
+    resource_path = manifest.get('_servicePath', '')
     app_name = manifest.get('appName', 'unknown')
     
     has_react = manifest.get('hasReact', False)
@@ -60,6 +60,6 @@ def generate_library(manifest, write_fn=None):
     )
     
     if write_fn:
-        write_fn(service_path + VITE_LIBRARY_CONFIG_PATH, config)
+        write_fn(resource_path + VITE_LIBRARY_CONFIG_PATH, config)
     
     return config

@@ -39,7 +39,7 @@ def build_header(generator_fn, app_name, extra_header=''):
     )
 
 
-def generate_frontend_internal_aliases(service_path, manifest, config_depth_offset=0):
+def generate_frontend_internal_aliases(resource_path, manifest, config_depth_offset=0):
     """
     Generate internal package aliases for frontend Vite config.
     
@@ -54,7 +54,7 @@ def generate_frontend_internal_aliases(service_path, manifest, config_depth_offs
 
     # Calculate depth for relative paths (Starlark-compatible)
     service_parts = []
-    for p in service_path.split('/'):
+    for p in resource_path.split('/'):
         if p:
             service_parts.append(p)
     depth = len(service_parts) + config_depth_offset

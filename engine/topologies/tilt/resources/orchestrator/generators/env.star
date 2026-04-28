@@ -85,7 +85,7 @@ def _generate_params_env(manifest, backend_manifest=None, write_file_fn=None):
     This generates config like BASE_URL, PORT, etc. - NEVER secrets.
     Secrets are handled separately by _generate_secrets_env().
     """
-    service_path = manifest.get('_servicePath', '')
+    resource_path = manifest.get('_servicePath', '')
     app_type = manifest.get('appType', 'backend')
     stack = manifest.get('stack', 'app')
     port = manifest.get('port', BASE_PORT_FRONTEND)
@@ -171,8 +171,8 @@ DATABASE_URL=""" + PlatformDockerConstants.get_database_url_for_env(db_name) + "
             value = params.get(key)
             content += key + '=' + str(value) + '\n'
     
-    if write_file_fn and service_path:
-        write_file_fn(service_path + target_filename, content)
+    if write_file_fn and resource_path:
+        write_file_fn(resource_path + target_filename, content)
     
     return content
 
@@ -185,7 +185,7 @@ def _generate_secrets_env(manifest, write_file_fn=None):
     
     CRITICAL: This function NEVER reads secrets from files - only from Infisical.
     """
-    service_path = manifest.get('_servicePath', '')
+    resource_path = manifest.get('_servicePath', '')
     secrets_config = manifest.get('secrets', {})
     
     if not secrets_config:

@@ -8,7 +8,7 @@ _get_lib_path_from_package_name = LibsPaths.get_path
 _read_package_json_deps = LibsPaths.read_package_json_deps
 
 
-def discover_service_libraries(ctx, service_paths, max_depth=10):
+def discover_service_libraries(ctx, resource_paths, max_depth=10):
     """
     Recursively discovers all internal library dependencies for given service paths.
 
@@ -19,8 +19,8 @@ def discover_service_libraries(ctx, service_paths, max_depth=10):
     visited = {}
 
     queue = []
-    for service_path in service_paths:
-        pkg_path = service_path + '/package.json'
+    for resource_path in resource_paths:
+        pkg_path = resource_path + '/package.json'
         queue.append((pkg_path, 0))
 
     iteration = 0
@@ -75,14 +75,14 @@ def discover_service_libraries(ctx, service_paths, max_depth=10):
     return needed_libs
 
 
-def discover_dependencies_from_json(ctx, service_path):
+def discover_dependencies_from_json(ctx, resource_path):
     """
     Discovers library dependencies for a SINGLE service from its package.json.
 
     Returns:
         List of Tilt resource names: ['lib-platform-...', ...]
     """
-    pkg_path = service_path + '/package.json'
+    pkg_path = resource_path + '/package.json'
     internal_deps = _read_package_json_deps(ctx, pkg_path)
 
     tilt_resources = []

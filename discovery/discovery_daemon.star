@@ -69,9 +69,9 @@ def run_discovery_daemon(
             if verbose:
                 print("🔍 Detected {} new service(s)".format(diff.added_count))
             
-            for service_path in diff.added:
+            for resource_path in diff.added:
                 _handle_new_service(
-                    service_path,
+                    resource_path,
                     focus_mode=focus_mode,
                     focus_domains=focus_domains,
                     auto_init=auto_init_new,
@@ -82,8 +82,8 @@ def run_discovery_daemon(
         # Handle removed services (optional - just log for now)
         if diff.removed_count > 0 and verbose:
             print("🗑️  Detected {} removed service(s)".format(diff.removed_count))
-            for service_path in diff.removed:
-                print("  - {}".format(service_path))
+            for resource_path in diff.removed:
+                print("  - {}".format(resource_path))
         
         # Update snapshot if there were changes
         if diff.added_count > 0 or diff.removed_count > 0:
@@ -100,7 +100,7 @@ def run_discovery_daemon(
             sleep(sleep_time)
 
 def _handle_new_service(
-    service_path,
+    resource_path,
     focus_mode=False,
     focus_domains=[],
     auto_init=True,
@@ -111,7 +111,7 @@ def _handle_new_service(
     Process a newly detected service.
     
     Args:
-        service_path: Path to service.json
+        resource_path: Path to service.json
         focus_mode: Whether to filter by domain
         focus_domains: Allowed domains
         auto_init: Whether to auto-init the service
@@ -119,7 +119,7 @@ def _handle_new_service(
         on_new_service: Optional callback
     """
     # Extract service directory
-    service_dir = service_path.rsplit("/", 1)[0] if "/" in service_path else service_path
+    service_dir = resource_path.rsplit("/", 1)[0] if "/" in resource_path else resource_path
     
     # Check for package.json (complete service structure)
     package_json_path = service_dir + "/package.json"
@@ -128,21 +128,21 @@ def _handle_new_service(
         return
     
     # Load and validate manifest
-    load_result = ManifestLoader.load_from_file(service_path)
+    load_result = ManifestLoader.load_from_file(resource_path)
     if load_result.error:
-        print("❌ Invalid manifest: {}".format(service_path))
+        print("❌ Invalid manifest: {}".format(resource_path))
         print("   └─ Error: {}".format(load_result.error))
         return
     
     manifest = load_result.manifest
     if not manifest:
-        print("❌ Empty manifest: {}".format(service_path))
+        print("❌ Empty manifest: {}".format(resource_path))
         return
     
     # Get service name
     service_name = manifest.get("appName", "")
     if not service_name:
-        print("❌ Missing appName in: {}".format(service_path))
+        print("❌ Missing appName in: {}".format(resource_path))
         return
     
     # Check for duplicates
@@ -159,13 +159,13 @@ def _handle_new_service(
     
     # Log detection
     print("🔍 New service detected: {}".format(service_name))
-    print("  └─ Path: {}".format(service_path))
+    print("  └─ Path: {}".format(resource_path))
     print("  └─ Domain: {}".format(domain))
     print("  └─ Type: {}".format(manifest.get("appType", "unknown")))
     
     # Call callback if provided
     if on_new_service:
-        on_new_service(service_name, service_path, manifest, auto_init)
+        on_new_service(service_name, resource_path, manifest, auto_init)
 
 def _file_exists(path):
     """Check if a file exists."""

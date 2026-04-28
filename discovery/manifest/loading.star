@@ -25,18 +25,18 @@ _DISABLE_WARNINGS = os.environ.get('TDK_DISABLE_MANIFEST_WARNINGS', '') == 'true
 _LEGACY_LOADER_ONLY = os.environ.get('TDK_LEGACY_LOADER_ONLY', '') == 'true'
 
 
-def _check_prisma_folder(service_path):
+def _check_prisma_folder(resource_path):
     """
     Check if prisma/ directory exists in service path (silent).
     Used to auto-detect has_migrator when not in features.
     """
-    check_cmd = "test -d '{path}/prisma' && echo 'yes' || echo 'no'".format(path=service_path)
+    check_cmd = "test -d '{path}/prisma' && echo 'yes' || echo 'no'".format(path=resource_path)
     result = str(local(check_cmd, quiet=True, echo_off=True)).strip()
     return result == 'yes'
 
 
-def check_prisma_folder(service_path):
-    return _check_prisma_folder(service_path)
+def check_prisma_folder(resource_path):
+    return _check_prisma_folder(resource_path)
 
 
 def get_default_syncs_for_type(app_type, features=None):
@@ -55,7 +55,7 @@ def get_default_syncs_for_type(app_type, features=None):
     return syncs
 
 
-def _extract_domain_from_path(service_path, app_name):
+def _extract_domain_from_path(resource_path, app_name):
     """
     Extract domain from service path or app name.
     
@@ -64,7 +64,7 @@ def _extract_domain_from_path(service_path, app_name):
     
     Special handling: profile -> identity
     """
-    parts = service_path.rstrip('/').split('/')
+    parts = resource_path.rstrip('/').split('/')
     if len(parts) >= 4 and parts[-4] == 'services' and parts[-3] == 'product':
         domain = parts[-2]
         # Normalize profile to identity
@@ -75,7 +75,7 @@ def _extract_domain_from_path(service_path, app_name):
         return app_name.split('-')[0] if '-' in app_name else app_name
 
 
-def load_manifest(service_path, persist_to_disk=False):
+def load_manifest(resource_path, persist_to_disk=False):
     """
     Load manifest with dual-filename support and synthesis-by-default.
     
@@ -85,7 +85,7 @@ def load_manifest(service_path, persist_to_disk=False):
       3. Synthesize from directory structure (synthesis-by-default for standard services)
     
     Args:
-        service_path: Path to service directory
+        resource_path: Path to service directory
         persist_to_disk: If True, sync _internalDeps back to the physical manifest file
         
     Returns:
@@ -97,10 +97,10 @@ def load_manifest(service_path, persist_to_disk=False):
     
     # Prepend project root to relative paths for correct resolution
     project_root = os.environ.get('TDK_PROJECT_ROOT', '')
-    if project_root and not service_path.startswith('/'):
-        base_path = project_root + '/' + service_path
+    if project_root and not resource_path.startswith('/'):
+        base_path = project_root + '/' + resource_path
     else:
-        base_path = service_path
+        base_path = resource_path
     
     # Try new filename first (service.json)
     new_manifest_path = base_path + '/' + MANIFEST_FILENAME_NEW
@@ -113,9 +113,9 @@ def load_manifest(service_path, persist_to_disk=False):
     
     # Synthesize from directory structure if no manifest found
     if manifest == None:
-        manifest = synthesize_manifest_from_path(service_path)
+        manifest = synthesize_manifest_from_path(resource_path)
         manifest_source = 'synthesized'
-        manifest_path = service_path  # Virtual path
+        manifest_path = resource_path  # Virtual path
     
     # Validate JSON parsed correctly
     if manifest == None and manifest_source != 'synthesized':
@@ -141,20 +141,20 @@ def load_manifest(service_path, persist_to_disk=False):
     manifest['_manifestPath'] = manifest_path
     
     # Apply defaults and compute derived values
-    validated = apply_manifest_defaults(manifest, service_path)
+    validated = apply_manifest_defaults(manifest, resource_path)
 
     return validated
 
 
-def synthesize_manifest_from_path(service_path):
-    return _synthesize_manifest_from_path(service_path)
+def synthesize_manifest_from_path(resource_path):
+    return _synthesize_manifest_from_path(resource_path)
 
 
-def apply_manifest_defaults(manifest, service_path):
-    return _apply_manifest_defaults(manifest, service_path)
+def apply_manifest_defaults(manifest, resource_path):
+    return _apply_manifest_defaults(manifest, resource_path)
 
 
-def _synthesize_manifest_from_path(service_path):
+def _synthesize_manifest_from_path(resource_path):
     """
     Create a manifest based on directory naming conventions.
     Used when manifest.json doesn't exist (backward compatibility).
@@ -165,7 +165,7 @@ def _synthesize_manifest_from_path(service_path):
              -> appType: {type}
              -> domain: {domain}
     """
-    parts = service_path.rstrip('/').split('/')
+    parts = resource_path.rstrip('/').split('/')
     dir_name = parts[-1] if parts else 'unknown-service'
     
     # Determine appType from directory name suffix
@@ -190,7 +190,7 @@ def _synthesize_manifest_from_path(service_path):
     }
 
 
-def _apply_manifest_defaults(manifest, service_path):
+def _apply_manifest_defaults(manifest, resource_path):
     """
     🎯 SMART DEFAULTS: Expand slim manifest to full config.
     
@@ -207,10 +207,10 @@ def _apply_manifest_defaults(manifest, service_path):
     """
     result = dict(manifest)
     
-    # Normalize service_path to be relative (strip leading / if present)
+    # Normalize resource_path to be relative (strip leading / if present)
     # Docker build context requires relative paths
-    if service_path.startswith('/'):
-        service_path = service_path[1:]
+    if resource_path.startswith('/'):
+        resource_path = resource_path[1:]
     
     # Track overrides for logging (task 4.8: override detection)
     overrides = []
@@ -244,7 +244,7 @@ def _apply_manifest_defaults(manifest, service_path):
     # Validate custom dockerfile exists if specified
     if 'dockerfile' in result:
         custom_dockerfile = result['dockerfile']
-        dockerfile_path = service_path + '/' + custom_dockerfile
+        dockerfile_path = resource_path + '/' + custom_dockerfile
         dockerfile_exists = local("test -f '{path}' && echo 'yes' || echo 'no'".format(path=dockerfile_path), quiet=True, echo_off=True)
         if str(dockerfile_exists).strip() != 'yes':
             fail("""
@@ -259,7 +259,7 @@ def _apply_manifest_defaults(manifest, service_path):
    • Create {dockerfile} in service directory
    • Remove "dockerfile" field to use auto-generated Dockerfile
 ❌ ═══════════════════════════════════════════════════════════════════
-""".format(service=service_path.split('/')[-1], dockerfile=custom_dockerfile))
+""".format(service=resource_path.split('/')[-1], dockerfile=custom_dockerfile))
     
     # 🎯 FEATURE FLAGS -> BOOLEAN CONFIG
     # NOTE: Developer manually provides features per CEO Review requirement
@@ -275,7 +275,7 @@ def _apply_manifest_defaults(manifest, service_path):
     
     # Extract domain from path if not set
     if 'stack' not in result:
-        result['stack'] = _extract_domain_from_path(service_path, app_name)
+        result['stack'] = _extract_domain_from_path(resource_path, app_name)
     
     stack = result['stack']
     
@@ -336,14 +336,14 @@ def _apply_manifest_defaults(manifest, service_path):
             overrides.append("basePath: {} (auto: {})".format(result['basePath'], computed_base_path))
     
     # 🎯 Always set _servicePath for all manifest types
-    result['_servicePath'] = service_path
+    result['_servicePath'] = resource_path
     
     # 🎯 CENTRALIZED: Use Utils.get_internal_deps() for dependency extraction
-    internal_deps = Utils.get_internal_deps(service_path)
+    internal_deps = Utils.get_internal_deps(resource_path)
     result['_internalDeps'] = sorted(internal_deps)
     
     # 🎯 CENTRALIZED: Use Utils.build_deps_mapping() for path resolution
-    result['_internalDepsMapping'] = Utils.build_deps_mapping(service_path, internal_deps)
+    result['_internalDepsMapping'] = Utils.build_deps_mapping(resource_path, internal_deps)
     
     # 🎯 Log overrides if any were detected and verbose mode is enabled
     if overrides and os.environ.get('TILT_LOG_LEVEL') == 'verbose':
@@ -368,32 +368,32 @@ def load_related_manifest(frontend_manifest, backend_suffix='-backend'):
     if frontend_manifest.get('appType') != 'frontend':
         return None
     
-    service_path = frontend_manifest.get('_servicePath', '')
-    backend_path = service_path.replace('-frontend', backend_suffix)
+    resource_path = frontend_manifest.get('_servicePath', '')
+    backend_path = resource_path.replace('-frontend', backend_suffix)
     
     # Use load_manifest which handles dual-filename and synthesis
     return load_manifest(backend_path)
 
 
-def get_manifest_filename(service_path):
+def get_manifest_filename(resource_path):
     """
     Determine which manifest filename is being used for a service.
     
     CEO Review addition: Utility for filename detection.
     
     Args:
-        service_path: Path to service directory
+        resource_path: Path to service directory
         
     Returns:
         Filename string or None if neither exists (synthesis will be used)
     """
     # Check new filename first (silent)
-    new_path = service_path + '/' + MANIFEST_FILENAME_NEW
+    new_path = resource_path + '/' + MANIFEST_FILENAME_NEW
     if local("test -f '{path}' && echo 'yes' || echo 'no'".format(path=new_path), quiet=True, echo_off=True) == 'yes':
         return MANIFEST_FILENAME_NEW
     
     # Check legacy filename (silent)
-    legacy_path = service_path + '/' + MANIFEST_FILENAME
+    legacy_path = resource_path + '/' + MANIFEST_FILENAME
     if local("test -f '{path}' && echo 'yes' || echo 'no'".format(path=legacy_path), quiet=True, echo_off=True) == 'yes':
         return MANIFEST_FILENAME
     

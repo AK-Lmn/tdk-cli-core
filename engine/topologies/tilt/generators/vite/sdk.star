@@ -28,7 +28,7 @@ def generate_sdk(manifest, write_fn=None):
     3. Shared React/React-DOM as singletons
     4. Remote entry generation
     """
-    service_path = manifest.get('_servicePath', '')
+    resource_path = manifest.get('_servicePath', '')
     app_name = manifest.get('appName', 'unknown')
     port = manifest.get('port', 3001)
     
@@ -68,6 +68,6 @@ def generate_sdk(manifest, write_fn=None):
     )
     
     if write_fn:
-        write_fn(service_path + VITE_SDK_CONFIG_PATH, config)
+        write_fn(resource_path + VITE_SDK_CONFIG_PATH, config)
     
     return config

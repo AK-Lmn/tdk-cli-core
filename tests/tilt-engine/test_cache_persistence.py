@@ -23,7 +23,7 @@ class TestCachePersistence:
         
         # Add services to cache
         cache = service_registry_cache
-        cache["service_path_map"] = {
+        cache["resource_path_map"] = {
             "path1": {"name": "service1"},
             "path2": {"name": "service2"}
         }
@@ -38,8 +38,8 @@ class TestCachePersistence:
         with open(cache_file) as f:
             data = json.load(f)
         
-        assert "service_path_map" in data
-        assert len(data["service_path_map"]) == 2
+        assert "resource_path_map" in data
+        assert len(data["resource_path_map"]) == 2
     
     def test_load_cache_from_file(self, temp_dir, service_registry_cache):
         """
@@ -52,7 +52,7 @@ class TestCachePersistence:
         
         # Create saved cache file
         saved_data = {
-            "service_path_map": {
+            "resource_path_map": {
                 "path1": {"name": "service1", "type": "backend"},
                 "path2": {"name": "service2", "type": "frontend"}
             }
@@ -65,9 +65,9 @@ class TestCachePersistence:
         self._load_cache(cache, cache_file)
         
         # Verify loaded
-        assert "path1" in cache["service_path_map"]
-        assert cache["service_path_map"]["path1"]["name"] == "service1"
-        assert cache["service_path_map"]["path2"]["type"] == "frontend"
+        assert "path1" in cache["resource_path_map"]
+        assert cache["resource_path_map"]["path1"]["name"] == "service1"
+        assert cache["resource_path_map"]["path2"]["type"] == "frontend"
     
     def test_cache_survives_process_restart(self, temp_dir, service_registry_cache):
         """
@@ -81,32 +81,32 @@ class TestCachePersistence:
         
         # Simulate first run - save cache
         cache1 = service_registry_cache
-        cache1["service_path_map"] = {
+        cache1["resource_path_map"] = {
             "services/test/service1": {"name": "service1"},
             "services/test/service2": {"name": "service2"}
         }
         self._save_cache(cache1, cache_file)
         
         # Simulate restart - new cache object, load from file
-        cache2 = {"initialized": False, "service_path_map": {}}
+        cache2 = {"initialized": False, "resource_path_map": {}}
         self._load_cache(cache2, cache_file)
         
         # Verify cache survived
-        assert "services/test/service1" in cache2["service_path_map"]
-        assert "services/test/service2" in cache2["service_path_map"]
-        assert cache2["service_path_map"]["services/test/service1"]["name"] == "service1"
+        assert "services/test/service1" in cache2["resource_path_map"]
+        assert "services/test/service2" in cache2["resource_path_map"]
+        assert cache2["resource_path_map"]["services/test/service1"]["name"] == "service1"
     
     def test_save_and_load_empty_cache(self, temp_dir):
         """Test saving and loading an empty cache."""
         cache_file = temp_dir / "empty-cache.json"
         
-        empty_cache = {"service_path_map": {}}
+        empty_cache = {"resource_path_map": {}}
         self._save_cache(empty_cache, cache_file)
         
-        loaded_cache = {"service_path_map": {}}
+        loaded_cache = {"resource_path_map": {}}
         self._load_cache(loaded_cache, cache_file)
         
-        assert len(loaded_cache["service_path_map"]) == 0
+        assert len(loaded_cache["resource_path_map"]) == 0
     
     def test_cache_file_format(self, temp_dir):
         """Test that cache file has expected format."""
@@ -114,7 +114,7 @@ class TestCachePersistence:
         
         cache = {
             "initialized": True,
-            "service_path_map": {
+            "resource_path_map": {
                 "path": {"name": "test"}
             }
         }
@@ -125,7 +125,7 @@ class TestCachePersistence:
         
         # Should be valid JSON
         data = json.loads(content)
-        assert "service_path_map" in data
+        assert "resource_path_map" in data
     
     # Helper methods
     def _save_cache(self, cache, path):

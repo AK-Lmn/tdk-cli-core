@@ -18,7 +18,7 @@ The Infisical Starlark generators provide a complete, programmatic way to manage
 │     └── generate_local_env_template() - Local dev .env       │
 │                                                                 │
 │  2. PATH MANAGER (path_manager.star)                            │
-│     ├── plan_service_path() - Plan Infisical path              │
+│     ├── plan_resource_path() - Plan Infisical path              │
 │     ├── validate_path() - Path validation                      │
 │     ├── known_paths - 14 predefined service paths              │
 │     └── ROOT_PATHS, PLATFORM_PATHS - Path constants            │
@@ -157,12 +157,12 @@ configs = Infisical.Secrets.generate_for_services_batch(services)
 
 ### Path Manager
 
-#### `plan_service_path(service_name, service_type, parent_path)`
+#### `plan_resource_path(service_name, service_type, parent_path)`
 
 Plans the Infisical path for a service.
 
 ```starlark
-plan = Infisical.Paths.plan_service_path(
+plan = Infisical.Paths.plan_resource_path(
     service_name="user-management-backend",
     service_type="backend",
 )
@@ -188,7 +188,7 @@ plan = Infisical.Paths.plan_service_path(
 print(Infisical.Paths.known_paths)
 
 # Get specific service path
-path = Infisical.Paths.get_known_service_path("user-management-backend")
+path = Infisical.Paths.get_known_resource_path("user-management-backend")
 # Returns: "/services/user"
 ```
 
@@ -409,11 +409,11 @@ normalized = Infisical.Paths.normalize_path("/invalid/path with spaces")
 ### Unknown Service
 
 ```starlark
-path = Infisical.Paths.get_known_service_path("unknown-service")
+path = Infisical.Paths.get_known_resource_path("unknown-service")
 # Returns: None
 
 # Solution: Plan a new path
-plan = Infisical.Paths.plan_service_path("unknown-service")
+plan = Infisical.Paths.plan_resource_path("unknown-service")
 path = plan["full_path"]  # "/services/unknown-service"
 ```
 

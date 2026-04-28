@@ -25,31 +25,31 @@ PORT_RANGE_HEALTH_END = {{ports.health.end}}
 
 # Service Naming Patterns (required by TDK engine)
 NAMING_PATTERNS = {
-    "backend_suffix": "{{naming.backend}}",
-    "frontend_suffix": "{{naming.frontend}}",
-    "migrator_suffix": "{{naming.migrator}}",
-    "library_suffix": "{{naming.library}}",
-    "sdk_suffix": "{{naming.sdk}}",
-    "worker_suffix": "{{naming.worker}}",
-    "valid_separators": {{starlarkArray naming.validSeparators}},
-    "max_length": {{naming.maxLength}},
-    "min_length": {{naming.minLength}},
+"backend_suffix": "{{naming.backend}}",
+"frontend_suffix": "{{naming.frontend}}",
+"migrator_suffix": "{{naming.migrator}}",
+"library_suffix": "{{naming.library}}",
+"sdk_suffix": "{{naming.sdk}}",
+"worker_suffix": "{{naming.worker}}",
+"valid_separators": {{starlarkArray naming.validSeparators}},
+"max_length": {{naming.maxLength}},
+"min_length": {{naming.minLength}},
 }
 
 # Traefik Configuration (required by TDK engine)
 TRAEFIK_CONFIG = {
-    "entrypoint": "{{traefik.entrypoint}}",
-    "network": "{{traefik.network}}",
-    "default_host": "{{traefik.defaultHost}}",
-    "default_port": {{traefik.defaultPort}},
-    "tls_enabled": {{starlark traefik.tlsEnabled}},
-    "entrypoints": {{starlarkArray traefik.entrypoints}},
-    "middlewares": {{starlarkArray traefik.middlewares}},
-    "tls": {"enabled": {{starlark traefik.tlsEnabled}} },
-    "healthcheck_path": "{{traefik.healthcheckPath}}",
-    "healthcheck_interval": "{{traefik.healthcheckInterval}}",
-    "healthcheck_timeout": "{{traefik.healthcheckTimeout}}",
-    "frontend_priority_base": {{traefik.frontendPriorityBase}},
+"entrypoint": "{{traefik.entrypoint}}",
+"network": "{{traefik.network}}",
+"default_host": "{{traefik.defaultHost}}",
+"default_port": {{traefik.defaultPort}},
+"tls_enabled": {{starlark traefik.tlsEnabled}},
+"entrypoints": {{starlarkArray traefik.entrypoints}},
+"middlewares": {{starlarkArray traefik.middlewares}},
+"tls": {"enabled": {{starlark traefik.tlsEnabled}} },
+"healthcheck_path": "{{traefik.healthcheckPath}}",
+"healthcheck_interval": "{{traefik.healthcheckInterval}}",
+"healthcheck_timeout": "{{traefik.healthcheckTimeout}}",
+"frontend_priority_base": {{traefik.frontendPriorityBase}},
 }
 
 # Health Check Configuration
@@ -59,147 +59,145 @@ HEALTH_CHECK_READY = "{{health.ready}}"
 HEALTH_CHECK_TIMEOUT = {{health.timeout}}
 
 # File watch ignore patterns (to prevent fsnotify buffer overflow)
-def get_filewatch_ignore_patterns(service_path="."):
-    """
-    Returns list of file patterns to ignore for Tilt filewatch.
-    
-    Args:
-        service_path: Base path of the service
-    
-    Returns:
-        List of patterns to ignore
-    """
-    ignores = [
+def get_filewatch_ignore_patterns(resource_path="."):
+"""
+Returns list of file patterns to ignore for Tilt filewatch.
+
+Args:
+resource_path: Base path of the service
+
+Returns:
+List of patterns to ignore
+"""
+ignores = [
 {{#each filewatchIgnores}}
-        service_path + "/{{this}}",
+resource_path + "/{{this}}",
 {{/each}}
-    ]
-    return ignores
+]
+return ignores
 
 def get_port_config():
-    """Returns the complete port allocation strategy."""
-    return {
-        "frontend": {
-            "base": BASE_PORT_FRONTEND,
-            "range_start": PORT_RANGE_FRONTEND_START,
-            "range_end": PORT_RANGE_FRONTEND_END,
-        },
-        "backend": {
-            "base": BASE_PORT_BACKEND,
-            "range_start": PORT_RANGE_BACKEND_START,
-            "range_end": PORT_RANGE_BACKEND_END,
-        },
-        "health": {
-            "base": BASE_PORT_HEALTH,
-            "range_start": PORT_RANGE_HEALTH_START,
-            "range_end": PORT_RANGE_HEALTH_END,
-        },
-    }
+"""Returns the complete port allocation strategy."""
+return {
+"frontend": {
+"base": BASE_PORT_FRONTEND,
+"range_start": PORT_RANGE_FRONTEND_START,
+"range_end": PORT_RANGE_FRONTEND_END,
+},
+"backend": {
+"base": BASE_PORT_BACKEND,
+"range_start": PORT_RANGE_BACKEND_START,
+"range_end": PORT_RANGE_BACKEND_END,
+},
+"health": {
+"base": BASE_PORT_HEALTH,
+"range_start": PORT_RANGE_HEALTH_START,
+"range_end": PORT_RANGE_HEALTH_END,
+},
+}
 
 def get_service_port(service_type, domain_index=0, service_index=0):
-    """
-    Calculate service port based on type and indices.
-    
-    Args:
-        service_type: "frontend" or "backend"
-        domain_index: Index of the domain (for port allocation)
-        service_index: Index of the service within domain
-    
-    Returns:
-        Port number
-    """
-    if service_type == "frontend":
-        base = BASE_PORT_FRONTEND
-    elif service_type == "backend":
-        base = BASE_PORT_BACKEND
-    else:
-        fail("Unknown service type: {}".format(service_type))
-    
-    # Allocate ports: base + (domain_index * 100) + service_index
-    return base + (domain_index * 100) + service_index
+"""
+Calculate service port based on type and indices.
+
+Args:
+service_type: "frontend" or "backend"
+domain_index: Index of the domain (for port allocation)
+service_index: Index of the service within domain
+
+Returns:
+Port number
+"""
+if service_type == "frontend":
+base = BASE_PORT_FRONTEND
+elif service_type == "backend":
+base = BASE_PORT_BACKEND
+else:
+fail("Unknown service type: {}".format(service_type))
+
+# Allocate ports: base + (domain_index * 100) + service_index
+return base + (domain_index * 100) + service_index
 
 # Alias for TDK engine compatibility
 def get_default_port(service_type, domain_index=0, service_index=0):
-    """Alias for get_service_port for TDK engine compatibility."""
-    return get_service_port(service_type, domain_index, service_index)
+"""Alias for get_service_port for TDK engine compatibility."""
+return get_service_port(service_type, domain_index, service_index)
 
 def get_health_check_config():
-    """Returns health check endpoint configuration."""
-    return {
-        "path": HEALTH_CHECK_PATH,
-        "live": HEALTH_CHECK_LIVE,
-        "ready": HEALTH_CHECK_READY,
-        "timeout": HEALTH_CHECK_TIMEOUT,
-    }
+"""Returns health check endpoint configuration."""
+return {
+"path": HEALTH_CHECK_PATH,
+"live": HEALTH_CHECK_LIVE,
+"ready": HEALTH_CHECK_READY,
+"timeout": HEALTH_CHECK_TIMEOUT,
+}
 
 def get_build_config():
-    """Returns Docker build configuration."""
-    return {
-        "dockerfile": "{{docker.dockerfile}}",
-        "context": "{{docker.context}}",
-        "platform": "{{docker.platform}}",
-        "cache_from": [],
-    }
+"""Returns Docker build configuration."""
+return {
+"dockerfile": "{{docker.dockerfile}}",
+"context": "{{docker.context}}",
+"platform": "{{docker.platform}}",
+"cache_from": [],
+}
 
 def get_runtime_config():
-    """Returns runtime command configuration."""
-    return {
-        "backend": {
-            "command": "{{runtime.backend.command}}",
-            "args": {{starlarkArray runtime.backend.args}},
-            "env": {{starlark runtime.backend.env}},
-        },
-        "frontend": {
-            "command": "{{runtime.frontend.command}}",
-            "args": {{starlarkArray runtime.frontend.args}},
-            "env": {{starlark runtime.frontend.env}},
-        },
-    }
+"""Returns runtime command configuration."""
+return {
+"backend": {
+"command": "{{runtime.backend.command}}",
+"args": {{starlarkArray runtime.backend.args}},
+"env": {{starlark runtime.backend.env}},
+},
+"frontend": {
+"command": "{{runtime.frontend.command}}",
+"args": {{starlarkArray runtime.frontend.args}},
+"env": {{starlark runtime.frontend.env}},
+},
+}
 
 def get_service_defaults():
-    """Returns complete service defaults."""
-    return {
-        "port": get_port_config(),
-        "health": get_health_check_config(),
-        "build": get_build_config(),
-        "runtime": get_runtime_config(),
-    }
+"""Returns complete service defaults."""
+return {
+"port": get_port_config(),
+"health": get_health_check_config(),
+"build": get_build_config(),
+"runtime": get_runtime_config(),
+}
 
 def validate_service_defaults(config):
-    """
-    Validates service configuration against defaults.
-    
-    Args:
-        config: Service configuration dict
-    
-    Returns:
-        Dict with validation results
-    """
-    warnings = []
-    errors = []
-    
-    # Validate port allocation
-    if "port" in config:
-        port = config["port"]
-        if port < 1024:
-            errors.append("Port {} is in reserved range (< 1024)".format(port))
-        elif port > 65535:
-            errors.append("Port {} exceeds maximum (65535)".format(port))
-    
+"""
+Validates service configuration against defaults.
+
+Args:
+config: Service configuration dict
+
+Returns:
+Dict with validation results
+"""
+warnings = []
+errors = []
+
+# Validate port allocation
+if "port" in config:
+port = config["port"]
+if port < 1024: errors.append("Port {} is in reserved range (< 1024)".format(port)) elif port> 65535:
+    errors.append("Port {} exceeds maximum (65535)".format(port))
+
     # Validate health check path
     if "healthCheckPath" in config:
-        path = config["healthCheckPath"]
-        if not path.startswith("/"):
-            errors.append("Health check path must start with /: {}".format(path))
-    
+    path = config["healthCheckPath"]
+    if not path.startswith("/"):
+    errors.append("Health check path must start with /: {}".format(path))
+
     return {
-        "valid": len(errors) == 0,
-        "errors": errors,
-        "warnings": warnings,
+    "valid": len(errors) == 0,
+    "errors": errors,
+    "warnings": warnings,
     }
 
-# Export public API
-__all__ = [
+    # Export public API
+    __all__ = [
     "get_port_config",
     "get_service_port",
     "get_default_port",
@@ -224,4 +222,4 @@ __all__ = [
     "HEALTH_CHECK_TIMEOUT",
     "NAMING_PATTERNS",
     "TRAEFIK_CONFIG",
-]
+    ]

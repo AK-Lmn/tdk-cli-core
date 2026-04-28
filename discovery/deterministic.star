@@ -160,11 +160,11 @@ def validate_deterministic_env():
 # DETERMINISTIC MANIFEST GENERATION
 # =============================================================================
 
-def deterministic_yaml_generation(service_paths):
+def deterministic_yaml_generation(resource_paths):
     """Generate YAML manifests deterministically from JSON manifests.
     
     Args:
-        service_paths: List of service.json paths
+        resource_paths: List of service.json paths
         
     Returns:
         List of generated/verified YAML paths
@@ -172,7 +172,7 @@ def deterministic_yaml_generation(service_paths):
     yaml_paths = []
     
     # Process in sorted order for determinism
-    for service_json in sorted(service_paths):
+    for service_json in sorted(resource_paths):
         service_dir = os.path.dirname(service_json)
         service_yaml = os.path.join(service_dir, 'service.yaml')
         

@@ -166,16 +166,16 @@ class TestCacheOperations:
     
     # Helper methods to simulate cache operations
     def _add_to_cache(self, cache, path, service):
-        if "service_path_map" not in cache:
-            cache["service_path_map"] = {}
-        cache["service_path_map"][path] = service
+        if "resource_path_map" not in cache:
+            cache["resource_path_map"] = {}
+        cache["resource_path_map"][path] = service
     
     def _get_from_cache(self, cache, path):
-        return cache.get("service_path_map", {}).get(path)
+        return cache.get("resource_path_map", {}).get(path)
     
     def _remove_from_cache(self, cache, path):
-        if path in cache.get("service_path_map", {}):
-            del cache["service_path_map"][path]
+        if path in cache.get("resource_path_map", {}):
+            del cache["resource_path_map"][path]
     
     def _has_in_cache(self, cache, path):
-        return path in cache.get("service_path_map", {})
+        return path in cache.get("resource_path_map", {})

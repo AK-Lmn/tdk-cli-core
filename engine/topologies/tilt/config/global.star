@@ -15,7 +15,7 @@ load(
     "OPTIONAL_INFRA_EXPORT",
     "SERVICE_DEPENDENCIES",
     "SERVICE_ALIASES",
-    "SERVICE_PATH_MAP",
+    "RESOURCE_PATH_MAP",
     "get_platform_libs_export",
     "get_product_libs_export",
 )
@@ -27,7 +27,7 @@ def build_config_context():
         "library_roots": GLOBAL_CONFIG_EXPORT["library_roots"],
         "verdaccio_url_local": GLOBAL_CONFIG_EXPORT["verdaccio_url_local"],
         "verdaccio_url_docker": GLOBAL_CONFIG_EXPORT["verdaccio_url_docker"],
-        "service_path_map": SERVICE_PATH_MAP,
+        "resource_path_map": RESOURCE_PATH_MAP,
         "database": GLOBAL_CONFIG_EXPORT["database"],
     }
 
@@ -47,7 +47,7 @@ Config = struct(
     OPTIONAL_INFRA = OPTIONAL_INFRA_EXPORT,
     SERVICE_DEPENDENCIES = SERVICE_DEPENDENCIES,
     SERVICE_ALIASES = SERVICE_ALIASES,
-    SERVICE_PATH_MAP = SERVICE_PATH_MAP,
+    RESOURCE_PATH_MAP = RESOURCE_PATH_MAP,
     get_platform_libs = get_platform_libs_export,
     get_product_libs = get_product_libs_export,
 )

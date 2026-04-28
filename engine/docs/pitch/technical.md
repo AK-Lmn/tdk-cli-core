@@ -426,13 +426,13 @@ def discover_services(root_path, max_depth=5):
 ## Hot Reload
 
 ```python
-def watch_and_regenerate(service_path, ctx):
+def watch_and_regenerate(resource_path, ctx):
     """Watch for changes and regenerate"""
     
     # Files to watch
     watch_paths = [
-        service_path + '/service.json',
-        service_path + '/package.json',
+        resource_path + '/service.json',
+        resource_path + '/package.json',
     ]
     
     # Start watching
@@ -442,7 +442,7 @@ def watch_and_regenerate(service_path, ctx):
         print(f"📝 Change detected: {changed_file}")
         
         # Reload manifest
-        manifest = load_json(service_path + '/service.json')
+        manifest = load_json(resource_path + '/service.json')
         
         # Rebuild context (system state may have changed)
         ctx = build_context()

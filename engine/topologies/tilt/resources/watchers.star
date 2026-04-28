@@ -34,10 +34,10 @@ def setup_package_json_watchers(services, should_enable):
         if not should_enable(app_service['name']):
             continue
             
-        service_path = app_service['path']
+        resource_path = app_service['path']
         
         for resource in app_service.get('resources', []):
-            resource_path = service_path + '/' + resource['name']
+            resource_path = resource_path + '/' + resource['name']
             pkg_json_path = resource_path + '/package.json'
             
             if pkg_json_path not in watched_paths:

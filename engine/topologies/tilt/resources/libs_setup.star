@@ -9,7 +9,7 @@ load('../../platform/docker/constants.star', 'PlatformDockerConstants')
 
 _get_lib_path_from_package_name = LibsPaths.get_path
 _read_package_json_deps = LibsPaths.read_package_json_deps
-_get_service_paths_for_focus = LibsPaths.get_service_paths
+_get_resource_paths_for_focus = LibsPaths.get_resource_paths
 _discover_service_libraries = LibsDiscovery.discover_service_libs
 _define_library_resource = LibsResourceDefinition.define_resource
 
@@ -38,15 +38,15 @@ def setup_libraries(ctx, should_enable_fn, ddd_libs, platform_libs, product_libs
     if focus_enabled_all != None:
         print("📚 Focus mode: Scanning service dependencies...")
 
-        service_paths = _get_service_paths_for_focus(ctx, focus_enabled_all)
+        resource_paths = _get_resource_paths_for_focus(ctx, focus_enabled_all)
 
-        if len(service_paths) == 0:
+        if len(resource_paths) == 0:
             print("   ⚠️  No service paths found for focus targets")
             return library_map
 
-        print("   🔍 Scanning " + str(len(service_paths)) + " services")
+        print("   🔍 Scanning " + str(len(resource_paths)) + " services")
 
-        needed_libs = _discover_service_libraries(ctx, service_paths)
+        needed_libs = _discover_service_libraries(ctx, resource_paths)
 
         if len(needed_libs) == 0:
             print("   ℹ️  No internal library dependencies found")
@@ -72,10 +72,10 @@ def setup_libraries(ctx, should_enable_fn, ddd_libs, platform_libs, product_libs
                     lib_ts_deps[dep_pkg] = dep_info[0]
 
             consumer_paths = []
-            for service_path in service_paths:
-                service_internal_deps = _read_package_json_deps(ctx, service_path + '/package.json')
+            for resource_path in resource_paths:
+                service_internal_deps = _read_package_json_deps(ctx, resource_path + '/package.json')
                 if pkg_name in service_internal_deps:
-                    consumer_paths.append(service_path)
+                    consumer_paths.append(resource_path)
 
             if generate_npmrc:
                 generate_npmrc(lib_path)

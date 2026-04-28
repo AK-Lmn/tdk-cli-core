@@ -18,7 +18,7 @@ Libs = struct(
     # Dependency discovery
     discover_service_libs = LibsDiscovery.discover_service_libs,
     discover_deps_from_json = LibsDiscovery.discover_deps_from_json,
-    get_service_paths = LibsPaths.get_service_paths,
+    get_resource_paths = LibsPaths.get_resource_paths,
     get_deps_mapping = LibsPaths.get_deps_mapping,
 
     # Resource definition

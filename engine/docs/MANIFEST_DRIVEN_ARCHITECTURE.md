@@ -48,7 +48,7 @@ for resource in service_config.get('resources', []):
     config_gen_resource = ManifestResource.create_config_resource(
         service_name,
         resource,
-        service_path,
+        resource_path,
         manifest,
         backend_manifest,
         ctx
@@ -73,7 +73,7 @@ for resource in service_config.get('resources', []):
 def create_manifest_config_resource(
     service_name,
     resource_config,
-    service_path,
+    resource_path,
     manifest,
     backend_manifest,
     ctx

@@ -238,11 +238,11 @@ Drop a `service.json` anywhere. Platform finds it automatically.
 ## Hot Reload
 
 ```python
-def watch_and_regenerate(service_path):
-    watch([service_path + '/service.json'])
+def watch_and_regenerate(resource_path):
+    watch([resource_path + '/service.json'])
     
     on_change:
-        manifest = load_json(service_path + '/service.json')
+        manifest = load_json(resource_path + '/service.json')
         ctx = build_context()  # Fresh context with all services
         configs = generate_for_manifest(manifest, ctx)
         atomic_write(configs)

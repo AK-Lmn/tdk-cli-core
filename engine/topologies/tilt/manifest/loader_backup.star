@@ -108,29 +108,29 @@ def load_from_file(path):
         }
     )
 
-def load_from_path(service_path):
+def load_from_path(resource_path):
     """
     Load manifest from service directory (auto-detects manifest file).
     
     Tries YAML first (.yaml) for better human readability, then falls back to JSON (.json).
     
     Args:
-        service_path: Path to service directory
+        resource_path: Path to service directory
     
     Returns:
         Same as load_from_file
     """
     # Normalize path
-    service_path = _canonicalize_path(service_path)
+    resource_path = _canonicalize_path(resource_path)
     
     # Try YAML first (better for humans - supports comments, easier to read)
-    yaml_path = service_path + "/" + MANIFEST_FILENAME_YAML
+    yaml_path = resource_path + "/" + MANIFEST_FILENAME_YAML
     result = load_from_file(yaml_path)
     if not result.error:
         return result
     
     # Fall back to JSON (legacy format)
-    json_path = service_path + "/" + MANIFEST_FILENAME
+    json_path = resource_path + "/" + MANIFEST_FILENAME
     return load_from_file(json_path)
 
 def load_all(services_root, filters=None):
@@ -301,18 +301,18 @@ def _canonicalize_path(path):
     
     return path
 
-def get_manifest_path(service_path):
+def get_manifest_path(resource_path):
     """
     Get the expected manifest file path for a service directory.
     
     Args:
-        service_path: Service directory path
+        resource_path: Service directory path
     
     Returns:
         Expected manifest file path
     """
-    service_path = _canonicalize_path(service_path)
-    return service_path + "/" + MANIFEST_FILENAME
+    resource_path = _canonicalize_path(resource_path)
+    return resource_path + "/" + MANIFEST_FILENAME
 
 def is_cached(path):
     """

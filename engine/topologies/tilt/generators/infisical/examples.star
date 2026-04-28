@@ -55,7 +55,7 @@ def example_path_planning():
     """Example: Plan Infisical folder structure."""
     
     # Plan a single service path
-    user_path = Infisical.Paths.plan_service_path(
+    user_path = Infisical.Paths.plan_resource_path(
         service_name="user-management-backend",
         service_type="backend",
     )
@@ -63,7 +63,7 @@ def example_path_planning():
     print("Subpaths:", user_path["subpaths"])
     
     # Plan multiple services at once
-    batch_paths = Infisical.Paths.plan_batch_service_paths([
+    batch_paths = Infisical.Paths.plan_batch_resource_paths([
         "user-management-backend",
         "order-management-backend",
         "team-management-backend",
@@ -227,7 +227,7 @@ def configure_service_with_secrets(service_name):
     
     if not config:
         # Plan path for unknown service
-        path_plan = PathManager.plan_service_path(service_name)
+        path_plan = PathManager.plan_resource_path(service_name)
         config = Secrets.configure_service(
             service_name=service_name,
             secret_path=path_plan["full_path"],

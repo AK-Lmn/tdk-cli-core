@@ -82,7 +82,7 @@ def _test_convert_to_resource():
         'stack': 'user',
         'port': 4000,
         'syncs': ['src', 'prisma'],
-        '_service_path': 'services/product/user/user-management-backend',
+        '_resource_path': 'services/product/user/user-management-backend',
         '_manifest': {'runtime': 'bun'},
     }
     
@@ -92,7 +92,7 @@ def _test_convert_to_resource():
     assert_equal(4000, resource['port'], "Should preserve port")
     assert_equal('user', resource['stack'], "Should preserve stack")
     assert_true('frontend' not in resource or not resource['frontend'], "Should not mark as frontend")
-    assert_equal('services/product/user/user-management-backend', resource['_service_path'], "Should preserve service path")
+    assert_equal('services/product/user/user-management-backend', resource['_resource_path'], "Should preserve service path")
     
     # Test frontend conversion
     frontend_manifest = {
@@ -101,7 +101,7 @@ def _test_convert_to_resource():
         'stack': 'user',
         'port': 3000,
         'backendName': 'user-management-backend',
-        '_service_path': 'services/product/user/user-management-frontend',
+        '_resource_path': 'services/product/user/user-management-frontend',
     }
     
     resource = Manifest.convert_to_resource(frontend_manifest)

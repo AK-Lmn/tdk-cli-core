@@ -17,7 +17,7 @@
 #   config = Infisical.Secrets.generate_for_service("my-service", "/services/my-service")
 #   
 #   # Plan folder structure
-#   paths = Infisical.Paths.plan_batch_service_paths(["user", "order"])
+#   paths = Infisical.Paths.plan_batch_resource_paths(["user", "order"])
 #   
 #   # Get machine identity
 #   machine = Infisical.Identity.generate_development_machine("dev-machine")
@@ -51,7 +51,7 @@ Infisical = struct(
     
     # Quick access to common functions
     generate_for_service=_Secrets.generate_for_service,
-    plan_service_path=_Paths.plan_service_path,
+    plan_resource_path=_Paths.plan_resource_path,
     generate_universal_auth=_Identity.generate_universal_auth,
     generate_org_config=_Org.generate_config,
 )

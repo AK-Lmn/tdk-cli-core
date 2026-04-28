@@ -504,12 +504,12 @@ def validate(manifest, context=None, level='all'):
         manifest: Manifest dict to validate
         context: Optional context dict:
             - all_manifests: List of all manifests for cross-validation
-            - service_path: Path for error context
+            - resource_path: Path for error context
             - strict: Boolean for strict mode
         level: Validation level
             - 'schema': Structure and types only
             - 'values': Value constraints
-            - 'dependencies': Cross-service dependencies
+            - 'dependencies': Cross-resource dependencies
             - 'all': All validations (default)
     
     Returns:

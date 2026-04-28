@@ -31,7 +31,7 @@ load("../common/utils.star", "LIBRARY_ROOTS")
 # 1. Docker Path Alias Validator
 # =============================================================================
 
-def validate_docker_path_aliases(service_path, manifest, library_roots):
+def validate_docker_path_aliases(resource_path, manifest, library_roots):
     """
     Validates that TypeScript path aliases in Docker tsconfig will resolve correctly.
     
@@ -54,7 +54,7 @@ def validate_docker_path_aliases(service_path, manifest, library_roots):
     # Check if this is a frontend service (most affected)
     if app_type == "frontend":
         # Check for internal dependencies that would break Docker build
-        package_json_path = service_path + "/package.json"
+        package_json_path = resource_path + "/package.json"
         if os.path.exists(package_json_path):
             package_json = read_json(package_json_path)
             deps = package_json.get("dependencies", {})
@@ -96,12 +96,12 @@ def validate_docker_path_aliases(service_path, manifest, library_roots):
         service_name=service_name,
     )
 
-def generate_docker_path_validation_report(service_path, manifest, write_fn=None):
+def generate_docker_path_validation_report(resource_path, manifest, write_fn=None):
     """
     Generates a validation report for Docker path aliases.
     Called during config-gen to catch issues before Docker build.
     """
-    result = validate_docker_path_aliases(service_path, manifest, LIBRARY_ROOTS)
+    result = validate_docker_path_aliases(resource_path, manifest, LIBRARY_ROOTS)
     
     if not result.is_valid:
         report = {
@@ -131,7 +131,7 @@ def generate_docker_path_validation_report(service_path, manifest, write_fn=None
 # 2. Dependency Graph Validator
 # =============================================================================
 
-def validate_dependency_graph(service_path, manifest, all_services):
+def validate_dependency_graph(resource_path, manifest, all_services):
     """
     Validates that all declared dependencies actually exist.
     
@@ -151,7 +151,7 @@ def validate_dependency_graph(service_path, manifest, all_services):
     service_name = manifest.get("appName", "unknown")
     
     # Check package.json dependencies
-    package_json_path = service_path + "/package.json"
+    package_json_path = resource_path + "/package.json"
     if os.path.exists(package_json_path):
         package_json = read_json(package_json_path)
         deps = package_json.get("dependencies", {})
@@ -212,11 +212,11 @@ def validate_dependency_graph(service_path, manifest, all_services):
         service_name=service_name,
     )
 
-def generate_dependency_validation_report(service_path, manifest, all_services, write_fn=None):
+def generate_dependency_validation_report(resource_path, manifest, all_services, write_fn=None):
     """
     Generates a validation report for service dependencies.
     """
-    result = validate_dependency_graph(service_path, manifest, all_services)
+    result = validate_dependency_graph(resource_path, manifest, all_services)
     
     if not result.is_valid:
         report = {
@@ -344,7 +344,7 @@ def generate_db_readiness_check(service_name, db_name, db_config, write_fn=None)
 # 4. Package Publish Validator
 # =============================================================================
 
-def validate_package_publishing(service_path, manifest, verdaccio_url):
+def validate_package_publishing(resource_path, manifest, verdaccio_url):
     """
     Validates that all @{npm_scope} dependencies are published to Verdaccio.
     
@@ -363,7 +363,7 @@ def validate_package_publishing(service_path, manifest, verdaccio_url):
     
     service_name = manifest.get("appName", "unknown")
     
-    package_json_path = service_path + "/package.json"
+    package_json_path = resource_path + "/package.json"
     if not os.path.exists(package_json_path):
         return struct(
             is_valid=True,
@@ -421,11 +421,11 @@ def validate_package_publishing(service_path, manifest, verdaccio_url):
         service_name=service_name,
     )
 
-def generate_package_publish_report(service_path, manifest, verdaccio_url, write_fn=None):
+def generate_package_publish_report(resource_path, manifest, verdaccio_url, write_fn=None):
     """
     Generates a report of package publishing status.
     """
-    result = validate_package_publishing(service_path, manifest, verdaccio_url)
+    result = validate_package_publishing(resource_path, manifest, verdaccio_url)
     
     if not result.is_valid or result.version_mismatches:
         report = {
@@ -462,7 +462,7 @@ def generate_package_publish_report(service_path, manifest, verdaccio_url, write
 # 5. Environment Variable Validator
 # =============================================================================
 
-def validate_environment_variables(service_path, manifest, required_vars):
+def validate_environment_variables(resource_path, manifest, required_vars):
     """
     Validates that all required environment variables are defined.
     
@@ -482,7 +482,7 @@ def validate_environment_variables(service_path, manifest, required_vars):
     
     # Check for .env files
     for env_file in [".env", ".env.local", ".env.docker"]:
-        env_path = "{}/{}".format(service_path, env_file)
+        env_path = "{}/{}".format(resource_path, env_file)
         if os.path.exists(env_path):
             env_files.append(env_file)
     
@@ -503,11 +503,11 @@ def validate_environment_variables(service_path, manifest, required_vars):
         service_name=service_name,
     )
 
-def generate_env_validation_report(service_path, manifest, required_vars, write_fn=None):
+def generate_env_validation_report(resource_path, manifest, required_vars, write_fn=None):
     """
     Generates environment variable validation report.
     """
-    result = validate_environment_variables(service_path, manifest, required_vars)
+    result = validate_environment_variables(resource_path, manifest, required_vars)
     
     if not result.is_valid:
         report = {
@@ -538,7 +538,7 @@ def generate_env_validation_report(service_path, manifest, required_vars, write_
 # 6. Service Health Pre-Flight Validator
 # =============================================================================
 
-def generate_service_health_check(service_name, service_path, manifest, checks):
+def generate_service_health_check(service_name, resource_path, manifest, checks):
     """
     Generates a comprehensive pre-flight health check script.
     
@@ -608,13 +608,13 @@ echo "✅ All health checks passed for {}"
     
     return script
 
-def generate_health_check_resource(service_path, service_name, manifest, write_fn=None):
+def generate_health_check_resource(resource_path, service_name, manifest, write_fn=None):
     """
     Generates health check files and optionally writes them.
     """
     checks = {}  # Could be expanded with more check types
     
-    script = generate_service_health_check(service_name, service_path, manifest, checks)
+    script = generate_service_health_check(service_name, resource_path, manifest, checks)
     
     if write_fn:
         write_fn("health-check.sh", script)
@@ -625,7 +625,7 @@ def generate_health_check_resource(service_path, service_name, manifest, write_f
 # 7. Shared Package Copier (for Docker Context)
 # =============================================================================
 
-def generate_shared_package_copy_list(service_path, manifest):
+def generate_shared_package_copy_list(resource_path, manifest):
     """
     Generates a list of shared packages that need to be copied to Docker context.
     
@@ -640,7 +640,7 @@ def generate_shared_package_copy_list(service_path, manifest):
     
     service_name = manifest.get("appName", "unknown")
     
-    package_json_path = service_path + "/package.json"
+    package_json_path = resource_path + "/package.json"
     if not os.path.exists(package_json_path):
         return packages_to_copy
     
@@ -672,14 +672,14 @@ def generate_shared_package_copy_list(service_path, manifest):
     
     return packages_to_copy
 
-def generate_docker_shared_packages_config(service_path, manifest, write_fn=None):
+def generate_docker_shared_packages_config(resource_path, manifest, write_fn=None):
     """
     Generates configuration for copying shared packages to Docker context.
     
     This creates a JSON file that can be used by a local_resource to copy
     packages before Docker build.
     """
-    packages = generate_shared_package_copy_list(service_path, manifest)
+    packages = generate_shared_package_copy_list(resource_path, manifest)
     
     config = {
         "timestamp": "now",
@@ -703,7 +703,7 @@ def generate_docker_shared_packages_config(service_path, manifest, write_fn=None
 # Master Validation Orchestrator
 # =============================================================================
 
-def run_all_validations(service_path, manifest, all_services, global_config, write_fn=None):
+def run_all_validations(resource_path, manifest, all_services, global_config, write_fn=None):
     """
     Runs all validators and generates a comprehensive report.
     
@@ -714,14 +714,14 @@ def run_all_validations(service_path, manifest, all_services, global_config, wri
     
     # 1. Docker Path Validation
     reports["docker_paths"] = generate_docker_path_validation_report(
-        service_path, manifest, write_fn
+        resource_path, manifest, write_fn
     )
     if reports["docker_paths"].get("status") == "FAILED":
         all_valid = False
     
     # 2. Dependency Validation
     reports["dependencies"] = generate_dependency_validation_report(
-        service_path, manifest, all_services, write_fn
+        resource_path, manifest, all_services, write_fn
     )
     if reports["dependencies"].get("status") == "FAILED":
         all_valid = False
@@ -738,26 +738,26 @@ def run_all_validations(service_path, manifest, all_services, global_config, wri
     # 4. Package Publishing Validation
     verdaccio_url = global_config.get("verdaccio_url_local", PlatformDockerConstants.VERDACCIO_URL_LOCAL)
     reports["packages"] = generate_package_publish_report(
-        service_path, manifest, verdaccio_url, write_fn
+        resource_path, manifest, verdaccio_url, write_fn
     )
     # Warnings don't fail validation
     
     # 5. Environment Variable Validation
     required_vars = ["VERDACCIO_URL_DOCKER", "TILT_ENV"]
     reports["environment"] = generate_env_validation_report(
-        service_path, manifest, required_vars, write_fn
+        resource_path, manifest, required_vars, write_fn
     )
     if reports["environment"].get("status") == "FAILED":
         all_valid = False
     
     # 6. Health Check Script
     reports["health_check"] = generate_health_check_resource(
-        service_path, manifest.get("appName"), manifest, write_fn
+        resource_path, manifest.get("appName"), manifest, write_fn
     )
     
     # 7. Shared Package Copy Config
     reports["shared_packages"] = generate_docker_shared_packages_config(
-        service_path, manifest, write_fn
+        resource_path, manifest, write_fn
     )
     
     # Master Report

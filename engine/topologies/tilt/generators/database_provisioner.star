@@ -546,7 +546,7 @@ def provision_all_databases(services, db_config=None, write_fn=None):
         
         if db_name:
             service_name = service.get("name", manifest.get("appName", "unknown"))
-            service_path = service.get("path", "")
+            resource_path = service.get("path", "")
             
             config = generate_database_provisioning_resource(
                 service_name,

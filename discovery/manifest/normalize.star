@@ -67,10 +67,10 @@ def _load_and_normalize(manifest_path, warn_only=True):
         fail("Manifest validation failed:\n" + "\n".join(issues))
     
     # Extract service path from manifest path
-    service_path = manifest_path.rsplit('/', 1)[0]
+    resource_path = manifest_path.rsplit('/', 1)[0]
     
     # Apply smart defaults
-    normalized = apply_manifest_defaults(manifest, service_path)
+    normalized = apply_manifest_defaults(manifest, resource_path)
     
     # Compute additional fields for registry compatibility
     app_name = normalized.get('appName', '')
@@ -84,7 +84,7 @@ def _load_and_normalize(manifest_path, warn_only=True):
     # 🎯 AUTO-DETECT has_migrator
     has_migrator = 'prisma' in features
     if not has_migrator:
-        has_migrator = check_prisma_folder(service_path)
+        has_migrator = check_prisma_folder(resource_path)
     normalized['has_migrator'] = has_migrator
     
     # 🎯 AUTO-COMPUTE syncs if not specified

@@ -148,7 +148,7 @@ def normalize(manifest, resource_path=""):
     # Ensure traefik has pathPrefix - REQUIRED field
     if not normalized['traefik'].get('pathPrefix'):
         app_name = normalized.get('appName', 'unknown')
-        service_path = normalized.get('_service_path', 'unknown')
+        resource_path = normalized.get('_resource_path', 'unknown')
         
         # Fail loudly - pathPrefix is required
         error_msg = """MANIFEST ERROR: Missing required 'traefik.pathPrefix' in {}

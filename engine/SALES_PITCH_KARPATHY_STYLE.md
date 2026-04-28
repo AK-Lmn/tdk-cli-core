@@ -345,11 +345,11 @@ def discover_services(root_path):
 
 ```python
 # Watch for changes
-def watch_and_regenerate(service_path):
-    watch([service_path + '/service.json'])
+def watch_and_regenerate(resource_path):
+    watch([resource_path + '/service.json'])
     
     on_change:
-        manifest = load_json(service_path + '/service.json')
+        manifest = load_json(resource_path + '/service.json')
         configs = generate_for_manifest(manifest, get_context())
         atomic_write(configs)
         reload_dependent_services(manifest)

@@ -10,12 +10,12 @@ load("../resources/orchestrator/generators/manifest_resource.star", "ManifestRes
 load("../manifest/loader.star", "ManifestLoader")
 load("../../specs/specs/TILT_SERVICE_DEFAULTS.star", "BASE_PORT_BACKEND")
 
-def register_new_service(service_path, manifest, ctx, auto_init=True, verbose=False):
+def register_new_service(resource_path, manifest, ctx, auto_init=True, verbose=False):
     """
     Register a newly discovered service and create its Tilt resources.
     
     Args:
-        service_path: Path to service directory
+        resource_path: Path to service directory
         manifest: Loaded manifest dict
         ctx: Tilt context with generators and config
         auto_init: Whether to auto-init resources
@@ -32,12 +32,12 @@ def register_new_service(service_path, manifest, ctx, auto_init=True, verbose=Fa
         print("🚀 Registering new service: {}".format(service_name))
     
     # Normalize manifest to discovery format
-    resource = _normalize_manifest(manifest, service_path)
+    resource = _normalize_manifest(manifest, resource_path)
     
     # Build service structure
     service_dict = {
         "name": service_name,
-        "path": service_path,
+        "path": resource_path,
         "labels": ["app." + service_name],
         "resources": [resource],
     }
@@ -54,7 +54,7 @@ def register_new_service(service_path, manifest, ctx, auto_init=True, verbose=Fa
     config_gen_name = _create_config_gen_resource(
         service_name,
         resource,
-        service_path,
+        resource_path,
         manifest,
         ctx,
         auto_init
@@ -65,7 +65,7 @@ def register_new_service(service_path, manifest, ctx, auto_init=True, verbose=Fa
     docker_resource = _create_docker_resource(
         service_name,
         resource,
-        service_path,
+        resource_path,
         manifest,
         ctx
     )
@@ -77,7 +77,7 @@ def register_new_service(service_path, manifest, ctx, auto_init=True, verbose=Fa
         frontend_resources = _create_frontend_resources(
             service_name,
             resource,
-            service_path,
+            resource_path,
             manifest,
             ctx,
             auto_init
@@ -97,7 +97,7 @@ def register_new_service(service_path, manifest, ctx, auto_init=True, verbose=Fa
         count=len(created_resources)
     )
 
-def _create_config_gen_resource(service_name, resource, service_path, manifest, ctx, auto_init):
+def _create_config_gen_resource(service_name, resource, resource_path, manifest, ctx, auto_init):
     """Create config-gen resource for a service."""
     # Get backend manifest if frontend
     backend_manifest = None
@@ -115,7 +115,7 @@ def _create_config_gen_resource(service_name, resource, service_path, manifest, 
     config_gen_name = ManifestResource.create_config_resource(
         service_name,
         resource_config,
-        service_path,
+        resource_path,
         manifest,
         backend_manifest,
         ctx
@@ -123,14 +123,14 @@ def _create_config_gen_resource(service_name, resource, service_path, manifest, 
     
     return config_gen_name
 
-def _create_docker_resource(service_name, resource, service_path, manifest, ctx):
+def _create_docker_resource(service_name, resource, resource_path, manifest, ctx):
     """Create Docker build resource for a service."""
     # Docker resource is created through the orchestrator
     # This is handled when the config-gen resource runs
     # Return the expected resource name for tracking
     return service_name
 
-def _create_frontend_resources(service_name, resource, service_path, manifest, ctx, auto_init):
+def _create_frontend_resources(service_name, resource, resource_path, manifest, ctx, auto_init):
     """Create additional resources for frontend services."""
     resources = []
     
@@ -150,12 +150,12 @@ def _get_backend_manifest(backend_name):
                     return res.get("_manifest")
     return None
 
-def validate_service_structure(service_path):
+def validate_service_structure(resource_path):
     """
     Validate that a service has complete structure before registration.
     
     Args:
-        service_path: Path to service directory
+        resource_path: Path to service directory
     
     Returns:
         Struct with valid status and missing files
@@ -164,7 +164,7 @@ def validate_service_structure(service_path):
     missing = []
     
     for filename in required_files:
-        filepath = service_path + "/" + filename
+        filepath = resource_path + "/" + filename
         result = local(
             "test -f {} && echo 'yes' || echo 'no'".format(filepath),
             quiet=True,

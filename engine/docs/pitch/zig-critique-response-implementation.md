@@ -57,7 +57,7 @@ def build_explicit_context(manifest, all_services):
         # EXPLICIT: Every field declared here
         manifest = manifest,
         service_name = manifest.get("appName"),
-        service_path = SPEC.SERVICES_DIR + "/" + manifest.get("appName"),
+        resource_path = SPEC.SERVICES_DIR + "/" + manifest.get("appName"),
         port = manifest.get("port"),
         dependencies = resolve_explicit_dependencies(
             manifest.get("internalDependencies", []),
@@ -146,7 +146,7 @@ def generate_replica_config(service_name, manifest):
 
 ```starlark
 # BEFORE: Runtime path discovery (non-hermetic)
-service_path = discover_service_path(service_name)  # Where does this look?
+resource_path = discover_resource_path(service_name)  # Where does this look?
 
 # AFTER: EXPLICIT paths in spec.master (hermetic-ish)
 SPEC = struct(
@@ -158,7 +158,7 @@ SPEC = struct(
 )
 
 # Function using explicit paths:
-def get_service_path(service_name):
+def get_resource_path(service_name):
     """
     Path is CONSTRUCTED from constants.
     Same input → same output. Deterministic.

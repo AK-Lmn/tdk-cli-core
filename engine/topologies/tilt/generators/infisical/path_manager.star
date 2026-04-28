@@ -13,7 +13,7 @@
 #
 # Usage:
 #   load("./infisical/path_manager.star", "PathManager")
-#   paths = PathManager.plan_service_paths(["user", "order"])
+#   paths = PathManager.plan_resource_paths(["user", "order"])
 # =============================================================================
 
 def _get_timestamp():
@@ -196,7 +196,7 @@ def _is_valid_path(path):
 # Path Planning
 # =============================================================================
 
-def _plan_service_path(service_name, service_type="backend", parent_path=None):
+def _plan_resource_path(service_name, service_type="backend", parent_path=None):
     """
     Plan the Infisical path for a service.
     
@@ -237,7 +237,7 @@ def _plan_service_path(service_name, service_type="backend", parent_path=None):
         "subpaths": ["{}/{}".format(validation["normalized"], sub) for sub in SERVICE_SUBPATHS if sub],
     }
 
-def _plan_batch_service_paths(service_names, service_type="backend", parent_path=None):
+def _plan_batch_resource_paths(service_names, service_type="backend", parent_path=None):
     """
     Plan paths for multiple services.
     
@@ -252,7 +252,7 @@ def _plan_batch_service_paths(service_names, service_type="backend", parent_path
     results = {}
     
     for name in service_names:
-        results[name] = _plan_service_path(name, service_type, parent_path)
+        results[name] = _plan_resource_path(name, service_type, parent_path)
     
     return results
 
@@ -306,7 +306,7 @@ def _plan_organization_structure(org_name, service_names=None):
     
     # Service paths
     if service_names:
-        structure["services"] = _plan_batch_service_paths(service_names)
+        structure["services"] = _plan_batch_resource_paths(service_names)
     
     return structure
 
@@ -431,11 +431,11 @@ KNOWN_SERVICE_PATHS = {
     "nats-connector": "/platform/nats-connector",
 }
 
-def _get_known_service_path(service_name):
+def _get_known_resource_path(service_name):
     """Get predefined path for a known service."""
     return KNOWN_SERVICE_PATHS.get(service_name)
 
-def _register_service_path(service_name, path):
+def _register_resource_path(service_name, path):
     """Register a new service path."""
     normalized = _normalize_path(path)
     KNOWN_SERVICE_PATHS[service_name] = normalized
@@ -447,8 +447,8 @@ def _register_service_path(service_name, path):
 
 PathManager = struct(
     # Path planning
-    plan_service_path=_plan_service_path,
-    plan_batch_service_paths=_plan_batch_service_paths,
+    plan_resource_path=_plan_resource_path,
+    plan_batch_resource_paths=_plan_batch_resource_paths,
     plan_organization_structure=_plan_organization_structure,
     
     # Validation
@@ -463,8 +463,8 @@ PathManager = struct(
     path_to_env_var=_path_to_env_var,
     
     # Registry
-    get_known_service_path=_get_known_service_path,
-    register_service_path=_register_service_path,
+    get_known_resource_path=_get_known_resource_path,
+    register_resource_path=_register_resource_path,
     known_paths=KNOWN_SERVICE_PATHS,
     
     # Constants

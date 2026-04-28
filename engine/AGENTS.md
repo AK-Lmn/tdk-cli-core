@@ -115,7 +115,7 @@ for resource in service_config.get('resources', []):
     config_gen_resource = ManifestResource.create_config_resource(
         service_name,
         resource,
-        service_path,
+        resource_path,
         manifest,
         backend_manifest,
         ctx
@@ -143,7 +143,7 @@ _DISCOVERY_CACHE = {
     "app_services": [],           # All discovered services
     "service_dependencies": {}, # Dependency graph
     "service_aliases": {},       # Name → path mapping
-    "service_path_map": {},      # Path → service mapping
+    "resource_path_map": {},      # Path → service mapping
 }
 
 def get_app_services():
@@ -338,9 +338,9 @@ def generate_traefik_labels(service_name, port, host, path_prefix):
 **Library Discovery & Setup:**
 ```starlark
 # .tilt/topologies/tilt/resources/deps.star
-def discover_service_libraries(ctx, service_path):
+def discover_service_libraries(ctx, resource_path):
     """Discovers @tdk/* dependencies from package.json"""
-    package_json = read_json(service_path + "/package.json")
+    package_json = read_json(resource_path + "/package.json")
     deps = package_json.get("dependencies", {})
     
     return [

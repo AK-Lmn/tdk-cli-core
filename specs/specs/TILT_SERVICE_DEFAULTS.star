@@ -30,30 +30,30 @@ HEALTH_CHECK_READY = "/health/ready"
 HEALTH_CHECK_TIMEOUT = 30
 
 # File watch ignore patterns (to prevent fsnotify buffer overflow)
-def get_filewatch_ignore_patterns(service_path="."):
+def get_filewatch_ignore_patterns(resource_path="."):
     """
     Returns list of file patterns to ignore for Tilt filewatch.
     
     Args:
-        service_path: Base path of the service
+        resource_path: Base path of the service
     
     Returns:
         List of patterns to ignore
     """
     # Common directories that cause fsnotify buffer overflow
     ignores = [
-        service_path + "/node_modules",
-        service_path + "/dist",
-        service_path + "/build",
-        service_path + "/.git",
-        service_path + "/.prisma",
-        service_path + "/.turbo",
-        service_path + "/coverage",
-        service_path + "/tmp",
-        service_path + "/temp",
-        service_path + "/__tests__",
-        service_path + "/test",
-        service_path + "/tests",
+        resource_path + "/node_modules",
+        resource_path + "/dist",
+        resource_path + "/build",
+        resource_path + "/.git",
+        resource_path + "/.prisma",
+        resource_path + "/.turbo",
+        resource_path + "/coverage",
+        resource_path + "/tmp",
+        resource_path + "/temp",
+        resource_path + "/__tests__",
+        resource_path + "/test",
+        resource_path + "/tests",
     ]
     return ignores
 

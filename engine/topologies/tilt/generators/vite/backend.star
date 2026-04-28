@@ -39,7 +39,7 @@ def generate_backend(manifest, write_fn=None):
     if app_type not in ['backend', 'migrator']:
         fail("Vite.backend() requires a backend manifest, got: " + app_type)
     
-    service_path = manifest.get('_servicePath', '')
+    resource_path = manifest.get('_servicePath', '')
     app_name = manifest.get('appName', 'unknown')
     port = manifest.get('port', BASE_PORT_BACKEND)
     
@@ -50,7 +50,7 @@ def generate_backend(manifest, write_fn=None):
         use_vite_node = True
     
     entry_point = manifest.get('entryPoint', './src/index.ts')
-    path_aliases = generate_backend_path_aliases(service_path, manifest)
+    path_aliases = generate_backend_path_aliases(resource_path, manifest)
     vitest_inline_deps = generate_vitest_inline_deps(manifest)
     
     if use_vite_node:
@@ -73,6 +73,6 @@ def generate_backend(manifest, write_fn=None):
         )
     
     if write_fn:
-        write_fn(service_path + VITE_BACKEND_CONFIG_PATH, config)
+        write_fn(resource_path + VITE_BACKEND_CONFIG_PATH, config)
     
     return config

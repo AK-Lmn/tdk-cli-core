@@ -46,7 +46,7 @@ def _runtime_setup(service_name, secret_path=None, service_type="backend", comma
     """
     # Auto-generate secret path if not provided
     if not secret_path:
-        path_plan = _Paths.plan_service_path(service_name, service_type)
+        path_plan = _Paths.plan_resource_path(service_name, service_type)
         secret_path = path_plan["full_path"]
     
     # Generate configuration using the Starlark generator
@@ -104,11 +104,11 @@ def _runtime_setup_simple(service_name, use_entrypoint=True):
         String with Dockerfile commands
     """
     # Try to get known path
-    secret_path = _Paths.get_known_service_path(service_name)
+    secret_path = _Paths.get_known_resource_path(service_name)
     
     if not secret_path:
         # Plan a new path
-        path_plan = _Paths.plan_service_path(service_name)
+        path_plan = _Paths.plan_resource_path(service_name)
         secret_path = path_plan["full_path"]
     
     return _runtime_setup(
@@ -167,9 +167,9 @@ def _generate_compose_env(service_name, secret_path=None, service_type="backend"
         Dict of environment variables for docker-compose
     """
     if not secret_path:
-        secret_path = _Paths.get_known_service_path(service_name)
+        secret_path = _Paths.get_known_resource_path(service_name)
         if not secret_path:
-            path_plan = _Paths.plan_service_path(service_name, service_type)
+            path_plan = _Paths.plan_resource_path(service_name, service_type)
             secret_path = path_plan["full_path"]
     
     config = _Secrets.generate_for_service(
@@ -200,10 +200,10 @@ def _resolve_secret_path(service_name, default_subpath="/database"):
     Returns:
         String with the full secret path
     """
-    base_path = _Paths.get_known_service_path(service_name)
+    base_path = _Paths.get_known_resource_path(service_name)
     
     if not base_path:
-        path_plan = _Paths.plan_service_path(service_name)
+        path_plan = _Paths.plan_resource_path(service_name)
         base_path = path_plan["full_path"]
     
     return "{}{}".format(base_path, default_subpath)

@@ -168,7 +168,7 @@ PackageConfig.generate_bunfig(path, registry_url, is_docker)
 ```starlark
 load('./.tilt/provisioner/libs.star', 'Libs')
 
-lib_deps = Libs.discover_service_libraries(ctx, service_path)
+lib_deps = Libs.discover_service_libraries(ctx, resource_path)
 Libs.define_library_resource(ctx, lib_name, lib_config, should_enable)
 library_map = Libs.setup_libraries(ctx, should_enable, DDD_LIBS, PLATFORM_LIBS, PRODUCT_LIBS, generators)
 ```

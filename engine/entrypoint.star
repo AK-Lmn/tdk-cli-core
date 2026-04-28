@@ -19,7 +19,7 @@ load(
     _DDD_LIBS_EXPORT = "DDD_LIBS_EXPORT",
     _DEFAULTS_EXPORT = "DEFAULTS_EXPORT",
     _SERVICE_ALIASES = "SERVICE_ALIASES",
-    _SERVICE_PATH_MAP = "SERVICE_PATH_MAP",
+    _RESOURCE_PATH_MAP = "RESOURCE_PATH_MAP",
     _get_platform_libs_export = "get_platform_libs_export",
     _get_product_libs_export = "get_product_libs_export",
 )
@@ -47,7 +47,7 @@ INFRA_SERVICES_EXPORT = _INFRA_SERVICES_EXPORT
 DDD_LIBS_EXPORT = _DDD_LIBS_EXPORT
 DEFAULTS_EXPORT = _DEFAULTS_EXPORT
 SERVICE_ALIASES = _SERVICE_ALIASES
-SERVICE_PATH_MAP = _SERVICE_PATH_MAP
+RESOURCE_PATH_MAP = _RESOURCE_PATH_MAP
 
 def get_platform_libs_export(autodiscover = False):
     return _get_platform_libs_export(autodiscover)

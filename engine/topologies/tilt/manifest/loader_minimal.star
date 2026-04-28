@@ -19,16 +19,16 @@ def load_from_file(path):
     
     return struct(manifest=manifest, error=None)
 
-def load_from_path(service_path):
+def load_from_path(resource_path):
     """Load manifest from service directory."""
     # Try YAML first
-    yaml_path = service_path + "/" + MANIFEST_FILENAME_YAML
+    yaml_path = resource_path + "/" + MANIFEST_FILENAME_YAML
     result = load_from_file(yaml_path)
     if not result.error and result.manifest:
         return result
     
     # Fall back to JSON
-    json_path = service_path + "/" + MANIFEST_FILENAME
+    json_path = resource_path + "/" + MANIFEST_FILENAME
     return load_from_file(json_path)
 
 # Simple loader - no caching, no mapping

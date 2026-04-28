@@ -74,11 +74,11 @@ PLATFORM_NETWORKS = [
 # 🔍 CENTRALIZED DEPENDENCY EXTRACTION (Single Source of Truth)
 # =============================================================================
 
-def get_internal_deps(service_path):
+def get_internal_deps(resource_path):
     """
     Extract all @tdk/* dependencies from a service's package.json.
     """
-    pkg_json_path = service_path + '/package.json'
+    pkg_json_path = resource_path + '/package.json'
     pkg_content = read_file(pkg_json_path, default='')
 
     if not pkg_content or not str(pkg_content).strip():
@@ -129,10 +129,10 @@ def resolve_lib_path(package_name):
     return (LIBRARY_ROOTS['platform'] + '/' + lib_name, 'platform')
 
 
-def build_deps_mapping(service_path, internal_deps=None):
+def build_deps_mapping(resource_path, internal_deps=None):
     """Build a mapping of package_name -> library path for internal dependencies."""
     if internal_deps == None:
-        internal_deps = get_internal_deps(service_path)
+        internal_deps = get_internal_deps(resource_path)
 
     mapping = {}
     for dep_name in internal_deps:
@@ -149,12 +149,12 @@ def build_deps_mapping(service_path, internal_deps=None):
 # 🔍 VALIDATION FUNCTIONS
 # =============================================================================
 
-def validate_lib_naming(service_path):
+def validate_lib_naming(resource_path):
     """
     Validate that package names in package.json match folder naming conventions.
     """
     errors = []
-    internal_deps = get_internal_deps(service_path)
+    internal_deps = get_internal_deps(resource_path)
 
     for dep_name in internal_deps:
         lib_info = resolve_lib_path(dep_name)
@@ -188,7 +188,7 @@ def validate_lib_naming(service_path):
     return errors
 
 
-def detect_circular_deps(service_paths, max_depth=10):
+def detect_circular_deps(resource_paths, max_depth=10):
     """
     Detect circular dependencies between libraries.
     """
@@ -218,8 +218,8 @@ def detect_circular_deps(service_paths, max_depth=10):
         for dep in lib_deps:
             check_chain(dep, chain + [pkg_name], depth + 1)
 
-    for service_path in service_paths:
-        deps = get_internal_deps(service_path)
+    for resource_path in resource_paths:
+        deps = get_internal_deps(resource_path)
         for dep in deps:
             check_chain(dep, [], 0)
 

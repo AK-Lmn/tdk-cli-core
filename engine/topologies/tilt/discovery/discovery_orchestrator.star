@@ -60,7 +60,7 @@ def _validate_scan_roots(roots):
 # read_json, local are built-in
 
 # Define locally since parser.star exports this as private
-def _determine_app_type(manifest, service_path):
+def _determine_app_type(manifest, resource_path):
     """
     Determine app type from manifest or service path.
     """
@@ -69,7 +69,7 @@ def _determine_app_type(manifest, service_path):
         return manifest["appType"]
     
     # Extract from path
-    dir_name = service_path.split("/")[-1] if service_path else ""
+    dir_name = resource_path.split("/")[-1] if resource_path else ""
     
     if dir_name.endswith("-frontend"):
         return "frontend"
@@ -83,7 +83,7 @@ def _determine_app_type(manifest, service_path):
     # Default to backend
     return "backend"
 
-def _normalize_manifest(manifest, service_path):
+def _normalize_manifest(manifest, resource_path):
     """
     Normalize manifest to discovery resource format.
     Phase 5: Works with both legacy and new manifest system normalized manifests.
@@ -91,15 +91,15 @@ def _normalize_manifest(manifest, service_path):
     # If manifest is already normalized by new system, use it directly
     if manifest.get("_normalized") or manifest.get("syncs"):
         # Extract fields from normalized manifest
-        app_name = manifest.get("appName", service_path.split("/")[-1])
-        app_type = manifest.get("appType", _determine_app_type(manifest, service_path))
-        stack = manifest.get("stack") or manifest.get("domain") or extract_stack_from_path(service_path)
+        app_name = manifest.get("appName", resource_path.split("/")[-1])
+        app_type = manifest.get("appType", _determine_app_type(manifest, resource_path))
+        stack = manifest.get("stack") or manifest.get("domain") or extract_stack_from_path(resource_path)
         port = manifest.get("port", BASE_PORT_BACKEND if app_type == "backend" else BASE_PORT_FRONTEND)
     else:
         # Legacy path: compute fields
-        app_name = manifest.get("appName", service_path.split("/")[-1])
-        app_type = _determine_app_type(manifest, service_path)
-        stack = manifest.get("stack") or manifest.get("domain") or extract_stack_from_path(service_path)
+        app_name = manifest.get("appName", resource_path.split("/")[-1])
+        app_type = _determine_app_type(manifest, resource_path)
+        stack = manifest.get("stack") or manifest.get("domain") or extract_stack_from_path(resource_path)
         port = manifest.get("port", BASE_PORT_BACKEND if app_type == "backend" else BASE_PORT_FRONTEND)
     
     features = manifest.get("features", [])
@@ -113,7 +113,7 @@ def _normalize_manifest(manifest, service_path):
         "port": port,
         "stack": stack,
         "_manifest": manifest.get("_manifest", manifest),
-        "_service_path": service_path,
+        "_resource_path": resource_path,
     }
 
     if app_type == "frontend":
@@ -182,7 +182,7 @@ def initialize_discovery(cache, second_pass=False):
     cache["app_services"] = services
     cache["service_dependencies"] = dependencies
     cache["service_aliases"] = aliases
-    cache["service_path_map"] = path_map
+    cache["resource_path_map"] = path_map
     cache["domain_configs"] = {}
     cache["initialized"] = True
     if second_pass:
@@ -259,12 +259,12 @@ def _scan_services():
         
         # Parse manifest using proper loader (handles JSON and YAML)
         # First, extract service path from manifest path
-        full_service_path = manifest_path.rsplit("/", 1)[0]
+        full_resource_path = manifest_path.rsplit("/", 1)[0]
         
         # Normalize path to be relative (strip leading / if present)
         # Docker build context requires relative paths
-        if full_service_path.startswith('/'):
-            full_service_path = full_service_path[1:]
+        if full_resource_path.startswith('/'):
+            full_resource_path = full_resource_path[1:]
         
         # Use the loader which handles both JSON and YAML and normalizes format
         load_result = ManifestLoader.load_from_file(manifest_path)
@@ -335,13 +335,13 @@ def _scan_services():
         
         # Build paths relative to project root (for use by other modules)
         base_path = "/".join(path_parts[:-2])  # e.g., "services/product/order"
-        service_path = base_path  # This is the DOMAIN path
-        full_service_path = project_relative_path.rsplit("/", 1)[0]  # Full path to service
+        resource_path = base_path  # This is the DOMAIN path
+        full_resource_path = project_relative_path.rsplit("/", 1)[0]  # Full path to service
         
         # Normalize path to be relative (strip leading / if present)
         # Docker build context requires relative paths
-        if full_service_path.startswith('/'):
-            full_service_path = full_service_path[1:]
+        if full_resource_path.startswith('/'):
+            full_resource_path = full_resource_path[1:]
         
         app_name = manifest.get("appName", service_dir)
         app_type = manifest.get("appType", "backend")
@@ -354,9 +354,9 @@ def _scan_services():
         # Use custom dockerfile from manifest if specified, otherwise use autogenerated default
         custom_dockerfile = manifest.get("dockerfile")
         if custom_dockerfile:
-            dockerfile_path = full_service_path + "/" + custom_dockerfile
+            dockerfile_path = full_resource_path + "/" + custom_dockerfile
         else:
-            dockerfile_path = full_service_path + "/.autogenerated/Dockerfile.app.autogenerated"
+            dockerfile_path = full_resource_path + "/.autogenerated/Dockerfile.app.autogenerated"
         
         resource = {
             "name": app_name,
@@ -365,7 +365,7 @@ def _scan_services():
             "port": port,
             "stack": stack,
             "_manifest": manifest,
-            "_service_path": full_service_path,
+            "_resource_path": full_resource_path,
         }
         
         # Add frontend-specific fields
@@ -389,7 +389,7 @@ def _scan_services():
             for existing_res in existing_service["resources"]:
                 if existing_res.get("name") == resource["name"]:
                     resource_exists = True
-                    print("   ⚠️  Skipping duplicate resource: " + app_name + " (from " + service_path + ")")
+                    print("   ⚠️  Skipping duplicate resource: " + app_name + " (from " + resource_path + ")")
                     break
             
             if not resource_exists:
@@ -400,7 +400,7 @@ def _scan_services():
             # Create new service entry
             service = {
                 "name": service_key,
-                "path": service_path,
+                "path": resource_path,
                 "labels": ["app." + app_name] if app_name else [],
                 "resources": [resource],
             }

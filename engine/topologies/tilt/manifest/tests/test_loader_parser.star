@@ -105,7 +105,7 @@ def _test_parser_functions():
     assert_not_none(Manifest.parse, "parse should be accessible")
     assert_not_none(Manifest.normalize, "normalize should be accessible")
     assert_not_none(Manifest.get_normalized, "get_normalized should be accessible")
-    assert_not_none(Manifest.extract_service_path, "extract_service_path should be accessible")
+    assert_not_none(Manifest.extract_resource_path, "extract_resource_path should be accessible")
     assert_not_none(Manifest.extract_stack, "extract_stack should be accessible")
     assert_not_none(Manifest.parse_traefik, "parse_traefik should be accessible")
     assert_not_none(Manifest.merge_manifests, "merge_manifests should be accessible")
