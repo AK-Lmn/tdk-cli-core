@@ -127,11 +127,11 @@ def get_backend_traefik_labels(
         traefik_network=TRAEFIK_DOCKER_NETWORK,
     )
 
-    # Generate project localhost routing from manifest domain
+    # Generate project localhost routing from manifest stack
     if manifest:
-        domain = manifest.get("domain", "")
-        if domain:
-            api_path = get_api_path(domain, manifest)
+        stack = manifest.get("stack") or manifest.get("domain", "")
+        if stack:
+            api_path = get_api_path(stack, manifest)
             project_rule = project_backend_rule(manifest)
             project_entrypoints = build_entrypoints(
                 TRAEFIK_BACKEND_ENABLE_HTTP,
@@ -140,8 +140,8 @@ def get_backend_traefik_labels(
             # Calculate priority based on path length (more specific = higher priority)
             router_priority = TRAEFIK_FRONTEND_PRIORITY_BASE + len(api_path)
 
-            # Generate old path pattern for redirect (e.g., /{domain}-management/api/v1/)
-            old_path_pattern = "/{domain}-management/api/v1".format(domain=domain)
+            # Generate old path pattern for redirect (e.g., /{stack}-management/api/v1/)
+            old_path_pattern = "/{stack}-management/api/v1".format(stack=stack)
 
             labels += """
       - "traefik.http.routers.{service_entry_name}-project.rule={project_rule}"
