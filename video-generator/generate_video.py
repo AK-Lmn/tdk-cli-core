@@ -14,7 +14,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 
 
 def check_ffmpeg() -> bool:
@@ -31,27 +31,19 @@ def check_ffmpeg() -> bool:
         return False
 
 
-def generate_color_frames(
-    output_dir: Path,
-    width: int = 2560,
-    height: int = 1440,
-    duration: float = 20.0,
-    fps: int = 30
-) -> Path:
-    """Generate solid color frame sequence for testing."""
-    frame_count = int(duration * fps)
-    
-    # Use FFmpeg to generate color frames
-    cmd = [
-        "ffmpeg",
-        "-f", "lavfi",
-        "-i", f"color=c=0x1a1a2e:s={width}x{height}:d={duration}:r={fps}",
-        "-pix_fmt", "rgb24",
-        str(output_dir / "frame_%06d.png")
+def get_font_path() -> str:
+    """Find a suitable font on macOS."""
+    font_paths = [
+        "/System/Library/Fonts/Helvetica.ttc",
+        "/System/Library/Fonts/HelveticaNeue.ttc",
+        "/Library/Fonts/Arial.ttf",
+        "/System/Library/Fonts/SFPro.ttf",
     ]
-    
-    subprocess.run(cmd, check=True, capture_output=True)
-    return output_dir
+    for path in font_paths:
+        if os.path.exists(path):
+            return path
+    # Return first one and let FFmpeg fail gracefully if not found
+    return font_paths[0]
 
 
 def generate_test_video(
@@ -61,7 +53,7 @@ def generate_test_video(
     duration: int = 1200,  # 20 minutes
     fps: int = 30
 ) -> None:
-    """Generate a test video with color bars and text."""
+    """Generate a test video with color bars and text overlays."""
     
     print(f"🎬 Generating TDK CLI Tutorial Video")
     print(f"   Resolution: {width}x{height}")
@@ -69,88 +61,91 @@ def generate_test_video(
     print(f"   Output: {output_path}")
     print()
     
-    # Create filter complex for chapter titles
-    # Each chapter gets 3-5 seconds of title card + content
+    font_path = get_font_path()
     
-    chapters = [
-        ("Chapter 1: The Problem", 0, 90),
-        ("Chapter 2: Install & Verify", 90, 270),
-        ("Chapter 3: Project Setup", 270, 540),
-        ("Chapter 4: Create Resources", 540, 900),
-        ("Chapter 5: The Magic - tdk up", 900, 1260),
-        ("Chapter 6: Ecosystem", 1260, 1200),
+    # Chapter timing (in seconds)
+    chapters: List[Tuple[str, int, int]] = [
+        ("TDK CLI Tutorial", 0, 3),
+        ("Chapter 1: The Problem", 5, 8),
+        ("Why local microservices dev is broken...", 8, 90),
+        ("Chapter 2: Install & Verify", 95, 98),
+        ("One-line setup with curl | bash", 98, 270),
+        ("Chapter 3: Project Setup", 275, 278),
+        ("PSR model: Project > Stack > Resource", 278, 540),
+        ("Chapter 4: Create Resources", 545, 548),
+        ("tdk resource identity-api --type backend", 548, 900),
+        ("Chapter 5: The Magic", 905, 908),
+        ("tdk up identity - services come alive", 908, 1260),
+        ("Chapter 6: Ecosystem", 1265, 1268),
+        ("Auto-discovery, validation, IDE support", 1268, 1190),
+        ("github.com/tdk-landscape/tdk-cli", 1190, duration),
     ]
     
-    # Generate chapter metadata
-    chapter_metadata = []
-    for i, (title, start, _) in enumerate(chapters[:-1]):
-        hours = start // 3600
-        minutes = (start % 3600) // 60
-        seconds = start % 60
-        chapter_metadata.append({
-            "title": title,
-            "start_time": f"{hours:02d}:{minutes:02d}:{seconds:02d}.000"
-        })
+    # Build drawtext filters
+    filters = []
     
-    # Write chapter metadata to temp file
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-        json.dump(chapter_metadata, f)
-        chapter_file = f.name
+    for text, start, end in chapters:
+        # Calculate duration
+        if end <= start:
+            enable_expr = f"gte(t,{start})"
+        else:
+            enable_expr = f"between(t\\,{start}\\,{end})"
+        
+        # Adjust font size based on content
+        if "Chapter" in text:
+            fontsize = 72
+            color = "0x4ade80"  # Green
+            y_pos = "(h-text_h)/2-100"
+        elif text.startswith("TDK CLI"):
+            fontsize = 96
+            color = "white"
+            y_pos = "(h-text_h)/2"
+        elif text.startswith("github.com"):
+            fontsize = 48
+            color = "0x666666"
+            y_pos = "h-150"
+        else:
+            fontsize = 48
+            color = "0xaaaaaa"
+            y_pos = "(h-text_h)/2+50"
+        
+        filter_str = (
+            f"drawtext=fontfile={font_path}:"
+            f"text='{text}':"
+            f"fontsize={fontsize}:"
+            f"fontcolor={color}:"
+            f"x=(w-text_w)/2:"
+            f"y={y_pos}:"
+            f"enable='{enable_expr}'"
+        )
+        filters.append(filter_str)
+    
+    # Combine all filters
+    vf_chain = ",".join(filters)
+    
+    # Build FFmpeg command
+    cmd = [
+        "ffmpeg",
+        "-y",  # Overwrite output
+        "-f", "lavfi",
+        "-i", f"color=c=0x0f0f1a:s={width}x{height}:d={duration}:r={fps}",
+        "-vf", vf_chain,
+        "-c:v", "libx264",
+        "-preset", "medium",
+        "-crf", "23",
+        "-pix_fmt", "yuv420p",
+        "-movflags", "+faststart",
+        "-metadata", "title=TDK CLI Tutorial - 20 Minute Developer Guide",
+        "-metadata", "author=TDK Landscape",
+        "-metadata", "description=Complete tutorial for TDK CLI microservices development",
+        str(output_path)
+    ]
+    
+    print("🎞️  Encoding with FFmpeg...")
+    print(f"   Duration: {duration}s at {fps}fps = {duration * fps} frames")
+    print()
     
     try:
-        # Use FFmpeg with testsrc and drawtext filters
-        # This creates a visually distinct test pattern with chapter info
-        
-        filter_complex = ""
-        
-        # Base video - dark background
-        filter_complex += f"color=c=0x0f0f1a:s={width}x{height}:d={duration}:r={fps}[base];"
-        
-        # Add text overlays for each chapter
-        for i, (title, start, end) in enumerate(chapters[:-1]):
-            chapter_duration = end - start
-            
-            # Title text
-            filter_complex += f"[base]drawtext=text='{title}':"
-            filter_complex += f"fontfile=/System/Library/Fonts/Helvetica.ttc:"
-            filter_complex += f"fontsize=72:fontcolor=white:"
-            filter_complex += f"x=(w-text_w)/2:y=(h-text_h)/2:"
-            filter_complex += f"enable='between(t\\,{start}\\,{start + 3})'"
-            filter_complex += f"[v{i}];"
-            
-            # Content indicator
-            if i < len(chapters) - 2:
-                filter_complex += f"[v{i}]drawtext=text='(Terminal demo would appear here)':"
-                filter_complex += f"fontfile=/System/Library/Fonts/Helvetica.ttc:"
-                filter_complex += f"fontsize=36:fontcolor=0xaaaaaa:"
-                filter_complex += f"x=(w-text_w)/2:y=(h+100)/2:"
-                filter_complex += f"enable='between(t\\,{start + 3}\\,{end})'"
-                filter_complex += f"[base];"
-        
-        # Final output
-        filter_complex += "[base]format=yuv420p[outv]"
-        
-        # Build FFmpeg command
-        cmd = [
-            "ffmpeg",
-            "-f", "lavfi",
-            "-i", f"color=c=0x0f0f1a:s={width}x{height}:d={duration}:r={fps}",
-            "-vf", f"drawtext=text='TDK CLI Tutorial':fontfile=/System/Library/Fonts/Helvetica.ttc:fontsize=96:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2:enable='lte(t\\,3)',drawtext=text='Chapter 1 - The Problem':fontfile=/System/Library/Fonts/Helvetica.ttc:fontsize=72:fontcolor=0x4ade80:x=(w-text_w)/2:y=(h-text_h)/2-100:enable='between(t\\,5\\,8)',drawtext=text='Chapter 2 - Install & Verify':fontfile=/System/Library/Fonts/Helvetica.ttc:fontsize=72:fontcolor=0x4ade80:x=(w-text_w)/2:y=(h-text_h)/2-100:enable='between(t\\,95\\,98)',drawtext=text='Chapter 3 - Project Setup':fontfile=/System/Library/Fonts/Helvetica.ttc:fontsize=72:fontcolor=0x4ade80:x=(w-text_w)/2:y=(h-text_h)/2-100:enable='between(t\\,275\\,278)',drawtext=text='Chapter 4 - Create Resources':fontfile=/System/Library/Fonts/Helvetica.ttc:fontsize=72:fontcolor=0x4ade80:x=(w-text_w)/2:y=(h-text_h)/2-100:enable='between(t\\,545\\,548)',drawtext=text='Chapter 5 - The Magic':fontfile=/System/Library/Fonts/Helvetica.ttc:fontsize=72:fontcolor=0x4ade80:x=(w-text_w)/2:y=(h-text_h)/2-100:enable='between(t\\,905\\,908)',drawtext=text='Chapter 6 - Ecosystem':fontfile=/System/Library/Fonts/Helvetica.ttc:fontsize=72:fontcolor=0x4ade80:x=(w-text_w)/2:y=(h-text_h)/2-100:enable='between(t\\,1265\\,1268)',drawtext=text='github.com/tdk-landscape/tdk-cli':fontfile=/System/Library/Fonts/Helvetica.ttc:fontsize=48:fontcolor=0x666666:x=(w-text_w)/2:y=h-100:enable='gte(t\\,1190)'",
-            "-c:v", "libx264",
-            "-preset", "medium",
-            "-crf", "23",
-            "-pix_fmt", "yuv420p",
-            "-movflags", "+faststart",
-            "-metadata", "title=TDK CLI Tutorial",
-            "-metadata", "author=TDK Landscape",
-            "-y",
-            str(output_path)
-        ]
-        
-        print("🎞️  Encoding with FFmpeg...")
-        print(f"   Command: ffmpeg [...] {output_path}")
-        print()
-        
         result = subprocess.run(
             cmd,
             capture_output=True,
@@ -165,20 +160,43 @@ def generate_test_video(
         size = output_path.stat().st_size
         print(f"📁 Output: {output_path}")
         print(f"📊 Size: {size / 1024 / 1024:.1f} MB")
-        print(f"📐 Resolution: {width}x{height} (1440p)")
-        print(f"⏱️  Duration: {duration // 60} minutes")
+        print(f"📐 Resolution: {width}x{height} ({'1440p' if height == 1440 else '1080p' if height == 1080 else '4K'})")
+        print(f"⏱️  Duration: {duration // 60} minutes {duration % 60}s")
         print()
         print("🎉 Ready to upload to YouTube or share!")
+        print()
+        print("Next steps:")
+        print("  1. Open the video and verify quality")
+        print("  2. Upload to YouTube with chapter timestamps")
+        print("  3. Link from TDK CLI README")
         
-    finally:
-        # Cleanup
-        if os.path.exists(chapter_file):
-            os.unlink(chapter_file)
+    except subprocess.CalledProcessError as e:
+        print("❌ FFmpeg encoding failed!")
+        print()
+        print("Error output:")
+        print(e.stderr[:1000] if len(e.stderr) > 1000 else e.stderr)
+        print()
+        print("Common fixes:")
+        print("  - Install FFmpeg with: brew install ffmpeg")
+        print("  - Check font path exists:", font_path)
+        sys.exit(1)
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Generate TDK CLI tutorial video (Python fallback)"
+        description="Generate TDK CLI tutorial video (Python fallback)",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Generate full 20-minute 1440p video (default)
+  python3 generate_video.py
+
+  # Generate 1080p version (smaller file)
+  python3 generate_video.py --resolution 1080p
+
+  # Generate quick 60-second test
+  python3 generate_video.py --duration 60 -o test.mp4
+        """
     )
     parser.add_argument(
         "-o", "--output",
@@ -201,6 +219,7 @@ def main():
     args = parser.parse_args()
     
     print("🎬 TDK Video Generator (Python Fallback)")
+    print("   Swift version requires full Xcode — using FFmpeg directly")
     print()
     
     # Check FFmpeg
@@ -224,7 +243,7 @@ def main():
     width, height = resolutions[args.resolution]
     
     # Generate video
-    output_path = Path(args.output)
+    output_path = Path(args.output).resolve()
     generate_test_video(
         output_path=output_path,
         width=width,
