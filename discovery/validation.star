@@ -1,5 +1,5 @@
 load("./TILT_DISCOVERY.star",
-    "VALID_DOMAINS",
+    "VALID_STACKS",
     "VALID_FEATURES",
     "PORT_RANGES",
 )
@@ -36,9 +36,9 @@ def validate(manifest):
     stack = manifest.get("stack")
     if not stack:
         issues.append("Missing required field: stack")
-    elif len(VALID_DOMAINS) > 0 and stack not in VALID_DOMAINS:
-        # Only validate against list if VALID_DOMAINS is not empty
-        issues.append("Invalid stack: " + str(stack) + ". Must be one of: " + ", ".join(VALID_DOMAINS))
+    elif len(VALID_STACKS) > 0 and stack not in VALID_STACKS:
+        # Only validate against list if VALID_STACKS is not empty
+        issues.append("Invalid stack: " + str(stack) + ". Must be one of: " + ", ".join(VALID_STACKS))
 
     port = manifest.get("port")
     if port == None:

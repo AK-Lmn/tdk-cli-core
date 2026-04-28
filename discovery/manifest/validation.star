@@ -6,7 +6,7 @@
 # =============================================================================
 
 load('./constants.star', 'VALID_APP_TYPES')
-load('../TILT_DISCOVERY.star', 'VALID_DOMAINS', 'VALID_FEATURES', 'PORT_RANGES')
+load('../TILT_DISCOVERY.star', 'VALID_STACKS', 'VALID_FEATURES', 'PORT_RANGES')
 
 
 def validate_manifest(manifest):
@@ -17,10 +17,11 @@ def validate_manifest(manifest):
     - Required fields: appName, appType, stack, port
     - appName pattern: kebab-case, 3-64 chars
     - appType: from VALID_APP_TYPES
-    - stack: from VALID_DOMAINS
+    - stack: from VALID_STACKS
+    - appType: from VALID_APP_TYPES
     - port: within range for appType (backends: 4000-5999, frontends: 3000-3999)
     - features: from VALID_FEATURES
-    - internalDependencies: from VALID_DOMAINS (resource aliases)
+    - internalDependencies: from VALID_STACKS (resource aliases)
     - replicas: 1-10
     """
     issues = []
@@ -56,9 +57,9 @@ def validate_manifest(manifest):
     stack = manifest.get('stack')
     if not stack:
         issues.append("Missing required field: stack")
-    elif len(VALID_DOMAINS) > 0 and stack not in VALID_DOMAINS:
-        # Only validate against list if VALID_DOMAINS is not empty
-        issues.append("Invalid stack: " + str(stack) + ". Must be one of: " + ', '.join(VALID_DOMAINS))
+    elif len(VALID_STACKS) > 0 and stack not in VALID_STACKS:
+        # Only validate against list if VALID_STACKS is not empty
+        issues.append("Invalid stack: " + str(stack) + ". Must be one of: " + ', '.join(VALID_STACKS))
     
     # 4. port validation with appType-specific ranges
     port = manifest.get('port')

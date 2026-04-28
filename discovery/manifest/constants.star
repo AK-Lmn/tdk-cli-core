@@ -61,9 +61,9 @@ VALIDATION_THRESHOLDS = {
     "max_replicas": 10,
 }
 
-# Valid domains - loaded dynamically from project config
-# Projects define their own domains in .tdk/project.json
-VALID_DOMAINS = []
+# Valid stacks - loaded dynamically from project config
+# Projects define their own stacks in .tdk/project.json
+VALID_STACKS = []
 
 # Valid features
 VALID_FEATURES = ["nats", "prisma", "vite-node", "websocket", "cron"]
@@ -93,7 +93,7 @@ ManifestConstants = struct(
     TRAEFIK_DEFAULTS = TRAEFIK_DEFAULTS,
     RESOURCE_NAME_PATTERNS = RESOURCE_NAME_PATTERNS,
     VALIDATION_THRESHOLDS = VALIDATION_THRESHOLDS,
-    VALID_DOMAINS = VALID_DOMAINS,
+    VALID_STACKS = VALID_STACKS,
     VALID_FEATURES = VALID_FEATURES,
     PORT_RANGES = PORT_RANGES,
 )

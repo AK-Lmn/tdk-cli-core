@@ -143,18 +143,18 @@ def get_synthesis_config():
 # =============================================================================
 # DOMAIN CONFIGURATION
 # =============================================================================
-# Business domains are defined in .tdk/project.json per project.
-# This function returns an empty list - domains are discovered dynamically.
+# Business stacks are defined in .tdk/project.json per project.
+# This function returns an empty list - stacks are discovered dynamically.
 
 
-def get_valid_domains():
-    """Return list of valid business domains from project config.
+def get_valid_stacks():
+    """Return list of valid business stacks from project config.
 
     Returns:
-        list: Valid domain names (loaded from .tdk/project.json)
+        list: Valid stack names (loaded from .tdk/project.json)
     """
-    # Domains are project-specific and loaded from project.json
-    # Return empty list - actual domains discovered from filesystem
+    # Stacks are project-specific and loaded from project.json
+    # Return empty list - actual stacks discovered from filesystem
     return []
 
 
@@ -302,7 +302,7 @@ def get_discovery_defaults():
         "scan": get_discovery_scan_config(),
         "manifest": get_manifest_discovery_config(),
         "synthesis": get_synthesis_config(),
-        "domains": get_valid_domains(),
+        "stacks": get_valid_stacks(),
         "resource_types": get_valid_resource_types(),
         "features": get_valid_features(),
         "port_ranges": get_port_ranges(),
@@ -367,7 +367,7 @@ def get_feature_flags():
 DISCOVERY_SCAN_CONFIG = get_discovery_scan_config()
 MANIFEST_DISCOVERY_CONFIG = get_manifest_discovery_config()
 SYNTHESIS_CONFIG = get_synthesis_config()
-VALID_DOMAINS = get_valid_domains()
+VALID_STACKS = get_valid_stacks()
 VALID_RESOURCE_TYPES = get_valid_resource_types()
 VALID_FEATURES = get_valid_features()
 PORT_RANGES = get_port_ranges()
@@ -388,7 +388,7 @@ __all__ = [
     "get_discovery_scan_config",
     "get_manifest_discovery_config",
     "get_synthesis_config",
-    "get_valid_domains",
+    "get_valid_stacks",
     "get_valid_resource_types",
     "get_valid_features",
     "get_port_ranges",
@@ -401,7 +401,7 @@ __all__ = [
     "DISCOVERY_SCAN_CONFIG",
     "MANIFEST_DISCOVERY_CONFIG",
     "SYNTHESIS_CONFIG",
-    "VALID_DOMAINS",
+    "VALID_STACKS",
     "VALID_RESOURCE_TYPES",
     "VALID_FEATURES",
     "PORT_RANGES",
