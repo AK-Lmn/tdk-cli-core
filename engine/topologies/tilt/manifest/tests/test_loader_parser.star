@@ -106,7 +106,7 @@ def _test_parser_functions():
     assert_not_none(Manifest.normalize, "normalize should be accessible")
     assert_not_none(Manifest.get_normalized, "get_normalized should be accessible")
     assert_not_none(Manifest.extract_service_path, "extract_service_path should be accessible")
-    assert_not_none(Manifest.extract_domain, "extract_domain should be accessible")
+    assert_not_none(Manifest.extract_stack, "extract_stack should be accessible")
     assert_not_none(Manifest.parse_traefik, "parse_traefik should be accessible")
     assert_not_none(Manifest.merge_manifests, "merge_manifests should be accessible")
     assert_not_none(Manifest.get_description, "get_description should be accessible")
@@ -140,7 +140,7 @@ def _test_parse_and_normalize():
     assert_not_none(normalized, "Should normalize manifest")
     assert_equal("test-service", normalized['appName'], "Should preserve appName")
     assert_equal("backend", normalized['appType'], "Should preserve appType")
-    assert_equal("user", normalized['domain'], "Should preserve domain")
+    assert_equal("user", normalized['stack'], "Should preserve stack")
     assert_equal(4001, normalized['port'], "Should preserve port")
     
     # Test defaults are applied
@@ -159,29 +159,29 @@ def _test_parse_and_normalize():
 # TEST SUITE: Domain Extraction
 # =============================================================================
 
-def _test_domain_extraction():
-    """Test domain extraction from service paths."""
-    print("🔍 Testing domain extraction...")
+def _test_stack_extraction():
+    """Test stack extraction from resource paths."""
+    print("🔍 Testing stack extraction...")
     
     # Standard paths
-    domain = Manifest.extract_domain("services/product/user/user-management-backend")
-    assert_equal("user", domain, "Should extract user domain")
+    stack = Manifest.extract_stack("services/product/user/user-management-backend")
+    assert_equal("user", stack, "Should extract user stack")
     
-    domain = Manifest.extract_domain("services/product/order/order-management-backend")
-    assert_equal("order", domain, "Should extract order domain")
+    stack = Manifest.extract_stack("services/product/order/order-management-backend")
+    assert_equal("order", stack, "Should extract order stack")
     
-    domain = Manifest.extract_domain("services/product/identity/identity-management-backend")
-    assert_equal("identity", domain, "Should extract identity domain")
+    stack = Manifest.extract_stack("services/product/identity/identity-management-backend")
+    assert_equal("identity", stack, "Should extract identity stack")
     
     # Special case: order-planner
-    domain = Manifest.extract_domain("services/product/order-planner/order-planner-backend")
-    assert_equal("order-planner", domain, "Should extract order-planner domain")
+    stack = Manifest.extract_stack("services/product/order-planner/order-planner-backend")
+    assert_equal("order-planner", stack, "Should extract order-planner stack")
     
     # Special case: profile -> identity
-    domain = Manifest.extract_domain("services/product/profile/profile-management-backend")
-    assert_equal("identity", domain, "Should map profile to identity domain")
+    stack = Manifest.extract_stack("services/product/profile/profile-management-backend")
+    assert_equal("identity", stack, "Should map profile to identity stack")
     
-    print("✅ Domain extraction tests complete\n")
+    print("✅ Stack extraction tests complete\n")
 
 # =============================================================================
 # TEST SUITE: Frontend Manifest Normalization
@@ -344,7 +344,7 @@ def _test_service_description():
     manifest = {
         'appName': 'user-management-backend',
         'appType': 'backend',
-        'domain': 'user',
+        'stack': 'user',
     }
     
     desc = Manifest.get_description(manifest)

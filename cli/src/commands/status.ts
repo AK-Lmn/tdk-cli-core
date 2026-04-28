@@ -1,19 +1,19 @@
 /**
  * tdk status command
  *
- * Shows the current status of services and stacks.
+ * Shows the current status of resources and stacks.
  */
 
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { discoverStacks, discoverServices } from '../utils/services.js';
+import { discoverStacks, discoverResources } from '../utils/services.js';
 import { isTiltAvailable, runTilt, getTiltfilePath } from '../utils/tilt.js';
 
 export const statusCommand = new Command('status')
-  .description('Show status of services and stacks')
+  .description('Show status of resources and stacks')
   .option('-v, --verbose', 'Show detailed information', false)
   .option('--stacks', 'Show stack information (default)', true)
-  .option('--services', 'Show all discovered services', false)
+  .option('--resources', 'Show all discovered resources', false)
   .option('--tilt', 'Show tilt resource status', false)
   .action(async (options) => {
     try {
@@ -31,9 +31,9 @@ export const statusCommand = new Command('status')
 
       console.log();
 
-      // Discover services
-      const services = discoverServices();
-      console.log(chalk.bold('Services:'), `${services.length} discovered`);
+      // Discover resources
+      const resources = discoverResources();
+      console.log(chalk.bold('Resources:'), `${resources.length} discovered`);
 
       // Show stacks
       const stacks = discoverStacks();
@@ -41,26 +41,26 @@ export const statusCommand = new Command('status')
 
       if (stacks.length > 0) {
         for (const stack of stacks) {
-          const servicesInStack = stack.services.length;
-          console.log(chalk.gray(`  - ${stack.name}: ${servicesInStack} service${servicesInStack === 1 ? '' : 's'}`));
+          const resourcesInStack = stack.resources.length;
+          console.log(chalk.gray(`  - ${stack.name}: ${resourcesInStack} resource${resourcesInStack === 1 ? '' : 's'}`));
 
           if (options.verbose) {
-            for (const service of stack.services) {
-              console.log(chalk.gray(`      ${service.name} (${service.domain})`));
+            for (const resource of stack.resources) {
+              console.log(chalk.gray(`      ${resource.name}`));
             }
           }
         }
       }
 
-      // Show services without stacks
-      const servicesWithoutStack = services.filter(s => !s.stack);
-      if (servicesWithoutStack.length > 0) {
+      // Show resources without stacks
+      const resourcesWithoutStack = resources.filter(r => !r.stack);
+      if (resourcesWithoutStack.length > 0) {
         console.log();
-        console.log(chalk.yellow(`${servicesWithoutStack.length} service${servicesWithoutStack.length === 1 ? '' : 's'} not in any stack:`));
+        console.log(chalk.yellow(`${resourcesWithoutStack.length} resource${resourcesWithoutStack.length === 1 ? '' : 's'} not in any stack:`));
 
         if (options.verbose) {
-          for (const service of servicesWithoutStack) {
-            console.log(chalk.gray(`  - ${service.name} (${service.domain})`));
+          for (const resource of resourcesWithoutStack) {
+            console.log(chalk.gray(`  - ${resource.name}`));
           }
         }
       }

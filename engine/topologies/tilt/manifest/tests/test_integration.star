@@ -79,7 +79,7 @@ def _test_convert_to_resource():
     backend_manifest = {
         'appName': 'user-management-backend',
         'appType': 'backend',
-        'domain': 'user',
+        'stack': 'user',
         'port': 4000,
         'syncs': ['src', 'prisma'],
         '_service_path': 'services/product/user/user-management-backend',
@@ -98,7 +98,7 @@ def _test_convert_to_resource():
     frontend_manifest = {
         'appName': 'user-management-frontend',
         'appType': 'frontend',
-        'domain': 'user',
+        'stack': 'user',
         'port': 3000,
         'backendName': 'user-management-backend',
         '_service_path': 'services/product/user/user-management-frontend',
@@ -124,13 +124,13 @@ def _test_validation_summary():
         {
             'appName': 'valid-service',
             'appType': 'backend',
-            'domain': 'user',
+            'stack': 'user',
             'port': 4000,
         },
         {
             'appName': 'valid-frontend',
             'appType': 'frontend',
-            'domain': 'user',
+            'stack': 'user',
             'port': 3000,
             'backendName': 'valid-service',
         },
@@ -193,21 +193,21 @@ def _test_dependency_validation():
         {
             'appName': 'user-backend',
             'appType': 'backend',
-            'domain': 'user',
+            'stack': 'user',
             'port': 4000,
             'internalDependencies': ['identity-backend'],  # Valid
         },
         {
             'appName': 'user-frontend',
             'appType': 'frontend',
-            'domain': 'user',
+            'stack': 'user',
             'port': 3000,
             'backendName': 'user-backend',  # Valid
         },
         {
             'appName': 'bad-service',
             'appType': 'backend',
-            'domain': 'user',
+            'stack': 'user',
             'port': 4001,
             'internalDependencies': ['nonexistent-service'],  # Invalid
         },

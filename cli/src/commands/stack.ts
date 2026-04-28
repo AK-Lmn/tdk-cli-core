@@ -10,7 +10,7 @@ import { Command } from 'commander';
 import { writeFileSync, readFileSync } from 'node:fs';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import { discoverServices, getAllStacks, findProjectRoot } from '../utils/services.js';
+import { discoverResources, getAllStacks, findProjectRoot } from '../utils/services.js';
 
 export const stackCommand = new Command('stack')
   .description('Organize resources into stacks (groups)')
@@ -27,7 +27,7 @@ export const stackCommand = new Command('stack')
       console.log(chalk.blue('TDK Stack Management\n'));
 
       // Discover all resources
-      const allResources = discoverServices();
+      const allResources = discoverResources();
 
       if (allResources.length === 0) {
         console.log(chalk.yellow('No resources discovered. Make sure you\'re in a project with service.json files.'));
@@ -41,14 +41,14 @@ export const stackCommand = new Command('stack')
       if (existingStacks.length > 0) {
         console.log(chalk.bold('Existing stacks:'));
         existingStacks.forEach(name => {
-          const count = allResources.filter(s => s.stack === name).length;
+          const count = allResources.filter(r => r.stack === name).length;
           console.log(chalk.gray(`  - ${name} (${count} resource${count === 1 ? '' : 's'})`));
         });
         console.log();
       }
 
       // Find resources without a stack
-      const resourcesWithoutStack = allResources.filter(s => !s.stack);
+      const resourcesWithoutStack = allResources.filter(r => !r.stack);
 
       if (options.list) {
         // Just list resources without stacks
@@ -59,7 +59,7 @@ export const stackCommand = new Command('stack')
 
         console.log(chalk.bold(`${resourcesWithoutStack.length} resources without a stack:`));
         for (const resource of resourcesWithoutStack) {
-          console.log(chalk.gray(`  - ${resource.name} (${resource.domain})`));
+          console.log(chalk.gray(`  - ${resource.name}`));
           console.log(chalk.gray(`    ${resource.configPath}`));
         }
         return;
@@ -81,29 +81,7 @@ export const stackCommand = new Command('stack')
         targetStack = name;
       }
 
-      // Find resources in a specific domain (optional filter)
-      const domains = [...new Set(resourcesWithoutStack.map(s => s.domain))].sort();
       let resourcesToUpdate = resourcesWithoutStack;
-
-      if (domains.length > 1) {
-        const { filterByDomain } = await inquirer.prompt([{
-          type: 'confirm',
-          name: 'filterByDomain',
-          message: 'Filter resources by domain?',
-          default: false
-        }]);
-
-        if (filterByDomain) {
-          const { selectedDomain } = await inquirer.prompt([{
-            type: 'list',
-            name: 'selectedDomain',
-            message: 'Select domain:',
-            choices: domains
-          }]);
-
-          resourcesToUpdate = resourcesWithoutStack.filter(s => s.domain === selectedDomain);
-        }
-      }
 
       if (resourcesToUpdate.length === 0) {
         console.log(chalk.yellow('\nNo resources available to add to this stack.'));
@@ -115,9 +93,9 @@ export const stackCommand = new Command('stack')
         type: 'checkbox',
         name: 'selectedResources',
         message: `Select resources to add to stack "${targetStack}":`,
-        choices: resourcesToUpdate.map(s => ({
-          name: `${s.name} (${s.domain})`,
-          value: s.configPath,
+        choices: resourcesToUpdate.map(r => ({
+          name: r.name,
+          value: r.configPath,
           checked: false
         })),
         validate: (input: string[]) => {

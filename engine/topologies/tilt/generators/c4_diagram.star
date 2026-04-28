@@ -38,40 +38,40 @@ def generate_c4_model(services):
     # Internal relationships only
     relationships = []
     
-    # Track domains as systems
-    domains = {}
+    # Track stacks as systems
+    stacks = {}
     for svc in services:
-        domain = svc.get("domain", "unknown")
-        if domain not in domains:
-            domains[domain] = {
-                "id": "system_{}".format(domain),
-                "name": domain.capitalize(),
-                "description": "{} domain services".format(domain.capitalize()),
+        stack = svc.get("stack", "unknown")
+        if stack not in stacks:
+            stacks[stack] = {
+                "id": "system_{}".format(stack),
+                "name": stack.capitalize(),
+                "description": "{} stack services".format(stack.capitalize()),
                 "type": "System",
-                "tags": [domain],
-                "border_color": _get_domain_color(domain),
+                "tags": [stack],
+                "border_color": _get_stack_color(stack),
                 "services": []
             }
-        domains[domain]["services"].append(svc)
+        stacks[stack]["services"].append(svc)
     
     # Generate containers (services)
-    for domain_name, domain_data in domains.items():
-        for svc in domain_data["services"]:
+    for stack_name, stack_data in stacks.items():
+        for svc in stack_data["services"]:
             manifest = svc.get("manifest", {})
             app_type = manifest.get("appType", "backend")
             
             container = {
-                "id": "container_{}_{}".format(domain_name, svc["name"]),
+                "id": "container_{}_{}".format(stack_name, svc["name"]),
                 "name": svc["name"],
                 "description": manifest.get("description", "{} service".format(app_type)),
                 "type": "Container",
                 "technology": _get_technology(app_type, manifest),
-                "parent_id": domain_data["id"],
-                "tags": [domain_name, app_type],
+                "parent_id": stack_data["id"],
+                "tags": [stack_name, app_type],
                 "border_style": _get_border_style(app_type),
                 "border_color": _get_border_color(app_type),
                 "border_width": 3,
-                "fill_color": _get_fill_color(app_type, domain_name),
+                "fill_color": _get_fill_color(app_type, stack_name),
                 "clickable": True,
                 "drill_down": {
                     "enabled": True,
@@ -83,7 +83,7 @@ def generate_c4_model(services):
                     "runtime": manifest.get("runtime", RUNTIME),
                     "features": manifest.get("features", []),
                     "path": svc.get("path"),
-                    "domain": domain_name
+                    "stack": stack_name
                 }
             }
             containers.append(container)
@@ -149,12 +149,12 @@ def generate_c4_model(services):
         "levels": {
             "1": {
                 "name": "System Context",
-                "description": "System domains",
-                "elements": list(domains.values())
+                "description": "System stacks",
+                "elements": list(stacks.values())
             },
             "2": {
                 "name": "Container",
-                "description": "Services within each domain",
+                "description": "Services within each stack",
                 "elements": containers
             },
             "3": {
@@ -173,7 +173,7 @@ def generate_c4_model(services):
                 "component_gap": 40
             },
             "borders": {
-                "show_domain_boundaries": True,
+                "show_stack_boundaries": True,
                 "show_service_boundaries": True,
                 "border_radius": 8,
                 "shadow": True
@@ -187,11 +187,11 @@ def generate_c4_model(services):
             }
         },
         "statistics": {
-            "total_systems": len(domains),
+            "total_systems": len(stacks),
             "total_containers": len(containers),
             "total_components": len(components),
             "total_relationships": len(relationships),
-            "domains": list(domains.keys())
+            "stacks": list(stacks.keys())
         }
     }
     
@@ -268,8 +268,8 @@ def _generate_components(service, parent_id):
     return components
 
 
-def _get_domain_color(domain):
-    """Get border color for domain boundary"""
+def _get_stack_color(stack):
+    """Get border color for stack boundary"""
     colors = {
         "user": "#1f77b4",
         "identity": "#ff7f0e",
@@ -282,7 +282,7 @@ def _get_domain_color(domain):
         "reporting": "#bcbd22",
         "api-gateway": "#17becf"
     }
-    return colors.get(domain, "#666666")
+    return colors.get(stack, "#666666")
 
 
 def _get_technology(app_type, manifest):
@@ -328,7 +328,7 @@ def _get_border_color(app_type):
     return colors.get(app_type, "#808080")
 
 
-def _get_fill_color(app_type, domain):
+def _get_fill_color(app_type, stack):
     """Get fill color for container"""
     base_colors = {
         "backend": "#1e1e1e",

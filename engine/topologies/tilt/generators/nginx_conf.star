@@ -18,7 +18,7 @@ load('../../../topologies/tilt/manifest/constants.star', 'GENERATED_CONFIG_FILEN
 # NOTE: api_gateway.star loaded by caller to avoid circular imports
 
 
-def api_proxy_location(backend_name, port=BASE_PORT_FRONTEND, base_path='', domain=''):
+def api_proxy_location(backend_name, port=BASE_PORT_FRONTEND, base_path='', stack=''):
     """Return nginx location /api block that proxy_passes to the given backend (Vite-proxy style in prod)."""
     return """
     location /api {{
@@ -57,7 +57,7 @@ def generate_frontend_nginx(manifest, write_fn=None, referer_map_block=''):
     )
 
     base_path = manifest.get('basePath', '')
-    domain = manifest.get('domain', '')
+    stack = manifest.get('stack', '')
     port = manifest.get('port', BASE_PORT_FRONTEND)
     # NOTE: referer_map_block now passed as parameter to avoid circular import
 

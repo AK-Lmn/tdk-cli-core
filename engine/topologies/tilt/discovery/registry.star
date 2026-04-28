@@ -13,7 +13,7 @@ load(
     "GLOBAL_CONFIG",
     "INFRA_SERVICES",
     "CORE_INFRA",
-    "INFRA_STACK_MAP",
+    "INFRA_DOMAIN_MAP",
     "OPTIONAL_INFRA",
     "Config",
     "DDD_LIBS",
@@ -235,6 +235,10 @@ def get_resource_by_name(name):
         if resource["name"] == name:
             return resource
     return None
+
+
+def get_service_by_name(name):
+    return get_resource_by_name(name)
 
 
 def get_all_backend_resources():
@@ -531,9 +535,13 @@ _ensure_initialized()
 print("📦 Exporting resources...")
 
 APP_RESOURCES = _DISCOVERY_CACHE["app_resources"]
+APP_SERVICES = APP_RESOURCES
 RESOURCE_DEPENDENCIES = _DISCOVERY_CACHE["resource_dependencies"]
 RESOURCE_ALIASES = _DISCOVERY_CACHE["resource_aliases"]
+SERVICE_DEPENDENCIES = RESOURCE_DEPENDENCIES
+SERVICE_ALIASES = RESOURCE_ALIASES
 RESOURCE_PATH_MAP = _DISCOVERY_CACHE["resource_path_map"]
+SERVICE_PATH_MAP = RESOURCE_PATH_MAP
 
 print("✅ Registry initialized (" + str(len(APP_RESOURCES)) + " resources)")
 print("")
@@ -556,7 +564,7 @@ if project_root:
             GLOBAL = Config.GLOBAL,
             INFRA_SERVICES = Config.INFRA_SERVICES,
             CORE_INFRA = Config.CORE_INFRA,
-            INFRA_STACK_MAP = Config.INFRA_STACK_MAP,
+            INFRA_DOMAIN_MAP = Config.INFRA_DOMAIN_MAP,
             OPTIONAL_INFRA = Config.OPTIONAL_INFRA,
             DDD_LIBS = Config.DDD_LIBS,
             PLATFORM_LIBS_EXPLICIT = Config.PLATFORM_LIBS_EXPLICIT,
@@ -570,7 +578,7 @@ if project_root:
 
 OPTIONAL_INFRA_EXPORT = OPTIONAL_INFRA
 CORE_INFRA_EXPORT = CORE_INFRA
-INFRA_STACK_MAP_EXPORT = INFRA_STACK_MAP
+INFRA_DOMAIN_MAP_EXPORT = INFRA_DOMAIN_MAP
 DEFAULTS_EXPORT = Config.DEFAULTS
 DDD_LIBS_EXPORT = DDD_LIBS
 GLOBAL_CONFIG_EXPORT = GLOBAL_CONFIG

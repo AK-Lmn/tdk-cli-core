@@ -9,7 +9,7 @@
 # Load all validation constants from self-contained manifest/constants.star
 load("../manifest/constants.star",
     "VALID_APP_TYPES",
-    "VALID_DOMAINS",
+    "VALID_STACKS",
     "VALID_FEATURES",
     "PORT_RANGES")
 
@@ -41,12 +41,12 @@ def validate(manifest):
     elif app_type not in VALID_APP_TYPES:
         issues.append("Invalid appType: " + str(app_type) + ". Must be one of: " + ", ".join(VALID_APP_TYPES))
 
-    stack = manifest.get("stack") or manifest.get("domain")
+    stack = manifest.get("stack")
     if not stack:
-        issues.append("Missing required field: stack (or domain)")
-    elif len(VALID_DOMAINS) > 0 and stack not in VALID_DOMAINS:
-        # Only validate against list if VALID_DOMAINS is not empty
-        issues.append("Invalid stack: " + str(stack) + ". Must be one of: " + ", ".join(VALID_DOMAINS))
+        issues.append("Missing required field: stack")
+    elif len(VALID_STACKS) > 0 and stack not in VALID_STACKS:
+        # Only validate against list if VALID_STACKS is not empty
+        issues.append("Invalid stack: " + str(stack) + ". Must be one of: " + ", ".join(VALID_STACKS))
 
     port = manifest.get("port")
     if port == None:

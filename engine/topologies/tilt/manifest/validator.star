@@ -106,12 +106,12 @@ def validate(manifest, context=None, level='all'):
     
     # Run cross-resource validation
     if 'cross_resource' in levels_to_run and context.get('all_manifests'):
-        cross_service_result = _validate_cross_service(manifest, context)
-        errors.extend(cross_service_result.errors)
-        warnings.extend(cross_service_result.warnings)
-        stats['fields_checked'] += cross_service_result.stats['fields_checked']
-        stats['rules_passed'] += cross_service_result.stats['rules_passed']
-        stats['rules_failed'] += cross_service_result.stats['rules_failed']
+        cross_resource_result = _validate_cross_resource(manifest, context)
+        errors.extend(cross_resource_result.errors)
+        warnings.extend(cross_resource_result.warnings)
+        stats['fields_checked'] += cross_resource_result.stats['fields_checked']
+        stats['rules_passed'] += cross_resource_result.stats['rules_passed']
+        stats['rules_failed'] += cross_resource_result.stats['rules_failed']
     
     # In strict mode, treat warnings as errors
     if context.get('strict'):
@@ -322,7 +322,7 @@ def _validate_values(manifest, context):
         
         if len(features) > VALIDATION_THRESHOLDS['max_features']:
             warnings.append(ManifestErrors.new(
-                message="Too many features ({}), consider splitting service".format(len(features)),
+                message="Too many features ({}), consider splitting resource".format(len(features)),
                 category=ManifestErrors.CATEGORY['VALIDATION'],
                 severity=ManifestErrors.SEVERITY['WARNING'],
                 context={'field': 'features', 'count': len(features), 'max': VALIDATION_THRESHOLDS['max_features']},
@@ -394,7 +394,7 @@ def _validate_cross_field(manifest, context):
         
         if not manifest.get('traefik'):
             warnings.append(ManifestErrors.new(
-                message="Backend service should have Traefik configuration for routing",
+                message="Backend resource should have Traefik configuration for routing",
                 category=ManifestErrors.CATEGORY['VALIDATION'],
                 severity=ManifestErrors.SEVERITY['WARNING'],
                 context={'field': 'traefik', 'appType': 'backend'},
@@ -404,20 +404,20 @@ def _validate_cross_field(manifest, context):
     
     return struct(errors=errors, warnings=warnings, stats=stats)
 
-def _validate_cross_service(manifest, context):
+def _validate_cross_resource(manifest, context):
     """
-    Level 4: Cross-Service Validation
-    - internalDependencies exist as services
+    Level 4: Cross-Resource Validation
+    - internalDependencies exist as resources
     - No circular dependencies
     - Backend references are valid
-    - Port uniqueness across services
+    - Port uniqueness across resources
     """
     errors = []
     warnings = []
     stats = {'fields_checked': 0, 'rules_passed': 0, 'rules_failed': 0}
     
     all_manifests = context.get('all_manifests', [])
-    service_path = context.get('service_path', '')
+    resource_path = context.get('resource_path', '')
     
     if not all_manifests:
         return struct(errors=errors, warnings=warnings, stats=stats)
@@ -452,7 +452,7 @@ def _validate_cross_service(manifest, context):
         
         if missing_deps:
             errors.append(ManifestErrors.new(
-                message="Missing service dependencies: {}".format(', '.join(missing_deps)),
+                message="Missing resource dependencies: {}".format(', '.join(missing_deps)),
                 category=ManifestErrors.CATEGORY['DEPENDENCY'],
                 severity=ManifestErrors.SEVERITY['ERROR'],
                 context={'field': 'internalDependencies', 'missing': missing_deps},
@@ -493,17 +493,17 @@ def _validate_cross_service(manifest, context):
     
     # Check port uniqueness
     if current_port and current_port in ports:
-        services_with_port = ports[current_port]
-        other_services = [s for s in services_with_port if s != current_name]
+        resources_with_port = ports[current_port]
+        other_resources = [r for r in resources_with_port if r != current_name]
         
-        if other_services:
+        if other_resources:
             stats['fields_checked'] += 1
             
             errors.append(ManifestErrors.new(
-                message="Port {} is already used by: {}".format(current_port, ', '.join(other_services)),
+                message="Port {} is already used by: {}".format(current_port, ', '.join(other_resources)),
                 category=ManifestErrors.CATEGORY['VALIDATION'],
                 severity=ManifestErrors.SEVERITY['ERROR'],
-                context={'field': 'port', 'value': current_port, 'conflicts': other_services},
+                context={'field': 'port', 'value': current_port, 'conflicts': other_resources},
             ))
             stats['rules_failed'] += 1
         else:
@@ -692,7 +692,7 @@ def validate_values(manifest):
 
 def validate_dependencies(manifest, all_manifests):
     """
-    Validate dependencies against all services.
+    Validate dependencies against all resources.
     
     Args:
         manifest: Manifest to validate
@@ -702,7 +702,7 @@ def validate_dependencies(manifest, all_manifests):
         Validation result struct
     """
     context = {'all_manifests': all_manifests}
-    return validate(manifest, context, level='cross_service')
+    return validate(manifest, context, level='cross_resource')
 
 # Export validator functions
 ManifestValidator = struct(

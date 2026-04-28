@@ -41,7 +41,7 @@ Manifest = struct(
     
     # Valid options
     app_types=ManifestConstants.VALID_APP_TYPES,
-    domains=ManifestConstants.VALID_DOMAINS,
+    stacks=ManifestConstants.VALID_STACKS,
     features=ManifestConstants.VALID_FEATURES,
     
     # Port ranges
@@ -112,8 +112,8 @@ Manifest = struct(
     get_normalized=ManifestParser.get_normalized,
     
     # Path extraction
-    extract_service_path=ManifestParser.extract_service_path,
-    extract_domain=ManifestParser.extract_domain,
+    extract_resource_path=ManifestParser.extract_resource_path,
+    extract_stack=ManifestParser.extract_stack,
     
     # Config parsing
     parse_traefik=ManifestParser.parse_traefik,
@@ -179,16 +179,16 @@ def _is_valid_manifest(manifest):
     if not manifest:
         return False
     
-    required = ['appName', 'appType', 'domain']
+    required = ['appName', 'appType', 'stack']
     for field in required:
         if not manifest.get(field):
             return False
     
     return True
 
-def _get_service_type(manifest):
+def _get_resource_type(manifest):
     """
-    Get human-readable service type description.
+    Get human-readable resource type description.
     
     Args:
         manifest: Manifest dict
@@ -197,11 +197,11 @@ def _get_service_type(manifest):
         String description
     """
     app_type = manifest.get('appType', 'unknown')
-    domain = manifest.get('domain', 'unknown')
+    stack = manifest.get('stack', 'unknown')
     name = manifest.get('appName', 'unknown')
     
-    return "{domain}/{app_type}/{name}".format(
-        domain=domain,
+    return "{stack}/{app_type}/{name}".format(
+        stack=stack,
         app_type=app_type,
         name=name,
     )
@@ -210,7 +210,7 @@ def _get_service_type(manifest):
 Manifest = struct(
     **{k: getattr(Manifest, k) for k in dir(Manifest) if not k.startswith('_')},
     is_valid_manifest=_is_valid_manifest,
-    get_service_type=_get_service_type,
+    get_resource_type=_get_resource_type,
 )
 
 

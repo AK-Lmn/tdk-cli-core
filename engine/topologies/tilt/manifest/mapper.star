@@ -23,7 +23,7 @@ FIELD_MAPPINGS = {
     # Core application fields
     'appName': ['appName', 'name', 'metadata.name', 'serviceName', 'app.name'],
     'appType': ['appType', 'type', 'metadata.type', 'serviceType', 'app.type', 'kind'],
-    'domain': ['domain', 'metadata.domain', 'namespace', 'app.domain'],
+    'stack': ['stack', 'domain', 'metadata.stack', 'metadata.domain', 'namespace', 'app.stack', 'app.domain'],
     'port': ['port', 'portNewNameOfAttr', 'spec.port', 'metadata.port', 'servicePort', 'app.port'],
     
     # Runtime fields
@@ -190,10 +190,10 @@ def _to_yaml_format(internal_manifest):
     """Convert internal format to YAML hierarchical format."""
     return {
         'apiVersion': 'tilt.TDK Landscape.io/v1',
-        'kind': 'ServiceManifest',
+        'kind': 'ResourceManifest',
         'metadata': {
             'name': internal_manifest.get('appName', ''),
-            'domain': internal_manifest.get('domain', ''),
+            'stack': internal_manifest.get('stack', ''),
         },
         'spec': {
             'appType': internal_manifest.get('appType', 'backend'),

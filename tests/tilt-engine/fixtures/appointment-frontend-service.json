@@ -1,7 +1,7 @@
 {
   "name": "order-frontend",
   "type": "frontend",
-  "domain": "order",
+  "stack": "order",
   "port": 3001,
   "path": "services/product/order/order-frontend",
   "backendName": "order-backend",

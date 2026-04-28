@@ -70,19 +70,19 @@ def load_from_file(path):
     
     return struct(manifest=manifest, error=None)
 
-def _synthesize_manifest(service_path, domain, app_type):
+def _synthesize_manifest(resource_path, stack, app_type):
     """
     Synthesize a manifest from directory structure.
     
     Used when no manifest file exists. Extracts configuration from:
-    - Domain: extracted from path (services/product/{domain}/...)
-    - App type: extracted from service name suffix (-backend, -frontend, etc.)
+    - Stack: extracted from path (services/product/{stack}/...)
+    - App type: extracted from resource name suffix (-backend, -frontend, etc.)
     
     Ports are computed from master config per appType - Traefik handles routing.
     """
-    # Get service name from path
-    path_parts = service_path.split("/")
-    service_name = path_parts[-1] if path_parts else "unknown"
+    # Get resource name from path
+    path_parts = resource_path.split("/")
+    resource_name = path_parts[-1] if path_parts else "unknown"
     
     # Get synthesis config from master config
     synthesis_config = get_synthesis_config()
@@ -93,22 +93,22 @@ def _synthesize_manifest(service_path, domain, app_type):
     
     # Build synthesized manifest
     manifest = {
-        "appName": service_name,
+        "appName": resource_name,
         "appType": app_type,
-        "domain": domain,
+        "stack": stack,
         "port": port,
         "_synthesized": True,  # Mark as synthesized
-        "_synthesized_from": service_path,
+        "_synthesized_from": resource_path,
     }
     
     # Add backendName for frontends using master config pattern
     if app_type == "frontend":
-        backend_pattern = synthesis_config.get("backend_name_pattern", "{domain}-management-backend")
-        manifest["backendName"] = backend_pattern.format(domain=domain)
+        backend_pattern = synthesis_config.get("backend_name_pattern", "{stack}-management-backend")
+        manifest["backendName"] = backend_pattern.format(stack=stack)
     
     return manifest
 
-def _get_manifest_filename_with_fallback(service_path):
+def _get_manifest_filename_with_fallback(resource_path):
     """
     Determine which manifest filename to use, with fallback logic.
     
@@ -121,10 +121,10 @@ def _get_manifest_filename_with_fallback(service_path):
     """
     # Prepend project root to relative paths for correct resolution
     project_root = os.environ.get('TDK_PROJECT_ROOT', '')
-    if project_root and not service_path.startswith('/'):
-        base_path = project_root + '/' + service_path
+    if project_root and not resource_path.startswith('/'):
+        base_path = project_root + '/' + resource_path
     else:
-        base_path = service_path
+        base_path = resource_path
     
     # Check for new filename first
     new_path = base_path + "/" + MANIFEST_FILENAME_NEW
@@ -147,9 +147,9 @@ def _get_manifest_filename_with_fallback(service_path):
     # Neither file exists - will trigger synthesis
     return (None, False)
 
-def load_from_path(service_path):
+def load_from_path(resource_path):
     """
-    Load manifest from service directory with dual-filename support and synthesis.
+    Load manifest from resource directory with dual-filename support and synthesis.
     
     Priority:
     1. service.json (new preferred)
@@ -157,17 +157,17 @@ def load_from_path(service_path):
     3. Synthesize from directory structure if neither exists
     
     Args:
-        service_path: Path to service directory
+        resource_path: Path to resource directory
     
     Returns:
         struct with manifest and error fields
     """
     # Determine which manifest to load
-    manifest_filename, is_legacy = _get_manifest_filename_with_fallback(service_path)
+    manifest_filename, is_legacy = _get_manifest_filename_with_fallback(resource_path)
     
     if manifest_filename:
         # Load existing manifest
-        json_path = service_path + "/" + manifest_filename
+        json_path = resource_path + "/" + manifest_filename
         result = load_from_file(json_path)
         
         if result.error:
@@ -180,36 +180,36 @@ def load_from_path(service_path):
         return result
     else:
         # No manifest file - synthesize from directory structure
-        # Extract domain from path (services/product/{domain}/...)
-        path_parts = service_path.split("/")
-        domain = "unknown"
+        # Extract stack from path (services/product/{stack}/...)
+        path_parts = resource_path.split("/")
+        stack = "unknown"
         for i, part in enumerate(path_parts):
             if part == "product" and i + 1 < len(path_parts):
-                domain = path_parts[i + 1]
+                stack = path_parts[i + 1]
                 break
             elif part == "platform" and i + 1 < len(path_parts):
-                domain = "platform"
+                stack = "platform"
                 break
         
-        # Extract app type from service name
-        service_name = path_parts[-1] if path_parts else "unknown"
+        # Extract app type from resource name
+        resource_name = path_parts[-1] if path_parts else "unknown"
         app_type = "backend"  # default
-        if service_name.endswith("-frontend"):
+        if resource_name.endswith("-frontend"):
             app_type = "frontend"
-        elif service_name.endswith("-sdk"):
+        elif resource_name.endswith("-sdk"):
             app_type = "sdk"
-        elif service_name.endswith("-migrator"):
+        elif resource_name.endswith("-migrator"):
             app_type = "migrator"
-        elif service_name.endswith("-worker"):
+        elif resource_name.endswith("-worker"):
             app_type = "worker"
-        elif service_name.endswith("-library"):
+        elif resource_name.endswith("-library"):
             app_type = "library"
         
         # Synthesize manifest
-        manifest = _synthesize_manifest(service_path, domain, app_type)
+        manifest = _synthesize_manifest(resource_path, stack, app_type)
         
-        print("📝 Synthesized manifest for: " + service_name)
-        print("   Domain: " + domain + ", Type: " + app_type + ", Port: " + str(manifest["port"]))
+        print("📝 Synthesized manifest for: " + resource_name)
+        print("   Stack: " + stack + ", Type: " + app_type + ", Port: " + str(manifest["port"]))
         
         return struct(manifest=manifest, error=None)
 

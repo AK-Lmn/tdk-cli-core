@@ -19,49 +19,49 @@ def temp_dir() -> Generator[Path, None, None]:
 
 
 @pytest.fixture
-def mock_services_dir(temp_dir: Path) -> Path:
-    """Create a mock services directory structure with sample service.json files."""
-    services_dir = temp_dir / "services" / "product"
-    services_dir.mkdir(parents=True)
+def mock_resources_dir(temp_dir: Path) -> Path:
+    """Create a mock resources directory structure with sample service.json files."""
+    resources_dir = temp_dir / "services" / "product"
+    resources_dir.mkdir(parents=True)
     
-    # Create test services
-    for domain in ["identity", "order"]:
-        domain_dir = services_dir / domain
-        for service in [f"{domain}-backend", f"{domain}-frontend"]:
-            service_dir = domain_dir / service
-            service_dir.mkdir(parents=True)
-            service_file = service_dir / "service.json"
-            service_file.write_text(json.dumps({
-                "name": service,
-                "type": "backend" if "backend" in service else "frontend",
-                "domain": domain,
-                "port": 4001 if "backend" in service else 3001,
-                "path": str(service_dir.relative_to(temp_dir))
+    # Create test resources
+    for stack in ["identity", "order"]:
+        stack_dir = resources_dir / stack
+        for resource in [f"{stack}-backend", f"{stack}-frontend"]:
+            resource_dir = stack_dir / resource
+            resource_dir.mkdir(parents=True)
+            resource_file = resource_dir / "service.json"
+            resource_file.write_text(json.dumps({
+                "name": resource,
+                "type": "backend" if "backend" in resource else "frontend",
+                "stack": stack,
+                "port": 4001 if "backend" in resource else 3001,
+                "path": str(resource_dir.relative_to(temp_dir))
             }, indent=2))
     
-    return services_dir
+    return resources_dir
 
 
 @pytest.fixture
-def mock_service_json() -> dict:
+def mock_resource_json() -> dict:
     """Return a sample valid service.json structure."""
     return {
-        "name": "test-service",
+        "name": "test-resource",
         "type": "backend",
-        "domain": "test",
+        "stack": "test",
         "port": 4000,
-        "path": "services/product/test/test-service",
+        "path": "services/product/test/test-resource",
         "features": ["prisma", "nats"],
         "replicas": 1
     }
 
 
 @pytest.fixture
-def mock_invalid_service_json() -> dict:
+def mock_invalid_resource_json() -> dict:
     """Return an invalid service.json (missing required fields)."""
     return {
         "type": "backend",
-        # Missing: name, domain, port, path
+        # Missing: name, stack, port, path
     }
 
 
@@ -70,7 +70,7 @@ def sample_snapshot() -> dict:
     """Return a sample snapshot structure."""
     return {
         "timestamp": "2024-01-15T10:30:00Z",
-        "services": [
+        "resources": [
             "services/product/identity/identity-backend/service.json",
             "services/product/identity/identity-frontend/service.json",
         ],
@@ -84,7 +84,7 @@ def mock_health_response() -> dict:
     """Return a sample health check response."""
     return {
         "status": "healthy",
-        "service": "test-service",
+        "resource": "test-resource",
         "version": "1.0.0",
         "timestamp": "2024-01-15T10:30:00Z",
         "uptime": 3600,
@@ -144,14 +144,14 @@ def safe_commands() -> list:
 
 
 @pytest.fixture
-def service_registry_cache() -> dict:
-    """Return an empty service registry cache structure."""
+def resource_registry_cache() -> dict:
+    """Return an empty resource registry cache structure."""
     return {
         "initialized": False,
-        "app_services": [],
-        "service_dependencies": {},
-        "service_aliases": {},
-        "service_path_map": {}
+        "app_resources": [],
+        "resource_dependencies": {},
+        "resource_aliases": {},
+        "resource_path_map": {}
     }
 
 
@@ -166,14 +166,14 @@ def focus_mode_config() -> dict:
     """Return focus mode configuration for testing."""
     return {
         "enabled": True,
-        "domains": ["identity", "order"],
+        "stacks": ["identity", "order"],
         "excluded_paths": []
     }
 
 
 def pytest_configure(config):
     """Configure pytest with custom markers."""
-    config.addinivalue_line("markers", "snapshot: Tests for service snapshot functionality")
+    config.addinivalue_line("markers", "snapshot: Tests for resource snapshot functionality")
     config.addinivalue_line("markers", "daemon: Tests for discovery daemon")
     config.addinivalue_line("markers", "health: Tests for health check endpoints")
     config.addinivalue_line("markers", "ide: Tests for IDE components")

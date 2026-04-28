@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # =============================================================================
-# 🎯 TDK Landscape - SERVICE MANIFEST GENERATOR
+# 🎯 TDK Landscape - RESOURCE MANIFEST GENERATOR
 # =============================================================================
-# Usage: ./generate-manifest.sh <domain> <service-name> <type> [port]
+# Usage: ./generate-manifest.sh <stack> <resource-name> <type> [port]
 #
 # Examples:
 #   ./generate-manifest.sh user user-management backend 4000
@@ -35,16 +35,16 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 print_usage() {
     cat << EOF
 ${BLUE}╔═══════════════════════════════════════════════════════════════════╗
-║  🎯  TDK Landscape SERVICE MANIFEST GENERATOR                         ║
+║  🎯  TDK Landscape RESOURCE MANIFEST GENERATOR                          ║
 ╚═══════════════════════════════════════════════════════════════════╝${NC}
 
 ${YELLOW}Usage:${NC}
-  $0 <domain> <service-name> <type> [port]
+  $0 <stack> <resource-name> <type> [port]
 
 ${YELLOW}Arguments:${NC}
-  domain        Business domain (user, order, product, service, etc.)
-  service-name  Service name without type suffix (e.g., 'management', 'booking')
-  type          Service type: backend, frontend, worker, sdk
+  stack         Technology stack (user, order, product, service, etc.)
+  resource-name Resource name without type suffix (e.g., 'management', 'booking')
+  type          Resource type: backend, frontend, worker, sdk
   port          (Optional) Port number. Auto-assigned if not specified.
 
 ${YELLOW}Examples:${NC}
@@ -58,19 +58,19 @@ ${YELLOW}Port Conventions:${NC}
   Worker:    6000-6999
 
 ${YELLOW}This will create:${NC}
-  services/product/{domain}/{domain}-{name}-{type}/
-    └── platform-computing-provisioner.manifest.json
+  services/product/{stack}/{stack}-{name}-{type}/
+    └── service.json
 
 EOF
 }
 
-# Validate domain
-VALID_DOMAINS=("user" "order" "product" "service" "notification" "analytics")
+# Validate stack
+VALID_STACKS=("user" "order" "product" "service" "notification" "analytics")
 
-validate_domain() {
-    local domain=$1
-    for valid in "${VALID_DOMAINS[@]}"; do
-        if [[ "$domain" == "$valid" ]]; then
+validate_stack() {
+    local stack=$1
+    for valid in "${VALID_STACKS[@]}"; do
+        if [[ "$stack" == "$valid" ]]; then
             return 0
         fi
     done
@@ -120,59 +120,59 @@ main() {
         exit 1
     fi
 
-    local domain="$1"
-    local service_name="$2"
-    local service_type="$3"
-    local port="${4:-$(get_default_port "$service_type")}"
+    local stack="$1"
+    local resource_name="$2"
+    local resource_type="$3"
+    local port="${4:-$(get_default_port "$resource_type")}"
 
     # Validate inputs
-    if ! validate_domain "$domain"; then
-        echo -e "${RED}❌ Invalid domain: ${domain}${NC}"
-        echo -e "   Valid domains: ${VALID_DOMAINS[*]}"
+    if ! validate_stack "$stack"; then
+        echo -e "${RED}❌ Invalid stack: ${stack}${NC}"
+        echo -e "   Valid stacks: ${VALID_STACKS[*]}"
         exit 1
     fi
 
-    if ! validate_type "$service_type"; then
-        echo -e "${RED}❌ Invalid type: ${service_type}${NC}"
+    if ! validate_type "$resource_type"; then
+        echo -e "${RED}❌ Invalid type: ${resource_type}${NC}"
         echo -e "   Valid types: ${VALID_TYPES[*]}"
         exit 1
     fi
 
-    # Construct full service name
-    local full_name="${domain}-${service_name}-${service_type}"
-    local service_dir="${PROJECT_ROOT}/services/product/${domain}/${full_name}"
-    local manifest_file="${service_dir}/platform-computing-provisioner.manifest.json"
+    # Construct full resource name
+    local full_name="${stack}-${resource_name}-${resource_type}"
+    local resource_dir="${PROJECT_ROOT}/services/product/${stack}/${full_name}"
+    local manifest_file="${resource_dir}/service.json"
 
     # Check if directory already exists
-    if [[ -d "$service_dir" ]]; then
-        echo -e "${YELLOW}⚠️  Directory already exists: ${service_dir}${NC}"
+    if [[ -d "$resource_dir" ]]; then
+        echo -e "${YELLOW}⚠️  Directory already exists: ${resource_dir}${NC}"
         if [[ -f "$manifest_file" ]]; then
             echo -e "${RED}❌ Manifest already exists. Aborting.${NC}"
             exit 1
         fi
         echo -e "${BLUE}   Creating manifest in existing directory...${NC}"
     else
-        echo -e "${BLUE}📁 Creating service directory: ${service_dir}${NC}"
-        mkdir -p "$service_dir"
+        echo -e "${BLUE}📁 Creating resource directory: ${resource_dir}${NC}"
+        mkdir -p "$resource_dir"
     fi
 
     # Get features
     local features
-    features=$(get_default_features "$service_type")
+    features=$(get_default_features "$resource_type")
 
     # Build dependencies based on type
     local deps='[]'
-    if [[ "$service_type" == "backend" && "$domain" != "identity" ]]; then
+    if [[ "$resource_type" == "backend" && "$stack" != "identity" ]]; then
         deps='["identity"]'
     fi
 
     # Generate manifest JSON
     cat > "$manifest_file" << EOF
 {
-  "\$schema": "../../.tilt/schemas/manifest-schema.json",
+  "\$schema": "../../.tilt/schemas/service-schema.json",
   "appName": "${full_name}",
-  "appType": "${service_type}",
-  "domain": "${domain}",
+  "appType": "${resource_type}",
+  "stack": "${stack}",
   "port": ${port},
   "replicas": 1,
   "features": ${features},
@@ -187,11 +187,11 @@ EOF
     echo ""
     echo -e "${YELLOW}📝 Next steps:${NC}"
     echo "   1. Review and customize the manifest"
-    echo "   2. Add source files to ${service_dir}/src/"
+    echo "   2. Add source files to ${resource_dir}/src/"
     echo "   3. Create package.json if needed"
-    echo "   4. Run 'tilt up' to discover the new service"
+    echo "   4. Run 'tilt up' to discover the new resource"
     echo ""
-    echo -e "${GREEN}🎉 Done! Service '${full_name}' is ready for development.${NC}"
+    echo -e "${GREEN}🎉 Done! Resource '${full_name}' is ready for development.${NC}"
 }
 
 main "$@"

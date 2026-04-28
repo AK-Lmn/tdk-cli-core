@@ -1,7 +1,7 @@
 /**
- * Service discovery utilities
+ * Resource discovery utilities
  *
- * Discovers services by scanning the filesystem for service.json files.
+ * Discovers resources by scanning the filesystem for service.json files.
  * Stacks are discovered dynamically - no stack.master files needed.
  */
 
@@ -9,10 +9,15 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { resolve, join, dirname } from 'node:path';
 import { cwd } from 'node:process';
 import { execSync } from 'node:child_process';
-import type { DiscoveredService, ServiceConfig, DiscoveredStack } from '../types/index.js';
+import type { DiscoveredResource, ResourceConfig, DiscoveredStack } from '../types/index.js';
 import type { FileType } from '../components/FileTree.js';
 
 const SERVICE_JSON_FILENAME = 'service.json';
+
+/**
+ * @deprecated Use discoverResources instead
+ */
+export const discoverServices = discoverResources;
 
 /**
  * Find the project root by looking for .tdk/project.json
@@ -105,27 +110,26 @@ function shouldSkipDirectory(name: string): boolean {
 }
 
 /**
- * Parse a service.json file into DiscoveredService
+ * Parse a service.json file into DiscoveredResource
  */
-function parseService(serviceJsonPath: string): DiscoveredService | null {
+function parseResource(serviceJsonPath: string): DiscoveredResource | null {
   try {
     const content = readFileSync(serviceJsonPath, 'utf-8');
-    const config = JSON.parse(content) as ServiceConfig;
+    const config = JSON.parse(content) as ResourceConfig;
 
-    // Validate required fields (appName is required, domain is optional)
+    // Validate required fields (appName is required)
     if (!config.appName) {
       return null;
     }
 
-    const serviceDir = dirname(serviceJsonPath);
+    const resourceDir = dirname(serviceJsonPath);
 
     return {
       name: config.appName,
-      domain: config.domain || 'unknown',
-      path: serviceDir,
+      path: resourceDir,
       configPath: serviceJsonPath,
       config,
-      stack: config.stack,
+      stack: config.stack || config.domain, // Support both new and legacy field
     };
   } catch {
     return null;
@@ -133,14 +137,21 @@ function parseService(serviceJsonPath: string): DiscoveredService | null {
 }
 
 /**
- * Discover all services from the project
+ * @deprecated Use parseResource instead
+ */
+function parseService(serviceJsonPath: string): DiscoveredResource | null {
+  return parseResource(serviceJsonPath);
+}
+
+/**
+ * Discover all resources from the project
  *
  * Scans the filesystem for service.json files and parses them.
  *
  * @param options - Discovery options
- * @returns Array of discovered services
+ * @returns Array of discovered resources
  */
-export function discoverServices(): DiscoveredService[] {
+export function discoverResources(): DiscoveredResource[] {
   const projectRoot = findProjectRoot();
 
   if (!projectRoot) {
@@ -151,25 +162,32 @@ export function discoverServices(): DiscoveredService[] {
   const serviceJsonPaths = findServiceJsonFiles(projectRoot);
 
   // Parse each service.json file
-  const services = serviceJsonPaths
-    .map(path => parseService(path))
-    .filter((s): s is DiscoveredService => s !== null);
+  const resources = serviceJsonPaths
+    .map(path => parseResource(path))
+    .filter((r): r is DiscoveredResource => r !== null);
 
-  return services;
+  return resources;
 }
 
 /**
- * Get all unique stack names from discovered services
+ * @deprecated Use discoverResources instead
+ */
+export function discoverServices(): DiscoveredResource[] {
+  return discoverResources();
+}
+
+/**
+ * Get all unique stack names from discovered resources
  *
  * @returns Array of unique stack names, sorted alphabetically
  */
-export function getAllStacks(services?: DiscoveredService[]): string[] {
-  const servicesToScan = services || discoverServices();
+export function getAllStacks(resources?: DiscoveredResource[]): string[] {
+  const resourcesToScan = resources || discoverResources();
   const stacks = new Set<string>();
 
-  for (const service of servicesToScan) {
-    if (service.stack) {
-      stacks.add(service.stack);
+  for (const resource of resourcesToScan) {
+    if (resource.stack) {
+      stacks.add(resource.stack);
     }
   }
 
@@ -177,36 +195,40 @@ export function getAllStacks(services?: DiscoveredService[]): string[] {
 }
 
 /**
- * Discover all stacks with their associated services
+ * @deprecated Use getAllStacks(resources) instead
+ */
+export function getAllStacksFromServices(services?: DiscoveredResource[]): string[] {
+  return getAllStacks(services);
+}
+
+/**
+ * Discover all stacks with their associated resources
  *
  * @param options - Discovery options
- * @returns Array of discovered stacks with services
+ * @returns Array of discovered stacks with resources
  */
 export function discoverStacks(): DiscoveredStack[] {
-  const services = discoverServices();
-  const stackMap = new Map<string, DiscoveredService[]>();
+  const resources = discoverResources();
+  const stackMap = new Map<string, DiscoveredResource[]>();
 
-  // Group services by stack
-  for (const service of services) {
-    if (service.stack) {
-      if (!stackMap.has(service.stack)) {
-        stackMap.set(service.stack, []);
+  // Group resources by stack
+  for (const resource of resources) {
+    if (resource.stack) {
+      if (!stackMap.has(resource.stack)) {
+        stackMap.set(resource.stack, []);
       }
-      stackMap.get(service.stack)!.push(service);
+      stackMap.get(resource.stack)!.push(resource);
     }
   }
 
   // Build DiscoveredStack objects
   const stacks: DiscoveredStack[] = [];
-  for (const [name, stackServices] of stackMap) {
-    const domains = [...new Set(stackServices.map(s => s.domain).filter(Boolean))].sort() as string[];
-
+  for (const [name, stackResources] of stackMap) {
     stacks.push({
       name,
-      description: `${stackServices.length} service${stackServices.length === 1 ? '' : 's'}`,
-      services: stackServices,
-      serviceCount: stackServices.length,
-      domains,
+      description: `${stackResources.length} resource${stackResources.length === 1 ? '' : 's'}`,
+      resources: stackResources,
+      resourceCount: stackResources.length,
     });
   }
 
@@ -215,25 +237,32 @@ export function discoverStacks(): DiscoveredStack[] {
 }
 
 /**
- * Get services that belong to a specific stack.
+ * Get resources that belong to a specific stack.
  *
  * @param stackName - Name of the stack to filter by
- * @returns Services belonging to the stack
+ * @returns Resources belonging to the stack
  */
-export function getServicesForStack(stackName: string): DiscoveredService[] {
-  const allServices = discoverServices();
-  return allServices.filter(s => s.stack === stackName);
+export function getResourcesForStack(stackName: string): DiscoveredResource[] {
+  const allResources = discoverResources();
+  return allResources.filter(r => r.stack === stackName);
 }
 
 /**
- * Check if a stack exists (has any services)
+ * @deprecated Use getResourcesForStack instead
+ */
+export function getServicesForStack(stackName: string): DiscoveredResource[] {
+  return getResourcesForStack(stackName);
+}
+
+/**
+ * Check if a stack exists (has any resources)
  *
  * @param stackName - Name of the stack to check
- * @returns True if the stack has at least one service
+ * @returns True if the stack has at least one resource
  */
 export function stackExists(stackName: string): boolean {
-  const services = getServicesForStack(stackName);
-  return services.length > 0;
+  const resources = getResourcesForStack(stackName);
+  return resources.length > 0;
 }
 
 // =============================================================================
@@ -241,7 +270,7 @@ export function stackExists(stackName: string): boolean {
 // =============================================================================
 
 interface MetadataCache {
-  services: Map<string, ServiceMetadata>;
+  resources: Map<string, ResourceMetadata>;
   stacks: Map<string, StackMetadata>;
   lastUpdated: number;
 }
@@ -249,14 +278,13 @@ interface MetadataCache {
 const CACHE_TTL = 5000; // 5 seconds
 
 const metadataCache: MetadataCache = {
-  services: new Map(),
+  resources: new Map(),
   stacks: new Map(),
   lastUpdated: 0,
 };
 
-export interface ServiceMetadata {
+export interface ResourceMetadata {
   name: string;
-  domain: string;
   stack?: string;
   type: 'frontend' | 'backend' | 'lib';
   port?: number;
@@ -268,15 +296,34 @@ export interface ServiceMetadata {
   hasDockerCompose: boolean;
   autogeneratedFiles: AutogeneratedFile[];
   status: 'ready' | 'pending' | 'error' | 'unknown';
+
+  /**
+   * @deprecated Use stack instead
+   */
+  domain?: string;
 }
+
+/**
+ * @deprecated Use ResourceMetadata instead
+ */
+export type ServiceMetadata = ResourceMetadata;
 
 export interface StackMetadata {
   name: string;
-  serviceCount: number;
+  resourceCount: number;
   createdAt: string;
   lastModified: string;
-  services: ServiceMetadata[];
+  resources: ResourceMetadata[];
   overallStatus: 'healthy' | 'degraded' | 'error' | 'unknown';
+
+  /**
+   * @deprecated Use resourceCount instead
+   */
+  serviceCount?: number;
+  /**
+   * @deprecated Use resources instead
+   */
+  services?: ResourceMetadata[];
 }
 
 export interface AutogeneratedFile {
@@ -291,7 +338,7 @@ export interface AutogeneratedFile {
  * Clear metadata cache (useful for forcing refresh)
  */
 export function clearMetadataCache(): void {
-  metadataCache.services.clear();
+  metadataCache.resources.clear();
   metadataCache.stacks.clear();
   metadataCache.lastUpdated = 0;
 }
@@ -330,22 +377,22 @@ function detectFileType(filename: string, content?: string): FileType {
 }
 
 /**
- * Get service metadata from filesystem
+ * Get resource metadata from filesystem
  */
-export function getServiceMetadata(service: DiscoveredService): ServiceMetadata {
-  const cacheKey = service.configPath;
+export function getResourceMetadata(resource: DiscoveredResource): ResourceMetadata {
+  const cacheKey = resource.configPath;
   
-  if (isCacheValid() && metadataCache.services.has(cacheKey)) {
-    return metadataCache.services.get(cacheKey)!;
+  if (isCacheValid() && metadataCache.resources.has(cacheKey)) {
+    return metadataCache.resources.get(cacheKey)!;
   }
 
-  const serviceDir = service.path;
+  const resourceDir = resource.path;
   
   // Get timestamps from service.json
   let createdAt = new Date().toISOString();
   let lastModified = createdAt;
   try {
-    const stats = statSync(service.configPath);
+    const stats = statSync(resource.configPath);
     createdAt = stats.mtime.toISOString();
     lastModified = stats.mtime.toISOString();
   } catch {
@@ -353,31 +400,30 @@ export function getServiceMetadata(service: DiscoveredService): ServiceMetadata 
   }
 
   // Check for autogenerated files
-  const autogeneratedFiles = discoverAutogeneratedFiles(serviceDir);
+  const autogeneratedFiles = discoverAutogeneratedFiles(resourceDir);
 
   // Check for specific files
-  const hasDockerfile = existsSync(join(serviceDir, 'Dockerfile'));
-  const hasTiltfile = existsSync(join(serviceDir, 'Tiltfile'));
-  const hasDockerCompose = existsSync(join(serviceDir, 'docker-compose.yml')) || 
-                          existsSync(join(serviceDir, 'docker-compose.yaml'));
+  const hasDockerfile = existsSync(join(resourceDir, 'Dockerfile'));
+  const hasTiltfile = existsSync(join(resourceDir, 'Tiltfile'));
+  const hasDockerCompose = existsSync(join(resourceDir, 'docker-compose.yml')) || 
+                          existsSync(join(resourceDir, 'docker-compose.yaml'));
 
-  // Determine service type from name
+  // Determine resource type from name
   let type: 'frontend' | 'backend' | 'lib' = 'backend';
-  if (service.name.includes('frontend')) {
+  if (resource.name.includes('frontend')) {
     type = 'frontend';
-  } else if (service.name.includes('sdk') || service.name.includes('lib') || service.name.includes('infra')) {
+  } else if (resource.name.includes('sdk') || resource.name.includes('lib') || resource.name.includes('infra')) {
     type = 'lib';
   }
 
-  const metadata: ServiceMetadata = {
-    name: service.name,
-    domain: service.domain || 'unknown',
-    stack: service.stack,
+  const metadata: ResourceMetadata = {
+    name: resource.name,
+    stack: resource.stack,
     type,
-    port: service.config?.port,
+    port: resource.config?.port,
     createdAt,
     lastModified,
-    dependencies: service.config?.dependencies || service.config?.internalDependencies || [],
+    dependencies: resource.config?.dependencies || resource.config?.internalDependencies || [],
     hasDockerfile,
     hasTiltfile,
     hasDockerCompose,
@@ -386,16 +432,23 @@ export function getServiceMetadata(service: DiscoveredService): ServiceMetadata 
   };
 
   // Update cache
-  metadataCache.services.set(cacheKey, metadata);
+  metadataCache.resources.set(cacheKey, metadata);
   metadataCache.lastUpdated = Date.now();
 
   return metadata;
 }
 
 /**
- * Discover autogenerated files in a service directory
+ * @deprecated Use getResourceMetadata instead
  */
-export function discoverAutogeneratedFiles(serviceDir: string): AutogeneratedFile[] {
+export function getServiceMetadata(service: DiscoveredResource): ResourceMetadata {
+  return getResourceMetadata(service);
+}
+
+/**
+ * Discover autogenerated files in a resource directory
+ */
+export function discoverAutogeneratedFiles(resourceDir: string): AutogeneratedFile[] {
   const files: AutogeneratedFile[] = [];
   const autogeneratedPatterns = [
     'Dockerfile',
@@ -463,21 +516,21 @@ export function getStackMetadata(stack: DiscoveredStack): StackMetadata {
     return metadataCache.stacks.get(cacheKey)!;
   }
 
-  // Collect metadata for all services in stack
-  const servicesMetadata = stack.services.map(s => getServiceMetadata(s));
+  // Collect metadata for all resources in stack
+  const resourcesMetadata = stack.resources.map(r => getResourceMetadata(r));
 
   // Find earliest creation time
-  const timestamps = servicesMetadata.map(s => new Date(s.createdAt).getTime());
+  const timestamps = resourcesMetadata.map(r => new Date(r.createdAt).getTime());
   const earliestTimestamp = Math.min(...timestamps);
   const latestTimestamp = Math.max(...timestamps);
 
   // Calculate overall status (placeholder - would query Tilt in real implementation)
-  const totalServices = servicesMetadata.length;
-  const readyCount = servicesMetadata.filter(() => Math.random() > 0.3).length; // Placeholder
+  const totalResources = resourcesMetadata.length;
+  const readyCount = resourcesMetadata.filter(() => Math.random() > 0.3).length; // Placeholder
   
   let overallStatus: StackMetadata['overallStatus'] = 'unknown';
-  if (totalServices > 0) {
-    const ratio = readyCount / totalServices;
+  if (totalResources > 0) {
+    const ratio = readyCount / totalResources;
     if (ratio > 0.9) {
       overallStatus = 'healthy';
     } else if (ratio > 0.5) {
@@ -489,10 +542,10 @@ export function getStackMetadata(stack: DiscoveredStack): StackMetadata {
 
   const metadata: StackMetadata = {
     name: stack.name,
-    serviceCount: servicesMetadata.length,
+    resourceCount: resourcesMetadata.length,
     createdAt: new Date(earliestTimestamp).toISOString(),
     lastModified: new Date(latestTimestamp).toISOString(),
-    services: servicesMetadata,
+    resources: resourcesMetadata,
     overallStatus,
   };
 

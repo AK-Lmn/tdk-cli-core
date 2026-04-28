@@ -1,8 +1,8 @@
 # =============================================================================
 # 🌐 - API PATH CONSTANTS (Dynamic)
 # =============================================================================
-# API paths are generated dynamically from manifest domain and appName fields
-# No hardcoded service names - all from platform-computing-provisioner.manifest.json
+# API paths are generated dynamically from manifest stack and appName fields
+# No hardcoded resource names - all from service.json
 # =============================================================================
 
 
@@ -23,48 +23,49 @@ API_BASE_PATH = "/api"
 # DYNAMIC API PATH GENERATION
 # =============================================================================
 
-def generate_api_path(domain, app_name):
-    """Generate API path from manifest domain and appName.
+def generate_api_path(stack, app_name):
+    """Generate API path from manifest stack and appName.
     
-    URL Restructuring: Changed from /api/v1/{app-name} to /api/{domain}-management
+    URL Restructuring: Changed from /api/v1/{app-name} to /api/{stack}-management
     This provides clean separation between frontend and backend while removing version from path.
     """
-    # NEW: Use /api/{domain}-management pattern
+    # NEW: Use /api/{stack}-management pattern
     # Examples: /api/user-management, /api/order-management
-    return "/api/" + domain + "-management"
+    return "/api/" + stack + "-management"
 
 # =============================================================================
-# SERVICE DOMAIN TO API PATH MAPPING (Dynamic)
+# SERVICE STACK TO API PATH MAPPING (Dynamic)
 # =============================================================================
 # This is populated at runtime from discovered manifests
-# No hardcoded service names
+# No hardcoded resource names
 
-SERVICE_DOMAIN_TO_API_PATH = {}
+SERVICE_STACK_TO_API_PATH = {}
 
 # =============================================================================
 # API PATH TO SERVICE MAPPING (Dynamic)
 # =============================================================================
 
-API_PATH_TO_SERVICE_DOMAIN = {}
+API_PATH_TO_SERVICE_STACK = {}
+API_PATH_TO_SERVICE_DOMAIN = API_PATH_TO_SERVICE_STACK
 
 # =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================
 
-def _pluralize_domain(domain):
-    """Convert domain to proper plural form.
+def _pluralize_stack(stack):
+    """Convert stack to proper plural form.
     
-    Handles irregular plurals and special cases for platform domains.
+    Handles irregular plurals and special cases for platform stacks.
     
     Args:
-        domain: Singular domain name (e.g., "user", "order", "product")
+        stack: Singular stack name (e.g., "user", "order", "product")
     
     Returns:
-        str: Pluralized domain name (e.g., "users", "orders", "products")
+        str: Pluralized stack name (e.g., "users", "orders", "products")
     """
     # Already plural
-    if domain.endswith("s"):
-        return domain
+    if stack.endswith("s"):
+        return stack
     
     # Special cases - irregular plurals (common English patterns)
     irregulars = {
@@ -74,81 +75,90 @@ def _pluralize_domain(domain):
         "story": "stories",
     }
     
-    if domain in irregulars:
-        return irregulars[domain]
+    if stack in irregulars:
+        return irregulars[stack]
     
     # Words ending in 'y' (not preceded by a vowel) -> 'ies'
-    if domain.endswith("y") and len(domain) > 1 and domain[-2] not in "aeiou":
-        return domain[:-1] + "ies"
+    if stack.endswith("y") and len(stack) > 1 and stack[-2] not in "aeiou":
+        return stack[:-1] + "ies"
     
     # Words ending in 'ch', 'sh', 'ss', 'x', 'z', 'o' -> add 'es'
-    if domain.endswith(("ch", "sh", "ss", "x", "z", "o")):
-        return domain + "es"
+    if stack.endswith(("ch", "sh", "ss", "x", "z", "o")):
+        return stack + "es"
     
     # Default: add 's'
-    return domain + "s"
+    return stack + "s"
 
 
-def get_api_path_for_domain(domain, manifest=None):
-    """Returns the full API path for a service domain.
+def get_api_path_for_stack(stack, manifest=None):
+    """Returns the full API path for a service stack.
     
-    URL Restructuring: Changed from /api/v1/{domain}s to /api/{domain}-management
-    This aligns API paths with service naming conventions.
+    URL Restructuring: Changed from /api/v1/{stack}s to /api/{stack}-management
+    This aligns API paths with resource naming conventions.
     
     Args:
-        domain: Service domain name from manifest.json
+        stack: Service stack name from manifest.json
         manifest: Optional manifest dict that may contain 'apiPath' override
     
     Returns:
         Full API path string (e.g., "/api/user-management")
-        Falls back to "/api/{domain}-management" if not found
+        Falls back to "/api/{stack}-management" if not found
         Returns apiPath from manifest if explicitly specified
     """
     # Check for explicit apiPath override in manifest
     if manifest and manifest.get("apiPath"):
         return manifest.get("apiPath")
     
-    # NEW: Use /api/{domain}-management pattern instead of /api/v1/{pluralized}
-    return SERVICE_DOMAIN_TO_API_PATH.get(domain, "/api/" + domain + "-management")
+    # NEW: Use /api/{stack}-management pattern instead of /api/v1/{pluralized}
+    return SERVICE_STACK_TO_API_PATH.get(stack, "/api/" + stack + "-management")
 
-def get_api_path_for_service(service_name):
-    """Returns the full API path for a service name.
+# Backwards compatibility alias
+get_api_path_for_domain = get_api_path_for_stack
+
+def get_api_path_for_resource(resource_name):
+    """Returns the full API path for a resource name.
     
     Args:
-        service_name: Service appName from manifest
+        resource_name: Resource appName from manifest
     
     Returns:
         Full API path string
     """
-    # Extract domain from service name using pattern matching
-    # No hardcoded service names - all patterns derived from naming conventions
-    if "-management-backend" in service_name:
-        domain = service_name.replace("-management-backend", "")
-    elif "-management-frontend" in service_name:
-        domain = service_name.replace("-management-frontend", "")
-    elif "-planner-backend" in service_name:
-        domain = service_name.replace("-planner-backend", "")
-    elif "-planner-frontend" in service_name:
-        domain = service_name.replace("-planner-frontend", "")
-    elif "-backend" in service_name:
-        domain = service_name.replace("-backend", "")
-    elif "-frontend" in service_name:
-        domain = service_name.replace("-frontend", "")
+    # Extract stack from resource name using pattern matching
+    # No hardcoded resource names - all patterns derived from naming conventions
+    if "-management-backend" in resource_name:
+        stack = resource_name.replace("-management-backend", "")
+    elif "-management-frontend" in resource_name:
+        stack = resource_name.replace("-management-frontend", "")
+    elif "-planner-backend" in resource_name:
+        stack = resource_name.replace("-planner-backend", "")
+    elif "-planner-frontend" in resource_name:
+        stack = resource_name.replace("-planner-frontend", "")
+    elif "-backend" in resource_name:
+        stack = resource_name.replace("-backend", "")
+    elif "-frontend" in resource_name:
+        stack = resource_name.replace("-frontend", "")
     else:
-        domain = service_name
+        stack = resource_name
     
-    return get_api_path_for_domain(domain)
+    return get_api_path_for_stack(stack)
 
-def get_domain_for_api_path(api_path):
-    """Returns the service domain for an API path (reverse lookup).
+# Backwards compatibility alias
+get_api_path_for_service = get_api_path_for_resource
+
+def get_stack_for_api_path(api_path):
+    """Returns the service stack for an API path (reverse lookup).
     
     Args:
         api_path: Full API path
     
     Returns:
-        Service domain string
+        Service stack string
     """
-    return API_PATH_TO_SERVICE_DOMAIN.get(api_path, "")
+    return API_PATH_TO_SERVICE_STACK.get(api_path, "")
+
+# Backwards compatibility alias
+get_domain_for_api_path = get_stack_for_api_path
 
 # Load project name for dynamic localhost domain
 # Use TDK_PROJECT_ROOT env var set by Tilt, fallback to current directory
@@ -217,3 +227,4 @@ def is_valid_api_path(api_path):
 # All legacy paths removed - use dynamic path generation from manifests
 
 LEGACY_DOMAIN_TO_API_PATH = {}
+SERVICE_DOMAIN_TO_API_PATH = LEGACY_DOMAIN_TO_API_PATH

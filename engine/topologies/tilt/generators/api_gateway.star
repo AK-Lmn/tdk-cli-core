@@ -5,15 +5,15 @@
 # Purpose: Auto-discover backends and generate referer-based routing map
 # =============================================================================
 
-load('../discovery/registry.star', 'get_app_services', 'get_service_aliases')
+load('../discovery/registry.star', 'get_app_resources', 'get_resource_aliases')
 
 
-def _extract_referer_pattern(base_path, domain):
-    """Extract referer pattern from basePath or domain - use actual names."""
+def _extract_referer_pattern(base_path, stack):
+    """Extract referer pattern from basePath or stack - use actual names."""
     if base_path:
         return base_path.strip('/').lower()
-    if domain:
-        return domain.lower()
+    if stack:
+        return stack.lower()
     return None
 
 
@@ -35,7 +35,7 @@ def _collect_backend_dependencies(frontend_manifest):
     if manifest_deps == None:
         manifest_deps = frontend_manifest.get('internalDependencies', [])
 
-    aliases = get_service_aliases()
+    aliases = get_resource_aliases()
     for dep in manifest_deps:
         dep_name = str(dep)
         if dep_name.endswith('-backend'):
@@ -51,7 +51,7 @@ def _collect_backend_dependencies(frontend_manifest):
 
 
 def _get_backend_port(backend_name, fallback = 4000):
-    for service in get_app_services():
+    for service in get_app_resources():
         for resource in service.get('resources', []):
             if resource.get('name') == backend_name:
                 manifest = resource.get('_manifest', {})
@@ -72,10 +72,10 @@ def get_backend_routing_map(frontend_manifest = None):
     
     allowed_backends = _collect_backend_dependencies(frontend_manifest)
 
-    for service in get_app_services():
-        domain_name = service.get('name', '')
+    for resource_group in get_app_resources():
+        stack_name = resource_group.get('name', '')
         
-        for resource in service.get('resources', []):
+        for resource in resource_group.get('resources', []):
             manifest = resource.get('_manifest', {})
             app_type = manifest.get('appType', resource.get('app_type', 'backend'))
             
@@ -91,9 +91,9 @@ def get_backend_routing_map(frontend_manifest = None):
                 port = resource.get('port', 4000)
             
             base_path = manifest.get('basePath', '')
-            domain = manifest.get('domain', domain_name)
+            stack = manifest.get('stack', stack_name)
             
-            pattern = _extract_referer_pattern(base_path, domain)
+            pattern = _extract_referer_pattern(base_path, stack)
             
             if pattern:
                 routing_map[pattern] = {'name': backend_name, 'port': port}

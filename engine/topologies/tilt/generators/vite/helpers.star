@@ -25,7 +25,7 @@ _NPM_SCOPE = _load_npm_scope()
 # API PATH CONSTANTS - Import for full descriptive API naming
 # =============================================================================
 load('../../../../topologies/platform/docker/networking/api_path_constants.star',
-     'get_api_path_for_domain',
+     'get_api_path_for_stack',
      'build_traefik_url')
 
 
@@ -93,25 +93,25 @@ def generate_frontend_optimize_deps(manifest):
     return '\n      ' + ',\n      '.join(["'" + dep + "'" for dep in sorted(optimize_deps)]) + ',\n    '
 
 
-def generate_proxy_block(api_base_path, backend_port, additional_routes, domain='app'):
+def generate_proxy_block(api_base_path, backend_port, additional_routes, stack='app'):
     """Generate Vite proxy config using full descriptive API paths.
     
     Uses API naming convention with full service names from manifest:
     - Pattern: /api/v1/{app-name}
-    - Generated from manifest "domain" and "appName" fields
+    - Generated from manifest "stack" and "appName" fields
     
     Args:
         api_base_path: The base API path (from manifest)
-        backend_port: Backend service port (kept for compatibility)
+        backend_port: Backend resource port (kept for compatibility)
         additional_routes: Additional proxy routes
-        domain: Service domain name (from manifest.json)
+        stack: Resource stack name (from manifest.json)
     
     Returns:
         Vite proxy configuration string
     """
-    # Get full descriptive API path for this domain using constants
+    # Get full descriptive API path for this stack using constants
     # This replaces the old pattern: 'http://localhost:' + str(backend_port)
-    api_path = get_api_path_for_domain(domain)
+    api_path = get_api_path_for_stack(stack)
     
     # Build Traefik gateway URL using the full API path
     # Format: http://{project}.localhost/api/v1/{full-service-name}
@@ -141,7 +141,7 @@ def generate_proxy_block(api_base_path, backend_port, additional_routes, domain=
     return '\n'.join(lines)
 
 
-def generate_backend_path_aliases(service_path, manifest):
+def generate_backend_path_aliases(resource_path, manifest):
     """Generate TypeScript path aliases for DDD architecture."""
     lines = []
     
@@ -156,8 +156,8 @@ def generate_backend_path_aliases(service_path, manifest):
     for alias, rel_path in ddd_aliases:
         lines.append("      '" + alias + "': path.resolve(__dirname, '" + rel_path + "'),")
     
-    service_parts = [p for p in service_path.split('/') if p]
-    depth = len(service_parts)
+    resource_parts = [p for p in resource_path.split('/') if p]
+    depth = len(resource_parts)
     rel_to_root = '../' * depth
     
     internal_deps = manifest.get('_internalDeps', [])

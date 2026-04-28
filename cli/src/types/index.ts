@@ -1,49 +1,51 @@
 /**
- * LDK (Local Development Kit) Type Definitions
+ * TDK (Tilt Development Kit) Type Definitions
  *
- * Types for service discovery and stack management.
+ * Types for resource discovery and stack management.
  * Stacks are discovered dynamically from service.json files - no stack.master needed.
  */
 
 /**
- * Represents a discovered service from the Tilt infrastructure
+ * Represents a discovered resource from the Tilt infrastructure
  */
-export interface DiscoveredService {
-  /** Service name (from appName in service.json or directory name) */
+export interface DiscoveredResource {
+  /** Resource name (from appName in service.json or directory name) */
   name: string;
 
-  /** Domain the service belongs to (optional, defaults to 'unknown') */
-  domain?: string;
-
-  /** Full path to service directory */
+  /** Full path to resource directory */
   path: string;
 
   /** Path to service.json file */
   configPath: string;
 
   /** Parsed service.json content */
-  config?: ServiceConfig;
+  config?: ResourceConfig;
 
   /**
-   * The stack this service belongs to (from service.json).
-   * Each service can belong to exactly one stack.
+   * The stack this resource belongs to (from service.json).
+   * Each resource can belong to exactly one stack.
    */
   stack?: string;
 
-  /** Service port (extracted from config for convenience) */
+  /** Resource port (extracted from config for convenience) */
   port?: number;
 
-  /** Service type (extracted from config for convenience) */
+  /** Resource type (extracted from config for convenience) */
   type?: string;
 }
 
 /**
- * Partial service.json structure (only fields LDK cares about)
+ * @deprecated Use DiscoveredResource instead
  */
-export interface ServiceConfig {
+export type DiscoveredService = DiscoveredResource;
+
+/**
+ * Partial service.json structure (only fields TDK cares about)
+ */
+export interface ResourceConfig {
   appName: string;
   appType: 'backend' | 'frontend' | 'library' | 'sdk' | 'worker' | 'migrator';
-  domain?: string;
+  stack?: string;
   port?: number;
   replicas?: number;
   runtime: string;
@@ -51,15 +53,9 @@ export interface ServiceConfig {
   internalDependencies?: string[];
   dependencies?: string[];
   /**
-   * The stack this service belongs to.
-   * Each service belongs to exactly one stack.
-   * Example: "booking-flow"
-   */
-  stack?: string;
-  /**
-   * Whether this service is enabled for deployment.
-   * Disabled services are shown in the UI but marked as disabled.
-   * Services without this field default to enabled (true).
+   * Whether this resource is enabled for deployment.
+   * Disabled resources are shown in the UI but marked as disabled.
+   * Resources without this field default to enabled (true).
    */
   enabled?: boolean;
   /**
@@ -69,28 +65,47 @@ export interface ServiceConfig {
    */
   basePath?: string;
   /**
-   * Backend service name this frontend connects to.
+   * Backend resource name this frontend connects to.
    */
   backendName?: string;
+
+  /**
+   * @deprecated Use stack instead
+   */
+  domain?: string;
 }
 
 /**
- * Represents a discovered stack (aggregated from services)
+ * @deprecated Use ResourceConfig instead
+ */
+export type ServiceConfig = ResourceConfig;
+
+/**
+ * Represents a discovered stack (aggregated from resources)
  */
 export interface DiscoveredStack {
   /** Stack name */
   name: string;
 
-  /** Human-readable description (derived from services or metadata) */
+  /** Human-readable description (derived from resources or metadata) */
   description?: string;
 
-  /** Services that belong to this stack */
-  services: DiscoveredService[];
+  /** Resources that belong to this stack */
+  resources: DiscoveredResource[];
 
-  /** Number of services in the stack */
+  /** Number of resources in the stack */
+  resourceCount: number;
+}
+
+/**
+ * @deprecated Use resources and resourceCount instead
+ */
+export interface LegacyDiscoveredStack extends DiscoveredStack {
+  /** @deprecated Use resources instead */
+  services: DiscoveredResource[];
+  /** @deprecated Use resourceCount instead */
   serviceCount: number;
-
-  /** Domains covered by this stack */
+  /** @deprecated Not used anymore */
   domains: string[];
 }
 

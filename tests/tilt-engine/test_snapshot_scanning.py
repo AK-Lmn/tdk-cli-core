@@ -1,5 +1,5 @@
 """
-Tests for service snapshot scanning functionality.
+Tests for resource snapshot scanning functionality.
 Tests the filesystem scanning and service.json discovery.
 """
 
@@ -13,91 +13,91 @@ from pathlib import Path
 class TestSnapshotScanning:
     """Tests for filesystem scanning functionality."""
     
-    def test_scanning_finds_valid_service_files(self, temp_dir, monkeypatch):
+    def test_scanning_finds_valid_resource_files(self, temp_dir, monkeypatch):
         """
-        Scenario: Scanning finds valid service files
+        Scenario: Scanning finds valid resource files
         WHEN the scanner runs against a directory containing 3 valid service.json files
-        THEN it SHALL return a list of 3 services with correct paths and parsed metadata
+        THEN it SHALL return a list of 3 resources with correct paths and parsed metadata
         """
-        # Create test directory structure with 3 services
-        services = [
+        # Create test directory structure with 3 resources
+        resources = [
             ("services/product/identity/identity-backend", "identity-backend"),
             ("services/product/identity/identity-frontend", "identity-frontend"),
             ("services/product/order/order-backend", "order-backend"),
         ]
         
-        for service_path, service_name in services:
-            service_dir = temp_dir / service_path
-            service_dir.mkdir(parents=True)
-            service_file = service_dir / "service.json"
-            service_file.write_text(json.dumps({
-                "name": service_name,
-                "type": "backend" if "backend" in service_name else "frontend",
-                "domain": service_path.split("/")[2],
-                "port": 4001 if "backend" in service_name else 3001
+        for resource_path, resource_name in resources:
+            resource_dir = temp_dir / resource_path
+            resource_dir.mkdir(parents=True)
+            resource_file = resource_dir / "service.json"
+            resource_file.write_text(json.dumps({
+                "name": resource_name,
+                "type": "backend" if "backend" in resource_name else "frontend",
+                "stack": resource_path.split("/")[2],
+                "port": 4001 if "backend" in resource_name else 3001
             }))
         
         # Import and test
         import sys
         sys.path.insert(0, str(Path("discovery").resolve()))
-        from service_snapshot import get_current_services
+        from service_snapshot import get_current_resources
         
         # Change to temp directory for scanning
         original_dir = os.getcwd()
         os.chdir(temp_dir)
         
         try:
-            found_services = get_current_services("services/product")
+            found_resources = get_current_resources("services/product")
             
-            assert len(found_services) == 3, f"Expected 3 services, found {len(found_services)}"
-            assert all("service.json" in s for s in found_services), "All services should be service.json files"
+            assert len(found_resources) == 3, f"Expected 3 resources, found {len(found_resources)}"
+            assert all("service.json" in r for r in found_resources), "All resources should be service.json files"
         finally:
             os.chdir(original_dir)
     
-    def test_scanning_ignores_non_service_files(self, temp_dir, monkeypatch):
+    def test_scanning_ignores_non_resource_files(self, temp_dir, monkeypatch):
         """
-        Scenario: Scanning ignores non-service files
+        Scenario: Scanning ignores non-resource files
         WHEN the scanner runs against a directory containing service.json and package.json and README.md
-        THEN it SHALL only return the service defined in service.json
+        THEN it SHALL only return the resource defined in service.json
         """
         # Create directory with mixed files
-        service_dir = temp_dir / "services" / "product" / "test"
-        service_dir.mkdir(parents=True)
+        resource_dir = temp_dir / "services" / "product" / "test"
+        resource_dir.mkdir(parents=True)
         
         # Create service.json
-        (service_dir / "service.json").write_text(json.dumps({"name": "test-service"}))
-        # Create non-service files
-        (service_dir / "package.json").write_text('{"name": "test"}')
-        (service_dir / "README.md").write_text("# Test Service")
-        (service_dir / "config.ts").write_text("export const config = {};")
+        (resource_dir / "service.json").write_text(json.dumps({"name": "test-resource"}))
+        # Create non-resource files
+        (resource_dir / "package.json").write_text('{"name": "test"}')
+        (resource_dir / "README.md").write_text("# Test Resource")
+        (resource_dir / "config.ts").write_text("export const config = {};")
         
         import sys
         sys.path.insert(0, str(Path("discovery").resolve()))
-        from service_snapshot import get_current_services
+        from service_snapshot import get_current_resources
         
         original_dir = os.getcwd()
         os.chdir(temp_dir)
         
         try:
-            found_services = get_current_services("services/product")
+            found_resources = get_current_resources("services/product")
             
-            assert len(found_services) == 1, f"Expected 1 service, found {len(found_services)}"
-            assert "service.json" in found_services[0], "Should only find service.json files"
-            assert "package.json" not in found_services[0], "Should not include package.json"
+            assert len(found_resources) == 1, f"Expected 1 resource, found {len(found_resources)}"
+            assert "service.json" in found_resources[0], "Should only find service.json files"
+            assert "package.json" not in found_resources[0], "Should not include package.json"
         finally:
             os.chdir(original_dir)
     
     def test_scanning_handles_nested_directories(self, temp_dir, monkeypatch):
         """
         Scenario: Scanning handles nested directories
-        WHEN the scanner runs against a directory with nested services/ subdirectory containing service.json
-        THEN it SHALL find services at any depth and return correct relative paths
+        WHEN the scanner runs against a directory with nested resources/ subdirectory containing service.json
+        THEN it SHALL find resources at any depth and return correct relative paths
         """
         # Create deeply nested structure
         nested_dirs = [
-            "services/product/domain1/backend/service.json",
-            "services/product/domain1/frontend/service.json",
-            "services/product/domain2/subdomain/backend/service.json",
+            "services/product/stack1/backend/service.json",
+            "services/product/stack1/frontend/service.json",
+            "services/product/stack2/substack/backend/service.json",
         ]
         
         for path in nested_dirs:
@@ -107,17 +107,17 @@ class TestSnapshotScanning:
         
         import sys
         sys.path.insert(0, str(Path("discovery").resolve()))
-        from service_snapshot import get_current_services
+        from service_snapshot import get_current_resources
         
         original_dir = os.getcwd()
         os.chdir(temp_dir)
         
         try:
-            found_services = get_current_services("services/product")
+            found_resources = get_current_resources("services/product")
             
-            assert len(found_services) == 3, f"Expected 3 services, found {len(found_services)}"
+            assert len(found_resources) == 3, f"Expected 3 resources, found {len(found_resources)}"
             # Verify all paths are relative and contain the full path
-            assert all("domain1" in s or "domain2" in s for s in found_services)
-            assert all("service.json" in s for s in found_services)
+            assert all("stack1" in r or "stack2" in r for r in found_resources)
+            assert all("service.json" in r for r in found_resources)
         finally:
             os.chdir(original_dir)

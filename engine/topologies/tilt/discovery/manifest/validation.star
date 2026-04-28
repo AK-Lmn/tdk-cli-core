@@ -6,7 +6,7 @@
 # =============================================================================
 
 # === INLINED CONSTANTS for pure extension loading ===
-VALID_DOMAINS = ()  # Domains are project-specific, discovered dynamically
+VALID_STACKS = ()  # Stacks are project-specific, discovered dynamically
 VALID_FEATURES = "nats", "prisma", "redis", "infisical", "vitest", "traefik", "websocket", "graphql", "grpc", "vite-node", "maintenance"
 PORT_RANGES = {"frontend": {"min": 3000, "max": 5999}, "backend": {"min": 4000, "max": 5999}, "worker": {"min": 6000, "max": 6999}, "migrator": {"min": 7000, "max": 7999}, "sdk": {"min": 3000, "max": 9999}, "library": {"min": 3000, "max": 9999}}
 # === END INLINED CONSTANTS ===
@@ -21,13 +21,13 @@ def validate_manifest(manifest):
     🎯 ENTERPRISE VALIDATOR: Strict structure and value validation.
     
     Validates:
-    - Required fields: appName, appType, domain, port
+    - Required fields: appName, appType, stack, port
     - appName pattern: kebab-case, 3-64 chars
     - appType: from VALID_APP_TYPES
-    - domain: from VALID_DOMAINS
+    - stack: from VALID_STACKS
     - port: within range for appType (backends: 4000-5999, frontends: 3000-3999)
     - features: from VALID_FEATURES
-    - internalDependencies: from VALID_DOMAINS (service aliases)
+    - internalDependencies: from VALID_STACKS (resource aliases)
     - replicas: 1-10
     """
     issues = []
@@ -59,13 +59,13 @@ def validate_manifest(manifest):
     elif app_type not in VALID_APP_TYPES:
         issues.append("Invalid appType: " + str(app_type) + ". Must be one of: " + ', '.join(VALID_APP_TYPES))
     
-    # 3. stack validation (supports legacy 'domain' field)
-    stack = manifest.get('stack') or manifest.get('domain')
+    # 3. stack validation
+    stack = manifest.get('stack')
     if not stack:
-        issues.append("Missing required field: stack (or domain)")
-    elif len(VALID_DOMAINS) > 0 and stack not in VALID_DOMAINS:
-        # Only validate against list if VALID_DOMAINS is not empty
-        issues.append("Invalid stack: " + str(stack) + ". Must be one of: " + ', '.join(VALID_DOMAINS))
+        issues.append("Missing required field: stack")
+    elif len(VALID_STACKS) > 0 and stack not in VALID_STACKS:
+        # Only validate against list if VALID_STACKS is not empty
+        issues.append("Invalid stack: " + str(stack) + ". Must be one of: " + ', '.join(VALID_STACKS))
     
     # 4. port validation with appType-specific ranges
     port = manifest.get('port')

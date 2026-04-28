@@ -75,25 +75,25 @@ def _load_and_normalize(manifest_path, warn_only=True):
             return None
         fail("Manifest validation failed:\n" + "\n".join(issues))
     
-    # Extract service path from manifest path
-    service_path = manifest_path.rsplit('/', 1)[0]
+    # Extract resource path from manifest path
+    resource_path = manifest_path.rsplit('/', 1)[0]
     
     # Apply smart defaults
-    normalized = apply_manifest_defaults(manifest, service_path)
+    normalized = apply_manifest_defaults(manifest, resource_path)
     
     # Compute additional fields for registry compatibility
     app_name = normalized.get('appName', '')
     app_type = normalized.get('appType', 'backend')
-    domain = normalized.get('domain', '')
+    stack = normalized.get('stack', '')
     features = normalized.get('features', [])
     
-    # 🎯 AUTO-COMPUTE labels from domain
-    normalized['labels'] = ['app.' + domain]
+    # 🎯 AUTO-COMPUTE labels from stack
+    normalized['labels'] = ['app.' + stack]
     
     # 🎯 AUTO-DETECT has_migrator
     has_migrator = 'prisma' in features
     if not has_migrator:
-        has_migrator = check_prisma_folder(service_path)
+        has_migrator = check_prisma_folder(resource_path)
     normalized['has_migrator'] = has_migrator
     
     # 🎯 AUTO-COMPUTE syncs if not specified
@@ -165,7 +165,7 @@ def _load_all_manifests(root_path, warn_only=True):
 
 
 def _get_port(manifest):
-    """Get the service port from manifest."""
+    """Get the resource port from manifest."""
     return manifest.get('port', MANIFEST_DEFAULTS['port'])
 
 
@@ -181,7 +181,7 @@ def _get_database_url(manifest, host='localhost', port=5432):
     Returns:
         PostgreSQL connection string
     """
-    db_name = manifest.get('databaseName', PlatformDockerConstants.get_db_name(manifest.get('domain', 'app')))
+    db_name = manifest.get('databaseName', PlatformDockerConstants.get_db_name(manifest.get('stack', 'app')))
     return PlatformDockerConstants.get_tilt_database_url_template().format(
         host=host,
         port=port,
@@ -206,21 +206,21 @@ def _print_summary(manifests):
         app_name = m.get('appName', 'unknown')
         app_type = m.get('appType', 'unknown')
         port = m.get('port', 0)
-        domain = m.get('domain', 'unknown')
+        stack = m.get('stack', 'unknown')
         
-        print("   {status} {name} | {type} | Port: {port} | Domain: {domain}".format(
+        print("   {status} {name} | {type} | Port: {port} | Stack: {stack}".format(
             status=status,
             name=app_name,
             type=app_type,
             port=port,
-            domain=domain,
+            stack=stack,
         ))
     
     print("📋 ═══════════════════════════════════════════════════════════════")
     print("")
 
 
-def _generate_manifest_template(app_name, domain, app_type='backend', port=4000):
+def _generate_manifest_template(app_name, stack, app_type='backend', port=4000):
     """
     🎯 TEMPLATE GENERATOR: Returns a string with a standard manifest.
     """
@@ -228,7 +228,7 @@ def _generate_manifest_template(app_name, domain, app_type='backend', port=4000)
         "$schema": "https://" + PlatformDockerConstants.EMAIL_DOMAIN + "/schemas/manifest-schema.json",
         "appName": app_name,
         "appType": app_type,
-        "domain": domain,
+        "stack": stack,
         "port": port,
         "replicas": 1,
         "features": [MESSAGING, "infisical"],
@@ -262,5 +262,5 @@ def print_summary(manifests):
     return _print_summary(manifests)
 
 
-def generate_manifest_template(app_name, domain, app_type='backend', port=4000):
-    return _generate_manifest_template(app_name, domain, app_type=app_type, port=port)
+def generate_manifest_template(app_name, stack, app_type='backend', port=4000):
+    return _generate_manifest_template(app_name, stack, app_type=app_type, port=port)

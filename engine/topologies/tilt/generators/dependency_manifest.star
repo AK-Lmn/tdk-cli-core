@@ -85,11 +85,11 @@ KNOWN_LIBRARY_REGISTRY = {
 # Dependency Discovery
 # =============================================================================
 
-def discover_missing_dependencies(all_services, library_roots):
+def discover_missing_dependencies(all_resources, library_roots):
     """
     Discovers dependencies that are referenced but don't exist.
     
-    Analyzes all service manifests and package.json files to find
+    Analyzes all resource manifests and package.json files to find
     @{npm_scope} dependencies that don't have corresponding libraries.
     
     Returns: list of missing dependencies with metadata
@@ -99,11 +99,11 @@ def discover_missing_dependencies(all_services, library_roots):
     
     internal_scope = "@" + PlatformDockerConstants.PROJECT_NAME + "/"
     
-    for service in all_services:
-        service_path = service.get("path", "")
+    for resource in all_resources:
+        resource_path = resource.get("path", "")
         
-        # Check package.json
-        package_json_path = "{}/package.json".format(service_path)
+        # Read package.json
+        package_json_path = "{}/package.json".format(resource_path)
         if not os.path.exists(package_json_path):
             continue
         
@@ -137,7 +137,7 @@ def discover_missing_dependencies(all_services, library_roots):
                     missing.append({
                         "name": lib_name,
                         "full_name": dep_name,
-                        "referenced_by": service.get("name", "unknown"),
+                        "referenced_by": resource.get("name", "unknown"),
                         "version": all_deps[dep_name],
                         "registry_entry": KNOWN_LIBRARY_REGISTRY.get(lib_name),
                     })
@@ -270,14 +270,11 @@ PLATFORM_LIBS_EXPLICIT.extend([
     
     return updates
 
-def generate_dependency_resolution_report(all_services, library_roots, write_fn=None):
+def generate_dependency_resolution_report(all_resources, library_roots, write_fn=None):
     """
-    Master report for dependency resolution.
+    Generates a comprehensive dependency resolution report.
     
-    Analyzes all dependencies, identifies missing ones, and provides
-    actionable recommendations.
-    """
-    discovery = discover_missing_dependencies(all_services, library_roots)
+    discovery = discover_missing_dependencies(all_resources, library_roots)
     
     if discovery.missing:
         manifests = generate_missing_dependency_manifests(
@@ -359,7 +356,7 @@ def generate_library_stub(lib_name, lib_type, lib_path, write_fn=None):
       - src/index.ts (placeholder)
       - platform-computing-provisioner.manifest.json (if needed)
     
-    This allows services to build even if the library is not fully implemented.
+    This allows resources to build even if the library is not fully implemented.
     """
     internal_scope = "@" + PlatformDockerConstants.PROJECT_NAME + "/"
     full_name = "{}{}".format(internal_scope, lib_name)

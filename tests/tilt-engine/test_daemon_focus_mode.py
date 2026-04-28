@@ -1,6 +1,6 @@
 """
 Tests for daemon focus mode compliance.
-Tests that discovery respects focus mode domain restrictions.
+Tests that discovery respects focus mode stack restrictions.
 """
 
 import pytest
@@ -15,75 +15,75 @@ class TestDaemonFocusMode:
     def test_focus_mode_restricts_discovery(self, temp_dir):
         """
         Scenario: Focus mode restricts discovery
-        WHEN `--focus identity` is enabled and a new service appears in `services/product/billing/`
+        WHEN `--focus identity` is enabled and a new resource appears in `services/product/billing/`
         THEN the daemon SHALL NOT trigger registration (queue it for later)
-        AND it SHALL log "⏳ Service queued (focus mode)"
+        AND it SHALL log "⏳ Resource queued (focus mode)"
         """
         # Simulate focus mode config
         focus_config = {
             "enabled": True,
-            "domains": ["identity", "order"],
+            "stacks": ["identity", "order"],
             "excluded_paths": []
         }
         
-        # Service outside focus
-        service_domain = "billing"
-        is_in_focus = service_domain in focus_config["domains"]
+        # Resource outside focus
+        resource_stack = "billing"
+        is_in_focus = resource_stack in focus_config["stacks"]
         
         assert not is_in_focus, "billing should not be in focus mode"
         
         # In real daemon, this would queue instead of registering
         # For test, verify the filtering logic works
         should_register = not focus_config["enabled"] or is_in_focus
-        assert not should_register, "Service outside focus should not be registered immediately"
+        assert not should_register, "Resource outside focus should not be registered immediately"
     
-    def test_focus_mode_allows_matching_services(self, temp_dir):
+    def test_focus_mode_allows_matching_resources(self, temp_dir):
         """
-        Scenario: Focus mode allows matching services
-        WHEN `--focus identity` is enabled and a new service appears in `services/product/identity/`
+        Scenario: Focus mode allows matching resources
+        WHEN `--focus identity` is enabled and a new resource appears in `services/product/identity/`
         THEN the daemon SHALL trigger registration normally
         """
-        # Create service in focus domain
+        # Create resource in focus stack
         focus_config = {
             "enabled": True,
-            "domains": ["identity", "order"],
+            "stacks": ["identity", "order"],
             "excluded_paths": []
         }
         
-        service_domain = "identity"
-        is_in_focus = service_domain in focus_config["domains"]
+        resource_stack = "identity"
+        is_in_focus = resource_stack in focus_config["stacks"]
         
         assert is_in_focus, "identity should be in focus mode"
         
         # In focus - should register
         should_register = not focus_config["enabled"] or is_in_focus
-        assert should_register, "Service in focus should be registered"
+        assert should_register, "Resource in focus should be registered"
     
     def test_focus_mode_disabled_allows_all(self):
-        """Test that when focus mode is disabled, all services are registered."""
+        """Test that when focus mode is disabled, all resources are registered."""
         focus_config = {
             "enabled": False,
-            "domains": ["identity"],
+            "stacks": ["identity"],
             "excluded_paths": []
         }
         
-        service_domain = "billing"
-        is_in_focus = service_domain in focus_config["domains"]
+        resource_stack = "billing"
+        is_in_focus = resource_stack in focus_config["stacks"]
         
         # Focus disabled - should register regardless
         should_register = not focus_config["enabled"] or is_in_focus
-        assert should_register, "When focus mode disabled, all services should register"
+        assert should_register, "When focus mode disabled, all resources should register"
     
-    def test_focus_mode_domain_matching(self):
-        """Test domain matching logic for focus mode."""
+    def test_focus_mode_stack_matching(self):
+        """Test stack matching logic for focus mode."""
         test_cases = [
-            ({"enabled": True, "domains": ["identity"]}, "identity", True),
-            ({"enabled": True, "domains": ["identity"]}, "billing", False),
-            ({"enabled": True, "domains": ["identity", "order"]}, "order", True),
-            ({"enabled": False, "domains": ["identity"]}, "billing", True),
+            ({"enabled": True, "stacks": ["identity"]}, "identity", True),
+            ({"enabled": True, "stacks": ["identity"]}, "billing", False),
+            ({"enabled": True, "stacks": ["identity", "order"]}, "order", True),
+            ({"enabled": False, "stacks": ["identity"]}, "billing", True),
         ]
         
-        for config, domain, expected in test_cases:
-            is_in_focus = domain in config["domains"]
+        for config, stack, expected in test_cases:
+            is_in_focus = stack in config["stacks"]
             should_register = not config["enabled"] or is_in_focus
-            assert should_register == expected, f"Failed for {domain} with config {config}"
+            assert should_register == expected, f"Failed for {stack} with config {config}"
