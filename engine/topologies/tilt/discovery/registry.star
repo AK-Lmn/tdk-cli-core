@@ -20,7 +20,7 @@ load(
     "PLATFORM_LIBS_FRONTEND",
     "PRODUCT_LIBS_FRONTEND"
 )
-load("./discovery_orchestrator.star", "initialize_discovery", "_scan_services_with_patterns")
+load("./discovery_orchestrator.star", "initialize_discovery", "scan_services_with_patterns")
 load("../manifest/loader.star", "ManifestLoader")
 load("./libraries.star", "autodiscover_libraries", "get_platform_libs", "get_product_libs")
 load(
@@ -233,7 +233,7 @@ def reinitialize_with_project_root():
         print("🔄 Re-initializing discovery with project patterns: " + str(patterns))
         # Directly call discovery with project patterns
         # Import _scan_services from discovery_orchestrator
-        from_discovery = _scan_services_with_patterns(patterns)
+        from_discovery = scan_services_with_patterns(patterns)
         if from_discovery:
             return from_discovery
     
