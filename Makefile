@@ -1,7 +1,7 @@
 # Makefile
 # Common development tasks
 
-.PHONY: help test-tilt-engine test test-coverage lint
+.PHONY: help test-tilt-engine test test-coverage lint video video-build video-test video-validate video-generate
 
 help: ## Show this help message
 	@echo "Available targets:"
@@ -65,3 +65,28 @@ pre-commit-run: ## Run pre-commit hooks on all files
 pre-commit-fast: ## Run only fast tests (pre-commit style)
 	@echo "⚡ Running fast pre-commit tests..."
 	pytest -m fast --no-cov -q
+
+# Video Generator targets
+video: ## Show video generator help
+	@cd video-generator && swift run tdk-video help
+
+video-build: ## Build the video generator
+	@echo "🔨 Building video generator..."
+	cd video-generator && swift build
+
+video-test: ## Run video generator tests
+	@echo "🧪 Running video generator tests..."
+	cd video-generator && swift test
+
+video-validate: ## Validate video generator system setup
+	@echo "🔍 Validating video generator setup..."
+	cd video-generator && swift run tdk-video validate
+
+video-generate: ## Generate the TDK CLI tutorial video (requires FFmpeg)
+	@echo "🎬 Generating TDK CLI tutorial video..."
+	@echo "   This will create TDK_Tutorial_1440p.mp4 (20 min, 2K)"
+	cd video-generator && swift run tdk-video generate
+
+video-generate-quick: ## Generate 1080p test video (faster)
+	@echo "🎬 Generating 1080p test video..."
+	cd video-generator && swift run tdk-video generate -o TDK_Tutorial_Test_1080p.mp4

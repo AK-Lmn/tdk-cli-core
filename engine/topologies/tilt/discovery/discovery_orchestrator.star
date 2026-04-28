@@ -215,8 +215,10 @@ def _get_discovery_scan_roots_with_project():
         # read_json returns None on failure in Starlark (no try/except)
         # We use a local command to check if file exists first
         test_cmd = "test -f " + spec_master_path + " && echo yes || echo no"
-        file_exists = local(test_cmd, quiet=True, echo_off=True)
-        if file_exists.strip() == "yes":
+        file_exists_result = local(test_cmd, quiet=True, echo_off=True)
+        # Convert blob to string and strip
+        file_exists = str(file_exists_result).strip()
+        if file_exists == "yes":
             spec = read_json(spec_master_path)
         if spec and 'RESOURCE_PATTERNS' in spec and spec['RESOURCE_PATTERNS']:
             patterns = spec['RESOURCE_PATTERNS']

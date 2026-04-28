@@ -209,6 +209,21 @@ def get_app_resources():
     return _DISCOVERY_CACHE["app_resources"]
 
 
+def reinitialize_with_project_root():
+    """
+    Force re-initialization of the registry with project-specific discovery patterns.
+    Call this after TDK_PROJECT_ROOT is set to pick up project-specific patterns.
+    """
+    project_root = os.environ.get('TDK_PROJECT_ROOT', '')
+    if not project_root:
+        return _DISCOVERY_CACHE["app_resources"]  # No project root, return current
+    
+    # Reset initialized flag to force re-discovery with project patterns
+    _DISCOVERY_CACHE["initialized"] = False
+    print("🔄 Re-initializing discovery with project root: " + project_root)
+    return get_app_resources()
+
+
 def get_resource_dependencies():
     initialized = _DISCOVERY_CACHE["initialized"] if "initialized" in _DISCOVERY_CACHE else False
     if not initialized:
@@ -869,3 +884,9 @@ load_yaml_manifests_as_resources()
 DEFAULTS = {}
 
 GLOBAL_CONFIG = {}
+
+# Export registry operations for Tiltfile use
+Registry = struct(
+    reinitialize = reinitialize_with_project_root,
+    get_app_resources = get_app_resources,
+)

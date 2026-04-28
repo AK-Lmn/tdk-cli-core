@@ -20,13 +20,13 @@ _check_local_cmd = "test -d " + _local_tdk_path + " && echo 'yes' || echo 'no'"
 _use_local = str(local(_check_local_cmd, quiet=True, echo_off=True)).strip() == 'yes'
 
 if _use_local:
-v1alpha1.extension_repo(name='tdk-cli-local', url='file://' + _local_tdk_path)
-v1alpha1.extension(name='tdk-cli', repo_name='tdk-cli-local', repo_path='')
-print("📦 TDK CLI (local: " + _local_tdk_path + ")")
+    v1alpha1.extension_repo(name='tdk-cli-local', url='file://' + _local_tdk_path)
+    v1alpha1.extension(name='tdk-cli', repo_name='tdk-cli-local', repo_path='')
+    print("📦 TDK CLI (local: " + _local_tdk_path + ")")
 else:
-v1alpha1.extension_repo(name='tdk-cli', url='https://github.com/tdk-landscape/tdk-cli')
-v1alpha1.extension(name='tdk-cli', repo_name='tdk-cli', repo_path='')
-print("📦 TDK CLI (github.com/tdk-landscape/tdk-cli)")
+    v1alpha1.extension_repo(name='tdk-cli', url='https://github.com/tdk-landscape/tdk-cli')
+    v1alpha1.extension(name='tdk-cli', repo_name='tdk-cli', repo_path='')
+    print("📦 TDK CLI (github.com/tdk-landscape/tdk-cli)")
 
 # =============================================================================
 # 📍 PROJECT CONFIGURATION
@@ -162,12 +162,14 @@ return Utils.should_enable(resource_name, cfg, RESOURCE_DEFAULTS)
 # =============================================================================
 print("🚀 Initializing TDK...")
 
-# Use APP_RESOURCES from registry (already populated during TDK extension loading)
-# If empty (e.g., during initial load), fall back to Manifest.load_all
-_app_resources_list = APP_RESOURCES
+# Re-initialize registry with project root to pick up project-specific patterns
+# This ensures discovery uses the correct patterns from spec.master
+_app_resources_list = Registry.reinitialize()
+
+# If still empty, fall back to direct manifest loading
 if len(_app_resources_list) == 0:
-print(" ⚠️ Registry empty, loading via Manifest...")
-_app_resources_list = Manifest.load_all(PROJECT_ROOT)
+    print(" ⚠️ Registry empty after reinitialize, loading via Manifest...")
+    _app_resources_list = Manifest.load_all(PROJECT_ROOT)
 
 print("📦 Loaded {} services".format(len(_app_resources_list)))
 
