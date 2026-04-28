@@ -256,11 +256,11 @@ def extract_stack(resource_path):
 def determine_app_type(manifest, resource_path):
     """
     Determine app type from manifest or resource path.
-    
+
     Args:
         manifest: Manifest dict
-        service_path: Service directory path
-    
+        resource_path: Resource directory path
+
     Returns:
         App type string ('frontend', 'backend', 'library', etc.)
     """
@@ -324,7 +324,7 @@ MANIFEST_SCHEMA = {
         'pattern': r'^[a-z][a-z0-9-]*$',
         'min_length': 3,
         'max_length': 50,
-        'description': 'Unique service name (kebab-case)',
+        'description': 'Unique resource name (kebab-case)',
         'example': 'user-management-backend',
     },
     'appType': {
@@ -339,15 +339,15 @@ MANIFEST_SCHEMA = {
         'required': True,
         'enum': ['user', 'staff', 'identity', 'order', 'treatment', 
                  'platform', 'inventory', 'billing', 'notification', 'analytics'],
-        'description': 'Business stack this service belongs to',
+        'description': 'Technology stack this resource belongs to',
     },
     'port': {
         'type': 'integer',
         'required': True,
         'min': 1024,
         'max': 65535,
-        'description': 'External service port',
-        'constraints': 'Must be unique per service',
+        'description': 'External resource port',
+        'constraints': 'Must be unique per resource',
     },
     'internalPort': {
         'type': 'integer',
@@ -380,7 +380,7 @@ MANIFEST_SCHEMA = {
             'enum': ['nats', 'prisma', 'redis', 'infisical', 'vitest', 
                      'traefik', 'websocket', 'graphql', 'grpc', 'vite-node'],
         },
-        'description': 'Feature flags for this service',
+        'description': 'Feature flags for this resource',
     },
     'databaseName': {
         'type': 'string',
@@ -393,7 +393,7 @@ MANIFEST_SCHEMA = {
         'required': False,
         'default': [],
         'items': {'type': 'string'},
-        'description': 'Other services this depends on',
+        'description': 'Other resources this depends on',
     },
     'envVars': {
         'type': 'dict',
@@ -415,7 +415,7 @@ MANIFEST_SCHEMA = {
         'type': 'string',
         'required': False,
         'condition': "appType == 'frontend'",  # Required for frontends
-        'description': 'Associated backend service name',
+        'description': 'Associated backend resource name',
     },
     'basePath': {
         'type': 'string',
@@ -491,7 +491,7 @@ def get_field_constraints(field_name):
 
 ### 5. `manifest/validator.star` - Comprehensive Validation
 
-**Purpose:** Validate manifest structure, values, and cross-service dependencies
+**Purpose:** Validate manifest structure, values, and cross-resource dependencies
 
 **Validation Levels:**
 

@@ -4,456 +4,945 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TDK CLI — Kubernetes-Free Microservice Development</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            color: #1a1a2e;
-            background: #fafafa;
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #111118;
+            --bg-tertiary: #1a1a24;
+            --bg-card: #13131a;
+            --text-primary: #fafafa;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --accent: #7c4dff;
+            --accent-light: #a78bfa;
+            --accent-dark: #5b21b6;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: #27272a;
+            --border-light: #3f3f46;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+            --radius-sm: 6px;
+            --radius: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
         }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-        
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        nav .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .nav-logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-logo span {
+            color: var(--accent);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-cta {
+            background: var(--accent);
+            color: white;
+            padding: 8px 16px;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .nav-cta:hover {
+            background: var(--accent-light);
+            transform: translateY(-1px);
+        }
+
         /* Hero */
         .hero {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: white;
-            padding: 100px 0 80px;
+            padding: 140px 0 100px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
         }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, var(--accent-dark) 0%, transparent 70%);
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 100px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+
+        .hero-badge .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
         .hero h1 {
-            font-size: 3.5rem;
+            font-size: clamp(2.5rem, 5vw, 4rem);
             font-weight: 700;
-            margin-bottom: 20px;
+            line-height: 1.1;
+            margin-bottom: 24px;
             letter-spacing: -0.02em;
         }
-        .hero .tagline {
-            font-size: 1.5rem;
-            color: #a855f7;
-            font-weight: 500;
-            margin-bottom: 30px;
+
+        .hero h1 span {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
+
         .hero p {
             font-size: 1.25rem;
-            color: #94a3b8;
+            color: var(--text-secondary);
             max-width: 600px;
             margin: 0 auto 40px;
+            line-height: 1.7;
         }
-        .cta-button {
-            display: inline-block;
-            background: #7c4dff;
-            color: white;
-            padding: 16px 40px;
-            border-radius: 8px;
-            text-decoration: none;
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: var(--radius);
             font-weight: 600;
-            font-size: 1.1rem;
-            transition: transform 0.2s;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
         }
-        .cta-button:hover { transform: translateY(-2px); }
-        
-        /* Problem Section */
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 0 20px rgba(124, 77, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-light);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(124, 77, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-card);
+            border-color: var(--border-light);
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            margin-top: 64px;
+            padding-top: 48px;
+            border-top: 1px solid var(--border);
+        }
+
+        .hero-stat {
+            text-align: center;
+        }
+
+        .hero-stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .hero-stat-label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Section styling */
+        section {
+            padding: 100px 0;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto 64px;
+        }
+
+        .section-header h2 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: -0.01em;
+        }
+
+        .section-header p {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+        }
+
+        /* Problem section */
         .problem {
-            background: white;
-            padding: 80px 0;
+            background: var(--bg-secondary);
         }
-        .problem h2 {
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 20px;
+
+        .problem-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 48px;
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
         }
-        .problem .stat {
-            background: #fef3c7;
-            border-left: 4px solid #f59e0b;
-            padding: 20px 24px;
-            margin: 30px auto;
-            max-width: 700px;
-            font-size: 1.25rem;
-            border-radius: 0 8px 8px 0;
+
+        .problem-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--warning), transparent);
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
         }
-        
-        /* How It Works */
-        .how-it-works {
-            background: #f8fafc;
-            padding: 80px 0;
+
+        .problem-stat {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--warning);
+            margin-bottom: 16px;
         }
-        .how-it-works h2 {
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 50px;
+
+        .problem-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 16px;
         }
+
+        .problem-card p {
+            color: var(--text-secondary);
+            font-size: 1.125rem;
+            line-height: 1.7;
+        }
+
+        /* How it works */
         .steps {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
         }
+
         .step {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            position: relative;
+            transition: all 0.3s;
         }
+
+        .step:hover {
+            border-color: var(--border-light);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
         .step-number {
-            width: 50px;
-            height: 50px;
-            background: #7c4dff;
+            width: 40px;
+            height: 40px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+
+        .step h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .step p {
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+            line-height: 1.6;
+        }
+
+        /* Code section */
+        .code-section {
+            background: var(--bg-secondary);
+        }
+
+        .code-window {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .code-header {
+            background: var(--bg-card);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .code-dot.red { background: #ff5f56; }
+        .code-dot.yellow { background: #ffbd2e; }
+        .code-dot.green { background: #27c93f; }
+
+        .code-title {
+            margin-left: 8px;
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .code-content {
+            padding: 24px;
+            overflow-x: auto;
+        }
+
+        .code-content pre {
+            margin: 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.7;
+        }
+
+        .code-content code {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .code-comment { color: #6a737d; }
+        .code-key { color: #7ee787; }
+        .code-string { color: #a5d6ff; }
+        .code-number { color: #79c0ff; }
+        .code-arrow { color: var(--accent); }
+
+        /* Comparison table */
+        .table-container {
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            background: var(--bg-card);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9375rem;
+        }
+
+        thead {
+            background: var(--bg-tertiary);
+        }
+
+        th {
+            padding: 16px 20px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .tdk-highlight {
+            background: rgba(124, 77, 255, 0.1);
+        }
+
+        .tdk-highlight td {
+            color: var(--text-primary);
+        }
+
+        .check { color: var(--success); font-weight: 600; }
+        .cross { color: var(--danger); font-weight: 600; }
+        .partial { color: var(--warning); font-weight: 600; }
+
+        /* FAQ */
+        .faq-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .faq-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            transition: all 0.2s;
+        }
+
+        .faq-item:hover {
+            border-color: var(--border-light);
+        }
+
+        .faq-item h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .faq-item h3::before {
+            content: '›';
+            color: var(--accent);
+            font-size: 1.25rem;
+            line-height: 1;
+        }
+
+        .faq-item p {
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+            line-height: 1.6;
+            padding-left: 24px;
+        }
+
+        /* Audience */
+        .audience-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .audience-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            transition: all 0.2s;
+        }
+
+        .audience-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 1px var(--accent);
+        }
+
+        .audience-card.recommended {
+            background: rgba(124, 77, 255, 0.05);
+            border-color: var(--accent);
+        }
+
+        .audience-card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .audience-card.recommended h3::after {
+            content: '✓';
+            background: var(--accent);
             color: white;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin: 0 auto 20px;
+            font-size: 0.625rem;
         }
-        .step h3 {
-            margin-bottom: 10px;
-            color: #1a1a2e;
+
+        .audience-card p {
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+            line-height: 1.6;
         }
-        .step p {
-            color: #64748b;
-        }
-        
-        /* Detailed Comparison */
-        .comparison {
-            background: white;
-            padding: 80px 0;
-        }
-        .comparison h2 {
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 50px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            font-size: 0.9rem;
-        }
-        th, td {
-            padding: 16px 20px;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        th {
-            background: #1a1a2e;
-            color: white;
-            font-weight: 600;
-        }
-        tr:hover { background: #f8fafc; }
-        .tdk-win { background: #dcfce7; font-weight: 600; }
-        .check { color: #22c55e; font-weight: bold; }
-        .cross { color: #ef4444; font-weight: bold; }
-        .warn { color: #f59e0b; font-weight: bold; }
-        
-        /* FAQ Section */
-        .faq {
-            background: #f8fafc;
-            padding: 80px 0;
-        }
-        .faq h2 {
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 50px;
-        }
-        .faq-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 30px;
-        }
-        .faq-item {
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            border-left: 4px solid #7c4dff;
-        }
-        .faq-item h3 {
-            color: #7c4dff;
-            margin-bottom: 12px;
-            font-size: 1.1rem;
-        }
-        .faq-item p {
-            color: #475569;
-        }
-        
-        /* Who Uses */
-        .audience {
-            background: white;
-            padding: 80px 0;
-        }
-        .audience h2 {
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 50px;
-        }
-        .audience-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-        }
-        .audience-card {
-            background: #f8fafc;
-            padding: 30px;
-            border-radius: 12px;
-            border-left: 4px solid #7c4dff;
-        }
-        .audience-card h3 {
-            color: #7c4dff;
-            margin-bottom: 12px;
-        }
-        
-        /* Code Example */
-        .code-example {
-            background: #1a1a2e;
-            padding: 80px 0;
-            color: #e2e8f0;
-        }
-        .code-example h2 {
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 50px;
-            color: white;
-        }
-        .code-block {
-            background: #0f172a;
-            border-radius: 12px;
-            padding: 30px;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 0.9rem;
-            overflow-x: auto;
-            margin-bottom: 20px;
-        }
-        .code-comment { color: #64748b; }
-        .code-key { color: #7dd3fc; }
-        .code-string { color: #86efac; }
-        .code-arrow { color: #a855f7; }
-        
-        /* CTA */
+
+        /* CTA section */
         .cta-section {
-            background: linear-gradient(135deg, #7c4dff 0%, #a855f7 100%);
-            color: white;
-            padding: 80px 0;
+            background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent) 100%);
             text-align: center;
+            position: relative;
+            overflow: hidden;
         }
+
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .cta-section .container {
+            position: relative;
+            z-index: 1;
+        }
+
         .cta-section h2 {
             font-size: 2.5rem;
-            margin-bottom: 20px;
+            font-weight: 700;
+            margin-bottom: 16px;
         }
-        .cta-button-white {
-            display: inline-block;
-            background: white;
-            color: #7c4dff;
-            padding: 16px 40px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1rem;
-            margin-top: 20px;
+
+        .cta-section p {
+            font-size: 1.125rem;
+            opacity: 0.9;
+            margin-bottom: 32px;
         }
-        
+
+        .cta-section .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .cta-section .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
         /* Footer */
         footer {
-            background: #1a1a2e;
-            color: #94a3b8;
-            padding: 40px 0;
+            background: var(--bg-primary);
+            border-top: 1px solid var(--border);
+            padding: 48px 0;
             text-align: center;
         }
-        
+
+        footer p {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        /* Responsive */
         @media (max-width: 768px) {
-            .hero h1 { font-size: 2.5rem; }
-            .hero .tagline { font-size: 1.2rem; }
-            .faq-grid { grid-template-columns: 1fr; }
-            table { font-size: 0.8rem; }
-            th, td { padding: 12px; }
+            .nav-links {
+                display: none;
+            }
+
+            .hero {
+                padding: 120px 0 80px;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero-stats {
+                flex-direction: column;
+                gap: 24px;
+            }
+
+            .section-header h2 {
+                font-size: 1.75rem;
+            }
+
+            .faq-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .problem-card {
+                padding: 32px;
+            }
+
+            .problem-stat {
+                font-size: 2.5rem;
+            }
+
+            table {
+                font-size: 0.8125rem;
+            }
+
+            th, td {
+                padding: 12px;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <a href="#" class="nav-logo">
+                <span>TDK</span> CLI
+            </a>
+            <div class="nav-links">
+                <a href="#how-it-works">How it works</a>
+                <a href="#comparison">Comparison</a>
+                <a href="#faq">FAQ</a>
+            </div>
+            <a href="#get-started" class="nav-cta">Get Started</a>
+        </div>
+    </nav>
+
     <!-- Hero -->
     <section class="hero">
         <div class="container">
-            <h1>TDK CLI</h1>
-            <p class="tagline">Kubernetes-Free Microservice Development</p>
-            <p>Run 5-120+ microservices locally without learning Kubernetes. No clusters. No YAML hell. Just Docker and Tilt.</p>
-            <a href="#get-started" class="cta-button">Get Started →</a>
+            <div class="hero-badge">
+                <span class="dot"></span>
+                Now with 120+ services support
+            </div>
+            <h1>
+                Run microservices locally.<br>
+                <span>No Kubernetes required.</span>
+            </h1>
+            <p>
+                TDK CLI lets you run 5-120+ microservices locally with Docker only.
+                One <code>service.json</code> file generates 10+ configurations automatically.
+            </p>
+            <div class="hero-buttons">
+                <a href="#get-started" class="btn btn-primary">
+                    Get Started →
+                </a>
+                <a href="#how-it-works" class="btn btn-secondary">
+                    See how it works
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="hero-stat-value">120+</div>
+                    <div class="hero-stat-label">Services locally</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value">10+</div>
+                    <div class="hero-stat-label">Configs generated</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value">0</div>
+                    <div class="hero-stat-label">Kubernetes needed</div>
+                </div>
+            </div>
         </div>
     </section>
 
     <!-- Problem -->
-    <section class="problem">
+    <section class="problem" id="problem">
         <div class="container">
-            <h2>The Problem: The Kubernetes Learning Curve</h2>
-            <div class="stat">
-                <strong>70% of developers don't understand Kubernetes.</strong><br>
-                Yet every microservice tool forces them to learn it. Teams give up and pay $500+/month for expensive cloud dev environments.
+            <div class="section-header">
+                <h2>The problem with existing tools</h2>
+                <p>Every microservice framework forces you to learn infrastructure you don't need for local development.</p>
+            </div>
+            <div class="problem-card">
+                <div class="problem-stat">70%</div>
+                <h3>of developers don't understand Kubernetes</h3>
+                <p>Yet Garden, Skaffold, and DevSpace all require K8s knowledge. Teams either waste weeks learning infrastructure or give up and pay $500+/month for cloud dev environments. TDK CLI takes a different approach: pure Docker + Tilt. No leaked complexity.</p>
             </div>
         </div>
     </section>
 
     <!-- How It Works -->
-    <section class="how-it-works">
+    <section id="how-it-works">
         <div class="container">
-            <h2>How TDK Works</h2>
+            <div class="section-header">
+                <h2>How TDK works</h2>
+                <p>One manifest file. Multiple configurations generated automatically.</p>
+            </div>
             <div class="steps">
                 <div class="step">
                     <div class="step-number">1</div>
                     <h3>Write service.json</h3>
-                    <p>Simple JSON manifest with app name, type, port, and features</p>
+                    <p>Simple JSON manifest with app name, type, port, and features. The single source of truth.</p>
                 </div>
                 <div class="step">
                     <div class="step-number">2</div>
-                    <h3>TDK Generates Configs</h3>
-                    <p>Dockerfile, Vite config, TypeScript config, nginx, env files, and more</p>
+                    <h3>TDK generates configs</h3>
+                    <p>Dockerfile, Vite config, TypeScript, nginx, environment files, and more—automatically.</p>
                 </div>
                 <div class="step">
                     <div class="step-number">3</div>
-                    <h3>Tilt Orchestrates</h3>
-                    <p>Built on Tilt (9.4k ⭐). Runs your services locally in Docker containers</p>
+                    <h3>Tilt orchestrates</h3>
+                    <p>Built on Tilt (9.4k GitHub stars). Runs your services locally in Docker containers with hot reload.</p>
                 </div>
                 <div class="step">
                     <div class="step-number">4</div>
-                    <h3>You Write Code</h3>
-                    <p>No Kubernetes knowledge needed. Just focus on building your product</p>
+                    <h3>You write code</h3>
+                    <p>No Kubernetes knowledge needed. No complex YAML. Just focus on building your product.</p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Code Example -->
-    <section class="code-example">
+    <section class="code-section">
         <div class="container">
-            <h2>One Manifest → 10+ Config Files</h2>
-            <div class="code-block">
-<span class="code-comment"># service.json (single source of truth)</span>
+            <div class="section-header">
+                <h2>One manifest → 10+ files</h2>
+                <p>Write the source of truth. TDK handles the rest.</p>
+            </div>
+            <div class="code-window">
+                <div class="code-header">
+                    <div class="code-dot red"></div>
+                    <div class="code-dot yellow"></div>
+                    <div class="code-dot green"></div>
+                    <span class="code-title">service.json</span>
+                </div>
+                <div class="code-content">
+                    <pre><code><span class="code-comment">// The single source of truth</span>
 {
   <span class="code-key">"appName"</span>: <span class="code-string">"order-frontend"</span>,
   <span class="code-key">"appType"</span>: <span class="code-string">"frontend"</span>,
-  <span class="code-key">"port"</span>: <span class="code-string">3001</span>,
+  <span class="code-key">"port"</span>: <span class="code-number">3001</span>,
   <span class="code-key">"features"</span>: [<span class="code-string">"vite"</span>, <span class="code-string">"typescript"</span>],
   <span class="code-key">"backendName"</span>: <span class="code-string">"order-backend"</span>
 }
 
-<span class="code-comment"># TDK generates automatically:</span>
-<span class="code-arrow">→</span> Dockerfile.frontend.autogenerated
-<span class="code-arrow">→</span> vite.config.frontend.autogenerated.ts
-<span class="code-arrow">→</span> tsconfig.frontend.autogenerated.json
-<span class="code-arrow">→</span> nginx.frontend.autogenerated.conf
-<span class="code-arrow">→</span> .env.frontend.autogenerated
-<span class="code-arrow">→</span> ... and 5 more files
+<span class="code-comment">// TDK generates automatically:</span>
+<span class="code-arrow">→</span> <span class="code-string">Dockerfile.frontend.autogenerated</span>
+<span class="code-arrow">→</span> <span class="code-string">vite.config.frontend.autogenerated.ts</span>
+<span class="code-arrow">→</span> <span class="code-string">tsconfig.frontend.autogenerated.json</span>
+<span class="code-arrow">→</span> <span class="code-string">nginx.frontend.autogenerated.conf</span>
+<span class="code-arrow">→</span> <span class="code-string">.env.frontend.autogenerated</span>
+<span class="code-arrow">→</span> ... <span class="code-comment">and 5 more files</span></code></pre>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- Detailed Comparison -->
-    <section class="comparison">
+    <!-- Comparison -->
+    <section id="comparison">
         <div class="container">
-            <h2>Detailed Feature Comparison</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Feature</th>
-                        <th>TDK CLI</th>
-                        <th>Garden</th>
-                        <th>Skaffold</th>
-                        <th>DevSpace</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><strong>Kubernetes Required</strong></td>
-                        <td class="tdk-win"><span class="cross">✗</span> No</td>
-                        <td><span class="warn">⚠</span> Optional (leaks concepts)</td>
-                        <td><span class="check">✓</span> Yes (pure K8s)</td>
-                        <td><span class="check">✓</span> Yes (pure K8s)</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Manifest Format</strong></td>
-                        <td class="tdk-win">Simple JSON</td>
-                        <td>Complex YAML</td>
-                        <td>Complex YAML</td>
-                        <td>YAML</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Auto-Generated Files</strong></td>
-                        <td class="tdk-win"><span class="check">✓</span> 10+ files</td>
-                        <td>3-5 files</td>
-                        <td><span class="cross">✗</span> Manual setup</td>
-                        <td><span class="cross">✗</span> Manual setup</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Golden Docker Images</strong></td>
-                        <td class="tdk-win"><span class="check">✓</span> L1-L4 layering</td>
-                        <td><span class="cross">✗</span> DIY Dockerfiles</td>
-                        <td><span class="cross">✗</span> DIY Dockerfiles</td>
-                        <td><span class="cross">✗</span> DIY Dockerfiles</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Auto-Discovery</strong></td>
-                        <td class="tdk-win"><span class="check">✓</span> Scans directories</td>
-                        <td><span class="cross">✗</span> Manual registration</td>
-                        <td><span class="cross">✗</span> Manual registration</td>
-                        <td><span class="cross">✗</span> Manual registration</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Local-Only Mode</strong></td>
-                        <td class="tdk-win"><span class="check">✓</span> Docker only</td>
-                        <td><span class="cross">✗</span> Requires cluster</td>
-                        <td><span class="cross">✗</span> Requires cluster</td>
-                        <td><span class="cross">✗</span> Requires cluster</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Built On</strong></td>
-                        <td class="tdk-win">Tilt (9.4k ⭐)</td>
-                        <td>Custom</td>
-                        <td>Custom</td>
-                        <td>Custom</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Open Source</strong></td>
-                        <td class="tdk-win"><span class="check">✓</span> Yes</td>
-                        <td><span class="check">✓</span> Yes</td>
-                        <td><span class="check">✓</span> Yes</td>
-                        <td><span class="cross">✗</span> Commercial</td>
-                    </tr>
-                </tbody>
-            </table>
-            <p style="text-align: center; margin-top: 20px; color: #64748b; font-size: 0.9rem;">
-                <strong>TDK wins:</strong> Only tool that's manifest-driven AND Kubernetes-free for local development.
-            </p>
+            <div class="section-header">
+                <h2>Head-to-head comparison</h2>
+                <p>TDK is the only tool that's manifest-driven AND Kubernetes-free.</p>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>TDK CLI</th>
+                            <th>Garden</th>
+                            <th>Skaffold</th>
+                            <th>DevSpace</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="tdk-highlight">
+                            <td><strong>Kubernetes required</strong></td>
+                            <td><span class="cross">✗</span> No</td>
+                            <td><span class="partial">⚠</span> Optional (leaks)</td>
+                            <td><span class="check">✓</span> Yes</td>
+                            <td><span class="check">✓</span> Yes</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Manifest format</strong></td>
+                            <td>Simple JSON</td>
+                            <td>Complex YAML</td>
+                            <td>Complex YAML</td>
+                            <td>YAML</td>
+                        </tr>
+                        <tr class="tdk-highlight">
+                            <td><strong>Auto-generated files</strong></td>
+                            <td><span class="check">✓</span> 10+ files</td>
+                            <td>3-5 files</td>
+                            <td><span class="cross">✗</span> Manual</td>
+                            <td><span class="cross">✗</span> Manual</td>
+                        </tr>
+                        <tr class="tdk-highlight">
+                            <td><strong>Golden Docker images</strong></td>
+                            <td><span class="check">✓</span> L1-L4 layers</td>
+                            <td><span class="cross">✗</span> DIY</td>
+                            <td><span class="cross">✗</span> DIY</td>
+                            <td><span class="cross">✗</span> DIY</td>
+                        </tr>
+                        <tr class="tdk-highlight">
+                            <td><strong>Auto-discovery</strong></td>
+                            <td><span class="check">✓</span> Scans directories</td>
+                            <td><span class="cross">✗</span> Manual</td>
+                            <td><span class="cross">✗</span> Manual</td>
+                            <td><span class="cross">✗</span> Manual</td>
+                        </tr>
+                        <tr class="tdk-highlight">
+                            <td><strong>Local-only mode</strong></td>
+                            <td><span class="check">✓</span> Docker only</td>
+                            <td><span class="cross">✗</span> Requires cluster</td>
+                            <td><span class="cross">✗</span> Requires cluster</td>
+                            <td><span class="cross">✗</span> Requires cluster</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Built on</strong></td>
+                            <td>Tilt (9.4k ★)</td>
+                            <td>Custom</td>
+                            <td>Custom</td>
+                            <td>Custom</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Open source</strong></td>
+                            <td><span class="check">✓</span> Yes</td>
+                            <td><span class="check">✓</span> Yes</td>
+                            <td><span class="check">✓</span> Yes</td>
+                            <td><span class="cross">✗</span> Commercial</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </section>
 
     <!-- FAQ -->
-    <section class="faq">
+    <section id="faq">
         <div class="container">
-            <h2>Frequently Asked Questions</h2>
+            <div class="section-header">
+                <h2>Common questions</h2>
+                <p>Quick answers to frequent concerns.</p>
+            </div>
             <div class="faq-grid">
                 <div class="faq-item">
-                    <h3>❓ But we need Kubernetes for production anyway</h3>
-                    <p>Local dev doesn't need to match production. Different concerns. Use TDK for fast local iteration, K8s for prod when you're ready. Decoupled.</p>
+                    <h3>But we need Kubernetes for production</h3>
+                    <p>Local dev doesn't need to match production. Use TDK for fast local iteration (5s startup), K8s for prod when ready. Decoupled, no lock-in.</p>
                 </div>
                 <div class="faq-item">
-                    <h3>❓ What about CI/CD?</h3>
-                    <p>TDK is completely decoupled from your CI. Use it for local development, whatever you want for CI/CD. No lock-in. No migration headache.</p>
+                    <h3>What about CI/CD?</h3>
+                    <p>TDK is completely decoupled from your CI. Use it for local development, whatever you want for CI/CD. No migration headache if you switch.</p>
                 </div>
                 <div class="faq-item">
-                    <h3>❓ Our platform team already set up Garden</h3>
-                    <p>TDK complements Garden. Use TDK for local speed (5s startup vs 30s), Garden for prod-like integration tests. Best of both worlds.</p>
+                    <h3>We already use Garden</h3>
+                    <p>TDK complements Garden. Use TDK for local speed (5s vs 30s startup), Garden for prod-like integration tests. Best of both.</p>
                 </div>
                 <div class="faq-item">
-                    <h3>❓ Is 120+ services actually realistic locally?</h3>
-                    <p>Yes. With selective startup and resource management. We've proven this scales in production. You don't run all 120 at once—you run what you need.</p>
+                    <h3>Is 120+ services realistic locally?</h3>
+                    <p>Yes, with selective startup. You don't run all 120 at once—you run what you need. Proven at scale with proper resource management.</p>
                 </div>
                 <div class="faq-item">
-                    <h3>❓ What if we outgrow TDK?</h3>
-                    <p>TDK uses standard Docker + Tilt. No proprietary formats. Easy migration path to any other tool if you ever need to.</p>
+                    <h3>What if we outgrow TDK?</h3>
+                    <p>TDK uses standard Docker + Tilt. No proprietary formats. Easy migration to any other tool if you ever need to.</p>
                 </div>
                 <div class="faq-item">
-                    <h3>❓ Who is TDK for?</h3>
+                    <h3>Who is TDK for?</h3>
                     <p>Full-stack developers, product teams, and startups who want to run microservices locally without becoming DevOps engineers.</p>
                 </div>
             </div>
@@ -461,29 +950,32 @@
     </section>
 
     <!-- Audience -->
-    <section class="audience">
+    <section>
         <div class="container">
-            <h2>Who Uses What Tool</h2>
+            <div class="section-header">
+                <h2>Who should use what</h2>
+                <p>Choose the right tool for your team's expertise.</p>
+            </div>
             <div class="audience-grid">
                 <div class="audience-card">
                     <h3>Platform Engineers</h3>
-                    <p>Use Garden or DevSpace. They WANT Kubernetes. They have the expertise.</p>
+                    <p>Use Garden or DevSpace. They WANT Kubernetes and have the expertise to manage it.</p>
                 </div>
                 <div class="audience-card">
                     <h3>Senior Backend Devs</h3>
-                    <p>Use Tilt or Skaffold. They tolerate K8s. They can handle the complexity.</p>
+                    <p>Use Tilt or Skaffold. They tolerate K8s complexity and can handle the learning curve.</p>
                 </div>
-                <div class="audience-card">
-                    <h3>Full-Stack Developers ✅</h3>
-                    <p>Use <strong>TDK</strong>. Don't know K8s, don't want to learn it. Just want to write code.</p>
+                <div class="audience-card recommended">
+                    <h3>Full-Stack Developers</h3>
+                    <p>Use <strong>TDK</strong>. Don't know K8s, don't want to learn it. Just want to write code and ship features.</p>
                 </div>
-                <div class="audience-card">
-                    <h3>Product Teams ✅</h3>
-                    <p>Use <strong>TDK</strong>. Need to test features across 10+ services without begging DevOps.</p>
+                <div class="audience-card recommended">
+                    <h3>Product Teams</h3>
+                    <p>Use <strong>TDK</strong>. Need to test features across 10+ services without waiting for DevOps.</p>
                 </div>
-                <div class="audience-card">
-                    <h3>Startups ✅</h3>
-                    <p>Use <strong>TDK</strong>. Outgrew "works on my machine" but not ready for platform team overhead.</p>
+                <div class="audience-card recommended">
+                    <h3>Startups</h3>
+                    <p>Use <strong>TDK</strong>. Outgrew "works on my machine" but not ready for platform engineering overhead.</p>
                 </div>
             </div>
         </div>
@@ -492,12 +984,13 @@
     <!-- CTA -->
     <section class="cta-section" id="get-started">
         <div class="container">
-            <h2>Run your stack locally.<br>No Kubernetes required.</h2>
-            <p style="font-size: 1.25rem; opacity: 0.9; margin-bottom: 10px;">
-                120+ services proven • 10+ configs auto-generated • Zero K8s knowledge needed
-            </p>
-            <p style="opacity: 0.7; margin-bottom: 20px;">Built on Tilt • Manifest-driven • Auto-discovery • Golden Images</p>
-            <a href="#" class="cta-button-white">npm install -g tdk-cli</a>
+            <h2>Ready to ditch Kubernetes for local dev?</h2>
+            <p>Built on Tilt • Manifest-driven • Auto-discovery • Golden Images</p>
+            <div class="hero-buttons">
+                <a href="#" class="btn btn-secondary">
+                    npm install -g tdk-cli
+                </a>
+            </div>
         </div>
     </section>
 
