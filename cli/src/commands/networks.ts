@@ -296,13 +296,22 @@ export const networksCommand = new Command('networks')
       console.log(chalk.gray(line('━', BOX_WIDTH - 4)));
       
       for (const service of stackServices) {
-        const statusEmoji = service.status === 'running' ? chalk.green('●') : 
-                           service.status === 'stopped' ? chalk.red('●') : chalk.gray('○');
-        
+        // Use both color AND symbol for clarity
+        const statusSymbol = service.status === 'running' ? '✓' :
+                            service.status === 'stopped' ? '✗' : '?';
+        const statusEmoji = service.status === 'running' ? chalk.green(statusSymbol) :
+                           service.status === 'stopped' ? chalk.red(statusSymbol) : chalk.gray(statusSymbol);
+
         const namePart = pad(service.name, 22);
-        const urlPart = chalk.cyan.underline(service.url);
-        
-        console.log(`  ${statusEmoji} ${chalk.white(namePart)}  ${urlPart}`);
+        const urlPart = service.status === 'running'
+          ? chalk.cyan.underline(service.url)
+          : chalk.gray(service.url);  // Gray out URL if stopped
+
+        const statusLabel = service.status !== 'running'
+          ? chalk.gray(` [${service.status}]`)
+          : '';
+
+        console.log(`  ${statusEmoji} ${chalk.white(namePart)}  ${urlPart}${statusLabel}`);
       }
     }
     
@@ -310,7 +319,7 @@ export const networksCommand = new Command('networks')
     console.log();
     console.log(chalk.gray(line('─', BOX_WIDTH - 2)));
     console.log(chalk.gray('🖱️  Click any URL above to open in browser'));
-    console.log(chalk.gray('📊 Status: ') + chalk.green('● Running') + ' | ' + chalk.red('● Stopped') + ' | ' + chalk.gray('○ Unknown'));
+    console.log(chalk.gray('📊 Status: ') + chalk.green('✓ Running') + ' | ' + chalk.red('✗ Stopped') + ' | ' + chalk.gray('? Unknown'));
     
     if (baseDomain === 'localhost') {
       console.log();
