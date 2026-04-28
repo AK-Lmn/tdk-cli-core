@@ -26,7 +26,8 @@ def prepare_resource_manifests(resource_config, ctx):
         # Use the resource's _resource_path if available (for services from different scan roots)
         # Otherwise fall back to constructing path from resource_config path + resource name
         resource_path = resource.get('_resource_path', resource_config['path'] + '/' + resource['name'])
-        manifest = Manifest.load_manifest(resource_path)
+        print("   DEBUG prepare_resource_manifests: resource='{}', _resource_path='{}', computed path='{}'".format(
+            resource.get('name'), resource.get('_resource_path', 'NOT SET'), resource_path))
         resource_manifests[resource['name']] = manifest
 
         app_name = manifest.get('appName', resource['name'])

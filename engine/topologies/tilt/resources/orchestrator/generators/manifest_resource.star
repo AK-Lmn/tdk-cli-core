@@ -268,6 +268,8 @@ def _generate_all_configs_for_resource(
     should_enable = ctx['should_enable']
     global_config = ctx['global_config']
     
+    print("DEBUG _generate_all_configs: resource_name='{}', resource_path='{}'".format(resource_name, resource_path))
+    
     # ==========================================================================
     # NEW: PRE-FLIGHT VALIDATIONS (v2.0)
     # Run validations BEFORE generating configs to catch issues early
