@@ -107,7 +107,7 @@ def generate_frontend_compose(service_path, service_name, res, manifest=None):
     
     traefik_labels = get_frontend_traefik_labels(
         res_name,
-        domain,
+        stack,
         base_path,
         port,
         traefik_host=traefik_host,
@@ -163,7 +163,7 @@ def _generate_single_backend_entry(service_path, service_name, res, manifest, in
     dev_port = internal_port
     # Use PROJECT_NAME from PlatformDockerConstants for portable database naming
     _db_prefix = PlatformDockerConstants.PROJECT_NAME + "_"
-    db_name = manifest.get('databaseName', _db_prefix + domain) if manifest else _db_prefix + domain
+    db_name = manifest.get('databaseName', _db_prefix + stack) if manifest else _db_prefix + stack
     
     # Compute database URLs using centralized constants
     db_url_for_tilt = PlatformDockerConstants.get_database_url_for_env(db_name)
@@ -172,14 +172,14 @@ def _generate_single_backend_entry(service_path, service_name, res, manifest, in
     health_path = manifest.get('healthCheckPath', HEALTH_CHECK_PATH) if manifest else HEALTH_CHECK_PATH
     
     traefik_cfg = manifest.get('traefik', {}) if manifest else {}
-    traefik_host = traefik_cfg.get('host', domain + '.backend.' + _PROJECT_NAME + '.local')
+    traefik_host = traefik_cfg.get('host', stack + '.backend.' + _PROJECT_NAME + '.local')
     # ALPHA: Use proper API v1 path with -management suffix via api_path_constants
-    # Old default: '/api/' + domain
-    # New default: get_api_path_for_domain → /api/v1/{domain}-management
-    traefik_path = traefik_cfg.get('pathPrefix', get_api_path_for_domain(domain, manifest))
+    # Old default: '/api/' + stack
+    # New default: get_api_path_for_domain → /api/v1/{stack}-management
+    traefik_path = traefik_cfg.get('pathPrefix', get_api_path_for_domain(stack, manifest))
     
     nats_cfg = manifest.get('nats', {}) if manifest else {}
-    nats_queue = nats_cfg.get('queueGroup', domain + '_backend_svc')
+    nats_queue = nats_cfg.get('queueGroup', stack + '_backend_svc')
     nats_url = PlatformDockerConstants.NATS_URL
     
     # Auth configuration - use centralized auth utilities
@@ -255,7 +255,7 @@ def _generate_single_backend_entry(service_path, service_name, res, manifest, in
       - {env_file_rel_path}
     environment:
 {infisical_env}
-      - SERVICE_NAME={domain}
+      - SERVICE_NAME={stack}
       - PORT={port_anchor}
       - INSTANCE_ID={instance_label}
       - NATS_QUEUE_GROUP={nats_queue}
@@ -296,7 +296,7 @@ def _generate_single_backend_entry(service_path, service_name, res, manifest, in
         build_config=build_config,
         ports_section=ports_section,
         env_file_rel_path=env_file_rel_path,
-        domain=domain,
+        stack=stack,
         internal_port=internal_port,
         port_anchor=internal_port,
         dev_port=dev_port,

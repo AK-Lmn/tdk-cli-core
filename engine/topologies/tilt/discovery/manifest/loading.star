@@ -311,10 +311,10 @@ def _apply_manifest_defaults(manifest, service_path):
         existing_traefik = result.get('traefik', {})
         # Use apiPath from root level if available, otherwise use default pattern
         root_api_path = result.get('apiPath')
-        default_path_prefix = root_api_path if root_api_path else '/api/' + domain
+        default_path_prefix = root_api_path if root_api_path else '/api/' + stack
         
         computed_traefik = {
-            'host': domain + '.backend.' + _PROJECT_NAME + '.local',
+            'host': stack + '.backend.' + PlatformDockerConstants.PROJECT_NAME + '.local',
             'pathPrefix': default_path_prefix,
             'healthCheck': HEALTH_CHECK_PATH,
         }
@@ -335,8 +335,8 @@ def _apply_manifest_defaults(manifest, service_path):
     if result['useNats']:
         existing_nats = result.get('nats', {})
         result['nats'] = {
-            'queueGroup': existing_nats.get('queueGroup', domain + '_' + app_type + '_svc'),
-            'subjects': existing_nats.get('subjects', [domain + '.>']),
+            'queueGroup': existing_nats.get('queueGroup', stack + '_' + app_type + '_svc'),
+            'subjects': existing_nats.get('subjects', [stack + '.>']),
         }
     
     # Compute backend name for frontends with override detection
@@ -347,8 +347,8 @@ def _apply_manifest_defaults(manifest, service_path):
         elif result['backendName'] != computed_backend:
             overrides.append("backendName: {} (auto: {})".format(result['backendName'], computed_backend))
         
-        # 🎯 SMART BASEPATH for frontends (convention: /{domain}s)
-        computed_base_path = '/' + domain + 's'
+        # 🎯 SMART BASEPATH for frontends (convention: /{stack}s)
+        computed_base_path = '/' + stack + 's'
         if 'basePath' not in result:
             result['basePath'] = computed_base_path
         elif result['basePath'] != computed_base_path:
