@@ -68,8 +68,22 @@ def library_is_frontend(path):
     return _library_has_react(path)
 
 
-def define_library_resource(ctx, name, path, labels, internal_deps=None, consumer_paths=None, write_file_if_changed_fn=None, generate_vite_fn=None):
-    """Defines a Tilt local_resource for a library with proper dependency management."""
+def define_library_resource(ctx, name, path, labels, internal_deps=None, consumer_paths=None, write_fn=None, generate_vite_fn=None):
+    """Defines a Tilt local_resource for a library with proper dependency management.
+
+    Args:
+        ctx: Tilt context with global_config, verdaccio_url, etc.
+        name: Library name
+        path: Path to library directory
+        labels: Labels for Tilt UI organization
+        internal_deps: Optional list of internal dependencies
+        consumer_paths: Optional list of consumer resource paths
+        write_fn: Optional write function for file generation
+        generate_vite_fn: Optional Vite config generator function
+
+    Returns:
+        str: Name of created Tilt resource
+    """
     global_config = ctx.get('global_config', {})
     registry = (
         ctx.get('verdaccio_url_docker')
@@ -81,7 +95,7 @@ def define_library_resource(ctx, name, path, labels, internal_deps=None, consume
     internal_scope = ctx.get('internal_scope', '@tdk/')
     pkg_name = internal_scope + name
 
-    if write_file_if_changed_fn and generate_vite_fn:
+    if write_fn and generate_vite_fn:
         lib_manifest = {
             'appName': name,
             'appType': 'library',
@@ -93,7 +107,7 @@ def define_library_resource(ctx, name, path, labels, internal_deps=None, consume
 
         if _library_needs_vite(path):
             print("   📚 Generating vite.config.ts for library: " + name)
-            generate_vite_fn(lib_manifest, None, write_file_if_changed_fn)
+            generate_vite_fn(lib_manifest, None, write_fn)
 
     consumer_paths_str = ''
     if consumer_paths:

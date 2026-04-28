@@ -15,17 +15,17 @@ load("../resources/orchestrator/generators/manifest_resource.star", "ManifestRes
 load("../manifest/loader.star", "ManifestLoader")
 
 
-def register_new_resource(resource_path, manifest, ctx, auto_init=True, verbose=False):
+def register_new_service(resource_path, manifest, ctx, auto_init=True, verbose=False):
     """
-    Register a newly discovered resource and create its Tilt resources.
-    
+    Register a newly discovered service and create its Tilt resources.
+
     Args:
         resource_path: Path to resource directory
         manifest: Loaded manifest dict
         ctx: Tilt context with generators and config
         auto_init: Whether to auto-init resources
         verbose: Enable verbose logging
-    
+
     Returns:
         Struct with success status and created resources
     """
@@ -212,7 +212,7 @@ def check_duplicate_resource(resource_name):
 
 # Export public API
 IncrementalDiscovery = struct(
-    register=register_new_resource,
+    register=register_new_service,
     validate_structure=validate_resource_structure,
     check_duplicate=check_duplicate_resource,
 )

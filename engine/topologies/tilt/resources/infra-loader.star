@@ -202,29 +202,35 @@ def _load_golden_image(should_enable, docker_provider):
     return docker_provider.golden_image.build()
 
 
-def _generate_golden_dockerfile(should_enable, docker_provider, write_file_fn):
-    """Generate the golden-layers.Dockerfile if it doesn't exist."""
+def _generate_golden_dockerfile(should_enable, docker_provider, write_fn):
+    """Generate the golden-layers.Dockerfile if it doesn't exist.
+
+    Args:
+        should_enable: Function that takes service name and returns bool
+        docker_provider: Docker provider struct with golden_image
+        write_fn: File writing function for output
+    """
     if not should_enable('golden-image'):
         return
-    
+
     dockerfile_path = '.tdk/.tdk-out/golden-layers.Dockerfile'
     content = docker_provider.golden_image.generate_dockerfile()
-    write_file_fn(dockerfile_path, content)
+    write_fn(dockerfile_path, content)
 
 
 # =============================================================================
 # 🎯 MAIN LOADER
 # =============================================================================
 
-def load_all_infrastructure(should_enable, fix_docker_networks_fn=None, docker_provider=None, write_file_fn=None):
+def load_all_infrastructure(should_enable, fix_docker_networks_fn=None, docker_provider=None, write_fn=None):
     """
     Load all infrastructure services based on configuration.
-    
+
     Args:
         should_enable: Function that takes service name and returns bool
         fix_docker_networks_fn: Function to fix Docker networks (optional)
         docker_provider: Docker provider struct (optional, for golden image)
-        write_file_fn: File writing function (optional, for golden image)
+        write_fn: File writing function (optional, for golden image)
     """
     # Initialize networks first
     if fix_docker_networks_fn:
@@ -237,8 +243,8 @@ def load_all_infrastructure(should_enable, fix_docker_networks_fn=None, docker_p
     
     # Build golden image before other infrastructure (if enabled)
     golden_image_resource = None
-    if docker_provider and write_file_fn:
-        _generate_golden_dockerfile(should_enable, docker_provider, write_file_fn)
+    if docker_provider and write_fn:
+        _generate_golden_dockerfile(should_enable, docker_provider, write_fn)
         golden_image_resource = _load_golden_image(should_enable, docker_provider)
     
     # Load infrastructure in order

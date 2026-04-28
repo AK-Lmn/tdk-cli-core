@@ -91,7 +91,7 @@ def setup_libraries(ctx, should_enable_fn, ddd_libs, platform_libs, product_libs
                 [lib_label],
                 internal_deps=lib_res_deps,
                 consumer_paths=consumer_paths,
-                write_file_if_changed_fn=write_fn,
+                write_fn=write_fn,
                 generate_vite_fn=generate_vite,
             )
             library_map[pkg_name] = tilt_resource
@@ -151,7 +151,7 @@ def setup_libraries(ctx, should_enable_fn, ddd_libs, platform_libs, product_libs
                 lib_path,
                 [lib_label],
                 internal_deps=lib_res_deps,
-                write_file_if_changed_fn=write_fn,
+                write_fn=write_fn,
                 generate_vite_fn=generate_vite,
             )
             library_map[pkg_name] = 'lib-' + lib_name
