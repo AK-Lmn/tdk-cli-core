@@ -211,14 +211,17 @@ def _get_discovery_scan_roots_with_project():
     if project_root:
         # Try to load spec.master to get custom patterns
         spec_master_path = project_root + '/.tdk/spec.master'
-        try:
+        spec = None
+        # read_json returns None on failure in Starlark (no try/except)
+        # We use a local command to check if file exists first
+        test_cmd = "test -f " + spec_master_path + " && echo yes || echo no"
+        file_exists = local(test_cmd, quiet=True, echo_off=True)
+        if file_exists.strip() == "yes":
             spec = read_json(spec_master_path)
-            if spec and 'RESOURCE_PATTERNS' in spec and spec['RESOURCE_PATTERNS']:
-                patterns = spec['RESOURCE_PATTERNS']
-                print("📍 Using project-specific discovery patterns: " + str(patterns))
-                return patterns
-        except:
-            pass  # Fall back to default patterns
+        if spec and 'RESOURCE_PATTERNS' in spec and spec['RESOURCE_PATTERNS']:
+            patterns = spec['RESOURCE_PATTERNS']
+            print("📍 Using project-specific discovery patterns: " + str(patterns))
+            return patterns
     
     # Fall back to hardcoded constants
     return DISCOVERY_SCAN_ROOTS

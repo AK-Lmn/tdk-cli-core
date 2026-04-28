@@ -1,0 +1,138 @@
+# TDK CLI Tutorial Configuration
+# Defines the 20-minute video structure
+
+metadata:
+  title: "TDK CLI - Complete Developer Tutorial"
+  author: "TDK Landscape"
+  version: "1.0"
+  duration: "20:00"
+  resolution: "2560x1440"  # 1440p
+  fps: 30
+
+output:
+  filename: "TDK_CLI_Tutorial_1440p.mp4"
+  codec: "h264"
+  bitrate: "10M"
+  two_pass: true
+  chapter_markers: true
+
+# Chapter definitions with timing
+chapters:
+  - name: "Intro: The Problem"
+    duration: 90  # 1:30
+    type: "title_card"
+    title: "The Problem"
+    subtitle: "Why Local Microservices Dev Is Broken"
+    icon: "terminal"
+    
+  - name: "Docker Pain Demo"
+    duration: 240  # 4:00
+    type: "terminal"
+    recording: "recordings/chapter1_docker_pain.cast"
+    highlight_regions:
+      - x: 0
+        y: 0
+        width: 80
+        height: 3
+        start_time: 30
+        duration: 120
+    
+  - name: "Chapter 2: Install & Verify"
+    duration: 180  # 3:00
+    type: "title_card"
+    title: "Chapter 2"
+    subtitle: "Install & Verify - One Command Setup"
+    icon: "rocket"
+    
+  - name: "Installation Demo"
+    duration: 360  # 6:00
+    type: "terminal"
+    recording: "recordings/chapter2_install.cast"
+    
+  - name: "Chapter 3: Project Setup"
+    duration: 180  # 3:00
+    type: "title_card"
+    title: "Chapter 3"
+    subtitle: "Project Setup - PSR Model Explained"
+    icon: "stack"
+    
+  - name: "Project Creation Demo"
+    duration: 300  # 5:00
+    type: "terminal"
+    recording: "recordings/chapter3_project.cast"
+    
+  - name: "Chapter 4: Create Resources"
+    duration: 180  # 3:00
+    type: "title_card"
+    title: "Chapter 4"
+    subtitle: "Create Resources - Backend & Frontend"
+    icon: "resource"
+    
+  - name: "Resource Creation Demo"
+    duration: 480  # 8:00
+    type: "terminal"
+    recording: "recordings/chapter4_resources.cast"
+    
+  - name: "Chapter 5: The Magic"
+    duration: 180  # 3:00
+    type: "title_card"
+    title: "Chapter 5"
+    subtitle: "The Magic: tdk up - Services Come Alive"
+    icon: "rocket"
+    
+  - name: "tdk up Demo"
+    duration: 360  # 6:00
+    type: "terminal"
+    recording: "recordings/chapter5_tdk_up.cast"
+    
+  - name: "Chapter 6: Ecosystem"
+    duration: 180  # 3:00
+    type: "title_card"
+    title: "Chapter 6"
+    subtitle: "Ecosystem: Discovery, Validation, IDE Support"
+    icon: "stack"
+    
+  - name: "Ecosystem Demo"
+    duration: 300  # 5:00
+    type: "terminal"
+    recording: "recordings/chapter6_ecosystem.cast"
+    
+  - name: "Outro"
+    duration: 120  # 2:00
+    type: "title_card"
+    title: "TDK CLI"
+    subtitle: "Start building: github.com/tdk-landscape/tdk-cli"
+    icon: "logo"
+
+# Terminal appearance
+terminal:
+  theme: "dracula"  # dracula, minimal
+  font_size: 14
+  font_family: "SF Mono"
+  line_height: 1.4
+  padding: 20
+  cursor_blink: true
+
+# Title card styling
+title_cards:
+  background_gradient: true
+  grid_pattern: true
+  corner_accents: true
+  font_title: "SF Pro Display"
+  font_subtitle: "SF Pro Display"
+  animation: "pulse"
+
+# Audio settings (if voiceover is added later)
+audio:
+  voiceover_dir: "audio/voiceover"
+  background_music: null
+  fade_in: 1.0
+  fade_out: 2.0
+
+# Post-processing
+post_process:
+  denoise: false
+  sharpen: true
+  normalize_audio: true
+  generate_thumbnail: true
+  generate_webvtt: true
