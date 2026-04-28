@@ -71,7 +71,7 @@
       "type": "string"
     },
     "appName": {
-      "description": "Unique service identifier. Must match directory name.\nFormat: {domain}-{function}-{type}\nExample: 'user-management-backend'",
+      "description": "Unique resource identifier. Must match directory name.\nFormat: {stack}-{function}-{type}\nExample: 'user-management-backend'",
       "examples": ["user-management-backend", "order-planner-frontend"],
       "maxLength": 64,
       "minLength": 3,
@@ -89,17 +89,17 @@
       "type": "string"
     },
     "basePath": {
-      "description": "Base path for frontend routing on TDK Landscape.localhost. Default is /{domain}s when omitted.",
+      "description": "Base path for frontend routing on TDK Landscape.localhost. Default is /{stack}s when omitted.",
       "pattern": "^/[a-z0-9/-]*$",
       "type": "string"
     },
     "databaseName": {
-      "description": "Override auto-generated DB name.\nDefault: TDK_{domain}",
+      "description": "Override auto-generated DB name.\nDefault: TDK_{stack}",
       "pattern": "^TDK_[a-z_]+$",
       "type": "string"
     },
     "dependencies": {
-      "description": "Service dependencies used for startup ordering and frontend dependency env generation.\nEach entry can be a domain (e.g. 'service') or service name (e.g. 'service-management-backend').",
+      "description": "Resource dependencies used for startup ordering and frontend dependency env generation.\nEach entry can be a stack name (e.g. 'user') or resource name (e.g. 'user-management-backend').",
       "items": {
         "pattern": "^[a-z][a-z0-9-]*$",
         "type": "string"
@@ -112,8 +112,8 @@
       "description": "Custom Dockerfile path relative to service directory.",
       "type": "string"
     },
-    "domain": {
-      "description": "Business domain this service belongs to.\nUsed for:\n• Database naming: TDK_{domain}\n• Traefik routing: /api/{domain}\n• NATS queue: {domain}_backend_svc",
+    "stack": {
+      "description": "Technology stack this resource belongs to.\nUsed for:\n• Database naming: TDK_{stack}\n• Traefik routing: /api/{stack}\n• NATS queue: {stack}_backend_svc",
       "enum": [
         "user",
         "team",
@@ -274,7 +274,7 @@
       "type": "object"
     }
   },
-  "required": ["appName", "appType", "domain"],
+  "required": ["appName", "appType", "stack"],
   "title": "TDK Landscape Service Configuration",
   "type": "object"
 }
