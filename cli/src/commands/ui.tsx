@@ -11,14 +11,15 @@ import { render, Box, Text, useInput, useApp, useStdout, useStdin } from 'ink';
 import SelectInput from 'ink-select-input';
 import { 
   discoverStacks, 
-  discoverServices, 
+  discoverResources, 
   findProjectRoot,
-  getServiceMetadata,
+  getResourceMetadata,
   getStackMetadata,
   clearMetadataCache,
-  type ServiceMetadata,
+  type ResourceMetadata,
   type StackMetadata,
 } from '../utils/services.js';
+import type { DiscoveredResource, DiscoveredStack } from '../types/index.js';
 import { isTiltAvailable } from '../utils/tilt.js';
 import { 
   TabBar, type TabId, DetailPanel, ResourceTable, FileTree, type FileNode,
@@ -167,7 +168,7 @@ const TUIApp: React.FC = () => {
   }, []);
 
   const stacks = discoverStacks();
-  const services = discoverServices();
+  const services = discoverResources();
   
   // Handle errors
   useEffect(() => {
@@ -196,11 +197,11 @@ const TUIApp: React.FC = () => {
   // Get metadata for selected service
   const selectedServiceData = useMemo(() => {
     if (!selectedService) return null;
-    const service = services.find(s => s.name === selectedService);
+    const service = services.find((s: DiscoveredResource) => s.name === selectedService);
     if (!service) return null;
     return {
       service,
-      metadata: getServiceMetadata(service),
+      metadata: getResourceMetadata(service),
     };
   }, [selectedService, services]);
 
@@ -209,7 +210,7 @@ const TUIApp: React.FC = () => {
     if (!searchQuery) return stacks;
     return stacks.filter(s => 
       s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.services.some(svc => svc.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      s.resources.some((svc: {name: string}) => svc.name.toLowerCase().includes(searchQuery.toLowerCase()))
     );
   }, [stacks, searchQuery]);
 
@@ -217,13 +218,13 @@ const TUIApp: React.FC = () => {
     let filtered = services;
     // Filter by enabled status if showEnabledOnly is true
     if (showEnabledOnly) {
-      filtered = filtered.filter(s => s.config?.enabled !== false);
+      filtered = filtered.filter((s: DiscoveredResource) => s.config?.enabled !== false);
     }
     // Filter by search query
     if (searchQuery) {
-      filtered = filtered.filter(s => 
+      filtered = filtered.filter((s: DiscoveredResource) => 
         s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (s.domain || '').toLowerCase().includes(searchQuery.toLowerCase())
+        (s.stack || '').toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
     return filtered;
@@ -233,24 +234,24 @@ const TUIApp: React.FC = () => {
   const getItems = useCallback(() => {
     if (activeTab === 'overview') {
       return filteredStacks.map(stack => ({
-        label: `${stack.name} (${stack.services.length} services)`,
+        label: `${stack.name} (${stack.resources.length} resources)`,
         value: stack.name,
       }));
     }
     
     if (activeTab === 'resources') {
       if (selectedStackData) {
-        return selectedStackData.stack.services.map(s => {
-          const domainLabel = s.domain && s.domain !== 'unknown' ? ` [${s.domain}]` : '';
+        return selectedStackData.stack.resources.map(s => {
+          const stackLabel = s.stack && s.stack !== 'unknown' ? ` [${s.stack}]` : '';
           const enabledLabel = s.config?.enabled === false ? ' [DISABLED]' : '';
           return {
-            label: `${s.name}${domainLabel}${enabledLabel}`,
+            label: `${s.name}${stackLabel}${enabledLabel}`,
             value: s.name,
           };
         });
       }
       return filteredStacks.map(stack => ({
-        label: `${stack.name} (${stack.services.length} services)`,
+        label: `${stack.name} (${stack.resources.length} resources)`,
         value: stack.name,
       }));
     }
@@ -262,23 +263,23 @@ const TUIApp: React.FC = () => {
           value: f.path,
         }));
       }
-      return filteredServices.map(s => {
-        const domainPrefix = s.domain && s.domain !== 'unknown' ? `${s.domain}/` : '';
+      return filteredServices.map((s: DiscoveredResource) => {
+        const stackPrefix = s.stack && s.stack !== 'unknown' ? `${s.stack}/` : '';
         const enabledLabel = s.config?.enabled === false ? ' [DISABLED]' : '';
         return {
-          label: `${domainPrefix}${s.name}${enabledLabel}`,
+          label: `${stackPrefix}${s.name}${enabledLabel}`,
           value: s.name,
         };
       });
     }
     
     if (activeTab === 'config') {
-      return filteredServices.map(s => {
-        const domainPrefix = s.domain && s.domain !== 'unknown' ? `${s.domain}/` : '';
+      return filteredServices.map((s: DiscoveredResource) => {
+        const stackPrefix = s.stack && s.stack !== 'unknown' ? `${s.stack}/` : '';
         const stackLabel = s.stack ? ` [${s.stack}]` : '';
         const enabledLabel = s.config?.enabled === false ? ' [DISABLED]' : '';
         return {
-          label: `${domainPrefix}${s.name}${stackLabel}${enabledLabel}`,
+          label: `${stackPrefix}${s.name}${stackLabel}${enabledLabel}`,
           value: s.name,
         };
       });
@@ -592,7 +593,7 @@ const TUIApp: React.FC = () => {
         })),
       }];
     }
-    return services.map(s => ({
+    return services.map((s: DiscoveredResource) => ({
       name: s.name,
       path: s.path,
       type: 'directory',
@@ -764,7 +765,7 @@ const TUIApp: React.FC = () => {
                       <Text color="gray">Stack: {selectedStackData.stack.name}</Text>
                       <Box marginTop={1}>
                         <ResourceTable 
-                          services={selectedStackData.metadata.services}
+                          resources={selectedStackData.metadata.resources}
                           maxWidth={terminalWidth - (showSidebar ? 50 : 10)}
                         />
                       </Box>
@@ -915,8 +916,8 @@ const TUIApp: React.FC = () => {
           >
             <Box justifyContent="space-between">
               <Text color="cyan" bold>▓▒░ {activeTab}</Text>
-              <Text color="green">● {services.filter(s => s.stack).length} in stack</Text>
-              <Text color="yellow">○ {services.filter(s => !s.stack).length} no stack</Text>
+              <Text color="green">● {services.filter((s: DiscoveredResource) => s.stack).length} in stack</Text>
+              <Text color="yellow">○ {services.filter((s: DiscoveredResource) => !s.stack).length} no stack</Text>
             </Box>
             <Box justifyContent="space-between">
               <Text color="gray">Stacks: {stacks.length}</Text>

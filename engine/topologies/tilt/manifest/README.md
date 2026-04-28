@@ -46,7 +46,7 @@ print(report)
 if Manifest.is_valid(my_manifest):
     print("Manifest is valid!")
 
-# Validate against all services (checks port conflicts, dependencies)
+# Validate against all resources (checks port conflicts, dependencies)
 all_manifests = Manifest.load_all("services/product").manifests
 result = Manifest.validate_dependencies(my_manifest, all_manifests)
 if not result.valid:
@@ -147,8 +147,8 @@ result = Manifest.load_all("services/product")
 | Function | Description | Example |
 |----------|-------------|---------|
 | `parse(content, path)` | Parse JSON content | `Manifest.parse(json_string, "path/for/context")` |
-| `normalize(manifest, path)` | Apply defaults and compute fields | `Manifest.normalize(manifest, service_path)` |
-| `get_normalized(content, path)` | Parse + normalize in one call | `Manifest.get_normalized(json_string, service_path)` |
+| `normalize(manifest, path)` | Apply defaults and compute fields | `Manifest.normalize(manifest, resource_path)` |
+| `get_normalized(content, path)` | Parse + normalize in one call | `Manifest.get_normalized(json_string, resource_path)` |
 | `extract_resource_path(manifest_path)` | Extract resource path | `Manifest.extract_resource_path("path/to/manifest.json")` |
 | `extract_stack(resource_path)` | Extract stack from path | `Manifest.extract_stack("services/product/user/...")` |
 | `parse_traefik(manifest)` | Parse Traefik config | `Manifest.parse_traefik(manifest)` |
@@ -203,7 +203,7 @@ result = Manifest.validate(manifest, level='all')
 
 ```starlark
 context = {
-    'all_manifests': all_manifests,  # For cross-service checks
+    'all_manifests': all_manifests,  # For cross-resource checks
     'resource_path': path,           # For error context
     'strict': True,                 # Treat warnings as errors
 }
@@ -593,20 +593,20 @@ TestIntegration.run()
 - **Discovery Integration** (`integration.star`)
   - Integration layer for discovery system
   - Backward compatibility with legacy discovery
-  - Batch validation across all services
-  - Port conflict detection across services
-  - Dependency validation across services
+  - Batch validation across all resources
+  - Port conflict detection across resources
+  - Dependency validation across resources
   - Validation summary reports
   - Feature flag for gradual rollout
 
 ### Phase 3 Features (✅ Complete)
 
 - **Validation** (`validator.star`)
-  - 4-level validation (schema, values, cross-field, cross-service)
+  - 4-level validation (schema, values, cross-field, cross-resource)
   - Schema validation (required fields, types, constraints)
   - Value validation (port ranges, name formats, patterns)
   - Cross-field validation (frontend needs backend, prisma needs database)
-  - Cross-service validation (port conflicts, dependency existence)
+  - Cross-resource validation (port conflicts, dependency existence)
   - Validation reports with detailed statistics
   - Strict mode (warnings as errors)
 
@@ -614,7 +614,7 @@ TestIntegration.run()
 
 - **File Loading** (`loader.star`)
   - Load single manifest from file
-  - Load from service directory
+  - Load from resource directory
   - Load all with filtering
   - In-memory caching
   - Error handling with context
@@ -623,7 +623,7 @@ TestIntegration.run()
   - JSON parsing with validation
   - Automatic field normalization
   - Default value application
-  - Domain/appType extraction from paths
+  - Stack/appType extraction from paths
   - Traefik configuration generation
   - Manifest merging for inheritance
   - Frontend/backend detection

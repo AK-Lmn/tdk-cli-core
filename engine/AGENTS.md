@@ -69,12 +69,12 @@ You don't just manage services; you map, design, and optimize the topology that 
 
 ### 1. Manifest Structure
 
-**Service Manifest (`service.json`):**
+**Resource Manifest (`service.json`):**
 ```json
 {
   "appName": "user-management-backend",
   "appType": "backend",
-  "domain": "user",
+  "stack": "user",
   "port": 4000,
   "databaseName": "TDK_user",
   "features": ["nats", "prisma", "vite-node"],
@@ -93,7 +93,7 @@ You don't just manage services; you map, design, and optimize the topology that 
 {
   "appName": "user-management-frontend",
   "appType": "frontend",
-  "domain": "user",
+  "stack": "user",
   "port": 3000,
   "backendName": "user-management-backend",
   "basePath": "/user",

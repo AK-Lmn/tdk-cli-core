@@ -9,7 +9,7 @@ General-purpose manifest parsing and loading system. Used across Tilt infrastruc
 ### Core
 - **`constants.star`** - `MANIFEST_FILENAME`, `MANIFEST_FILENAME_YAML`, validation constants
 - **`loader.star`** - `ManifestLoader` struct with `load_from_file()` method
-- **`parser.star`** - Path parsing, domain extraction from paths
+- **`parser.star`** - Path parsing, stack extraction from paths
 - **`schema.star`** - JSON schema definitions for manifests
 - **`validator.star`** - Comprehensive manifest validation
 
@@ -45,9 +45,9 @@ load("./constants.star", "MANIFEST_FILENAME")
 
 ```json
 {
-  "appName": "service-name-backend",
+  "appName": "resource-name-backend",
   "appType": "backend",  // frontend, backend, library, migrator, sdk, worker
-  "domain": "order",
+  "stack": "order",
   "port": 4000,
   "features": ["nats", "prisma", "vite-node"],
   "internalDependencies": ["identity"]
@@ -56,6 +56,6 @@ load("./constants.star", "MANIFEST_FILENAME")
 
 ## Integration Points
 
-- Used by `discovery/` - to find and load service manifests
+- Used by `discovery/` - to find and load resource manifests
 - Used by `generators/` - to read manifest and generate configs
-- Used by `resources/` - to understand service structure
+- Used by `resources/` - to understand resource structure

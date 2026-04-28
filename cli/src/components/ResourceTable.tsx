@@ -7,18 +7,18 @@
 
 import React from 'react';
 import { Box, Text } from 'ink';
-import type { ServiceMetadata } from './DetailPanel.js';
+import type { ResourceMetadata } from './DetailPanel.js';
 
 interface ResourceTableProps {
-  services: ServiceMetadata[];
+  resources: ResourceMetadata[];
   maxWidth?: number;
 }
 
-export const ResourceTable: React.FC<ResourceTableProps> = ({ services, maxWidth = 100 }) => {
-  if (services.length === 0) {
+export const ResourceTable: React.FC<ResourceTableProps> = ({ resources, maxWidth = 100 }) => {
+  if (resources.length === 0) {
     return (
       <Box paddingY={1}>
-        <Text color="gray">No services found</Text>
+        <Text color="gray">No resources found</Text>
       </Box>
     );
   }
@@ -51,39 +51,39 @@ export const ResourceTable: React.FC<ResourceTableProps> = ({ services, maxWidth
       </Box>
 
       {/* Table Rows */}
-      {services.map((service, index) => {
-        const statusColor = getStatusColor(service.status);
-        const statusIcon = getStatusIcon(service.status);
+      {resources.map((resource, index) => {
+        const statusColor = getStatusColor(resource.status);
+        const statusIcon = getStatusIcon(resource.status);
         const isEven = index % 2 === 0;
         
         return (
           <Box 
-            key={service.name} 
+            key={resource.name} 
             flexDirection="row" 
             paddingX={1}
           >
             <Box width={narrowMode ? 20 : 25}>
-              <Text>{truncate(service.name, narrowMode ? 18 : 23)}</Text>
+              <Text>{truncate(resource.name, narrowMode ? 18 : 23)}</Text>
             </Box>
             {!narrowMode && (
               <Box width={20}>
                 <Text color="gray">
-                  {service.domain && service.domain !== 'unknown' 
-                    ? truncate(service.domain + '/' + service.name, 18)
-                    : truncate(service.name, 18)
+                  {resource.stack && resource.stack !== 'unknown' 
+                    ? truncate(resource.stack + '/' + resource.name, 18)
+                    : truncate(resource.name, 18)
                   }
                 </Text>
               </Box>
             )}
             <Box width={12}>
-              <Text color="cyan">{service.type}</Text>
+              <Text color="cyan">{resource.type}</Text>
             </Box>
             <Box width={15}>
-              <Text color={statusColor}>{statusIcon} {service.status}</Text>
+              <Text color={statusColor}>{statusIcon} {resource.status}</Text>
             </Box>
             {!narrowMode && (
               <Box width={20}>
-                <Text color="gray">{formatShortDate(service.createdAt)}</Text>
+                <Text color="gray">{formatShortDate(resource.createdAt)}</Text>
               </Box>
             )}
           </Box>

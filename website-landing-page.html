@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TDK CLI — Kubernetes-Free Microservice Development</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #1a1a2e;
+            background: #fafafa;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+        
+        /* Hero */
+        .hero {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 100px 0 80px;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            letter-spacing: -0.02em;
+        }
+        .hero .tagline {
+            font-size: 1.5rem;
+            color: #a855f7;
+            font-weight: 500;
+            margin-bottom: 30px;
+        }
+        .hero p {
+            font-size: 1.25rem;
+            color: #94a3b8;
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+        .cta-button {
+            display: inline-block;
+            background: #7c4dff;
+            color: white;
+            padding: 16px 40px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: transform 0.2s;
+        }
+        .cta-button:hover { transform: translateY(-2px); }
+        
+        /* Problem Section */
+        .problem {
+            background: white;
+            padding: 80px 0;
+        }
+        .problem h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        .problem .stat {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 20px 24px;
+            margin: 30px auto;
+            max-width: 700px;
+            font-size: 1.25rem;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        /* Features Table */
+        .features {
+            background: #f8fafc;
+            padding: 80px 0;
+        }
+        .features h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 50px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 20px 24px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background: #1a1a2e;
+            color: white;
+            font-weight: 600;
+        }
+        td strong { color: #7c4dff; }
+        
+        /* Who Uses */
+        .audience {
+            background: white;
+            padding: 80px 0;
+        }
+        .audience h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 50px;
+        }
+        .audience-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        .audience-card {
+            background: #f8fafc;
+            padding: 30px;
+            border-radius: 12px;
+            border-left: 4px solid #7c4dff;
+        }
+        .audience-card h3 {
+            color: #7c4dff;
+            margin-bottom: 12px;
+        }
+        
+        /* CTA */
+        .cta-section {
+            background: linear-gradient(135deg, #7c4dff 0%, #a855f7 100%);
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+        }
+        .cta-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        .cta-button-white {
+            display: inline-block;
+            background: white;
+            color: #7c4dff;
+            padding: 16px 40px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-top: 20px;
+        }
+        
+        /* Footer */
+        footer {
+            background: #1a1a2e;
+            color: #94a3b8;
+            padding: 40px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <h1>TDK CLI</h1>
+            <p class="tagline">Kubernetes-Free Microservice Development</p>
+            <p>Run 5-120+ microservices locally without learning Kubernetes. No clusters. No YAML hell. Just Docker and Tilt.</p>
+            <a href="#get-started" class="cta-button">Get Started →</a>
+        </div>
+    </section>
+
+    <!-- Problem -->
+    <section class="problem">
+        <div class="container">
+            <h2>The Problem: The Kubernetes Learning Curve</h2>
+            <div class="stat">
+                <strong>70% of developers don't understand Kubernetes.</strong><br>
+                Yet every microservice tool forces them to learn it. Teams give up and pay for expensive cloud dev environments.
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Comparison -->
+    <section class="features">
+        <div class="container">
+            <h2>What Makes TDK Different</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>TDK CLI</th>
+                        <th>Others (Garden, Skaffold, DevSpace)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Setup</strong></td>
+                        <td>Simple <code>service.json</code></td>
+                        <td>Complex YAML configs</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Kubernetes</strong></td>
+                        <td>✅ <strong>Not required</strong></td>
+                        <td>❌ Required (or leaks concepts)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Auto-Generate</strong></td>
+                        <td>✅ Docker, Vite, TSConfig, nginx, Tiltfile</td>
+                        <td>Manual setup</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Golden Images</strong></td>
+                        <td>✅ Production-ready L1-L4 layering</td>
+                        <td>DIY Dockerfiles</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Auto-Discovery</strong></td>
+                        <td>✅ Scans directories automatically</td>
+                        <td>Manual registration</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Audience -->
+    <section class="audience">
+        <div class="container">
+            <h2>Who Uses TDK</h2>
+            <div class="audience-grid">
+                <div class="audience-card">
+                    <h3>Full-Stack Developers</h3>
+                    <p>Who don't know Kubernetes and don't want to. They just want to run the whole stack locally.</p>
+                </div>
+                <div class="audience-card">
+                    <h3>Product Teams</h3>
+                    <p>Who need to test features across 10+ services without begging DevOps for a staging cluster.</p>
+                </div>
+                <div class="audience-card">
+                    <h3>Startups</h3>
+                    <p>That outgrew "works on my machine" but aren't ready for platform engineering overhead.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section" id="get-started">
+        <div class="container">
+            <h2>Run your stack locally.<br>No Kubernetes required.</h2>
+            <p style="font-size: 1.25rem; opacity: 0.9; margin-bottom: 20px;">Built on Tilt • Manifest-driven • Auto-discovery • Golden Images</p>
+            <a href="#" class="cta-button-white">npm install -g tdk-cli</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>TDK CLI — The Kubernetes-free alternative for local microservice development</p>
+        </div>
+    </footer>
+</body>
+</html>

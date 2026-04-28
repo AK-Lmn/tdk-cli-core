@@ -8,10 +8,13 @@
 import { Command } from 'commander';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
+import { cwd } from 'node:process';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { findProjectRoot } from '../utils/services.js';
 import { generateMasterConfigs, readProjectConfig } from '../generator/template-engine.js';
+
+
 
 // Default project configuration template
 const DEFAULT_PROJECT_JSON = {
@@ -62,10 +65,13 @@ export const projectCommand = new Command('project')
   .option('--config-file <path>', 'Load project config from existing JSON file')
   .action(async (options) => {
     try {
-      const projectRoot = findProjectRoot();
+      let projectRoot = findProjectRoot();
+      
+      // If no project found, auto-initialize in current directory
       if (!projectRoot) {
-        console.error(chalk.red('Error: Not in a TDK project (no Tiltfile found)'));
-        process.exit(1);
+        projectRoot = cwd();
+        console.log(chalk.blue('🚀 Initializing new TDK project...\n'));
+        console.log(chalk.gray(`Location: ${projectRoot}\n`));
       }
 
       const tdkDir = join(projectRoot, '.tdk');

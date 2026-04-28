@@ -6,27 +6,27 @@
 
 import React from 'react';
 import { Box, Text } from 'ink';
-import type { DiscoveredStack, DiscoveredService } from '../types/index.js';
+import type { DiscoveredStack, DiscoveredResource } from '../types/index.js';
 
 interface DetailPanelProps {
   stack: DiscoveredStack | null;
-  service: DiscoveredService | null;
+  service: DiscoveredResource | null;
   stackMetadata?: StackMetadata | null;
   visible: boolean;
 }
 
 export interface StackMetadata {
   name: string;
-  serviceCount: number;
+  resourceCount: number;
   createdAt: string;
   lastModified: string;
-  services: ServiceMetadata[];
+  resources: ResourceMetadata[];
   overallStatus: 'healthy' | 'degraded' | 'error' | 'unknown';
 }
 
-export interface ServiceMetadata {
+export interface ResourceMetadata {
   name: string;
-  domain: string;
+  stack?: string;
   type: 'frontend' | 'backend' | 'lib';
   port?: number;
   createdAt: string;
@@ -68,8 +68,8 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
             <Text color="white">{service.name}</Text>
           </Box>
           <Box>
-            <Text color="gray">Domain: </Text>
-            <Text color="white">{service.domain || 'unknown'}</Text>
+            <Text color="gray">Stack: </Text>
+            <Text color="white">{service.stack || 'unknown'}</Text>
           </Box>
           {service.stack && (
             <Box>
@@ -79,7 +79,7 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
           )}
           <Box>
             <Text color="gray">Type: </Text>
-            <Text color="yellow">{(service.domain || '') === 'platform' ? 'PLATFORM' : 'PRODUCT'}</Text>
+            <Text color="yellow">{(service.stack || '') === 'platform' ? 'PLATFORM' : 'PRODUCT'}</Text>
           </Box>
         </Box>
         
@@ -140,23 +140,23 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
             <Text color="white">{formatDate(stackMetadata.createdAt)}</Text>
           </Box>
           <Box>
-            <Text color="gray">Services: </Text>
-            <Text color="cyan">{stackMetadata.serviceCount}</Text>
+            <Text color="gray">Resources: </Text>
+            <Text color="cyan">{stackMetadata.resourceCount}</Text>
           </Box>
         </Box>
 
-        {/* Services List */}
+        {/* Resources List */}
         <Box marginTop={1} marginBottom={1}>
           <Text color="gray" underline>
-            Services
+            Resources
           </Text>
         </Box>
         
         <Box flexDirection="column">
-          {stack.services.map((svc, index) => (
+          {stack.resources.map((svc: {name: string}, index: number) => (
             <Box key={svc.name}>
               <Text color="gray">
-                {index === stack.services.length - 1 ? '└─ ' : '├─ '}
+                {index === stack.resources.length - 1 ? '└─ ' : '├─ '}
               </Text>
               <Text color="white">{svc.name}</Text>
             </Box>
