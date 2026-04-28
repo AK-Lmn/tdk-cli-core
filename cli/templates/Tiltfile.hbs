@@ -123,15 +123,15 @@ if _AUTO_DISCOVER_ENABLED:
 _LOG_LEVEL = "verbose" if (cfg.get('verbose') or os.environ.get('VERBOSE', '').lower() == 'true') else "normal"
 
 def get_log_level():
-return _LOG_LEVEL
+    return _LOG_LEVEL
 
 def is_verbose():
-return _LOG_LEVEL == "verbose"
+    return _LOG_LEVEL == "verbose"
 
 os.environ['TILT_LOG_LEVEL'] = _LOG_LEVEL
 if _LOG_LEVEL == "verbose":
-os.environ['VERBOSE'] = 'true'
-print("📝 Verbose logging enabled")
+    os.environ['VERBOSE'] = 'true'
+    print("📝 Verbose logging enabled")
 
 # =============================================================================
 # 🌍 ENVIRONMENT SETUP
@@ -205,11 +205,9 @@ if _AUTO_DISCOVER_ENABLED:
     watch_file('snapshots/resource-snapshot.json')
     
     # Get extension install path
-    discovery_path = str(local("echo $HOME/Library/Application
-    Support/tilt-dev/tilt_modules/github.com/tdk-landscape/tdk-cli/discovery", quiet=True)).strip()
+    discovery_path = str(local("echo $HOME/Library/Application Support/tilt-dev/tilt_modules/github.com/tdk-landscape/tdk-cli/discovery", quiet=True)).strip()
     if str(local('uname -s', quiet=True)).strip() == 'Linux':
-        discovery_path = str(local("echo $HOME/.local/share/tilt-dev/tilt_modules/github.com/tdk-landscape/tdk-cli/discovery",
-        quiet=True)).strip()
+        discovery_path = str(local("echo $HOME/.local/share/tilt-dev/tilt_modules/github.com/tdk-landscape/tdk-cli/discovery", quiet=True)).strip()
     
     daemon_script = discovery_path + '/resource_snapshot.py'
     daemon_cmd = "cd " + config.main_dir + " && python3 \"" + daemon_script + "\" watch"
