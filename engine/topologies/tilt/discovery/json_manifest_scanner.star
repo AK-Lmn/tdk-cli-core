@@ -19,8 +19,9 @@ def discover_json_manifests(root_path):
     Returns:
         List of manifest file paths (strings)
     """
-    # Use config.main_dir to get the project root (where the main Tiltfile is)
-    project_root = config.main_dir
+    # Get the actual project root from TDK_PROJECT_ROOT env var, fallback to config.main_dir/../..
+    # config.main_dir is .tdk/.tdk-out/, so we need to go up 2 levels to get the project root
+    project_root = os.environ.get('TDK_PROJECT_ROOT', config.main_dir + "/../..")
     
     # Check if root_path contains glob patterns (for flat structures like identity-*)
     if '*' in root_path or '?' in root_path:

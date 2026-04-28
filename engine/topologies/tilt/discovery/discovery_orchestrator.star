@@ -307,7 +307,6 @@ def _scan_services():
         if not manifest:
             continue
         
-        # Phase 1.5: Validate manifest structure and content
         validation_stats["total_manifests"] += 1
         validation_issues = validate(manifest)
         if validation_issues:
@@ -465,13 +464,10 @@ def scan_services_with_patterns(patterns):
     Scan for services using the provided patterns (instead of DISCOVERY_SCAN_ROOTS).
     This is used for re-initialization with project-specific patterns.
     """
-    print("DEBUG: scan_services_with_patterns called with patterns: " + str(patterns))
     if not patterns:
-        print("DEBUG: no patterns, returning None")
         return None
     
     services = []
-    print("DEBUG: initialized services list")
     validation_stats = {
         "total_manifests": 0,
         "valid_manifests": 0,
@@ -487,12 +483,9 @@ def scan_services_with_patterns(patterns):
     
     # Scan all patterns and collect manifest paths
     all_manifest_paths = []
-    print("DEBUG: about to loop through patterns")
     
     for root in patterns:
-        print("DEBUG: processing root: " + str(root))
         paths = discover_json_manifests(root)
-        print("DEBUG: discover_json_manifests returned: " + str(len(paths)) + " paths")
         if paths:
             if len(paths) > MAX_MANIFESTS_PER_ROOT:
                 print("  ⚠️  Large root: {} has {} manifests (max: {})".format(
@@ -509,11 +502,15 @@ def scan_services_with_patterns(patterns):
     
     # Process manifests (simplified version of _scan_services)
     for manifest_path in manifest_paths:
-        manifest = ManifestLoader.load_json_manifest(manifest_path)
+        load_result = ManifestLoader.load_from_file(manifest_path)
+        manifest = load_result.manifest
         validation_stats["total_manifests"] += 1
         
         if not manifest:
+            print("DEBUG: manifest is None/empty")
             continue
+        
+        print("DEBUG: manifest loaded, appName = " + str(manifest.get("appName", "NONE")))
         
         # Basic validation
         is_valid = True
@@ -532,6 +529,8 @@ def scan_services_with_patterns(patterns):
             validation_stats["manifests_with_warnings"] += 1
             validation_stats["total_warnings"] += len(warnings)
             continue
+        
+        validation_stats["valid_manifests"] += 1
         
         validation_stats["valid_manifests"] += 1
         
@@ -588,10 +587,5 @@ def scan_services_with_patterns(patterns):
             validation_stats["total_manifests"],
             validation_stats["valid_manifests"],
             total_skipped))
-    
-    # Debug: print services structure
-    for svc in services:
-        res_count = len(svc.get("resources", []))
-        print("DEBUG scan_services_with_patterns: service {} has {} resources".format(svc.get("name"), res_count))
     
     return services

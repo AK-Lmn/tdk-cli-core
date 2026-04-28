@@ -184,11 +184,6 @@ TILT_CONTEXT = {
 
 print("🚀 Creating Tilt resources for {} services...".format(len(_app_resources_list)))
 for app_service in _app_resources_list:
-    svc_name = app_service.get('name', 'unknown')
-    resources = app_service.get('resources', [])
-    print(" 📝 Processing: " + svc_name + " (resources: " + str(len(resources)) + ")")
-    for r in resources:
-        print("     - Resource: " + str(r.get('name', 'unknown')) + " frontend=" + str(r.get('frontend', False)))
     Orchestrator.apply_service(app_service, TILT_CONTEXT)
 
 # Setup file watchers

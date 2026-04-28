@@ -229,14 +229,11 @@ def reinitialize_with_project_root():
     file_exists = str(file_exists_result).strip()
     
     if file_exists == "yes":
-        print("DEBUG: spec.master found at: " + spec_master_path)
         # Read spec.master as text and extract RESOURCE_PATTERNS
         # Format in spec.master: RESOURCE_PATTERNS = ["identity-*"]
         read_cmd = "grep '^RESOURCE_PATTERNS' " + spec_master_path + " || echo 'NOT_FOUND'"
-        print("DEBUG: running cmd: " + read_cmd)
         patterns_line_result = local(read_cmd, quiet=True, echo_off=True)
         patterns_line = str(patterns_line_result).strip()
-        print("DEBUG: patterns_line result: " + patterns_line)
         
         if patterns_line and patterns_line != "NOT_FOUND":
             # Extract patterns from line like: RESOURCE_PATTERNS = ["identity-*"]
