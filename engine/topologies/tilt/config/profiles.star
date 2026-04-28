@@ -7,7 +7,7 @@ load(
     "../discovery/registry.star",
     "APP_RESOURCES",
     "CORE_INFRA_EXPORT",
-    "INFRA_DOMAIN_MAP_EXPORT",
+    "INFRA_STACK_MAP_EXPORT",
     "OPTIONAL_INFRA_EXPORT",
     "DEFAULTS_EXPORT",
     "RESOURCE_DEPENDENCIES",
@@ -172,8 +172,8 @@ def apply_focus_filter(cfg):
 
     for infra in CORE_INFRA_EXPORT:
         needed[infra] = True
-        if infra in INFRA_DOMAIN_MAP_EXPORT:
-            needed[INFRA_DOMAIN_MAP_EXPORT[infra]] = True
+        if infra in INFRA_STACK_MAP_EXPORT:
+            needed[INFRA_STACK_MAP_EXPORT[infra]] = True
 
     if include_monitoring:
         needed["monitoring"] = True

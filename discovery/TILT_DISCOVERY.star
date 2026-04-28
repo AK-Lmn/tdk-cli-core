@@ -104,7 +104,7 @@ def get_manifest_discovery_config():
 
 
 def get_synthesis_config():
-    """Return service synthesis configuration.
+    """Return resource synthesis configuration.
 
     Returns:
         dict: Auto-compute settings for synthesized manifests
@@ -165,10 +165,10 @@ def get_valid_stacks():
 
 
 def get_valid_resource_types():
-    """Return list of valid service types.
+    """Return list of valid resource types.
 
     Returns:
-        list: Valid service type names
+        list: Valid resource type names
     """
     return [
         "frontend",
@@ -214,7 +214,7 @@ def get_valid_features():
 
 
 def get_port_ranges():
-    """Return port ranges by service type.
+    """Return port ranges by resource type.
 
     Returns:
         dict: Port range definitions
@@ -273,7 +273,7 @@ def get_dependency_resolution_config():
 
 
 def get_discovery_paths():
-    """Return paths to scan for services.
+    """Return paths to scan for resources.
 
     Returns:
         list: Directory paths to scan

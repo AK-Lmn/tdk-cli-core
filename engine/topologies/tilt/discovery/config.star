@@ -242,7 +242,7 @@ CORE_INFRA = [
     "traefik",
 ]
 
-INFRA_DOMAIN_MAP = {
+INFRA_STACK_MAP = {
     "golden-layers-build": "golden-image",
     "postgres": "database-management",
     "nats": "database-management",
@@ -312,7 +312,7 @@ Config = struct(
     GLOBAL = GLOBAL_CONFIG,
     INFRA_RESOURCES = INFRA_RESOURCES,
     CORE_INFRA = CORE_INFRA,
-    INFRA_DOMAIN_MAP = INFRA_DOMAIN_MAP,
+    INFRA_STACK_MAP = INFRA_STACK_MAP,
     OPTIONAL_INFRA = OPTIONAL_INFRA,
     DDD_LIBS = DDD_LIBS,
     PLATFORM_LIBS_EXPLICIT = PLATFORM_LIBS_EXPLICIT,

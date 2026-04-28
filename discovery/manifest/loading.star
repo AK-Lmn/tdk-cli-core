@@ -253,15 +253,15 @@ def _apply_manifest_defaults(manifest, resource_path):
 ❌ ═══════════════════════════════════════════════════════════════════
 ❌  CUSTOM DOCKERFILE NOT FOUND
 ❌ ═══════════════════════════════════════════════════════════════════
-   📁 Service: {service}
+   📁 Resource: {resource}
    🐳 Dockerfile: {dockerfile}
    
    Manifest specifies custom Dockerfile but it doesn't exist.
    Either:
-   • Create {dockerfile} in service directory
+    • Create {dockerfile} in resource directory
    • Remove "dockerfile" field to use auto-generated Dockerfile
 ❌ ═══════════════════════════════════════════════════════════════════
-""".format(service=resource_path.split('/')[-1], dockerfile=custom_dockerfile))
+""".format(resource=resource_path.split('/')[-1], dockerfile=custom_dockerfile))
     
     # 🎯 FEATURE FLAGS -> BOOLEAN CONFIG
     # NOTE: Developer manually provides features per CEO Review requirement
