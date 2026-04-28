@@ -128,11 +128,41 @@ def load_project_defaults(project_root):
                                     defaults[key] = True
                                     beta.append(key)
     
+    # Parse SPEC_OVERRIDE.DISCOVERY.RESOURCE_PATTERNS for custom discovery paths
+    discovery_patterns = []
+    if "SPEC_OVERRIDE" in spec_content and "DISCOVERY" in spec_content:
+        # Look for RESOURCE_PATTERNS in the file
+        if "RESOURCE_PATTERNS" in spec_content:
+            # Extract array content between [ and ]
+            start = spec_content.find("RESOURCE_PATTERNS = [")
+            if start != -1:
+                start = spec_content.find("[", start)
+                end = spec_content.find("]", start)
+                if start != -1 and end != -1:
+                    array_content = spec_content[start+1:end]
+                    # Parse quoted strings from array
+                    for line in array_content.split("\n"):
+                        line = line.strip()
+                        if line and not line.startswith("#"):
+                            # Find quoted strings
+                            if '"' in line:
+                                quote_char = '"'
+                            elif "'" in line:
+                                quote_char = "'"
+                            else:
+                                continue
+                            key_start = line.find(quote_char)
+                            key_end = line.find(quote_char, key_start + 1)
+                            if key_start != -1 and key_end != -1:
+                                pattern = line[key_start+1:key_end]
+                                discovery_patterns.append(pattern)
+    
     return struct(
         DEFAULTS = defaults,
         FOCUS_PRE_ALPHA = pre_alpha,
         FOCUS_ALPHA = pre_alpha + alpha,
         FOCUS_BETA = pre_alpha + alpha + beta,
+        DISCOVERY_PATTERNS = discovery_patterns,
     )
 
 # -----------------------------------------------------------------------------

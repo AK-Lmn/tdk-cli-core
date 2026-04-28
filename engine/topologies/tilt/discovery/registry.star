@@ -654,6 +654,22 @@ def _json_to_yaml(json_data, indent=0):
     return "\n".join(yaml_lines)
 
 
+def _get_discovery_scan_roots():
+    """
+    Get discovery scan roots - use project-specific patterns if available,
+    otherwise fall back to hardcoded DISCOVERY_SCAN_ROOTS.
+    """
+    # Check if we have project-specific discovery patterns
+    project_root = os.environ.get('TDK_PROJECT_ROOT', '')
+    if project_root:
+        project_defaults = Config.load_project_defaults(project_root)
+        if project_defaults and hasattr(project_defaults, 'DISCOVERY_PATTERNS') and project_defaults.DISCOVERY_PATTERNS:
+            return project_defaults.DISCOVERY_PATTERNS
+    
+    # Fall back to hardcoded constants
+    return DISCOVERY_SCAN_ROOTS
+
+
 def _generate_yaml_from_json_manifests():
     """
     Generate YAML manifest files from JSON manifests for Tilt resource tracking.
@@ -664,8 +680,9 @@ def _generate_yaml_from_json_manifests():
     """
     print("🔄 Generating YAML manifests from JSON manifests...")
     
+    scan_roots = _get_discovery_scan_roots()
     generated_count = 0
-    for root in DISCOVERY_SCAN_ROOTS:
+    for root in scan_roots:
         # Find all JSON manifests (both legacy and new naming)
         json_files = []
         
@@ -733,10 +750,13 @@ def load_yaml_manifests_as_resources():
     
     print("🎯 Loading YAML manifests as Tilt resources (local mode)...")
     
+    # Get effective scan roots (project-specific or defaults)
+    scan_roots = _get_discovery_scan_roots()
+    
     # Find all YAML manifest files across all discovery roots (silent)
     # Check both legacy (platform-computing-provisioner.manifest.yaml) and new (service.yaml) naming
     yaml_files = []
-    for root in DISCOVERY_SCAN_ROOTS:
+    for root in scan_roots:
         # Search for legacy YAML manifests
         cmd_legacy = "cd " + config.main_dir + " && find " + root + " -type f -name '" + MANIFEST_FILENAME_YAML + "' 2>/dev/null"
         result_legacy = str(local(cmd_legacy, quiet=True, echo_off=True)).strip()
