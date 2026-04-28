@@ -103,22 +103,79 @@ function getBaseDomain(): string {
   return 'localhost';
 }
 
-// Check if a service is running
-function checkServiceStatus(serviceName: string): 'running' | 'stopped' | 'unknown' {
+// Check if a service is responding (via HTTP health check or port check)
+function checkServiceStatus(serviceName: string, port?: number, url?: string): 'running' | 'stopped' | 'unknown' {
+  // Method 1: Check if service responds on its URL via Traefik (most reliable)
+  // This tells us if the service is actually accessible through the proxy
+  if (url) {
+    try {
+      // Quick curl to check if service is up (silent, follow redirects, timeout 2s)
+      const statusCode = execSync(
+        `curl -s -o /dev/null -w "%{http_code}" --max-time 2 "${url}" 2>/dev/null || echo "000"`,
+        { encoding: 'utf-8', stdio: 'pipe' }
+      ).trim();
+
+      // Check if status code starts with 2 or 3 (success or redirect)
+      if (statusCode.match(/^[23]\d\d$/)) {
+        return 'running';
+      }
+
+      // If we got a 4xx or 5xx, the route exists but service isn't responding
+      // This means the service is configured in Traefik but not actually running
+      if (statusCode.match(/^[45]\d\d$/)) {
+        return 'stopped';
+      }
+
+      // Connection refused or other error - service not accessible
+      if (statusCode === '000') {
+        return 'stopped';
+      }
+    } catch {
+      // HTTP check failed completely - service not accessible
+      return 'stopped';
+    }
+  }
+
+  // Method 2: Check if the specific port is listening (fallback when no URL)
+  // Only use this if we couldn't check via HTTP (no URL configured)
+  if (port) {
+    try {
+      // Check if anything is listening on the port using lsof
+      execSync(
+        `lsof -Pi :${port} -sTCP:LISTEN 2>/dev/null | grep -q LISTEN`,
+        { encoding: 'utf-8', stdio: 'pipe' }
+      );
+      return 'running';
+    } catch {
+      // Try netstat as fallback
+      try {
+        execSync(
+          `netstat -tlnp 2>/dev/null | grep -q ":${port} "`,
+          { encoding: 'utf-8', stdio: 'pipe' }
+        );
+        return 'running';
+      } catch {
+        // Port check failed
+      }
+    }
+  }
+
+  // Method 3: Check Docker container (fallback for containerized services)
   try {
-    const containerName = serviceName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    const containerName = serviceName.toLowerCase().replace(/[^a-z0-9]/g, '_');
     const result = execSync(
       `docker ps --filter "name=${containerName}" --format "{{.Names}}" 2>/dev/null`,
       { encoding: 'utf-8' }
     ).trim();
-    
-    if (result.includes(containerName)) {
+
+    if (result && result.length > 0) {
       return 'running';
     }
-    return 'stopped';
   } catch {
-    return 'unknown';
+    // Docker check failed
   }
+
+  return 'stopped';
 }
 
 // Helper to create a line of box characters
@@ -165,14 +222,15 @@ export const networksCommand = new Command('networks')
       .map(s => {
         const basePath = s.config!.basePath!.replace(/^\//, '');
         const url = `http://${baseDomain}/${basePath}`;
-        const status = checkServiceStatus(s.name);
-        
+        const port = s.config?.port;
+        const status = checkServiceStatus(s.name, port, url);
+
         return {
           name: s.name,
           stack: s.stack,
           basePath: s.config!.basePath!,
           url,
-          port: s.config?.port,
+          port,
           status,
         };
       });
