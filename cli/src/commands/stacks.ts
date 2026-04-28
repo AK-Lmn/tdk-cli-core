@@ -39,7 +39,7 @@ export const stacksCommand = new Command('stacks')
 
           if (options.services) {
             console.log(chalk.gray('  Services:'));
-            for (const service of stack.services) {
+            for (const service of stack.resources) {
               console.log(chalk.gray(`    - ${service.name}`));
             }
           }
