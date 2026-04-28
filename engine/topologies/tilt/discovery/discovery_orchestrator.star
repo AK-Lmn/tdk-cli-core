@@ -507,10 +507,7 @@ def scan_services_with_patterns(patterns):
         validation_stats["total_manifests"] += 1
         
         if not manifest:
-            print("DEBUG: manifest is None/empty")
             continue
-        
-        print("DEBUG: manifest loaded, appName = " + str(manifest.get("appName", "NONE")))
         
         # Basic validation
         is_valid = True
