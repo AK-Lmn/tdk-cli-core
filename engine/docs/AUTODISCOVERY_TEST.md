@@ -108,7 +108,7 @@ tilt up
 {
   "appName": "user-frontend",
   "appType": "frontend",
-  "domain": "user",
+  "stack": "user",
   "port": 3001,
   "backendName": "user-management-backend"
 }
@@ -127,21 +127,21 @@ When Tilt starts, you'll see:
 
 ```
 🔍 ═══════════════════════════════════════════════════════════════
-🔍  MANIFEST-DRIVEN SERVICE DISCOVERY
+🔍  MANIFEST-DRIVEN RESOURCE DISCOVERY
 🔍 ═══════════════════════════════════════════════════════════════
    📂 Working directory: /private/var/www/2025/ollamar1/tdk/.tilt/core
-   📂 Services root check: ../../services/product
+   📂 Resources root check: ../../services/product
    📋 Found 8 manifest files
-   ✅ user-management-backend | backend | Port: 4000 | Domain: user
-   ✅ user-management-frontend | frontend | Port: 3001 | Domain: user
-   ✅ order-management-backend | backend | Port: 4002 | Domain: order
-   ✅ staff-management-backend | backend | Port: 4004 | Domain: staff
-   ✅ identity-management-backend | backend | Port: 4006 | Domain: identity
-   ✅ treatment-management-backend | backend | Port: 4008 | Domain: treatment
-   ✅ inventory-management-backend | backend | Port: 4012 | Domain: inventory
-   ✅ order-planner-backend | backend | Port: 4014 | Domain: order-planner
+   ✅ user-management-backend | backend | Port: 4000 | Stack: user
+   ✅ user-management-frontend | frontend | Port: 3001 | Stack: user
+   ✅ order-management-backend | backend | Port: 4002 | Stack: order
+   ✅ staff-management-backend | backend | Port: 4004 | Stack: staff
+   ✅ identity-management-backend | backend | Port: 4006 | Stack: identity
+   ✅ treatment-management-backend | backend | Port: 4008 | Stack: treatment
+   ✅ inventory-management-backend | backend | Port: 4012 | Stack: inventory
+   ✅ order-planner-backend | backend | Port: 4014 | Stack: order-planner
 🔍 ═══════════════════════════════════════════════════════════════
-   🎯 Discovered 8 domains with 8 resources
+   🎯 Discovered 8 stacks with 8 resources
 🔍 ═══════════════════════════════════════════════════════════════
 ```
 
@@ -149,8 +149,8 @@ When Tilt starts, you'll see:
 
 ## 🎯 Key Benefits
 
-1. **Zero Manual Registration**: No hardcoded service lists
-2. **Convention over Configuration**: Minimal manifest = full service
+1. **Zero Manual Registration**: No hardcoded resource lists
+2. **Convention over Configuration**: Minimal manifest = full resource
 3. **Merge Conflict Free**: No central file to edit
 4. **Self-Documenting**: Filesystem = source of truth
 5. **Smart Defaults**: Port ranges, syncs, dependencies auto-computed

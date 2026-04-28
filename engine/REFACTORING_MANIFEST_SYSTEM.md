@@ -69,7 +69,7 @@ Manifest = struct(
     # Parser functions
     parse = parser.parse,
     normalize = parser.normalize,
-    extract_service_path = parser.extract_service_path,
+    extract_resource_path = parser.extract_resource_path,
     
     # Validator functions
     validate = validator.validate,
@@ -125,28 +125,28 @@ def load_from_file(path):
         - metadata: Dict with load info (timestamp, file_size, path)
     """
 
-def load_from_path(service_path):
+def load_from_path(resource_path):
     """
-    Load manifest from service directory (auto-detects manifest file).
-    
+    Load manifest from resource directory (auto-detects manifest file).
+
     Args:
-        service_path: Path to service directory
-    
+        resource_path: Path to resource directory
+
     Returns:
         Same as load_from_file
     """
 
-def load_all(services_root, filters=None):
+def load_all(resources_root, filters=None):
     """
-    Load all manifests from services directory with optional filtering.
-    
+    Load all manifests from resources directory with optional filtering.
+
     Args:
-        services_root: Root directory to search (e.g., "services/product")
+        resources_root: Root directory to search (e.g., "services/product")
         filters: Optional dict of filters:
             - appType: ['frontend', 'backend', 'library', ...]
-            - domain: ['user', 'order', ...]
+            - stack: ['user', 'order', ...]
             - features: ['nats', 'prisma', ...]
-    
+
     Returns:
         struct(
             manifests=[],        # List of loaded manifests
@@ -171,13 +171,13 @@ def watch_manifest(path):
         watch_spec for Tilt
     """
 
-def get_manifest_path(service_path):
+def get_manifest_path(resource_path):
     """
-    Get the expected manifest file path for a service directory.
-    
+    Get the expected manifest file path for a resource directory.
+
     Args:
-        service_path: Service directory path
-    
+        resource_path: Resource directory path
+
     Returns:
         Expected manifest file path or None
     """
@@ -210,13 +210,13 @@ def parse(content, path=""):
         struct(manifest=None, error=None, warnings=[])
     """
 
-def normalize(manifest, service_path=""):
+def normalize(manifest, resource_path=""):
     """
     Normalize manifest with default values and computed fields.
-    
+
     Args:
         manifest: Raw parsed manifest dict
-        service_path: Service directory path for context
+        resource_path: Resource directory path for context
     
     Returns:
         Normalized manifest dict with all fields populated
@@ -231,31 +231,31 @@ def normalize(manifest, service_path=""):
         7. Set up Traefik configuration defaults
     """
 
-def extract_service_path(manifest_path):
+def extract_resource_path(manifest_path):
     """
-    Extract service directory path from manifest file path.
-    
+    Extract resource directory path from manifest file path.
+
     Args:
         manifest_path: Path to manifest JSON file
-    
+
     Returns:
-        Service directory path
+        Resource directory path
     """
 
-def extract_domain(service_path):
+def extract_stack(resource_path):
     """
-    Extract domain from service path.
-    
+    Extract stack from resource path.
+
     Args:
-        service_path: Service directory path
-    
+        resource_path: Resource directory path
+
     Returns:
-        Domain string (e.g., 'user', 'order')
+        Stack string (e.g., 'user', 'order')
     """
 
-def determine_app_type(manifest, service_path):
+def determine_app_type(manifest, resource_path):
     """
-    Determine app type from manifest or service path.
+    Determine app type from manifest or resource path.
     
     Args:
         manifest: Manifest dict

@@ -72,12 +72,55 @@
             border-radius: 0 8px 8px 0;
         }
         
-        /* Features Table */
-        .features {
+        /* How It Works */
+        .how-it-works {
             background: #f8fafc;
             padding: 80px 0;
         }
-        .features h2 {
+        .how-it-works h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 50px;
+        }
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+        .step {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: #7c4dff;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 auto 20px;
+        }
+        .step h3 {
+            margin-bottom: 10px;
+            color: #1a1a2e;
+        }
+        .step p {
+            color: #64748b;
+        }
+        
+        /* Detailed Comparison */
+        .comparison {
+            background: white;
+            padding: 80px 0;
+        }
+        .comparison h2 {
             text-align: center;
             font-size: 2rem;
             margin-bottom: 50px;
@@ -89,9 +132,10 @@
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            font-size: 0.9rem;
         }
         th, td {
-            padding: 20px 24px;
+            padding: 16px 20px;
             text-align: left;
             border-bottom: 1px solid #e2e8f0;
         }
@@ -100,7 +144,41 @@
             color: white;
             font-weight: 600;
         }
-        td strong { color: #7c4dff; }
+        tr:hover { background: #f8fafc; }
+        .tdk-win { background: #dcfce7; font-weight: 600; }
+        .check { color: #22c55e; font-weight: bold; }
+        .cross { color: #ef4444; font-weight: bold; }
+        .warn { color: #f59e0b; font-weight: bold; }
+        
+        /* FAQ Section */
+        .faq {
+            background: #f8fafc;
+            padding: 80px 0;
+        }
+        .faq h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 50px;
+        }
+        .faq-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+        }
+        .faq-item {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            border-left: 4px solid #7c4dff;
+        }
+        .faq-item h3 {
+            color: #7c4dff;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+        .faq-item p {
+            color: #475569;
+        }
         
         /* Who Uses */
         .audience {
@@ -127,6 +205,32 @@
             color: #7c4dff;
             margin-bottom: 12px;
         }
+        
+        /* Code Example */
+        .code-example {
+            background: #1a1a2e;
+            padding: 80px 0;
+            color: #e2e8f0;
+        }
+        .code-example h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 50px;
+            color: white;
+        }
+        .code-block {
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 30px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+        .code-comment { color: #64748b; }
+        .code-key { color: #7dd3fc; }
+        .code-string { color: #86efac; }
+        .code-arrow { color: #a855f7; }
         
         /* CTA */
         .cta-section {
@@ -158,6 +262,14 @@
             padding: 40px 0;
             text-align: center;
         }
+        
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .hero .tagline { font-size: 1.2rem; }
+            .faq-grid { grid-template-columns: 1fr; }
+            table { font-size: 0.8rem; }
+            th, td { padding: 12px; }
+        }
     </style>
 </head>
 <body>
@@ -177,70 +289,201 @@
             <h2>The Problem: The Kubernetes Learning Curve</h2>
             <div class="stat">
                 <strong>70% of developers don't understand Kubernetes.</strong><br>
-                Yet every microservice tool forces them to learn it. Teams give up and pay for expensive cloud dev environments.
+                Yet every microservice tool forces them to learn it. Teams give up and pay $500+/month for expensive cloud dev environments.
             </div>
         </div>
     </section>
 
-    <!-- Features Comparison -->
-    <section class="features">
+    <!-- How It Works -->
+    <section class="how-it-works">
         <div class="container">
-            <h2>What Makes TDK Different</h2>
+            <h2>How TDK Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Write service.json</h3>
+                    <p>Simple JSON manifest with app name, type, port, and features</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>TDK Generates Configs</h3>
+                    <p>Dockerfile, Vite config, TypeScript config, nginx, env files, and more</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Tilt Orchestrates</h3>
+                    <p>Built on Tilt (9.4k ⭐). Runs your services locally in Docker containers</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>You Write Code</h3>
+                    <p>No Kubernetes knowledge needed. Just focus on building your product</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Code Example -->
+    <section class="code-example">
+        <div class="container">
+            <h2>One Manifest → 10+ Config Files</h2>
+            <div class="code-block">
+<span class="code-comment"># service.json (single source of truth)</span>
+{
+  <span class="code-key">"appName"</span>: <span class="code-string">"order-frontend"</span>,
+  <span class="code-key">"appType"</span>: <span class="code-string">"frontend"</span>,
+  <span class="code-key">"port"</span>: <span class="code-string">3001</span>,
+  <span class="code-key">"features"</span>: [<span class="code-string">"vite"</span>, <span class="code-string">"typescript"</span>],
+  <span class="code-key">"backendName"</span>: <span class="code-string">"order-backend"</span>
+}
+
+<span class="code-comment"># TDK generates automatically:</span>
+<span class="code-arrow">→</span> Dockerfile.frontend.autogenerated
+<span class="code-arrow">→</span> vite.config.frontend.autogenerated.ts
+<span class="code-arrow">→</span> tsconfig.frontend.autogenerated.json
+<span class="code-arrow">→</span> nginx.frontend.autogenerated.conf
+<span class="code-arrow">→</span> .env.frontend.autogenerated
+<span class="code-arrow">→</span> ... and 5 more files
+            </div>
+        </div>
+    </section>
+
+    <!-- Detailed Comparison -->
+    <section class="comparison">
+        <div class="container">
+            <h2>Detailed Feature Comparison</h2>
             <table>
                 <thead>
                     <tr>
                         <th>Feature</th>
                         <th>TDK CLI</th>
-                        <th>Others (Garden, Skaffold, DevSpace)</th>
+                        <th>Garden</th>
+                        <th>Skaffold</th>
+                        <th>DevSpace</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td><strong>Setup</strong></td>
-                        <td>Simple <code>service.json</code></td>
-                        <td>Complex YAML configs</td>
+                        <td><strong>Kubernetes Required</strong></td>
+                        <td class="tdk-win"><span class="cross">✗</span> No</td>
+                        <td><span class="warn">⚠</span> Optional (leaks concepts)</td>
+                        <td><span class="check">✓</span> Yes (pure K8s)</td>
+                        <td><span class="check">✓</span> Yes (pure K8s)</td>
                     </tr>
                     <tr>
-                        <td><strong>Kubernetes</strong></td>
-                        <td>✅ <strong>Not required</strong></td>
-                        <td>❌ Required (or leaks concepts)</td>
+                        <td><strong>Manifest Format</strong></td>
+                        <td class="tdk-win">Simple JSON</td>
+                        <td>Complex YAML</td>
+                        <td>Complex YAML</td>
+                        <td>YAML</td>
                     </tr>
                     <tr>
-                        <td><strong>Auto-Generate</strong></td>
-                        <td>✅ Docker, Vite, TSConfig, nginx, Tiltfile</td>
-                        <td>Manual setup</td>
+                        <td><strong>Auto-Generated Files</strong></td>
+                        <td class="tdk-win"><span class="check">✓</span> 10+ files</td>
+                        <td>3-5 files</td>
+                        <td><span class="cross">✗</span> Manual setup</td>
+                        <td><span class="cross">✗</span> Manual setup</td>
                     </tr>
                     <tr>
-                        <td><strong>Golden Images</strong></td>
-                        <td>✅ Production-ready L1-L4 layering</td>
-                        <td>DIY Dockerfiles</td>
+                        <td><strong>Golden Docker Images</strong></td>
+                        <td class="tdk-win"><span class="check">✓</span> L1-L4 layering</td>
+                        <td><span class="cross">✗</span> DIY Dockerfiles</td>
+                        <td><span class="cross">✗</span> DIY Dockerfiles</td>
+                        <td><span class="cross">✗</span> DIY Dockerfiles</td>
                     </tr>
                     <tr>
                         <td><strong>Auto-Discovery</strong></td>
-                        <td>✅ Scans directories automatically</td>
-                        <td>Manual registration</td>
+                        <td class="tdk-win"><span class="check">✓</span> Scans directories</td>
+                        <td><span class="cross">✗</span> Manual registration</td>
+                        <td><span class="cross">✗</span> Manual registration</td>
+                        <td><span class="cross">✗</span> Manual registration</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Local-Only Mode</strong></td>
+                        <td class="tdk-win"><span class="check">✓</span> Docker only</td>
+                        <td><span class="cross">✗</span> Requires cluster</td>
+                        <td><span class="cross">✗</span> Requires cluster</td>
+                        <td><span class="cross">✗</span> Requires cluster</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Built On</strong></td>
+                        <td class="tdk-win">Tilt (9.4k ⭐)</td>
+                        <td>Custom</td>
+                        <td>Custom</td>
+                        <td>Custom</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Open Source</strong></td>
+                        <td class="tdk-win"><span class="check">✓</span> Yes</td>
+                        <td><span class="check">✓</span> Yes</td>
+                        <td><span class="check">✓</span> Yes</td>
+                        <td><span class="cross">✗</span> Commercial</td>
                     </tr>
                 </tbody>
             </table>
+            <p style="text-align: center; margin-top: 20px; color: #64748b; font-size: 0.9rem;">
+                <strong>TDK wins:</strong> Only tool that's manifest-driven AND Kubernetes-free for local development.
+            </p>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq">
+        <div class="container">
+            <h2>Frequently Asked Questions</h2>
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <h3>❓ But we need Kubernetes for production anyway</h3>
+                    <p>Local dev doesn't need to match production. Different concerns. Use TDK for fast local iteration, K8s for prod when you're ready. Decoupled.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>❓ What about CI/CD?</h3>
+                    <p>TDK is completely decoupled from your CI. Use it for local development, whatever you want for CI/CD. No lock-in. No migration headache.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>❓ Our platform team already set up Garden</h3>
+                    <p>TDK complements Garden. Use TDK for local speed (5s startup vs 30s), Garden for prod-like integration tests. Best of both worlds.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>❓ Is 120+ services actually realistic locally?</h3>
+                    <p>Yes. With selective startup and resource management. We've proven this scales in production. You don't run all 120 at once—you run what you need.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>❓ What if we outgrow TDK?</h3>
+                    <p>TDK uses standard Docker + Tilt. No proprietary formats. Easy migration path to any other tool if you ever need to.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>❓ Who is TDK for?</h3>
+                    <p>Full-stack developers, product teams, and startups who want to run microservices locally without becoming DevOps engineers.</p>
+                </div>
+            </div>
         </div>
     </section>
 
     <!-- Audience -->
     <section class="audience">
         <div class="container">
-            <h2>Who Uses TDK</h2>
+            <h2>Who Uses What Tool</h2>
             <div class="audience-grid">
                 <div class="audience-card">
-                    <h3>Full-Stack Developers</h3>
-                    <p>Who don't know Kubernetes and don't want to. They just want to run the whole stack locally.</p>
+                    <h3>Platform Engineers</h3>
+                    <p>Use Garden or DevSpace. They WANT Kubernetes. They have the expertise.</p>
                 </div>
                 <div class="audience-card">
-                    <h3>Product Teams</h3>
-                    <p>Who need to test features across 10+ services without begging DevOps for a staging cluster.</p>
+                    <h3>Senior Backend Devs</h3>
+                    <p>Use Tilt or Skaffold. They tolerate K8s. They can handle the complexity.</p>
                 </div>
                 <div class="audience-card">
-                    <h3>Startups</h3>
-                    <p>That outgrew "works on my machine" but aren't ready for platform engineering overhead.</p>
+                    <h3>Full-Stack Developers ✅</h3>
+                    <p>Use <strong>TDK</strong>. Don't know K8s, don't want to learn it. Just want to write code.</p>
+                </div>
+                <div class="audience-card">
+                    <h3>Product Teams ✅</h3>
+                    <p>Use <strong>TDK</strong>. Need to test features across 10+ services without begging DevOps.</p>
+                </div>
+                <div class="audience-card">
+                    <h3>Startups ✅</h3>
+                    <p>Use <strong>TDK</strong>. Outgrew "works on my machine" but not ready for platform team overhead.</p>
                 </div>
             </div>
         </div>
@@ -250,7 +493,10 @@
     <section class="cta-section" id="get-started">
         <div class="container">
             <h2>Run your stack locally.<br>No Kubernetes required.</h2>
-            <p style="font-size: 1.25rem; opacity: 0.9; margin-bottom: 20px;">Built on Tilt • Manifest-driven • Auto-discovery • Golden Images</p>
+            <p style="font-size: 1.25rem; opacity: 0.9; margin-bottom: 10px;">
+                120+ services proven • 10+ configs auto-generated • Zero K8s knowledge needed
+            </p>
+            <p style="opacity: 0.7; margin-bottom: 20px;">Built on Tilt • Manifest-driven • Auto-discovery • Golden Images</p>
             <a href="#" class="cta-button-white">npm install -g tdk-cli</a>
         </div>
     </section>
