@@ -73,7 +73,7 @@ class TestAgentsMdGeneratorSource:
         # Should write to AGENTS.md
         assert "AGENTS.md" in content, "Should generate AGENTS.md file"
     
-    def test_generator_includes_service_info(self, generator_path: Path):
+    def test_generator_includes_resource_info(self, generator_path: Path):
         """Verify generator includes service-specific metadata."""
         content = generator_path.read_text()
         

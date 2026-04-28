@@ -8,7 +8,7 @@ from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path("discovery").resolve()))
-from service_snapshot import diff_snapshots
+from resource_snapshot import diff_snapshots
 
 
 @pytest.mark.snapshot
@@ -58,25 +58,25 @@ class TestSnapshotDiff:
             os.chdir(temp_dir)
             
             # Create a service file
-            service_dir = temp_dir / "services" / "product" / "test"
-            service_dir.mkdir(parents=True)
-            service_file = service_dir / "service.json"
-            service_file.write_text('{"name": "test", "version": "1.0.0"}')
+            resource_dir = temp_dir / "services" / "product" / "test"
+            resource_dir.mkdir(parents=True)
+            resource_file = resource_dir / "service.json"
+            resource_file.write_text('{"name": "test", "version": "1.0.0"}')
             
             # Use relative path for service
             rel_path = "services/product/test/service.json"
             
             # Create old snapshot with hash of old content
-            from service_snapshot import compute_service_hash
-            old_hash = compute_service_hash(rel_path)
+            from resource_snapshot import compute_resource_hash
+            old_hash = compute_resource_hash(rel_path)
             old = {
                 "services": [rel_path],
                 "count": 1,
-                "service_hashes": {rel_path: old_hash}
+                "resource_hashes": {rel_path: old_hash}
             }
             
             # Modify the file
-            service_file.write_text('{"name": "test", "version": "2.0.0"}')
+            resource_file.write_text('{"name": "test", "version": "2.0.0"}')
             new = [rel_path]
             
             added, removed, modified = diff_snapshots(old, new, use_hashes=True)

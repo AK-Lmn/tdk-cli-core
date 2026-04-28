@@ -163,7 +163,7 @@ export const FILEWATCH_IGNORES = [
 /**
  * Service type definitions - maps types to their configuration
  */
-export const SERVICE_TYPES = {
+export const RESOURCE_TYPES = {
   frontend: {
     suffix: "-frontend",
     portRange: "3000-3999",
@@ -265,7 +265,7 @@ export const PLATFORM_STANDARDS = {
   naming: NAMING,
   traefik: TRAEFIK,
   filewatchIgnores: FILEWATCH_IGNORES,
-  serviceTypes: SERVICE_TYPES,
+  serviceTypes: RESOURCE_TYPES,
   features: FEATURES,
   paths: PATHS,
   discovery: DISCOVERY,

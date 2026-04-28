@@ -109,12 +109,12 @@ DB_URL_COMPONENT_ENV_KEYS = [
 DB_URL_FROM_COMPONENTS = "postgresql://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME"
 
 
-def app_service_dir(res_path):
+def app_resource_dir(res_path):
     return APP_DIR + "/" + res_path
 
 
-def service_node_modules_dir(res_path):
-    return app_service_dir(res_path) + "/" + NODE_MODULES_DIR
+def resource_node_modules_dir(res_path):
+    return app_resource_dir(res_path) + "/" + NODE_MODULES_DIR
 
 
 def prisma_normalize_output_block(include_generated_client_export = True):

@@ -12,7 +12,7 @@ import { execSync } from 'node:child_process';
 import type { DiscoveredResource, ResourceConfig, DiscoveredStack } from '../types/index.js';
 import type { FileType } from '../components/FileTree.js';
 
-const SERVICE_JSON_FILENAME = 'service.json';
+const RESOURCE_JSON_FILENAME = 'service.json';
 
 
 
@@ -68,7 +68,7 @@ function findServiceJsonFiles(dir: string, maxDepth: number = 5, currentDepth: n
 
         // Recursively scan subdirectories
         results.push(...findServiceJsonFiles(fullPath, maxDepth, currentDepth + 1));
-      } else if (entry.isFile() && entry.name === SERVICE_JSON_FILENAME) {
+      } else if (entry.isFile() && entry.name === RESOURCE_JSON_FILENAME) {
         results.push(fullPath);
       }
     }

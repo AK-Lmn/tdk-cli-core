@@ -77,7 +77,7 @@
 #   → Enable DEBUG logging to see full validation output
 #
 # Error: "dependency Y not found"
-#   → Check SPEC.DISCOVERY.SERVICE_SEARCH_PATHS (where we look)
+#   → Check SPEC.DISCOVERY.RESOURCE_SEARCH_PATHS (where we look)
 #   → Verify service Y exists in one of those paths
 #   → Check service Y has a service.json file
 #
@@ -337,7 +337,7 @@ SPEC = struct(
     # Root directories - EXPLICIT, no discovery magic
     ROOT = PROJECT_ROOT,
     TILT_DIR = PROJECT_ROOT + "/.tilt",
-    SERVICES_DIR = PROJECT_ROOT + "/services",
+    RESOURCES_DIR = PROJECT_ROOT + "/services",
     SHARED_DIR = PROJECT_ROOT + "/shared",
     
     # Topology paths - ALL EXPLICIT
@@ -408,7 +408,7 @@ SPEC = struct(
 # SERVICE PATTERNS - Explicit naming conventions
 # =============================================================================
 
-SERVICE_PATTERNS = struct(
+RESOURCE_PATTERNS = struct(
     # Manifest file names - EXPLICIT, no guessing
     MANIFEST_FILE = "service.json",
     LEGACY_MANIFEST = "platform-computing-provisioner.manifest.json",
@@ -439,7 +439,7 @@ SERVICE_PATTERNS = struct(
 
 DISCOVERY = struct(
     # Where to look for service manifests - EXPLICIT paths
-    SERVICE_SEARCH_PATHS = [
+    RESOURCE_SEARCH_PATHS = [
         PROJECT_ROOT + "/services/product/*",
         PROJECT_ROOT + "/services/platform/*",
         PROJECT_ROOT + "/services/identity/*",
@@ -508,8 +508,8 @@ VALIDATION = struct(
     DEFAULT_REPLICAS = 1,
     
     # Naming constraints - EXPLICIT regex patterns
-    VALID_SERVICE_NAME_PATTERN = "^[a-z0-9-]+$",
-    MAX_SERVICE_NAME_LENGTH = 63,
+    VALID_RESOURCE_NAME_PATTERN = "^[a-z0-9-]+$",
+    MAX_RESOURCE_NAME_LENGTH = 63,
     
     # Dependency constraints - EXPLICIT
     MAX_DEPENDENCY_DEPTH = 10,  # Prevent circular deps
@@ -632,7 +632,7 @@ CONSTANTS = struct(
 #
 # DUMP_CONTEXT_ON_GENERATION = True
 #   → Prints the entire context object to logs
-#   → Shows: service_name, port, dependencies, paths
+#   → Shows: resource_name, port, dependencies, paths
 #   → Use when: "What values are being used?"
 #
 # DUMP_GENERATED_CONFIGS = True
@@ -709,7 +709,7 @@ This is our answer to the Zig developer's critique:
 
 __all__ = [
     "SPEC",
-    "SERVICE_PATTERNS", 
+    "RESOURCE_PATTERNS", 
     "DISCOVERY",
     "OUTPUT",
     "VALIDATION",

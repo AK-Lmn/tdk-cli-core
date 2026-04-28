@@ -21,7 +21,7 @@ class TestSnapshotPersistence:
         """
         import sys
         sys.path.insert(0, str(Path("discovery").resolve()))
-        from service_snapshot import save_snapshot
+        from resource_snapshot import save_snapshot
         
         original_dir = os.getcwd()
         os.chdir(temp_dir)
@@ -54,7 +54,7 @@ class TestSnapshotPersistence:
         """
         import sys
         sys.path.insert(0, str(Path("discovery").resolve()))
-        from service_snapshot import save_snapshot, load_snapshot
+        from resource_snapshot import save_snapshot, load_snapshot
         
         original_dir = os.getcwd()
         os.chdir(temp_dir)
@@ -81,7 +81,7 @@ class TestSnapshotPersistence:
         """
         import sys
         sys.path.insert(0, str(Path("discovery").resolve()))
-        from service_snapshot import load_snapshot
+        from resource_snapshot import load_snapshot
         
         original_dir = os.getcwd()
         os.chdir(temp_dir)
@@ -99,7 +99,7 @@ class TestSnapshotPersistence:
         """Test that saving creates the .tdk/.tdk-out/snapshots directory if it doesn't exist."""
         import sys
         sys.path.insert(0, str(Path("discovery").resolve()))
-        from service_snapshot import save_snapshot
+        from resource_snapshot import save_snapshot
         
         original_dir = os.getcwd()
         os.chdir(temp_dir)
@@ -117,7 +117,7 @@ class TestSnapshotPersistence:
         """Test that loading invalid JSON returns empty snapshot."""
         import sys
         sys.path.insert(0, str(Path("discovery").resolve()))
-        from service_snapshot import load_snapshot
+        from resource_snapshot import load_snapshot
         
         original_dir = os.getcwd()
         os.chdir(temp_dir)
@@ -139,12 +139,12 @@ class TestSnapshotPersistence:
         """Test that saved snapshot includes content hashes."""
         import sys
         sys.path.insert(0, str(Path("discovery").resolve()))
-        from service_snapshot import save_snapshot
+        from resource_snapshot import save_snapshot
         
         # Create a service file to hash
-        service_dir = temp_dir / "services" / "test"
-        service_dir.mkdir(parents=True)
-        (service_dir / "service.json").write_text('{"name": "test"}')
+        resource_dir = temp_dir / "services" / "test"
+        resource_dir.mkdir(parents=True)
+        (resource_dir / "service.json").write_text('{"name": "test"}')
         
         original_dir = os.getcwd()
         os.chdir(temp_dir)
@@ -156,8 +156,8 @@ class TestSnapshotPersistence:
             with open(".tdk/.tdk-out/snapshots/service-snapshot.json") as f:
                 data = json.load(f)
                 
-            assert "service_hashes" in data
-            assert "services/test/service.json" in data["service_hashes"]
-            assert len(data["service_hashes"]["services/test/service.json"]) == 16
+            assert "resource_hashes" in data
+            assert "services/test/service.json" in data["resource_hashes"]
+            assert len(data["resource_hashes"]["services/test/service.json"]) == 16
         finally:
             os.chdir(original_dir)

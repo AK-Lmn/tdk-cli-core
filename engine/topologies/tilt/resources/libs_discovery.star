@@ -8,7 +8,7 @@ _get_lib_path_from_package_name = LibsPaths.get_path
 _read_package_json_deps = LibsPaths.read_package_json_deps
 
 
-def discover_service_libraries(ctx, resource_paths, max_depth=10):
+def discover_resource_libraries(ctx, resource_paths, max_depth=10):
     """
     Recursively discovers all internal library dependencies for given service paths.
 
@@ -97,6 +97,6 @@ def discover_dependencies_from_json(ctx, resource_path):
 
 
 LibsDiscovery = struct(
-    discover_service_libs = discover_service_libraries,
+    discover_resource_libs = discover_resource_libraries,
     discover_deps_from_json = discover_dependencies_from_json,
 )

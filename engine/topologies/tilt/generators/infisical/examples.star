@@ -28,19 +28,19 @@ load("engine/topologies/platform/security/secrets.star", "Secrets")
 # 2. Generate Secret Configuration for a Service
 # =============================================================================
 
-def example_service_secrets():
+def example_resource_secrets():
     """Example: Configure secrets for a single service."""
     
     # Generate configuration for user service
     config = Infisical.Secrets.generate_for_service(
-        service_name="user-management-backend",
+        resource_name="user-management-backend",
         secret_path="/services/user",
-        service_type="backend",
+        resource_type="backend",
         command="bun run src/index.ts",
     )
     
     # Access the generated configuration
-    print("Service:", config["service_name"])
+    print("Service:", config["resource_name"])
     print("Path:", config["secret_path"])
     print("Required Secrets:", config["required_secrets"])
     print("Docker Compose Env:", config["docker_compose"]["environment"])
@@ -56,8 +56,8 @@ def example_path_planning():
     
     # Plan a single service path
     user_path = Infisical.Paths.plan_resource_path(
-        service_name="user-management-backend",
-        service_type="backend",
+        resource_name="user-management-backend",
+        resource_type="backend",
     )
     print("User Path:", user_path["full_path"])
     print("Subpaths:", user_path["subpaths"])
@@ -75,7 +75,7 @@ def example_path_planning():
     # Plan complete organization structure (example org name)
     org_structure = Infisical.Paths.plan_organization_structure(
         org_name="my-project",
-        service_names=[
+        resource_names=[
             "user",
             "order",
             "team",
@@ -107,11 +107,11 @@ def example_machine_identity():
     print("Access Paths:", dev_machine["config"]["access_paths"])
     
     # Service-specific machine with restricted access
-    service_machine = Infisical.Identity.generate_service_specific_machine(
-        service_name="user",
+    resource_machine = Infisical.Identity.generate_resource_specific_machine(
+        resource_name="user",
         project_id="bc7cf07f-4002-4148-bca8-78a05c95dea2",
     )
-    print("Service Machine Access:", service_machine["config"]["access_paths"])
+    print("Service Machine Access:", resource_machine["config"]["access_paths"])
     
     # CI/CD machine for GitHub Actions
     ci_machine = Infisical.Identity.generate_ci_machine(
@@ -131,7 +131,7 @@ def example_organization():
     org = Infisical.Org.generate_config(
         org_name="my-project",
         env_names=["dev", "staging", "prod"],
-        service_names=[
+        resource_names=[
             "user",
             "order",
             "team",
@@ -194,12 +194,12 @@ def example_predefined_services():
     
     # Get configuration for a predefined service
     config = Secrets.configure_predefined_service(
-        service_name="user-management-backend",
+        resource_name="user-management-backend",
         command="bun run src/index.ts",
     )
     
     if config:
-        print("Configured:", config["service_name"])
+        print("Configured:", config["resource_name"])
         print("Path:", config["secret_path"])
     
     # Configure all predefined services at once
@@ -221,15 +221,15 @@ def example_predefined_services():
 load("engine/topologies/platform/security/secrets.star", "Secrets")
 load("engine/topologies/tilt/generators/infisical/path_manager.star", "PathManager")
 
-def configure_service_with_secrets(service_name):
+def configure_resource_with_secrets(resource_name):
     # Get predefined config or plan new one
-    config = Secrets.configure_predefined_service(service_name)
+    config = Secrets.configure_predefined_service(resource_name)
     
     if not config:
         # Plan path for unknown service
-        path_plan = PathManager.plan_resource_path(service_name)
+        path_plan = PathManager.plan_resource_path(resource_name)
         config = Secrets.configure_service(
-            service_name=service_name,
+            resource_name=resource_name,
             secret_path=path_plan["full_path"],
         )
     
@@ -237,11 +237,11 @@ def configure_service_with_secrets(service_name):
     docker_compose_env = config["docker_compose"]["environment"]
     
     # Apply to Tilt resource
-    dc_resource(service_name, env=docker_compose_env)
+    dc_resource(resource_name, env=docker_compose_env)
 
 # Configure all services
 for service in ["user", "order", "team"]:
-    configure_service_with_secrets(service)
+    configure_resource_with_secrets(service)
 """
 
 # =============================================================================
@@ -302,7 +302,7 @@ def example_env_templates():
 # =============================================================================
 
 # Uncomment to run examples:
-# example_service_secrets()
+# example_resource_secrets()
 # example_path_planning()
 # example_machine_identity()
 # example_organization()

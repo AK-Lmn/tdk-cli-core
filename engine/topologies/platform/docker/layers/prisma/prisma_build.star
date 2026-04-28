@@ -28,7 +28,7 @@ load(
     'PRISMA_GENERATE_RUN',
     'PRISMA_PACKAGE_NODE_MODULES_REL_PATH',
     'PRISMA_SCHEMA_PATH',
-    'app_service_dir',
+    'app_resource_dir',
     'prisma_normalize_output_block',
 )
 
@@ -97,7 +97,7 @@ def L3_generate_migration_engine(res_path, use_golden = True):
     
     # Use golden L3-migrator image if enabled (Prisma pre-installed)
     base_image = GOLDEN_L3_MIGRATOR_IMAGE if use_golden else BUN_BASE
-    app_res_path = app_service_dir(res_path)
+    app_res_path = app_resource_dir(res_path)
 
     return (
         "# ---- L3: migration_engine ----\n"

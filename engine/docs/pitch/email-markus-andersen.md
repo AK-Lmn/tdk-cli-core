@@ -148,7 +148,7 @@ cat > services/my-service/service.json << 'EOF'
   "appType": "backend",
   "domain": "product",
   "port": 4001,
-  "databaseName": "my_service_db"
+  "databaseName": "my_resource_db"
 }
 EOF
 

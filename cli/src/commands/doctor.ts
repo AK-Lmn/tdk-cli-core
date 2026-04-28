@@ -151,7 +151,7 @@ function checkTilt(): CheckResult {
 
 // Check 7: Master configuration files exist
 function checkMasterConfigs(): CheckResult {
-  const defaultsPath = resolve(process.cwd(), "TILT_SERVICE_DEFAULTS.star");
+  const defaultsPath = resolve(process.cwd(), "TILT_RESOURCE_DEFAULTS.star");
   const techStackPath = resolve(process.cwd(), "TILT_TECH_STACK.star");
 
   const defaultsExists = existsSync(defaultsPath);
@@ -161,12 +161,12 @@ function checkMasterConfigs(): CheckResult {
     return {
       name: "Master Configs",
       passed: true,
-      message: "TILT_SERVICE_DEFAULTS.star and TILT_TECH_STACK.star found",
+      message: "TILT_RESOURCE_DEFAULTS.star and TILT_TECH_STACK.star found",
     };
   }
 
   const missing = [];
-  if (!defaultsExists) missing.push("TILT_SERVICE_DEFAULTS.star");
+  if (!defaultsExists) missing.push("TILT_RESOURCE_DEFAULTS.star");
   if (!techStackExists) missing.push("TILT_TECH_STACK.star");
 
   return {

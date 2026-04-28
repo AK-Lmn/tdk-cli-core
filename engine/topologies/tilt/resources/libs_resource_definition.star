@@ -106,7 +106,7 @@ def define_library_resource(ctx, name, path, labels, internal_deps=None, consume
     resource_name = 'lib-' + name.replace('/', '-')
     auto_init_libs = os.environ.get('TILT_AUTO_INIT_LIBS', 'false').lower() == 'true'
 
-    deps = [PlatformDockerConstants.VERDACCIO_SERVICE_NAME]
+    deps = [PlatformDockerConstants.VERDACCIO_RESOURCE_NAME]
     if internal_deps:
         for dep in internal_deps:
             if dep not in deps:

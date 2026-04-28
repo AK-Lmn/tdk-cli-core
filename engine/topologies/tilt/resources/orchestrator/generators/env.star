@@ -118,7 +118,7 @@ def _generate_params_env(manifest, backend_manifest=None, write_file_fn=None):
     
     # If we auto-detected identity-service mode but no URL is set, use default
     if auth_mode == 'identity-service' and not auth_config['identityServiceUrl']:
-        auth_config['identityServiceUrl'] = AuthConfig.get_identity_service_url(None)
+        auth_config['identityServiceUrl'] = AuthConfig.get_identity_resource_url(None)
     
     if app_type == 'frontend':
         backend_port = backend_manifest.get('port', BASE_PORT_BACKEND) if backend_manifest else BASE_PORT_BACKEND

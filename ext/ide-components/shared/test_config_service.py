@@ -31,7 +31,7 @@ class TestConfigService:
         (Path(self.temp_dir) / '.tilt-engine' / 'topologies' / 'test.star').write_text('# test')
         
         # Create root master configs
-        (Path(self.temp_dir) / 'TILT_SERVICE_DEFAULTS.star').write_text('# defaults')
+        (Path(self.temp_dir) / 'TILT_RESOURCE_DEFAULTS.star').write_text('# defaults')
         (Path(self.temp_dir) / 'spec.master').write_text('# spec')
         
         # Override PROJECT_ROOT for testing by patching the module directly
@@ -116,7 +116,7 @@ class TestConfigService:
         
         # Valid paths - project root master configs (Task 7.11)
         root_configs = [
-            'TILT_SERVICE_DEFAULTS.star',
+            'TILT_RESOURCE_DEFAULTS.star',
             'spec.master',
             '.tilt-engine/spec.master',
         ]
@@ -148,7 +148,7 @@ class TestConfigService:
             'test.star',
             'spec.master',
             '.tilt-engine/spec.master',
-            'TILT_SERVICE_DEFAULTS.star',
+            'TILT_RESOURCE_DEFAULTS.star',
         ]
         
         for path in valid_files:

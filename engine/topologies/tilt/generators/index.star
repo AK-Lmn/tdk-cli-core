@@ -143,7 +143,7 @@ def resolve_missing_dependencies(all_services, library_roots):
         None,
     )
 
-def provision_service_database(service_name, db_name, db_config, write_fn):
+def provision_resource_database(resource_name, db_name, db_config, write_fn):
     """
     Generates all files needed to provision a database for a service.
     
@@ -154,7 +154,7 @@ def provision_service_database(service_name, db_name, db_config, write_fn):
       - Provisioning script
     
     Args:
-        service_name: Name of service
+        resource_name: Name of service
         db_name: Database name
         db_config: Database configuration dict
         write_fn: Function to write files
@@ -163,7 +163,7 @@ def provision_service_database(service_name, db_name, db_config, write_fn):
         Provisioning config struct
     """
     return DatabaseProvisioner.generate_database_provisioning_resource(
-        service_name,
+        resource_name,
         db_name,
         db_config,
         write_fn,
@@ -193,7 +193,7 @@ Generators = struct(
     run_pre_flight_validations=run_pre_flight_validations,
     generate_fixed_frontend_tsconfig=generate_fixed_frontend_tsconfig,
     resolve_missing_dependencies=resolve_missing_dependencies,
-    provision_service_database=provision_service_database,
+    provision_resource_database=provision_resource_database,
 
     # NEW: Infisical Secrets Management
     SecretsManagement=SecretsManagement,

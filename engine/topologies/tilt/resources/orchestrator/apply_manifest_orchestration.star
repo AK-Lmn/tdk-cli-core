@@ -13,22 +13,22 @@ load('./generators/manifest_resource.star', 'ManifestResource')
 
 
 
-def prepare_resource_manifests(service_config, ctx):
-    service_name = service_config['name']
+def prepare_resource_manifests(resource_config, ctx):
+    resource_name = resource_config['name']
     resource_manifests = {}
     backend_manifest_cache = {}
     config_gen_resources = {}
 
     # First pass: load all manifests.
-    for resource in service_config.get('resources', []):
+    for resource in resource_config.get('resources', []):
         # Use the resource's _resource_path if available (for services from different scan roots)
-        # Otherwise fall back to constructing path from service_config path + resource name
-        resource_path = resource.get('_resource_path', service_config['path'] + '/' + resource['name'])
+        # Otherwise fall back to constructing path from resource_config path + resource name
+        resource_path = resource.get('_resource_path', resource_config['path'] + '/' + resource['name'])
         manifest = Manifest.load_manifest(resource_path)
         resource_manifests[resource['name']] = manifest
 
         app_name = manifest.get('appName', resource['name'])
-        stack = manifest.get('stack', service_name)
+        stack = manifest.get('stack', resource_name)
         port = manifest.get('port', BASE_PORT_FRONTEND)
         app_type = manifest.get('appType', 'backend')
 
@@ -44,7 +44,7 @@ def prepare_resource_manifests(service_config, ctx):
 
     # Second pass: create config generation resources.
     print("   🎯 Creating manifest-driven config resources...")
-    for resource in service_config.get('resources', []):
+    for resource in resource_config.get('resources', []):
         manifest = resource_manifests.get(resource['name'], {})
         backend_manifest = None
 
@@ -55,12 +55,12 @@ def prepare_resource_manifests(service_config, ctx):
                 backend_manifest = Manifest.load_related(manifest)
 
         # Use the resource's actual service path for config generation
-        resource_path = resource.get('_resource_path', service_config['path'] + '/' + resource['name'])
+        resource_path = resource.get('_resource_path', resource_config['path'] + '/' + resource['name'])
         
         config_gen_resource = ManifestResource.create_config_resource(
-            service_name,
+            resource_name,
             resource,
-            resource_path,  # Pass correct path instead of service_config['path']
+            resource_path,  # Pass correct path instead of resource_config['path']
             manifest,
             backend_manifest,
             ctx,

@@ -40,7 +40,7 @@ def print_resource_summary(infra_services, app_services, should_enable_fn):
     return enabled_services
 
 
-def get_template_header(file_type, generator_name, service_name='', extra_info=''):
+def get_template_header(file_type, generator_name, resource_name='', extra_info=''):
     """
     Generate a standardized "DO NOT EDIT" header for auto-generated files.
     """
@@ -68,9 +68,9 @@ def get_template_header(file_type, generator_name, service_name='', extra_info='
         border = '#' * 79
         comment_start = '#'
 
-    service_line = ''
-    if service_name:
-        service_line = '\n{c} Service: {s}'.format(c=comment_start, s=service_name)
+    resource_line = ''
+    if resource_name:
+        resource_line = '\n{c} Service: {s}'.format(c=comment_start, s=resource_name)
 
     extra_line = ''
     if extra_info:
@@ -84,13 +84,13 @@ def get_template_header(file_type, generator_name, service_name='', extra_info='
 {c} 1. Edit the source generator in: .tilt/topologies/
 {c} 2. Or update platform-computing-provisioner.manifest.json
 {c}
-{c} Generation Source: {generator}{service_line}{extra_line}
+{c} Generation Source: {generator}{resource_line}{extra_line}
 {border}
 """.format(
         border=border,
         c=comment_start,
         generator=generator_name,
-        service_line=service_line,
+        resource_line=resource_line,
         extra_line=extra_line,
     )
 

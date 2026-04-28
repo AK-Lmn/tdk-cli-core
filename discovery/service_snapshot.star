@@ -5,7 +5,7 @@
 # =============================================================================
 
 # Python script path (relative to Tiltfile)
-_SNAPSHOT_SCRIPT = ".tdk/.tdk-out/snapshots/service_snapshot.py"
+_SNAPSHOT_SCRIPT = ".tdk/.tdk-out/snapshots/resource_snapshot.py"
 
 def _run_snapshot_command(cmd):
     """Run a snapshot command via Python script."""
@@ -129,7 +129,7 @@ def snapshot_exists():
     return str(result).strip() == "yes"
 
 # Get the path to the service snapshot file
-def get_service_snapshot_path():
+def get_resource_snapshot_path():
     """Return the path to the service snapshot JSON file."""
     return ".tdk/.tdk-out/snapshots/service-snapshot.json"
 

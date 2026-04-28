@@ -27,8 +27,8 @@ load(
     'PRISMA_DOT_DIR_REL_PATH',
     'PRISMA_DIR_NAME',
     'ROOT_USER',
-    'app_service_dir',
-    'service_node_modules_dir',
+    'app_resource_dir',
+    'resource_node_modules_dir',
 )
 
 _docker_cfg = GLOBAL_CONFIG['docker']
@@ -47,7 +47,7 @@ def prisma_runtime_copy(res_path):
     Args:
         res_path: Service directory relative to /app (e.g. 'services/product/users/...')
     """
-    base = app_service_dir(res_path)
+    base = app_resource_dir(res_path)
     return (
         "COPY --from=l3_backend_build " + base + "/" + PRISMA_DOT_DIR_REL_PATH + " ./" + PRISMA_DOT_DIR_REL_PATH + "\n"
         + "COPY --from=l3_backend_build " + base + "/" + PRISMA_DIR_NAME + " ./" + PRISMA_DIR_NAME + "\n"
@@ -96,8 +96,8 @@ def _migrator_artifact_copies(res_path):
     This avoids Bun lockfile/frozen-lockfile edge cases in the l4 runtime image
     while still keeping migrator logic simple (no pruner stage).
     """
-    app_res_path = app_service_dir(res_path)
-    base = service_node_modules_dir(res_path)
+    app_res_path = app_resource_dir(res_path)
+    base = resource_node_modules_dir(res_path)
     return (
         "# Copy migration schema + resolved deps from l3 stage\n"
         + "COPY --from=l3_migration_build " + app_res_path + "/" + PRISMA_DIR_NAME + " ./" + PRISMA_DIR_NAME + "\n"
@@ -117,7 +117,7 @@ def _migrate_script_copy_block():
     )
 
 
-def L4_generate_migrator_runtime(res_path, service_name = 'migrator', use_golden = True):
+def L4_generate_migrator_runtime(res_path, resource_name = 'migrator', use_golden = True):
     """
     Generate the complete l4_migrator_runtime Dockerfile stage.
 
@@ -130,7 +130,7 @@ def L4_generate_migrator_runtime(res_path, service_name = 'migrator', use_golden
 
     Args:
         res_path:     Service directory relative to /app
-        service_name: Used in SERVICE_NAME env and Infisical secret path
+        resource_name: Used in RESOURCE_NAME env and Infisical secret path
         use_golden:   Always True – golden image is always preferred
     """
     # Golden image is mandatory – it ships Prisma + Infisical pre-built.
@@ -142,7 +142,7 @@ def L4_generate_migrator_runtime(res_path, service_name = 'migrator', use_golden
         + "WORKDIR " + APP_DIR + "\n"
         + "# Build argument to skip Infisical setup (for local dev / fast builds)\n"
         + "ARG SKIP_INFISICAL_SETUP=0\n"
-        + "ENV NODE_ENV=production SERVICE_NAME=" + service_name + "\n"
+        + "ENV NODE_ENV=production RESOURCE_NAME=" + resource_name + "\n"
         + _migrator_artifact_copies(res_path)
         + "USER " + ROOT_USER + "\n"
         + migrator_filesystem_setup()

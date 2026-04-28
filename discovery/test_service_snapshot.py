@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-🧪 Tests for service_snapshot.py
+🧪 Tests for resource_snapshot.py
 
-Run with: python3 -m pytest test_service_snapshot.py -v
-Or: python3 test_service_snapshot.py
+Run with: python3 -m pytest test_resource_snapshot.py -v
+Or: python3 test_resource_snapshot.py
 """
 
 import json
@@ -16,7 +16,7 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from service_snapshot import (
+from resource_snapshot import (
     save_snapshot,
     load_snapshot,
     diff_snapshots,
@@ -229,7 +229,7 @@ def run_tests():
     import tempfile
     import inspect
     
-    print("🧪 Running service_snapshot tests...")
+    print("🧪 Running resource_snapshot tests...")
     print("=" * 50)
     
     passed = 0

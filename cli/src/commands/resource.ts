@@ -151,7 +151,7 @@ function getBackendIndexTemplate(name: string) {
 
 const app = new Hono();
 
-// Health check endpoint (required by TILT_SERVICE_DEFAULTS.star)
+// Health check endpoint (required by TILT_RESOURCE_DEFAULTS.star)
 app.get('/health', (c) => {
   return c.json({ status: 'ok', service: '${name}' });
 });
@@ -392,7 +392,7 @@ export const resourceCommand = new Command('resource')
       
       if (!assignedPort!) {
         console.error(chalk.red(`Error: No available ports in range ${basePort}-${maxPort}`));
-        console.error(chalk.gray('Check TILT_SERVICE_DEFAULTS.star for port configuration'));
+        console.error(chalk.gray('Check TILT_RESOURCE_DEFAULTS.star for port configuration'));
         process.exit(1);
       }
 

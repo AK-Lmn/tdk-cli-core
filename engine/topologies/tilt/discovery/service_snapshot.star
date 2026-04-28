@@ -5,7 +5,7 @@
 # =============================================================================
 
 # Python script path (relative to Tiltfile)
-_SNAPSHOT_SCRIPT = ".tdk/.tdk-out/snapshots/service_snapshot.py"
+_SNAPSHOT_SCRIPT = ".tdk/.tdk-out/snapshots/resource_snapshot.py"
 
 def _run_snapshot_command(cmd):
     """Run a snapshot command via Python script."""

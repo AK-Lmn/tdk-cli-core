@@ -93,9 +93,9 @@ class TestDaemonPolling:
         services_dir = temp_dir / "services" / "product"
         services_dir.mkdir(parents=True)
         
-        service_dir = services_dir / "initial" / "service"
-        service_dir.mkdir(parents=True)
-        (service_dir / "service.json").write_text(json.dumps({"name": "initial"}))
+        resource_dir = services_dir / "initial" / "service"
+        resource_dir.mkdir(parents=True)
+        (resource_dir / "service.json").write_text(json.dumps({"name": "initial"}))
         
         poll_results = []
         
@@ -103,7 +103,7 @@ class TestDaemonPolling:
             # Simulate scanning
             import sys
             sys.path.insert(0, str(Path("discovery").resolve()))
-            from service_snapshot import get_current_services
+            from resource_snapshot import get_current_services
             
             services = get_current_services(str(services_dir))
             poll_results.append(len(services))

@@ -337,7 +337,7 @@ def _test_get_normalized():
 # TEST SUITE: Service Description
 # =============================================================================
 
-def _test_service_description():
+def _test_resource_description():
     """Test service description generation."""
     print("🔍 Testing service description...")
     
@@ -371,7 +371,7 @@ def run_tests():
     _test_traefik_config()
     _test_manifest_merging()
     _test_get_normalized()
-    _test_service_description()
+    _test_resource_description()
     
     # Print results
     print("\n" + "="*70)

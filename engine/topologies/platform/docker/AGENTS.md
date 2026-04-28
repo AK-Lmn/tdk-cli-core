@@ -37,7 +37,7 @@ L4: Runtime (minimal production image)
 ### Generate Dockerfile for service
 ```starlark
 load("./dockerfile.star", "generate_app_dockerfile")
-dockerfile = generate_app_dockerfile(path, service_name, start_command)
+dockerfile = generate_app_dockerfile(path, resource_name, start_command)
 ```
 
 ### Get golden image

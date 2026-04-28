@@ -572,10 +572,10 @@ def validate_ports_unique(manifests):
 
 def validate_naming_consistency(manifests):
     """
-    Check naming conventions across all services.
-    
+    Check naming conventions across all resources.
+
     Validates:
-    - Service names follow convention: {domain}-{function}-{type}
+    - Resource names follow convention: {stack}-{function}-{type}
     - No duplicate names
     - Consistent kebab-case
     """
@@ -637,11 +637,11 @@ VALIDATION_RULES = {
         'message': 'Service with prisma feature should specify databaseName',
     },
     
-    # Cross-service rules
+    # Cross-resource rules
     'dependencies_exist': {
         'severity': 'error',
         'check': lambda m, ctx: _check_deps_exist(m, ctx.get('all_manifests', [])),
-        'message': 'Dependency {dep} does not exist as a service',
+        'message': 'Dependency {dep} does not exist as a resource',
     },
     
     'no_circular_deps': {
@@ -673,7 +673,7 @@ def fetch_from_http(url):
     Future use case: Service registry API
     """
 
-def fetch_from_registry(service_name, registry_url):
+def fetch_from_registry(resource_name, registry_url):
     """
     Fetch manifest from service registry.
     

@@ -12,7 +12,7 @@ from pathlib import Path
 class TestCachePersistence:
     """Tests for cache persistence operations."""
     
-    def test_save_cache_to_file(self, temp_dir, service_registry_cache):
+    def test_save_cache_to_file(self, temp_dir, resource_registry_cache):
         """
         Scenario: Save cache to file
         WHEN the cache is saved to a JSON file
@@ -22,7 +22,7 @@ class TestCachePersistence:
         cache_file = temp_dir / "discovery-cache.json"
         
         # Add services to cache
-        cache = service_registry_cache
+        cache = resource_registry_cache
         cache["resource_path_map"] = {
             "path1": {"name": "service1"},
             "path2": {"name": "service2"}
@@ -41,7 +41,7 @@ class TestCachePersistence:
         assert "resource_path_map" in data
         assert len(data["resource_path_map"]) == 2
     
-    def test_load_cache_from_file(self, temp_dir, service_registry_cache):
+    def test_load_cache_from_file(self, temp_dir, resource_registry_cache):
         """
         Scenario: Load cache from file
         WHEN loading cache from a previously saved JSON file
@@ -61,7 +61,7 @@ class TestCachePersistence:
             json.dump(saved_data, f)
         
         # Load cache
-        cache = service_registry_cache
+        cache = resource_registry_cache
         self._load_cache(cache, cache_file)
         
         # Verify loaded
@@ -69,7 +69,7 @@ class TestCachePersistence:
         assert cache["resource_path_map"]["path1"]["name"] == "service1"
         assert cache["resource_path_map"]["path2"]["type"] == "frontend"
     
-    def test_cache_survives_process_restart(self, temp_dir, service_registry_cache):
+    def test_cache_survives_process_restart(self, temp_dir, resource_registry_cache):
         """
         Scenario: Cache survives process restart
         WHEN the Tilt process restarts
@@ -80,7 +80,7 @@ class TestCachePersistence:
         cache_file = temp_dir / "discovery-cache.json"
         
         # Simulate first run - save cache
-        cache1 = service_registry_cache
+        cache1 = resource_registry_cache
         cache1["resource_path_map"] = {
             "services/test/service1": {"name": "service1"},
             "services/test/service2": {"name": "service2"}

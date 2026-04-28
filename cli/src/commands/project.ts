@@ -79,7 +79,7 @@ export const projectCommand = new Command('project')
 
       // Check mode - verify files exist and are in sync
       if (options.check) {
-        const allFilesExist = ['tilt.config.json', 'TILT_TECH_STACK.star', 'TILT_SERVICE_DEFAULTS.star', 'spec.master']
+        const allFilesExist = ['tilt.config.json', 'TILT_TECH_STACK.star', 'TILT_RESOURCE_DEFAULTS.star', 'spec.master']
           .every(f => existsSync(join(projectRoot, '.tdk', '.tdk-out', f)));
         const projectJsonExists = existsSync(projectJsonPath);
 
@@ -101,7 +101,7 @@ export const projectCommand = new Command('project')
           console.log(chalk.yellow('⚠️  Project configuration incomplete:'));
           if (!projectJsonExists) console.log(chalk.gray('   - .tdk/project.json (not found)'));
           if (!allFilesExist) {
-            ['tilt.config.json', 'TILT_TECH_STACK.star', 'TILT_SERVICE_DEFAULTS.star', 'spec.master']
+            ['tilt.config.json', 'TILT_TECH_STACK.star', 'TILT_RESOURCE_DEFAULTS.star', 'spec.master']
               .filter(f => !existsSync(join(projectRoot, '.tdk/.tdk-out', f)))
               .forEach(f => console.log(chalk.gray(`   - .tdk/.tdk-out/${f} (not found)`)));
           }
@@ -134,7 +134,7 @@ export const projectCommand = new Command('project')
       console.log(chalk.gray('\nGenerated in .tdk/.tdk-out/:'));
       console.log(chalk.gray('  - tilt.config.json (Tilt UI settings)'));
       console.log(chalk.gray('  - TILT_TECH_STACK.star (tech stack constants)'));
-      console.log(chalk.gray('  - TILT_SERVICE_DEFAULTS.star (service defaults)'));
+      console.log(chalk.gray('  - TILT_RESOURCE_DEFAULTS.star (service defaults)'));
       console.log(chalk.gray('  - spec.master (stack definitions)'));
           return;
         } catch (err) {
@@ -269,7 +269,7 @@ export const projectCommand = new Command('project')
       console.log(chalk.gray('\nGenerated files in .tdk/.tdk-out/:'));
       console.log(chalk.gray('  - tilt.config.json (Tilt UI settings)'));
       console.log(chalk.gray('  - TILT_TECH_STACK.star (tech stack constants)'));
-      console.log(chalk.gray('  - TILT_SERVICE_DEFAULTS.star (service defaults)'));
+      console.log(chalk.gray('  - TILT_RESOURCE_DEFAULTS.star (service defaults)'));
       console.log(chalk.gray('  - spec.master (stack definitions)'));
       console.log(chalk.gray('\nSource file:'));
       console.log(chalk.gray('  - .tdk/project.json (edit this to change project structure)'));

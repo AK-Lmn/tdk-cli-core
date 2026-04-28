@@ -181,7 +181,7 @@ def validate_resource_structure(resource_path):
     return struct(
         valid=len(missing) == 0,
         missing=missing,
-        has_service_json="service.json" not in missing,
+        has_resource_json="service.json" not in missing,
         has_package_json="package.json" not in missing
     )
 

@@ -13,7 +13,7 @@ TDK CLI organizes your microservices using a clear **Project-Stack-Resource (PSR
 
 ```
 📁 Project (1 per repo)
-├── ⚙️  TILT_SERVICE_DEFAULTS.star   # Ports, health checks, memory
+├── ⚙️  TILT_RESOURCE_DEFAULTS.star   # Ports, health checks, memory
 ├── 🔧 TILT_TECH_STACK.star          # Bun, Vite, Prisma, NATS
 │
 └── 📦 Stacks (deployment groups)
@@ -55,7 +55,7 @@ tdk projects --check      # ✅ CI validation (exit 0/1)
 ```
 
 **Creates:**
-- ⚙️ `TILT_SERVICE_DEFAULTS.star` — Platform config (ports 3000-4999, health checks, memory limits)
+- ⚙️ `TILT_RESOURCE_DEFAULTS.star` — Platform config (ports 3000-4999, health checks, memory limits)
 - 🔧 `TILT_TECH_STACK.star` — Tech stack lock (Bun v1.2, Vite v5, Prisma v7, NATS v2)
 
 ---
@@ -192,7 +192,7 @@ load('ext://tdk-cli', 'Determinism')
 files = Determinism.deterministic_find('./services', 'service.json')
 
 # Deterministic service discovery
-services = Determinism.deterministic_service_discovery(['services/product'])
+services = Determinism.deterministic_resource_discovery(['services/product'])
 
 # Check deterministic mode
 if Determinism.is_deterministic_mode():
@@ -223,7 +223,7 @@ After `tdk project` + `tdk resource`:
 
 ```
 my-project/
-├── ⚙️ TILT_SERVICE_DEFAULTS.star
+├── ⚙️ TILT_RESOURCE_DEFAULTS.star
 ├── 🔧 TILT_TECH_STACK.star
 ├── 📄 Tiltfile
 │

@@ -31,6 +31,6 @@ Example:
 """.format(missing_vars=", ".join(missing_vars)))
 
 
-def should_enable(service_name, cfg, defaults):
+def should_enable(resource_name, cfg, defaults):
     """Check if a service should be enabled based on config and defaults."""
-    return cfg.get(service_name, defaults.get(service_name, False))
+    return cfg.get(resource_name, defaults.get(resource_name, False))

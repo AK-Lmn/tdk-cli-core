@@ -100,7 +100,7 @@ class TiltIntegration:
             return {'exists': False, 'status': 'unknown', 'error': str(e)}
     
     @staticmethod
-    def regenerate_service_configs(service_name: str) -> dict:
+    def regenerate_resource_configs(resource_name: str) -> dict:
         """
         Trigger config regeneration for a service
         
@@ -112,9 +112,9 @@ class TiltIntegration:
         """
         # Try different resource name patterns
         patterns = [
-            f'{service_name}-config-gen',
-            f'{service_name}-yaml',
-            f'{service_name}-config',
+            f'{resource_name}-config-gen',
+            f'{resource_name}-yaml',
+            f'{resource_name}-config',
         ]
         
         for pattern in patterns:
@@ -122,12 +122,12 @@ class TiltIntegration:
             if result['success']:
                 return {
                     'success': True,
-                    'message': f'Regenerated configs for {service_name} via {pattern}'
+                    'message': f'Regenerated configs for {resource_name} via {pattern}'
                 }
         
         return {
             'success': False,
-            'message': f'Could not find config-gen resource for {service_name}. Tried: {", ".join(patterns)}'
+            'message': f'Could not find config-gen resource for {resource_name}. Tried: {", ".join(patterns)}'
         }
     
     @staticmethod

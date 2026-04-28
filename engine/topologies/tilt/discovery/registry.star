@@ -11,7 +11,7 @@
 load(
     "./config.star",
     "GLOBAL_CONFIG",
-    "INFRA_SERVICES",
+    "INFRA_RESOURCES",
     "CORE_INFRA",
     "INFRA_DOMAIN_MAP",
     "OPTIONAL_INFRA",
@@ -29,7 +29,7 @@ load(
     "PRODUCT_SNAPSHOT_FILES",
     "PRODUCT_TOPOLOGY_DIR",
     "PRODUCT_STACKS_INDEX_FILE",
-    "PRODUCT_STACK_SERVICES_FILE",
+    "PRODUCT_STACK_RESOURCES_FILE",
     "DISCOVERY_SCAN_ROOTS",
 )
 load("../manifest/constants.star", "MANIFEST_FILENAME", "MANIFEST_FILENAME_NEW", "MANIFEST_FILENAME_YAML", "MANIFEST_FILENAME_NEW_YAML")
@@ -237,7 +237,7 @@ def get_resource_by_name(name):
     return None
 
 
-def get_service_by_name(name):
+def get_resource_by_name(name):
     return get_resource_by_name(name)
 
 
@@ -439,7 +439,7 @@ def _render_product_stacks_index(app_resources):
     for resource in app_resources:
         stack = resource["name"] if "name" in resource else "unknown"
         symbol = _sanitize_symbol(stack) + "_stack"
-        lines.append("load('./" + stack + "/" + PRODUCT_STACK_SERVICES_FILE + "', " + symbol + " = 'ProductStack')")
+        lines.append("load('./" + stack + "/" + PRODUCT_STACK_RESOURCES_FILE + "', " + symbol + " = 'ProductStack')")
         stack_rows.append("    '" + stack + "': " + symbol + ",")
 
     lines.extend([
@@ -465,7 +465,7 @@ def generate_product_stack_topology():
     changes = 0
     for resource in APP_RESOURCES:
         stack = resource["name"] if "name" in resource else "unknown"
-        stack_file = PRODUCT_TOPOLOGY_DIR + "/" + stack + "/" + PRODUCT_STACK_SERVICES_FILE
+        stack_file = PRODUCT_TOPOLOGY_DIR + "/" + stack + "/" + PRODUCT_STACK_RESOURCES_FILE
         if _write_file_if_changed(stack_file, _render_product_stack_file(resource)):
             changes = changes + 1
 
@@ -535,11 +535,11 @@ _ensure_initialized()
 print("📦 Exporting resources...")
 
 APP_RESOURCES = _DISCOVERY_CACHE["app_resources"]
-APP_SERVICES = APP_RESOURCES
+APP_RESOURCES = APP_RESOURCES
 RESOURCE_DEPENDENCIES = _DISCOVERY_CACHE["resource_dependencies"]
 RESOURCE_ALIASES = _DISCOVERY_CACHE["resource_aliases"]
-SERVICE_DEPENDENCIES = RESOURCE_DEPENDENCIES
-SERVICE_ALIASES = RESOURCE_ALIASES
+RESOURCE_DEPENDENCIES = RESOURCE_DEPENDENCIES
+RESOURCE_ALIASES = RESOURCE_ALIASES
 RESOURCE_PATH_MAP = _DISCOVERY_CACHE["resource_path_map"]
 RESOURCE_PATH_MAP = RESOURCE_PATH_MAP
 
@@ -562,7 +562,7 @@ if project_root:
             FOCUS_ALPHA = project_defaults.FOCUS_ALPHA,
             FOCUS_BETA = project_defaults.FOCUS_BETA,
             GLOBAL = Config.GLOBAL,
-            INFRA_SERVICES = Config.INFRA_SERVICES,
+            INFRA_RESOURCES = Config.INFRA_RESOURCES,
             CORE_INFRA = Config.CORE_INFRA,
             INFRA_DOMAIN_MAP = Config.INFRA_DOMAIN_MAP,
             OPTIONAL_INFRA = Config.OPTIONAL_INFRA,
@@ -582,7 +582,7 @@ INFRA_DOMAIN_MAP_EXPORT = INFRA_DOMAIN_MAP
 DEFAULTS_EXPORT = Config.DEFAULTS
 DDD_LIBS_EXPORT = DDD_LIBS
 GLOBAL_CONFIG_EXPORT = GLOBAL_CONFIG
-INFRA_SERVICES_EXPORT = INFRA_SERVICES
+INFRA_RESOURCES_EXPORT = INFRA_RESOURCES
 PLATFORM_LIBS_FRONTEND_EXPORT = PLATFORM_LIBS_FRONTEND
 PRODUCT_LIBS_FRONTEND_EXPORT= PRODUCT_LIBS_FRONTEND
 

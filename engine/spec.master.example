@@ -22,7 +22,7 @@
 # if features.is_enabled("istio"):
 
 # Magic port allocation - algorithm hidden
-# port = allocate_port(service_name)
+# port = allocate_port(resource_name)
 
 # Magic dependency resolution - how does this work?
 # deps = resolve_dependencies(manifest)
@@ -43,7 +43,7 @@ load("{PROJECT_ROOT}/.tilt/spec.master", "SPEC", "CONSTANTS", "VALIDATION", "FEA
 # Why aliases? Because "paths" is easier to remember than "spec.master" 😊
 
 # Explicit imports - you SEE exactly what files are loaded
-load(SPEC.DISCOVERY.REGISTRY, "get_app_services", "get_service_by_name")
+load(SPEC.DISCOVERY.REGISTRY, "get_app_services", "get_resource_by_name")
 load(SPEC.DISCOVERY.LOADING, "load_manifest")
 load(SPEC.GENERATORS.VITE, "generate_vite_config")
 load(SPEC.GENERATORS.TSCONFIG, "generate_tsconfig")
@@ -51,31 +51,31 @@ load(SPEC.GENERATORS.DOCKERFILE, "generate_dockerfile")
 load(SPEC.GENERATORS.MANIFEST_RESOURCE, "ManifestResource")
 
 # EXPLICIT path construction - no hidden logic
-def get_resource_path(service_name):
+def get_resource_path(resource_name):
     """Build service path EXPLICITLY from constants."""
-    return SPEC.SERVICES_DIR + "/product/" + service_name
+    return SPEC.RESOURCES_DIR + "/product/" + resource_name
 
 def get_manifest_path(resource_path):
     """Manifest path is EXPLICIT, not discovered."""
-    return resource_path + "/" + SERVICE_PATTERNS.MANIFEST_FILE
+    return resource_path + "/" + RESOURCE_PATTERNS.MANIFEST_FILE
 
-def get_output_path(service_name, filename):
+def get_output_path(resource_name, filename):
     """Output path is EXPLICIT, constructed from constants."""
-    return OUTPUT.CONFIGS + "/" + service_name + "/" + filename
+    return OUTPUT.CONFIGS + "/" + resource_name + "/" + filename
 
 # =============================================================================
 # EXPLICIT CONFIGURATION GENERATION
 # =============================================================================
 
-def generate_service_configs(service_name, manifest):
+def generate_resource_configs(resource_name, manifest):
     """
     Generate configs with EXPLICIT paths and constraints.
     No hidden allocations. No magic context.
     """
     
     # EXPLICIT: Validate inputs (Zig-style defensive programming)
-    if not service_name:
-        fail("service_name is empty - explicit validation")
+    if not resource_name:
+        fail("resource_name is empty - explicit validation")
     
     if not manifest:
         fail("manifest is empty - explicit validation")
@@ -99,30 +99,30 @@ def generate_service_configs(service_name, manifest):
         istio_config = None
     
     # EXPLICIT: Path construction - you SEE where files go
-    resource_path = get_resource_path(service_name)
-    output_dir = get_output_path(service_name, "")
+    resource_path = get_resource_path(resource_name)
+    output_dir = get_output_path(resource_name, "")
     
     configs = {
         "tsconfig": {
             "input": get_manifest_path(resource_path),
-            "output": output_dir + SERVICE_PATTERNS.GENERATED_TSCONFIG,
+            "output": output_dir + RESOURCE_PATTERNS.GENERATED_TSCONFIG,
             "generator": SPEC.GENERATORS.TSCONFIG,
         },
         "vite": {
             "input": get_manifest_path(resource_path),
-            "output": output_dir + SERVICE_PATTERNS.GENERATED_VITE_CONFIG,
+            "output": output_dir + RESOURCE_PATTERNS.GENERATED_VITE_CONFIG,
             "generator": SPEC.GENERATORS.VITE,
         },
         "dockerfile": {
             "input": get_manifest_path(resource_path),
-            "output": resource_path + "/" + SERVICE_PATTERNS.DOCKERFILE,
+            "output": resource_path + "/" + RESOURCE_PATTERNS.DOCKERFILE,
             "generator": SPEC.GENERATORS.DOCKERFILE,
         },
     }
     
     # EXPLICIT: Debug output (visible when DEBUG.DUMP_GENERATED_CONFIGS)
     if DEBUG.DUMP_GENERATED_CONFIGS:
-        print("[DEBUG] Generated configs for {}:".format(service_name))
+        print("[DEBUG] Generated configs for {}:".format(resource_name))
         for name, cfg in configs.items():
             print("  {}: {}".format(name, cfg["output"]))
     
@@ -140,7 +140,7 @@ def discover_services_explicit():
     discovered = []
     
     # EXPLICIT: Iterate declared search paths
-    for search_path in DISCOVERY.SERVICE_SEARCH_PATHS:
+    for search_path in DISCOVERY.RESOURCE_SEARCH_PATHS:
         # EXPLICIT: Glob pattern is declared in spec.master
         pattern = search_path + "/" + DISCOVERY.MANIFEST_PATTERNS[0]  # service.json
         
@@ -149,12 +149,12 @@ def discover_services_explicit():
         
         for match in matches:
             # EXPLICIT: Construct service info from path
-            service_dir = os.path.dirname(match)
-            service_name = os.path.basename(service_dir)
+            resource_dir = os.path.dirname(match)
+            resource_name = os.path.basename(resource_dir)
             
             discovered.append({
-                "name": service_name,
-                "path": service_dir,
+                "name": resource_name,
+                "path": resource_dir,
                 "manifest_path": match,
             })
     
@@ -164,24 +164,24 @@ def discover_services_explicit():
 # EXPLICIT CONTEXT BUILDING (No Black Box)
 # =============================================================================
 
-def build_explicit_context(service_manifest, all_services):
+def build_explicit_context(resource_manifest, all_services):
     """
     Build context EXPLICITLY - every field is visible.
     No mystery black box.
     """
     ctx = struct(
         # EXPLICIT: Source data
-        manifest = service_manifest,
+        manifest = resource_manifest,
         all_services = all_services,
         
         # EXPLICIT: Computed values (transparent logic)
-        service_name = service_manifest.get("appName"),
-        resource_path = get_resource_path(service_manifest.get("appName")),
-        port = service_manifest.get("port"),
+        resource_name = resource_manifest.get("appName"),
+        resource_path = get_resource_path(resource_manifest.get("appName")),
+        port = resource_manifest.get("port"),
         
         # EXPLICIT: Dependencies (resolved, not hidden)
         dependencies = resolve_explicit_dependencies(
-            service_manifest.get("internalDependencies", []),
+            resource_manifest.get("internalDependencies", []),
             all_services
         ),
         
@@ -193,7 +193,7 @@ def build_explicit_context(service_manifest, all_services):
     
     # EXPLICIT: Debug inspection
     if DEBUG.DUMP_CONTEXT_ON_GENERATION:
-        print("[DEBUG] Context for {}:".format(ctx.service_name))
+        print("[DEBUG] Context for {}:".format(ctx.resource_name))
         print("  port: {}".format(ctx.port))
         print("  dependencies: {}".format([d["name"] for d in ctx.dependencies]))
         print("  features enabled: {}".format([f for f in dir(FEATURES) if not f.startswith("_")]))
@@ -242,7 +242,7 @@ def generate_all_explicit():
     
     # EXPLICIT: Step 1 - Discovery
     print("\n[1/5] DISCOVERY")
-    print("  Search paths: {}".format(DISCOVERY.SERVICE_SEARCH_PATHS))
+    print("  Search paths: {}".format(DISCOVERY.RESOURCE_SEARCH_PATHS))
     services = discover_services_explicit()
     print("  Found {} services".format(len(services)))
     for svc in services:
@@ -270,7 +270,7 @@ def generate_all_explicit():
     print("\n[4/5] GENERATION")
     generated = {}
     for svc in services:
-        configs = generate_service_configs(svc["name"], svc)
+        configs = generate_resource_configs(svc["name"], svc)
         generated[svc["name"]] = configs
         print("  ✅ {}: {} configs generated".format(svc["name"], len(configs)))
     

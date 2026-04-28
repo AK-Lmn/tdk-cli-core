@@ -60,7 +60,7 @@ manifest (with backendName)
     ↓
 resolve_backend_api_path()
     ↓
-registry.get_service_by_name(backend_name)
+registry.get_resource_by_name(backend_name)
     ↓
 backend_service.resources[]
     ↓

@@ -364,9 +364,9 @@ The platform automatically sets:
 
 ```bash
 # Service identification
-SERVICE_NAME=user-api
-SERVICE_PORT=3001
-SERVICE_TYPE=api
+RESOURCE_NAME=user-api
+RESOURCE_PORT=3001
+RESOURCE_TYPE=api
 
 # Database (if dependency declared)
 DATABASE_URL=postgresql://user-api-db:5432/user_api

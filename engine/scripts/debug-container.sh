@@ -19,7 +19,7 @@ show_help() {
 ${GREEN}Container Debug Helper${NC}
 
 ${BLUE}Usage:${NC}
-  $0 [OPTIONS] [SERVICE_NAME]
+  $0 [OPTIONS] [RESOURCE_NAME]
 
 ${BLUE}Options:${NC}
   -l, --list              List all running containers with their status
@@ -77,11 +77,11 @@ list_containers() {
 
 # Get container ID from service name
 get_container_id() {
-    local service_name="$1"
-    local container_id=$(docker ps -aq --filter "name=${service_name}" | head -n1)
+    local resource_name="$1"
+    local container_id=$(docker ps -aq --filter "name=${resource_name}" | head -n1)
     
     if [ -z "$container_id" ]; then
-        echo -e "${RED}Error: No container found for service '${service_name}'${NC}" >&2
+        echo -e "${RED}Error: No container found for service '${resource_name}'${NC}" >&2
         echo -e "${YELLOW}Tip: Run '$0 --list' to see available containers${NC}" >&2
         return 1
     fi
@@ -91,10 +91,10 @@ get_container_id() {
 
 # Start interactive shell
 start_shell() {
-    local service_name="$1"
-    local container_id=$(get_container_id "$service_name") || return 1
+    local resource_name="$1"
+    local container_id=$(get_container_id "$resource_name") || return 1
     
-    echo -e "${GREEN}Starting interactive shell in ${service_name}...${NC}"
+    echo -e "${GREEN}Starting interactive shell in ${resource_name}...${NC}"
     echo -e "${BLUE}Container ID: ${container_id}${NC}"
     echo ""
     
@@ -108,11 +108,11 @@ start_shell() {
 
 # Run specific command
 run_command() {
-    local service_name="$1"
+    local resource_name="$1"
     local command="$2"
-    local container_id=$(get_container_id "$service_name") || return 1
+    local container_id=$(get_container_id "$resource_name") || return 1
     
-    echo -e "${GREEN}Running command in ${service_name}:${NC} ${command}"
+    echo -e "${GREEN}Running command in ${resource_name}:${NC} ${command}"
     echo -e "${BLUE}Container ID: ${container_id}${NC}"
     echo ""
     
@@ -134,7 +134,7 @@ show_failed() {
 
 # Quick diagnostics menu
 diagnostics_menu() {
-    local service_name="$1"
+    local resource_name="$1"
     
     echo -e "${GREEN}=== Quick Diagnostics Menu ===${NC}"
     echo "1) Check network connectivity"
@@ -150,26 +150,26 @@ diagnostics_menu() {
     case $choice in
         1)
             echo -e "${BLUE}Testing network connectivity...${NC}"
-            run_command "$service_name" "nc -zv registry.npmjs.org 443 && nc -zv TDK Landscape-verdaccio 4873"
+            run_command "$resource_name" "nc -zv registry.npmjs.org 443 && nc -zv TDK Landscape-verdaccio 4873"
             ;;
         2)
             echo -e "${BLUE}Viewing configuration files...${NC}"
-            run_command "$service_name" "echo '=== package.json ===' && cat package.json && echo '' && echo '=== .npmrc ===' && cat .npmrc && echo '' && echo '=== bunfig.toml ===' && cat bunfig.toml"
+            run_command "$resource_name" "echo '=== package.json ===' && cat package.json && echo '' && echo '=== .npmrc ===' && cat .npmrc && echo '' && echo '=== bunfig.toml ===' && cat bunfig.toml"
             ;;
         3)
             echo -e "${BLUE}Testing bun installation (dry-run)...${NC}"
-            run_command "$service_name" "bun install --verbose --dry-run"
+            run_command "$resource_name" "bun install --verbose --dry-run"
             ;;
         4)
             echo -e "${BLUE}Checking disk space and cache...${NC}"
-            run_command "$service_name" "df -h && echo '' && echo '=== Cache ===' && ls -lh /cache/bun && echo '' && echo '=== node_modules ===' && ls -lh node_modules | head -20"
+            run_command "$resource_name" "df -h && echo '' && echo '=== Cache ===' && ls -lh /cache/bun && echo '' && echo '=== node_modules ===' && ls -lh node_modules | head -20"
             ;;
         5)
             echo -e "${BLUE}Environment variables:${NC}"
-            run_command "$service_name" "env | sort"
+            run_command "$resource_name" "env | sort"
             ;;
         6)
-            start_shell "$service_name"
+            start_shell "$resource_name"
             ;;
         q|Q)
             exit 0
@@ -183,7 +183,7 @@ diagnostics_menu() {
 # Main script logic
 main() {
     local action=""
-    local service_name=""
+    local resource_name=""
     local command=""
     local verbose=false
     
@@ -196,7 +196,7 @@ main() {
                 ;;
             -s|--shell)
                 action="shell"
-                service_name="$2"
+                resource_name="$2"
                 shift 2
                 ;;
             -f|--failed)
@@ -216,8 +216,8 @@ main() {
                 exit 0
                 ;;
             *)
-                if [ -z "$service_name" ]; then
-                    service_name="$1"
+                if [ -z "$resource_name" ]; then
+                    resource_name="$1"
                     action="menu"
                 fi
                 shift
@@ -232,16 +232,16 @@ main() {
             ;;
         shell)
             if [ -n "$command" ]; then
-                run_command "$service_name" "$command"
+                run_command "$resource_name" "$command"
             else
-                start_shell "$service_name"
+                start_shell "$resource_name"
             fi
             ;;
         failed)
             show_failed
             ;;
         menu)
-            diagnostics_menu "$service_name"
+            diagnostics_menu "$resource_name"
             ;;
         "")
             echo -e "${YELLOW}No action specified. Use --help for usage information.${NC}"

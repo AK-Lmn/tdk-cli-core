@@ -29,7 +29,7 @@ TDK CLI combines everything needed for local microservice development using a cl
 
 ```
 📁 Project (1 per repo)
-├── ⚙️  TILT_SERVICE_DEFAULTS.star   # Ports, health checks, memory
+├── ⚙️  TILT_RESOURCE_DEFAULTS.star   # Ports, health checks, memory
 ├── 🔧 TILT_TECH_STACK.star          # Bun, Vite, Prisma, NATS
 │
 └── 📦 Stacks (deployment groups)
@@ -161,7 +161,7 @@ TDK Project Configuration
 
 Project root: /my-project
 
-✓ TILT_SERVICE_DEFAULTS.star created
+✓ TILT_RESOURCE_DEFAULTS.star created
 ✓ TILT_TECH_STACK.star created
 
 ✅ Project configuration complete!
@@ -216,7 +216,7 @@ tdk projects --check    # CI validation
 ```
 
 **Creates:**
-- ⚙️ `TILT_SERVICE_DEFAULTS.star` — Platform config (ports 3000-3999 frontend, 4000-4999 backend, health checks, memory limits)
+- ⚙️ `TILT_RESOURCE_DEFAULTS.star` — Platform config (ports 3000-3999 frontend, 4000-4999 backend, health checks, memory limits)
 - 🔧 `TILT_TECH_STACK.star` — Tech stack lock (Bun v1.2, Vite v5, Prisma v7, NATS v2)
 
 ---
@@ -352,7 +352,7 @@ load('ext://tdk-cli', 'Determinism')
 files = Determinism.deterministic_find('./services', 'service.json')
 
 # Deterministic service discovery
-services = Determinism.deterministic_service_discovery(['services/product'])
+services = Determinism.deterministic_resource_discovery(['services/product'])
 ```
 
 ### 🔍 Environment Validation

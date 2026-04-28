@@ -89,7 +89,7 @@ export const Errors = {
   masterConfigMissing: () => new TdkError(
     'Master configuration files are missing',
     [
-      'Run `tdk project` to create TILT_SERVICE_DEFAULTS.star and TILT_TECH_STACK.star',
+      'Run `tdk project` to create TILT_RESOURCE_DEFAULTS.star and TILT_TECH_STACK.star',
       'These files control platform-wide settings like port ranges and tech stack'
     ]
   ),

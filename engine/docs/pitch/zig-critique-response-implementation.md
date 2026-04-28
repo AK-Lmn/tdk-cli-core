@@ -56,8 +56,8 @@ def build_explicit_context(manifest, all_services):
     return struct(
         # EXPLICIT: Every field declared here
         manifest = manifest,
-        service_name = manifest.get("appName"),
-        resource_path = SPEC.SERVICES_DIR + "/" + manifest.get("appName"),
+        resource_name = manifest.get("appName"),
+        resource_path = SPEC.RESOURCES_DIR + "/" + manifest.get("appName"),
         port = manifest.get("port"),
         dependencies = resolve_explicit_dependencies(
             manifest.get("internalDependencies", []),
@@ -70,7 +70,7 @@ def build_explicit_context(manifest, all_services):
 
 # Usage - NO magic ctx:
 ctx = build_explicit_context(manifest, services)
-print(ctx.service_name)  # Visible field
+print(ctx.resource_name)  # Visible field
 print(ctx.port)         # Visible field
 print(ctx.dependencies) # Visible field
 ```
@@ -104,7 +104,7 @@ FEATURES = struct(
 )
 
 # Honest function name:
-def generate_replica_config(service_name, manifest):
+def generate_replica_config(resource_name, manifest):
     """
     GENERATES replica configuration.
     Kubernetes/Docker Compose MANAGES runtime.
@@ -146,24 +146,24 @@ def generate_replica_config(service_name, manifest):
 
 ```starlark
 # BEFORE: Runtime path discovery (non-hermetic)
-resource_path = discover_resource_path(service_name)  # Where does this look?
+resource_path = discover_resource_path(resource_name)  # Where does this look?
 
 # AFTER: EXPLICIT paths in spec.master (hermetic-ish)
 SPEC = struct(
     ROOT = PROJECT_ROOT,  # EXPLICIT root
-    SERVICES_DIR = PROJECT_ROOT + "/services",  # EXPLICIT path
+    RESOURCES_DIR = PROJECT_ROOT + "/services",  # EXPLICIT path
     TOPOLOGIES = struct(
         BASE = PROJECT_ROOT + "/.tilt/topologies",  # EXPLICIT
     ),
 )
 
 # Function using explicit paths:
-def get_resource_path(service_name):
+def get_resource_path(resource_name):
     """
     Path is CONSTRUCTED from constants.
     Same input → same output. Deterministic.
     """
-    return SPEC.SERVICES_DIR + "/product/" + service_name
+    return SPEC.RESOURCES_DIR + "/product/" + resource_name
 
 # EXPLICIT output location:
 OUTPUT = struct(
@@ -171,12 +171,12 @@ OUTPUT = struct(
     CONFIGS = PROJECT_ROOT + "/.tilt/output/configs",
 )
 
-def get_output_path(service_name, filename):
+def get_output_path(resource_name, filename):
     """
     Output path is EXPLICIT.
     No mystery file locations.
     """
-    return OUTPUT.CONFIGS + "/" + service_name + "/" + filename
+    return OUTPUT.CONFIGS + "/" + resource_name + "/" + filename
 ```
 
 **Result:**
@@ -366,12 +366,12 @@ load("{}/.tilt/spec.master".format(PROJECT_ROOT),
 load(SPEC.DISCOVERY.REGISTRY, "get_app_services")
 
 # EXPLICIT: Where services live
-print("Searching in: {}".format(SPEC.SERVICES_DIR))
-services = get_app_services(search_paths=DISCOVERY.SERVICE_SEARCH_PATHS)
+print("Searching in: {}".format(SPEC.RESOURCES_DIR))
+services = get_app_services(search_paths=DISCOVERY.RESOURCE_SEARCH_PATHS)
 
 for svc in services:
     # EXPLICIT: Path construction
-    manifest_path = svc.path + "/" + SERVICE_PATTERNS.MANIFEST_FILE
+    manifest_path = svc.path + "/" + RESOURCE_PATTERNS.MANIFEST_FILE
     print("Loading: {}".format(manifest_path))
     
     manifest = load_manifest(manifest_path)

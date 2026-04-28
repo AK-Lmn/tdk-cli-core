@@ -33,7 +33,7 @@ ROOT_PATHS = {
 }
 
 # Standard sub-paths for services
-SERVICE_SUBPATHS = [
+RESOURCE_SUBPATHS = [
     "",  # Root service folder
     "database",
     "api-keys",
@@ -196,27 +196,27 @@ def _is_valid_path(path):
 # Path Planning
 # =============================================================================
 
-def _plan_resource_path(service_name, service_type="backend", parent_path=None):
+def _plan_resource_path(resource_name, resource_type="backend", parent_path=None):
     """
     Plan the Infisical path for a service.
     
     Args:
-        service_name: Name of the service
-        service_type: Type of service
+        resource_name: Name of the service
+        resource_type: Type of service
         parent_path: Optional custom parent path (default: /services)
     
     Returns:
         Dict with path plan
     """
     # Normalize service name for path
-    normalized_name = service_name.lower().replace(" ", "-").replace("_", "-")
+    normalized_name = resource_name.lower().replace(" ", "-").replace("_", "-")
     
     # Determine parent path
     if parent_path:
         parent = _normalize_path(parent_path)
-    elif service_type == "platform":
+    elif resource_type == "platform":
         parent = ROOT_PATHS["platform"]
-    elif service_type == "infrastructure":
+    elif resource_type == "infrastructure":
         parent = ROOT_PATHS["infrastructure"]
     else:
         parent = ROOT_PATHS["services"]
@@ -228,22 +228,22 @@ def _plan_resource_path(service_name, service_type="backend", parent_path=None):
     validation = _validate_path(full_path, strict=True)
     
     return {
-        "service_name": service_name,
-        "service_type": service_type,
+        "resource_name": resource_name,
+        "resource_type": resource_type,
         "parent_path": parent,
-        "service_folder": normalized_name,
+        "resource_folder": normalized_name,
         "full_path": validation["normalized"],
         "validation": validation,
-        "subpaths": ["{}/{}".format(validation["normalized"], sub) for sub in SERVICE_SUBPATHS if sub],
+        "subpaths": ["{}/{}".format(validation["normalized"], sub) for sub in RESOURCE_SUBPATHS if sub],
     }
 
-def _plan_batch_resource_paths(service_names, service_type="backend", parent_path=None):
+def _plan_batch_resource_paths(resource_names, resource_type="backend", parent_path=None):
     """
     Plan paths for multiple services.
     
     Args:
-        service_names: List of service names
-        service_type: Default type for all services
+        resource_names: List of service names
+        resource_type: Default type for all services
         parent_path: Optional custom parent path
     
     Returns:
@@ -251,18 +251,18 @@ def _plan_batch_resource_paths(service_names, service_type="backend", parent_pat
     """
     results = {}
     
-    for name in service_names:
-        results[name] = _plan_resource_path(name, service_type, parent_path)
+    for name in resource_names:
+        results[name] = _plan_resource_path(name, resource_type, parent_path)
     
     return results
 
-def _plan_organization_structure(org_name, service_names=None):
+def _plan_organization_structure(org_name, resource_names=None):
     """
     Plan complete organization folder structure.
     
     Args:
         org_name: Organization name
-        service_names: List of service names to create under /services
+        resource_names: List of service names to create under /services
     
     Returns:
         Dict with complete structure plan
@@ -305,8 +305,8 @@ def _plan_organization_structure(org_name, service_names=None):
         }
     
     # Service paths
-    if service_names:
-        structure["services"] = _plan_batch_resource_paths(service_names)
+    if resource_names:
+        structure["services"] = _plan_batch_resource_paths(resource_names)
     
     return structure
 
@@ -431,14 +431,14 @@ KNOWN_RESOURCE_PATHS = {
     "nats-connector": "/platform/nats-connector",
 }
 
-def _get_known_resource_path(service_name):
+def _get_known_resource_path(resource_name):
     """Get predefined path for a known service."""
-    return KNOWN_RESOURCE_PATHS.get(service_name)
+    return KNOWN_RESOURCE_PATHS.get(resource_name)
 
-def _register_resource_path(service_name, path):
+def _register_resource_path(resource_name, path):
     """Register a new service path."""
     normalized = _normalize_path(path)
-    KNOWN_RESOURCE_PATHS[service_name] = normalized
+    KNOWN_RESOURCE_PATHS[resource_name] = normalized
     return normalized
 
 # =============================================================================
@@ -472,5 +472,5 @@ PathManager = struct(
     PLATFORM_PATHS=PLATFORM_PATHS,
     SHARED_PATHS=SHARED_PATHS,
     INFRASTRUCTURE_PATHS=INFRASTRUCTURE_PATHS,
-    SERVICE_SUBPATHS=SERVICE_SUBPATHS,
+    RESOURCE_SUBPATHS=RESOURCE_SUBPATHS,
 )

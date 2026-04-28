@@ -26,7 +26,7 @@ const COMMAND_GROUPS = [
     emoji: '📁',
     color: chalk.blue,
     commands: [
-      { name: 'project', desc: 'Initialize master configs (TILT_SERVICE_DEFAULTS.star)', alias: '' },
+      { name: 'project', desc: 'Initialize master configs (TILT_RESOURCE_DEFAULTS.star)', alias: '' },
       { name: 'projects, info', desc: 'Show project information and config status', alias: '' },
     ]
   },

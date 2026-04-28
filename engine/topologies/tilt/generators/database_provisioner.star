@@ -63,7 +63,7 @@ DB_NAME_PREFIX = _PROJECT_NAME + "_"
 # Database Provisioning
 # =============================================================================
 
-def provision_database_for_service(service_name, db_name, db_config=None):
+def provision_database_for_service(resource_name, db_name, db_config=None):
     """
     Generates database provisioning configuration for a service.
     
@@ -84,14 +84,14 @@ def provision_database_for_service(service_name, db_name, db_config=None):
         full_db_name = db_name
     
     # Generate service-specific user (consistent with constants.star)
-    service_user = PlatformDockerConstants.PROJECT_NAME
+    resource_user = PlatformDockerConstants.PROJECT_NAME
     # ⚠️ SECURITY: No default password - must be provided via DB_PASSWORD env var
-    service_password = "${DB_PASSWORD}"
+    resource_password = "${DB_PASSWORD}"
     
     # Docker Compose entry
     compose_entry = {
         "image": "postgres:16-alpine",
-        "container_name": _PROJECT_NAME_HYPHEN + "-{}-db".format(service_name.replace("_", "-")),
+        "container_name": _PROJECT_NAME_HYPHEN + "-{}-db".format(resource_name.replace("_", "-")),
         "environment": {
             "POSTGRES_DB": full_db_name,
             "POSTGRES_USER": config["superuser"],
@@ -123,26 +123,26 @@ WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '{db_name}')\\gexec
 -- Create service user if not exists
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '{service_user}') THEN
-        CREATE USER {service_user} WITH PASSWORD '{service_password}';
+    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '{resource_user}') THEN
+        CREATE USER {resource_user} WITH PASSWORD '{resource_password}';
     END IF;
 END
 $$;
 
 -- Grant privileges
-GRANT ALL PRIVILEGES ON DATABASE {db_name} TO {service_user};
+GRANT ALL PRIVILEGES ON DATABASE {db_name} TO {resource_user};
 
 -- Connect to database and grant schema privileges
 \\c {db_name};
 
-GRANT ALL ON SCHEMA public TO {service_user};
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO {service_user};
+GRANT ALL ON SCHEMA public TO {resource_user};
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO {resource_user};
 '''.format(
-        service=service_name,
+        service=resource_name,
         timestamp=_get_timestamp(),
         db_name=full_db_name,
-        service_user=service_user,
-        service_password=service_password,
+        resource_user=resource_user,
+        resource_password=resource_password,
     )
     
     # Connection strings
@@ -155,15 +155,15 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO {service_user};
             full_db_name
         ),
         "service": "postgresql://{}:{}@{}:{}/{}".format(
-            service_user,
-            service_password,
+            resource_user,
+            resource_password,
             config["host"],
             config["port"],
             full_db_name
         ),
         "migrator": "postgresql://{}:{}@{}:{}/{}?schema=public".format(
-            service_user,
-            service_password,
+            resource_user,
+            resource_password,
             config["host"],
             config["port"],
             full_db_name
@@ -171,16 +171,16 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO {service_user};
     }
     
     return struct(
-        service_name=service_name,
+        resource_name=resource_name,
         db_name=full_db_name,
         compose_entry=compose_entry,
         setup_sql=setup_sql,
         connection_strings=connection_strings,
-        service_user=service_user,
-        service_password=service_password,
+        resource_user=resource_user,
+        resource_password=resource_password,
     )
 
-def generate_database_provisioning_resource(service_name, db_name, db_config=None, write_fn=None):
+def generate_database_provisioning_resource(resource_name, db_name, db_config=None, write_fn=None):
     """
     Generates all files needed for database provisioning.
     
@@ -190,7 +190,7 @@ def generate_database_provisioning_resource(service_name, db_name, db_config=Non
       - db-connection-strings.txt
       - db-provision.sh (provisioning script)
     """
-    provisioning = provision_database_for_service(service_name, db_name, db_config)
+    provisioning = provision_database_for_service(resource_name, db_name, db_config)
     
     files = {}
     
@@ -205,7 +205,7 @@ def generate_database_provisioning_resource(service_name, db_name, db_config=Non
 # Generated: {timestamp}
 
 SUPERUSER_URL={superuser}
-SERVICE_URL={service_url}
+RESOURCE_URL={resource_url}
 MIGRATOR_URL={migrator}
 
 # Individual components
@@ -215,16 +215,16 @@ DB_NAME={db_name}
 DB_USER={user}
 DB_PASSWORD={password}
 '''.format(
-        service=service_name,
+        service=resource_name,
         timestamp=_get_timestamp(),
         superuser=provisioning.connection_strings["superuser"],
-        service_url=provisioning.connection_strings["service"],
+        resource_url=provisioning.connection_strings["service"],
         migrator=provisioning.connection_strings["migrator"],
         host=(db_config or DEFAULT_DB_CONFIG)["host"],
         port=(db_config or DEFAULT_DB_CONFIG)["port"],
         db_name=provisioning.db_name,
-        user=provisioning.service_user,
-        password=provisioning.service_password,
+        user=provisioning.resource_user,
+        password=provisioning.resource_password,
     )
     files["db-connection-strings.txt"] = connection_strings_content
     
@@ -242,8 +242,8 @@ DB_HOST="{host}"
 DB_PORT="{port}"
 SUPERUSER="{superuser}"
 SUPERUSER_PASSWORD="{superuser_password}"
-SERVICE_USER="{service_user}"
-SERVICE_PASSWORD="{service_password}"
+RESOURCE_USER="{resource_user}"
+RESOURCE_PASSWORD="{resource_password}"
 
 # Wait for PostgreSQL to be ready
 echo "⏳ Waiting for PostgreSQL at $DB_HOST:$DB_PORT..."
@@ -266,12 +266,12 @@ else
 fi
 
 # Create service user
-echo "👤 Creating service user $SERVICE_USER..."
+echo "👤 Creating service user $RESOURCE_USER..."
 PGPASSWORD=$SUPERUSER_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $SUPERUSER -c "
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '$SERVICE_USER') THEN
-        CREATE USER $SERVICE_USER WITH PASSWORD '$SERVICE_PASSWORD';
+    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '$RESOURCE_USER') THEN
+        CREATE USER $RESOURCE_USER WITH PASSWORD '$RESOURCE_PASSWORD';
         RAISE NOTICE 'User created';
     ELSE
         RAISE NOTICE 'User already exists';
@@ -282,30 +282,30 @@ $;
 
 # Grant privileges
 echo "🔐 Granting privileges..."
-PGPASSWORD=$SUPERUSER_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $SUPERUSER -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $SERVICE_USER;"
+PGPASSWORD=$SUPERUSER_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $SUPERUSER -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $RESOURCE_USER;"
 
 # Set up schema privileges
 PGPASSWORD=$SUPERUSER_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $SUPERUSER -d $DB_NAME -c "
-GRANT ALL ON SCHEMA public TO $SERVICE_USER;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO $SERVICE_USER;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO $SERVICE_USER;
+GRANT ALL ON SCHEMA public TO $RESOURCE_USER;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO $RESOURCE_USER;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO $RESOURCE_USER;
 "
 
 echo "✅ Database provisioning complete for {service}"
 echo ""
 echo "Connection string:"
-echo "  {service_url}"
+echo "  {resource_url}"
 '''.format(
-        service=service_name,
+        service=resource_name,
         timestamp=_get_timestamp(),
         db_name=provisioning.db_name,
         host=(db_config or DEFAULT_DB_CONFIG)["host"],
         port=(db_config or DEFAULT_DB_CONFIG)["port"],
         superuser=(db_config or DEFAULT_DB_CONFIG)["superuser"],
         superuser_password=(db_config or DEFAULT_DB_CONFIG)["superuser_password"],
-        service_user=provisioning.service_user,
-        service_password=provisioning.service_password,
-        service_url=provisioning.connection_strings["service"],
+        resource_user=provisioning.resource_user,
+        resource_password=provisioning.resource_password,
+        resource_url=provisioning.connection_strings["service"],
     )
     files["db-provision.sh"] = provision_script
     
@@ -323,7 +323,7 @@ echo "  {service_url}"
 # Database Validation
 # =============================================================================
 
-def validate_database_credentials(service_name, db_name, connection_string, db_config=None):
+def validate_database_credentials(resource_name, db_name, connection_string, db_config=None):
     """
     Validates that database credentials work.
     
@@ -387,19 +387,19 @@ def validate_database_credentials(service_name, db_name, connection_string, db_c
     return struct(
         is_valid=is_valid,
         errors=errors,
-        service_name=service_name,
+        resource_name=resource_name,
         db_name=db_name,
     )
 
-def generate_database_validation_report(service_name, db_name, connection_string, db_config=None, write_fn=None):
+def generate_database_validation_report(resource_name, db_name, connection_string, db_config=None, write_fn=None):
     """
     Generates a validation report for database credentials.
     """
-    result = validate_database_credentials(service_name, db_name, connection_string, db_config)
+    result = validate_database_credentials(resource_name, db_name, connection_string, db_config)
     
     report = {
         "timestamp": _get_timestamp(),
-        "service": service_name,
+        "service": resource_name,
         "database": db_name,
         "status": "VALID" if result.is_valid else "INVALID",
         "errors": result.errors if not result.is_valid else [],
@@ -409,7 +409,7 @@ def generate_database_validation_report(service_name, db_name, connection_string
         write_fn("db-credentials-validation.json", Utils.encode_json(report))
     
     if not result.is_valid:
-        print("⚠️  Database Credential Validation Failed for {}".format(service_name))
+        print("⚠️  Database Credential Validation Failed for {}".format(resource_name))
         for error in result.errors:
             print("   ❌ {}: {}".format(error["type"], error["message"]))
     
@@ -419,7 +419,7 @@ def generate_database_validation_report(service_name, db_name, connection_string
 # Database Readiness Check (for entrypoint)
 # =============================================================================
 
-def generate_db_readiness_script(service_name, db_url, timeout=_discovery_config["db_readiness_timeout_seconds"]):
+def generate_db_readiness_script(resource_name, db_url, timeout=_discovery_config["db_readiness_timeout_seconds"]):
     """
     Generates a shell script that waits for database to be ready.
     
@@ -472,13 +472,13 @@ while true; do
     sleep 2
 done
 '''.format(
-        service=service_name,
+        service=resource_name,
         timestamp=_get_timestamp(),
         db_url=db_url,
         timeout=timeout,
     )
 
-def generate_prisma_migrate_script(service_name, db_url, schema_path="./prisma/schema.prisma"):
+def generate_prisma_migrate_script(resource_name, db_url, schema_path="./prisma/schema.prisma"):
     """
     Generates a script that runs Prisma migrations.
     
@@ -519,7 +519,7 @@ fi
 
 echo "✅ Migrations complete for {service}"
 '''.format(
-        service=service_name,
+        service=resource_name,
         timestamp=_get_timestamp(),
         db_url=db_url,
         schema_path=schema_path,
@@ -536,7 +536,7 @@ def provision_all_databases(services, db_config=None, write_fn=None):
     Iterates through all services, finds ones with databaseName in manifest,
     and generates provisioning configs for each.
     
-    Returns: dict of {service_name: provisioning_config}
+    Returns: dict of {resource_name: provisioning_config}
     """
     provisioning = {}
     
@@ -545,17 +545,17 @@ def provision_all_databases(services, db_config=None, write_fn=None):
         db_name = manifest.get("databaseName", "")
         
         if db_name:
-            service_name = service.get("name", manifest.get("appName", "unknown"))
+            resource_name = service.get("name", manifest.get("appName", "unknown"))
             resource_path = service.get("path", "")
             
             config = generate_database_provisioning_resource(
-                service_name,
+                resource_name,
                 db_name,
                 db_config,
                 None,  # Don't write yet, collect all first
             )
             
-            provisioning[service_name] = config
+            provisioning[resource_name] = config
     
     # Write master report
     master_report = {
@@ -568,10 +568,10 @@ def provision_all_databases(services, db_config=None, write_fn=None):
         write_fn("database-provisioning-master.json", Utils.encode_json(master_report))
         
         # Write individual configs
-        for service_name, config in provisioning.items():
-            service_dir = "provisioning/{}/".format(service_name)
+        for resource_name, config in provisioning.items():
+            resource_dir = "provisioning/{}/".format(resource_name)
             for filename, content in config.files.items():
-                write_fn(service_dir + filename, content)
+                write_fn(resource_dir + filename, content)
     
     # Print summary
     print("")
@@ -580,9 +580,9 @@ def provision_all_databases(services, db_config=None, write_fn=None):
     print("╠══════════════════════════════════════════════════════════════╣")
     print("║  Databases to Provision: {:<35} ║".format(len(provisioning)))
     print("╠══════════════════════════════════════════════════════════════╣")
-    for service_name, config in provisioning.items():
+    for resource_name, config in provisioning.items():
         db_name = config.provisioning.db_name
-        print("║  • {:<25} → {:<25} ║".format(service_name, db_name))
+        print("║  • {:<25} → {:<25} ║".format(resource_name, db_name))
     print("╚══════════════════════════════════════════════════════════════╝")
     print("")
     

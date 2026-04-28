@@ -17,7 +17,7 @@ Validators Architecture:
   3. db_readiness_validator - Validates database credentials before startup
   4. package_publish_validator - Ensures shared packages are published
   5. env_var_validator - Validates all required environment variables
-  6. service_health_validator - Pre-flight health checks
+  6. resource_health_validator - Pre-flight health checks
   7. shared_package_copier - Copies shared packages to Docker context
 """
 
@@ -48,7 +48,7 @@ def validate_docker_path_aliases(resource_path, manifest, library_roots):
     warnings = []
     fixes = []
     
-    service_name = manifest.get("appName", "unknown")
+    resource_name = manifest.get("appName", "unknown")
     app_type = manifest.get("appType", "backend")
     
     # Check if this is a frontend service (most affected)
@@ -69,7 +69,7 @@ def validate_docker_path_aliases(resource_path, manifest, library_roots):
             if internal_deps:
                 warnings.append({
                     "level": "error",
-                    "message": "Frontend '{}' has internal deps that will fail Docker build".format(service_name),
+                    "message": "Frontend '{}' has internal deps that will fail Docker build".format(resource_name),
                     "details": "The following packages use path aliases that won't resolve in Docker:",
                     "packages": internal_deps,
                     "impact": "Build will fail with 'Module not found' errors",
@@ -93,7 +93,7 @@ def validate_docker_path_aliases(resource_path, manifest, library_roots):
         is_valid=is_valid,
         warnings=warnings,
         fixes=fixes,
-        service_name=service_name,
+        resource_name=resource_name,
     )
 
 def generate_docker_path_validation_report(resource_path, manifest, write_fn=None):
@@ -106,7 +106,7 @@ def generate_docker_path_validation_report(resource_path, manifest, write_fn=Non
     if not result.is_valid:
         report = {
             "timestamp": "now",
-            "service": result.service_name,
+            "service": result.resource_name,
             "status": "FAILED",
             "warnings": result.warnings,
             "fixes": result.fixes,
@@ -117,7 +117,7 @@ def generate_docker_path_validation_report(resource_path, manifest, write_fn=Non
             write_fn("docker-path-validation.json", Utils.encode_json(report))
         
         # Also print to Tilt UI
-        print("⚠️  Docker Path Validation Failed for {}".format(result.service_name))
+        print("⚠️  Docker Path Validation Failed for {}".format(result.resource_name))
         for warning in result.warnings:
             print("   ❌ {}: {}".format(warning["level"].upper(), warning["message"]))
         for fix in result.fixes:
@@ -125,7 +125,7 @@ def generate_docker_path_validation_report(resource_path, manifest, write_fn=Non
         
         return report
     
-    return {"status": "PASSED", "service": result.service_name}
+    return {"status": "PASSED", "service": result.resource_name}
 
 # =============================================================================
 # 2. Dependency Graph Validator
@@ -148,7 +148,7 @@ def validate_dependency_graph(resource_path, manifest, all_services):
     missing_deps = []
     warnings = []
     
-    service_name = manifest.get("appName", "unknown")
+    resource_name = manifest.get("appName", "unknown")
     
     # Check package.json dependencies
     package_json_path = resource_path + "/package.json"
@@ -209,7 +209,7 @@ def validate_dependency_graph(resource_path, manifest, all_services):
     return struct(
         is_valid=is_valid,
         missing_deps=missing_deps,
-        service_name=service_name,
+        resource_name=resource_name,
     )
 
 def generate_dependency_validation_report(resource_path, manifest, all_services, write_fn=None):
@@ -221,7 +221,7 @@ def generate_dependency_validation_report(resource_path, manifest, all_services,
     if not result.is_valid:
         report = {
             "timestamp": "now",
-            "service": result.service_name,
+            "service": result.resource_name,
             "status": "FAILED",
             "missing_dependencies": result.missing_deps,
             "recommendation": "Create missing libraries or update dependencies",
@@ -230,7 +230,7 @@ def generate_dependency_validation_report(resource_path, manifest, all_services,
         if write_fn:
             write_fn("dependency-validation.json", Utils.encode_json(report))
         
-        print("⚠️  Dependency Validation Failed for {}".format(result.service_name))
+        print("⚠️  Dependency Validation Failed for {}".format(result.resource_name))
         for dep in result.missing_deps:
             print("   ❌ Missing {}: {} (from {})".format(
                 dep["type"], dep["name"], dep["source"]
@@ -238,13 +238,13 @@ def generate_dependency_validation_report(resource_path, manifest, all_services,
         
         return report
     
-    return {"status": "PASSED", "service": result.service_name}
+    return {"status": "PASSED", "service": result.resource_name}
 
 # =============================================================================
 # 3. Database Readiness Validator
 # =============================================================================
 
-def validate_database_readiness(service_name, db_name, db_config):
+def validate_database_readiness(resource_name, db_name, db_config):
     """
     Validates database configuration before service startup.
     
@@ -303,19 +303,19 @@ def validate_database_readiness(service_name, db_name, db_config):
         is_valid=is_valid,
         connection_string=connection_string,
         errors=errors,
-        service_name=service_name,
+        resource_name=resource_name,
     )
 
-def generate_db_readiness_check(service_name, db_name, db_config, write_fn=None):
+def generate_db_readiness_check(resource_name, db_name, db_config, write_fn=None):
     """
     Generates database readiness validation and entrypoint script.
     """
-    result = validate_database_readiness(service_name, db_name, db_config)
+    result = validate_database_readiness(resource_name, db_name, db_config)
     
     if not result.is_valid:
         report = {
             "timestamp": "now",
-            "service": service_name,
+            "service": resource_name,
             "status": "FAILED",
             "errors": result.errors,
             "recommendation": "Fix database configuration in manifest",
@@ -324,7 +324,7 @@ def generate_db_readiness_check(service_name, db_name, db_config, write_fn=None)
         if write_fn:
             write_fn("db-readiness-validation.json", Utils.encode_json(report))
         
-        print("⚠️  Database Validation Failed for {}".format(service_name))
+        print("⚠️  Database Validation Failed for {}".format(resource_name))
         for error in result.errors:
             print("   ❌ {}: {}".format(error["field"], error["error"]))
         
@@ -336,7 +336,7 @@ def generate_db_readiness_check(service_name, db_name, db_config, write_fn=None)
     
     return {
         "status": "PASSED",
-        "service": service_name,
+        "service": resource_name,
         "connection_string": result.connection_string,
     }
 
@@ -361,7 +361,7 @@ def validate_package_publishing(resource_path, manifest, verdaccio_url):
     unpublished = []
     version_mismatches = []
     
-    service_name = manifest.get("appName", "unknown")
+    resource_name = manifest.get("appName", "unknown")
     
     package_json_path = resource_path + "/package.json"
     if not os.path.exists(package_json_path):
@@ -369,7 +369,7 @@ def validate_package_publishing(resource_path, manifest, verdaccio_url):
             is_valid=True,
             unpublished_packages=[],
             version_mismatches=[],
-            service_name=service_name,
+            resource_name=resource_name,
         )
     
     package_json = read_json(package_json_path)
@@ -418,7 +418,7 @@ def validate_package_publishing(resource_path, manifest, verdaccio_url):
         is_valid=is_valid,
         unpublished_packages=unpublished,
         version_mismatches=version_mismatches,
-        service_name=service_name,
+        resource_name=resource_name,
     )
 
 def generate_package_publish_report(resource_path, manifest, verdaccio_url, write_fn=None):
@@ -430,7 +430,7 @@ def generate_package_publish_report(resource_path, manifest, verdaccio_url, writ
     if not result.is_valid or result.version_mismatches:
         report = {
             "timestamp": "now",
-            "service": result.service_name,
+            "service": result.resource_name,
             "status": "WARNING" if not result.is_valid else "VERSION_MISMATCH",
             "unpublished_packages": result.unpublished_packages,
             "version_mismatches": result.version_mismatches,
@@ -441,12 +441,12 @@ def generate_package_publish_report(resource_path, manifest, verdaccio_url, writ
             write_fn("package-publish-validation.json", Utils.encode_json(report))
         
         if not result.is_valid:
-            print("⚠️  Package Publishing Validation Failed for {}".format(result.service_name))
+            print("⚠️  Package Publishing Validation Failed for {}".format(result.resource_name))
             for pkg in result.unpublished_packages:
                 print("   ❌ Package not found: {}".format(pkg))
         
         if result.version_mismatches:
-            print("⚠️  Version Mismatches for {}".format(result.service_name))
+            print("⚠️  Version Mismatches for {}".format(result.resource_name))
             for mismatch in result.version_mismatches:
                 print("   ⚡ {}: requested {} but local is {}".format(
                     mismatch["package"],
@@ -456,7 +456,7 @@ def generate_package_publish_report(resource_path, manifest, verdaccio_url, writ
         
         return report
     
-    return {"status": "PASSED", "service": result.service_name}
+    return {"status": "PASSED", "service": result.resource_name}
 
 # =============================================================================
 # 5. Environment Variable Validator
@@ -478,7 +478,7 @@ def validate_environment_variables(resource_path, manifest, required_vars):
     missing_vars = []
     env_files = []
     
-    service_name = manifest.get("appName", "unknown")
+    resource_name = manifest.get("appName", "unknown")
     
     # Check for .env files
     for env_file in [".env", ".env.local", ".env.docker"]:
@@ -500,7 +500,7 @@ def validate_environment_variables(resource_path, manifest, required_vars):
         is_valid=is_valid,
         missing_vars=missing_vars,
         env_files=env_files,
-        service_name=service_name,
+        resource_name=resource_name,
     )
 
 def generate_env_validation_report(resource_path, manifest, required_vars, write_fn=None):
@@ -512,7 +512,7 @@ def generate_env_validation_report(resource_path, manifest, required_vars, write
     if not result.is_valid:
         report = {
             "timestamp": "now",
-            "service": result.service_name,
+            "service": result.resource_name,
             "status": "FAILED",
             "missing_variables": result.missing_vars,
             "env_files_found": result.env_files,
@@ -522,7 +522,7 @@ def generate_env_validation_report(resource_path, manifest, required_vars, write
         if write_fn:
             write_fn("env-validation.json", Utils.encode_json(report))
         
-        print("⚠️  Environment Variable Validation Failed for {}".format(result.service_name))
+        print("⚠️  Environment Variable Validation Failed for {}".format(result.resource_name))
         for var in result.missing_vars:
             print("   ❌ Missing: {}".format(var))
         
@@ -530,7 +530,7 @@ def generate_env_validation_report(resource_path, manifest, required_vars, write
     
     return {
         "status": "PASSED",
-        "service": result.service_name,
+        "service": result.resource_name,
         "env_files": result.env_files,
     }
 
@@ -538,7 +538,7 @@ def generate_env_validation_report(resource_path, manifest, required_vars, write
 # 6. Service Health Pre-Flight Validator
 # =============================================================================
 
-def generate_service_health_check(service_name, resource_path, manifest, checks):
+def generate_resource_health_check(resource_name, resource_path, manifest, checks):
     """
     Generates a comprehensive pre-flight health check script.
     
@@ -599,22 +599,22 @@ echo "🔍 Running pre-flight health checks for {}..."
 
 echo "✅ All health checks passed for {}"
 '''.format(
-        service_name,
+        resource_name,
         "now",
-        service_name,
+        resource_name,
         "\n".join(health_checks),
-        service_name
+        resource_name
     )
     
     return script
 
-def generate_health_check_resource(resource_path, service_name, manifest, write_fn=None):
+def generate_health_check_resource(resource_path, resource_name, manifest, write_fn=None):
     """
     Generates health check files and optionally writes them.
     """
     checks = {}  # Could be expanded with more check types
     
-    script = generate_service_health_check(service_name, resource_path, manifest, checks)
+    script = generate_resource_health_check(resource_name, resource_path, manifest, checks)
     
     if write_fn:
         write_fn("health-check.sh", script)
@@ -638,7 +638,7 @@ def generate_shared_package_copy_list(resource_path, manifest):
     """
     packages_to_copy = []
     
-    service_name = manifest.get("appName", "unknown")
+    resource_name = manifest.get("appName", "unknown")
     
     package_json_path = resource_path + "/package.json"
     if not os.path.exists(package_json_path):
@@ -791,7 +791,7 @@ def run_all_validations(resource_path, manifest, all_services, global_config, wr
         write_fn("validation-master-report.json", Utils.encode_json(master_report))
     
     # Print compact validation summary
-    service_name = manifest.get("appName", "unknown")
+    resource_name = manifest.get("appName", "unknown")
     
     # Build compact validation summary - only show failures prominently
     failed_validations = []
@@ -811,10 +811,10 @@ def run_all_validations(resource_path, manifest, all_services, global_config, wr
     # Print compact summary
     if all_valid:
         # All passed - just show summary line
-        print("✅ {}: {} validations passed".format(service_name, passed_count))
+        print("✅ {}: {} validations passed".format(resource_name, passed_count))
     else:
         # Some failed - show service and failures
-        print("❌ {}: {} validation(s) failed".format(service_name, len(failed_validations)))
+        print("❌ {}: {} validation(s) failed".format(resource_name, len(failed_validations)))
         for failed in failed_validations:
             print("  ❌ {}".format(failed))
     

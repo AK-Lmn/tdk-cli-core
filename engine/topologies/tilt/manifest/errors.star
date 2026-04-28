@@ -41,7 +41,7 @@ ERROR_MESSAGES = {
     'DEPENDENCY_NOT_FOUND': 'Dependency {dependency} not found for service {service}',
     'CIRCULAR_DEPENDENCY': 'Circular dependency detected: {path}',
     'PORT_CONFLICT': 'Port {port} is already used by service {existing_service}',
-    'DUPLICATE_SERVICE_NAME': 'Duplicate service name: {name}',
+    'DUPLICATE_RESOURCE_NAME': 'Duplicate service name: {name}',
     'INVALID_APP_TYPE': 'Invalid app type {appType} for service {service}',
     'MISSING_BACKEND': 'Frontend {service} is missing backendName field',
     'MISSING_DATABASE': 'Service {service} has prisma feature but no databaseName',

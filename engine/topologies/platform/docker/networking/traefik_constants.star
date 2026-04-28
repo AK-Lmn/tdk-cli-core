@@ -27,7 +27,7 @@ TRAEFIK_CONFIG = {
     "enable_strip_prefix": True,
     "localhost_suffix": ".localhost",
     "healthcheck_retries": 3,
-    "service_startup_delay": "30s",
+    "resource_startup_delay": "30s",
     "startup_grace_period": "30s",
     "response_timeout": "30s",
     "connection_timeout": "10s",
@@ -90,12 +90,12 @@ TRAEFIK_FRONTEND_PRIORITY_BASE = TRAEFIK_CONFIG["frontend_priority_base"]
 # =============================================================================
 # STORY 4 FIX: Health check configuration with 30-second grace period
 # =============================================================================
-# From TILT_SERVICE_DEFAULTS.star - centralized configuration
+# From TILT_RESOURCE_DEFAULTS.star - centralized configuration
 # Health check configuration - optimized to prevent 504s on startup
 TRAEFIK_HEALTHCHECK_RETRIES = TRAEFIK_CONFIG["healthcheck_retries"]
 
 # STORY 4 FIX: 30-second grace period (matches issue requirement)
-TRAEFIK_SERVICE_STARTUP_DELAY = TRAEFIK_CONFIG["service_startup_delay"]
+TRAEFIK_RESOURCE_STARTUP_DELAY = TRAEFIK_CONFIG["resource_startup_delay"]
 TRAEFIK_HEALTHY_THRESHOLD = TRAEFIK_CONFIG["retry_attempts"]
 TRAEFIK_MIDDLEWARE_SUFFIX = TRAEFIK_CONFIG["strip_prefix_middleware_suffix"]
 

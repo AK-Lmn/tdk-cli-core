@@ -30,14 +30,14 @@ ENTRYPOINT_SOURCE = "shared-platform-engineering/docker-templates/infisical-entr
 # Runtime Secret Injection (L4 Runtime Layers)
 # =============================================================================
 
-def _runtime_setup(service_name, secret_path=None, service_type="backend", command="bun run start", use_entrypoint=True):
+def _runtime_setup(resource_name, secret_path=None, resource_type="backend", command="bun run start", use_entrypoint=True):
     """
     Generate Dockerfile snippet for Infisical runtime setup.
     
     Args:
-        service_name: Name of the service
-        secret_path: Infisical path (default: auto-generated from service_name)
-        service_type: Type of service (backend, frontend, worker, etc.)
+        resource_name: Name of the service
+        secret_path: Infisical path (default: auto-generated from resource_name)
+        resource_type: Type of service (backend, frontend, worker, etc.)
         command: Command to run after secret injection
         use_entrypoint: Whether to use entrypoint.sh (default: True)
     
@@ -46,14 +46,14 @@ def _runtime_setup(service_name, secret_path=None, service_type="backend", comma
     """
     # Auto-generate secret path if not provided
     if not secret_path:
-        path_plan = _Paths.plan_resource_path(service_name, service_type)
+        path_plan = _Paths.plan_resource_path(resource_name, resource_type)
         secret_path = path_plan["full_path"]
     
     # Generate configuration using the Starlark generator
     config = _Secrets.generate_for_service(
-        service_name=service_name,
+        resource_name=resource_name,
         secret_path=secret_path,
-        service_type=service_type,
+        resource_type=resource_type,
         command=command,
     )
     
@@ -74,8 +74,8 @@ def _runtime_setup(service_name, secret_path=None, service_type="backend", comma
             else:
                 parts.append("ENV {}=\"{}\"\n".format(key, value))
         
-        # Set SERVICE_NAME explicitly
-        parts.append("ENV SERVICE_NAME={}\n".format(service_name))
+        # Set RESOURCE_NAME explicitly
+        parts.append("ENV RESOURCE_NAME={}\n".format(resource_name))
         
         # Set entrypoint
         parts.append("ENTRYPOINT [\"{}\"]\n".format(ENTRYPOINT_PATH))
@@ -92,27 +92,27 @@ def _runtime_setup(service_name, secret_path=None, service_type="backend", comma
     
     return "".join(parts)
 
-def _runtime_setup_simple(service_name, use_entrypoint=True):
+def _runtime_setup_simple(resource_name, use_entrypoint=True):
     """
     Simple runtime setup using known service configuration.
     
     Args:
-        service_name: Name of the service
+        resource_name: Name of the service
         use_entrypoint: Whether to use entrypoint.sh
     
     Returns:
         String with Dockerfile commands
     """
     # Try to get known path
-    secret_path = _Paths.get_known_resource_path(service_name)
+    secret_path = _Paths.get_known_resource_path(resource_name)
     
     if not secret_path:
         # Plan a new path
-        path_plan = _Paths.plan_resource_path(service_name)
+        path_plan = _Paths.plan_resource_path(resource_name)
         secret_path = path_plan["full_path"]
     
     return _runtime_setup(
-        service_name=service_name,
+        resource_name=resource_name,
         secret_path=secret_path,
         use_entrypoint=use_entrypoint,
     )
@@ -153,29 +153,29 @@ def _builder_setup(use_infisical=True, use_golden=True):
 # Environment Variable Generation (for docker-compose)
 # =============================================================================
 
-def _generate_compose_env(service_name, secret_path=None, service_type="backend", additional_vars=None):
+def _generate_compose_env(resource_name, secret_path=None, resource_type="backend", additional_vars=None):
     """
     Generate environment variables for docker-compose.
     
     Args:
-        service_name: Name of the service
+        resource_name: Name of the service
         secret_path: Infisical path
-        service_type: Type of service
+        resource_type: Type of service
         additional_vars: Additional environment variables
     
     Returns:
         Dict of environment variables for docker-compose
     """
     if not secret_path:
-        secret_path = _Paths.get_known_resource_path(service_name)
+        secret_path = _Paths.get_known_resource_path(resource_name)
         if not secret_path:
-            path_plan = _Paths.plan_resource_path(service_name, service_type)
+            path_plan = _Paths.plan_resource_path(resource_name, resource_type)
             secret_path = path_plan["full_path"]
     
     config = _Secrets.generate_for_service(
-        service_name=service_name,
+        resource_name=resource_name,
         secret_path=secret_path,
-        service_type=service_type,
+        resource_type=resource_type,
     )
     
     env = config["docker_compose"]["environment"]
@@ -189,40 +189,40 @@ def _generate_compose_env(service_name, secret_path=None, service_type="backend"
 # Secret Path Resolution (for Prisma/migrators)
 # =============================================================================
 
-def _resolve_secret_path(service_name, default_subpath="/database"):
+def _resolve_secret_path(resource_name, default_subpath="/database"):
     """
     Resolve the secret path for database operations.
     
     Args:
-        service_name: Name of the service
+        resource_name: Name of the service
         default_subpath: Default subpath for database secrets
     
     Returns:
         String with the full secret path
     """
-    base_path = _Paths.get_known_resource_path(service_name)
+    base_path = _Paths.get_known_resource_path(resource_name)
     
     if not base_path:
-        path_plan = _Paths.plan_resource_path(service_name)
+        path_plan = _Paths.plan_resource_path(resource_name)
         base_path = path_plan["full_path"]
     
     return "{}{}".format(base_path, default_subpath)
 
-def _generate_migrator_env(service_name, db_name=None):
+def _generate_migrator_env(resource_name, db_name=None):
     """
     Generate environment variables for database migrator.
     
     Args:
-        service_name: Name of the service
+        resource_name: Name of the service
         db_name: Database name (optional)
     
     Returns:
         Dict of environment variables
     """
-    secret_path = _resolve_secret_path(service_name)
+    secret_path = _resolve_secret_path(resource_name)
     
     env = {
-        "SERVICE_NAME": service_name,
+        "RESOURCE_NAME": resource_name,
         "INFISICAL_SECRET_PATH": secret_path,
         "INFISICAL_TOKEN": "${INFISICAL_TOKEN:-}",
         "INFISICAL_CLIENT_ID": "${INFISICAL_CLIENT_ID:-}",

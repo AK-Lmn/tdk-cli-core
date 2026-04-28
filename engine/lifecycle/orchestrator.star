@@ -20,7 +20,7 @@ HEALTH_CHECK_PATH = "/health"
 
 load('../topologies/platform/docker/networking/traefik_constants.star',
     'TRAEFIK_STARTUP_GRACE_PERIOD',
-    'TRAEFIK_SERVICE_STARTUP_DELAY',
+    'TRAEFIK_RESOURCE_STARTUP_DELAY',
     'TRAEFIK_HEALTHY_THRESHOLD',
     'TRAEFIK_HEALTHCHECK_INTERVAL',
     'TRAEFIK_HEALTHCHECK_TIMEOUT',
@@ -77,18 +77,18 @@ GRACE_PERIOD_CONFIG = {
 # 🚀 STARTUP SEQUENCING FUNCTIONS
 # =============================================================================
 
-def get_service_phase(service_name, service_config):
+def get_resource_phase(resource_name, resource_config):
     """Determine which startup phase a service belongs to."""
     # Check if it's an infrastructure service
-    if service_name in STARTUP_PHASES['infra']:
+    if resource_name in STARTUP_PHASES['infra']:
         return 'infra'
     
     # Check if it's a proxy service
-    if service_name in STARTUP_PHASES['proxy']:
+    if resource_name in STARTUP_PHASES['proxy']:
         return 'proxy'
     
     # Check if service has migrator
-    resources = service_config.get('resources', [])
+    resources = resource_config.get('resources', [])
     for res in resources:
         if 'migrator' in res.get('name', ''):
             return 'migrators'
@@ -97,17 +97,17 @@ def get_service_phase(service_name, service_config):
     return 'apps'
 
 
-def get_grace_period_config(service_type):
+def get_grace_period_config(resource_type):
     """Get grace period configuration for a service type."""
-    return GRACE_PERIOD_CONFIG.get(service_type, GRACE_PERIOD_CONFIG['backend'])
+    return GRACE_PERIOD_CONFIG.get(resource_type, GRACE_PERIOD_CONFIG['backend'])
 
 
-def calculate_total_startup_time(service_type):
+def calculate_total_startup_time(resource_type):
     """
     Calculate total time for a service to be considered healthy.
     Formula: start_period + (retries * interval) + buffer
     """
-    config = get_grace_period_config(service_type)
+    config = get_grace_period_config(resource_type)
     start_period_seconds = _parse_duration(config['start_period'])
     interval_seconds = _parse_duration(config['interval'])
     retries = config['retries']
@@ -139,12 +139,12 @@ def _parse_duration(duration_str):
 # 🔍 HEALTH CHECK ORCHESTRATION
 # =============================================================================
 
-def get_health_check_config(service_name, service_type='backend', port=3000):
+def get_health_check_config(resource_name, resource_type='backend', port=3000):
     """
     Generate health check configuration for a service.
     Ensures proper sequencing to prevent 504 errors.
     """
-    config = get_grace_period_config(service_type)
+    config = get_grace_period_config(resource_type)
     
     return {
         'test': ['CMD', 'curl', '-f', '--max-time', '5', 
@@ -157,17 +157,17 @@ def get_health_check_config(service_name, service_type='backend', port=3000):
     }
 
 
-def get_traefik_health_check_labels(service_name, health_path=HEALTH_CHECK_PATH):
+def get_traefik_health_check_labels(resource_name, health_path=HEALTH_CHECK_PATH):
     """
     Generate Traefik health check labels for load balancer.
     These ensure Traefik only routes to healthy services.
     """
     return {
-        'traefik.http.services.{}.loadbalancer.healthcheck.path'.format(service_name): health_path,
-        'traefik.http.services.{}.loadbalancer.healthcheck.interval'.format(service_name): TRAEFIK_HEALTHCHECK_INTERVAL,
-        'traefik.http.services.{}.loadbalancer.healthcheck.timeout'.format(service_name): TRAEFIK_HEALTHCHECK_TIMEOUT,
+        'traefik.http.services.{}.loadbalancer.healthcheck.path'.format(resource_name): health_path,
+        'traefik.http.services.{}.loadbalancer.healthcheck.interval'.format(resource_name): TRAEFIK_HEALTHCHECK_INTERVAL,
+        'traefik.http.services.{}.loadbalancer.healthcheck.timeout'.format(resource_name): TRAEFIK_HEALTHCHECK_TIMEOUT,
         # Disable health check initially during startup grace period
-        'traefik.http.services.{}.loadbalancer.healthcheck.disable'.format(service_name): 'false',
+        'traefik.http.services.{}.loadbalancer.healthcheck.disable'.format(resource_name): 'false',
     }
 
 
@@ -175,13 +175,13 @@ def get_traefik_health_check_labels(service_name, health_path=HEALTH_CHECK_PATH)
 # ⏱️ STARTUP DELAY AND SYNCHRONIZATION
 # =============================================================================
 
-def get_startup_delay(service_type='backend'):
+def get_startup_delay(resource_type='backend'):
     """Get the startup delay for a service type before it receives traffic."""
-    config = get_grace_period_config(service_type)
+    config = get_grace_period_config(resource_type)
     return config['startup_delay']
 
 
-def should_wait_for_dependencies(service_config):
+def should_wait_for_dependencies(resource_config):
     """
     Determine if a service should wait for dependencies before starting.
     Returns list of dependencies to wait for.
@@ -189,7 +189,7 @@ def should_wait_for_dependencies(service_config):
     dependencies = []
     
     # Check for database dependency
-    resources = service_config.get('resources', [])
+    resources = resource_config.get('resources', [])
     for res in resources:
         manifest = res.get('_manifest', {})
         if manifest.get('databaseName') or manifest.get('features', []).count('prisma') > 0:
@@ -210,12 +210,12 @@ def should_wait_for_dependencies(service_config):
 # 🎯 SERVICE READINESS CHECKS
 # =============================================================================
 
-def is_service_ready(service_name, service_config):
+def is_resource_ready(resource_name, resource_config):
     """
     Check if a service is ready to receive traffic.
     Used by Tilt resource_deps to sequence service startup.
     """
-    phase = get_service_phase(service_name, service_config)
+    phase = get_resource_phase(resource_name, resource_config)
     
     # Infrastructure services must be healthy first
     if phase == 'infra':
@@ -239,7 +239,7 @@ def is_service_ready(service_name, service_config):
 
 Orchestrator = struct(
     # Phase detection
-    get_service_phase=get_service_phase,
+    get_resource_phase=get_resource_phase,
     
     # Grace period configuration
     get_grace_period_config=get_grace_period_config,
@@ -252,7 +252,7 @@ Orchestrator = struct(
     # Startup synchronization
     get_startup_delay=get_startup_delay,
     should_wait_for_dependencies=should_wait_for_dependencies,
-    is_service_ready=is_service_ready,
+    is_resource_ready=is_resource_ready,
     
     # Constants
     STARTUP_PHASES=STARTUP_PHASES,

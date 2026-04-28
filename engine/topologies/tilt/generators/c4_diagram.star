@@ -174,7 +174,7 @@ def generate_c4_model(services):
             },
             "borders": {
                 "show_stack_boundaries": True,
-                "show_service_boundaries": True,
+                "show_resource_boundaries": True,
                 "border_radius": 8,
                 "shadow": True
             },

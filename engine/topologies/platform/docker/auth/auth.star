@@ -15,7 +15,7 @@
 # Default values for auth configuration
 DEFAULT_AUTH_MODE = 'local-jwt'
 DEFAULT_JWT_SECRET = 'local-development-secret-min-32-chars-long'
-DEFAULT_IDENTITY_SERVICE_URL = 'http://identity-service:3000'
+DEFAULT_IDENTITY_RESOURCE_URL = 'http://identity-service:3000'
 
 
 def get_auth_mode(auth_config):
@@ -46,7 +46,7 @@ def get_jwt_secret(auth_config):
     return auth_config.get('jwtSecret', DEFAULT_JWT_SECRET)
 
 
-def get_identity_service_url(auth_config):
+def get_identity_resource_url(auth_config):
     """Get identity service URL from auth config with default fallback.
 
     Args:
@@ -56,8 +56,8 @@ def get_identity_service_url(auth_config):
         str: URL for identity service
     """
     if not auth_config:
-        return DEFAULT_IDENTITY_SERVICE_URL
-    return auth_config.get('identityServiceUrl', DEFAULT_IDENTITY_SERVICE_URL)
+        return DEFAULT_IDENTITY_RESOURCE_URL
+    return auth_config.get('identityServiceUrl', DEFAULT_IDENTITY_RESOURCE_URL)
 
 
 def get_auth_config(auth_config):
@@ -67,12 +67,12 @@ def get_auth_config(auth_config):
         auth_config: Auth configuration dictionary (may be None or empty)
 
     Returns:
-        struct: Auth configuration with mode, jwt_secret, and identity_service_url
+        struct: Auth configuration with mode, jwt_secret, and identity_resource_url
     """
     return struct(
         mode = get_auth_mode(auth_config),
         jwt_secret = get_jwt_secret(auth_config),
-        identity_service_url = get_identity_service_url(auth_config),
+        identity_resource_url = get_identity_resource_url(auth_config),
     )
 
 
@@ -88,7 +88,7 @@ def is_local_jwt_mode(auth_config):
     return get_auth_mode(auth_config) == 'local-jwt'
 
 
-def is_identity_service_mode(auth_config):
+def is_identity_resource_mode(auth_config):
     """Check if auth mode is identity-service.
 
     Args:
@@ -114,14 +114,14 @@ def generate_docker_compose_auth_env(auth_config):
     """
     auth_mode = get_auth_mode(auth_config)
     jwt_secret = get_jwt_secret(auth_config)
-    identity_service_url = get_identity_service_url(auth_config)
+    identity_resource_url = get_identity_resource_url(auth_config)
 
     if auth_mode == 'local-jwt':
         return """      - AUTH_MODE=local-jwt
       - JWT_SECRET=${JWT_SECRET:-%(jwt_secret)s}""" % {'jwt_secret': jwt_secret}
     else:
         return """      - AUTH_MODE=identity-service
-      - IDENTITY_SERVICE_URL=${IDENTITY_SERVICE_URL:-%(identity_service_url)s}""" % {'identity_service_url': identity_service_url}
+      - IDENTITY_RESOURCE_URL=${IDENTITY_RESOURCE_URL:-%(identity_resource_url)s}""" % {'identity_resource_url': identity_resource_url}
 
 
 def generate_env_file_auth_section(auth_config):
@@ -138,7 +138,7 @@ def generate_env_file_auth_section(auth_config):
     """
     auth_mode = get_auth_mode(auth_config)
     jwt_secret = get_jwt_secret(auth_config)
-    identity_service_url = get_identity_service_url(auth_config)
+    identity_resource_url = get_identity_resource_url(auth_config)
 
     content = """
 # Authentication Configuration
@@ -149,7 +149,7 @@ AUTH_MODE={auth_mode}
     if auth_mode == 'local-jwt':
         content += "JWT_SECRET={jwt_secret}\n".format(jwt_secret=jwt_secret)
     else:
-        content += "IDENTITY_SERVICE_URL={identity_service_url}\n".format(identity_service_url=identity_service_url)
+        content += "IDENTITY_RESOURCE_URL={identity_resource_url}\n".format(identity_resource_url=identity_resource_url)
 
     return content
 
@@ -158,10 +158,10 @@ AUTH_MODE={auth_mode}
 AuthConfig = struct(
     get_auth_mode = get_auth_mode,
     get_jwt_secret = get_jwt_secret,
-    get_identity_service_url = get_identity_service_url,
+    get_identity_resource_url = get_identity_resource_url,
     get_auth_config = get_auth_config,
     is_local_jwt_mode = is_local_jwt_mode,
-    is_identity_service_mode = is_identity_service_mode,
+    is_identity_resource_mode = is_identity_resource_mode,
     generate_docker_compose_auth_env = generate_docker_compose_auth_env,
     generate_env_file_auth_section = generate_env_file_auth_section,
 )

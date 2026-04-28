@@ -16,11 +16,11 @@
 # In your Tiltfile or topology module:
 #
 # load("{}/spec.master".format(PROJECT_ROOT),
-# "SERVICE_DEFAULTS",
-# "PRE_ALPHA_SERVICES",
-# "ALPHA_SERVICES",
-# "BETA_SERVICES",
-# "OUT_OF_SCOPE_SERVICES",
+# "RESOURCE_DEFAULTS",
+# "PRE_ALPHA_RESOURCES",
+# "ALPHA_RESOURCES",
+# "BETA_RESOURCES",
+# "OUT_OF_SCOPE_RESOURCES",
 # "FOCUS_PRE_ALPHA",
 # "FOCUS_ALPHA",
 # "FOCUS_BETA",
@@ -39,7 +39,7 @@
 # =============================================================================
 # Core infrastructure and identity - minimal footprint for rapid development
 
-PRE_ALPHA_SERVICES = {
+PRE_ALPHA_RESOURCES = {
 {{#each stacks.pre_alpha.services}}
 "{{this}}": True, # {{lookup ../serviceDescriptions this}}
 {{/each}}
@@ -50,7 +50,7 @@ PRE_ALPHA_SERVICES = {
 # =============================================================================
 # Essential business services for alpha launch.
 
-ALPHA_SERVICES = {
+ALPHA_RESOURCES = {
 {{#each stacks.alpha.services}}
 "{{this}}": False, # {{lookup ../serviceDescriptions this}}
 {{/each}}
@@ -61,7 +61,7 @@ ALPHA_SERVICES = {
 # =============================================================================
 # Additional services for beta release.
 
-BETA_SERVICES = {
+BETA_RESOURCES = {
 {{#each stacks.beta.services}}
 "{{this}}": False, # {{lookup ../serviceDescriptions this}}
 {{/each}}
@@ -73,18 +73,18 @@ BETA_SERVICES = {
 # These services are excluded from discovery/loading entirely.
 # To enable, remove from this list and add to appropriate stack above.
 
-OUT_OF_SCOPE_SERVICES = [
+OUT_OF_SCOPE_RESOURCES = [
 {{#each stacks.out_of_scope.services}}
 "{{this}}", # {{lookup ../serviceDescriptions this}}
 {{/each}}
 ]
 
 # =============================================================================
-# 🔧 OPTIONAL INFRASTRUCTURE SERVICES
+# 🔧 OPTIONAL INFRASTRUCTURE RESOURCES
 # =============================================================================
 # High-resource infrastructure - enable only when needed
 
-OPTIONAL_INFRA_SERVICES = {
+OPTIONAL_INFRA_RESOURCES = {
 {{#each optionalInfra}}
 "{{@key}}": {{starlark this}}, # {{lookup ../infraDescriptions @key}}
 {{/each}}
@@ -96,22 +96,22 @@ OPTIONAL_INFRA_SERVICES = {
 # Merges all service configs for easy access
 
 DEFAULTS = {}
-DEFAULTS.update(PRE_ALPHA_SERVICES)
-DEFAULTS.update(ALPHA_SERVICES)
-DEFAULTS.update(BETA_SERVICES)
-DEFAULTS.update(OPTIONAL_INFRA_SERVICES)
+DEFAULTS.update(PRE_ALPHA_RESOURCES)
+DEFAULTS.update(ALPHA_RESOURCES)
+DEFAULTS.update(BETA_RESOURCES)
+DEFAULTS.update(OPTIONAL_INFRA_RESOURCES)
 
 # Backward compatibility alias
-SERVICE_DEFAULTS = DEFAULTS
+RESOURCE_DEFAULTS = DEFAULTS
 
 # =============================================================================
 # 🎯 FOCUS FILTERS (for CLI --focus parameter)
 # =============================================================================
 # Predefined service groups for easy startup
 
-FOCUS_PRE_ALPHA = list(PRE_ALPHA_SERVICES.keys())
-FOCUS_ALPHA = list(PRE_ALPHA_SERVICES.keys()) + list(ALPHA_SERVICES.keys())
-FOCUS_BETA = list(PRE_ALPHA_SERVICES.keys()) + list(ALPHA_SERVICES.keys()) + list(BETA_SERVICES.keys())
+FOCUS_PRE_ALPHA = list(PRE_ALPHA_RESOURCES.keys())
+FOCUS_ALPHA = list(PRE_ALPHA_RESOURCES.keys()) + list(ALPHA_RESOURCES.keys())
+FOCUS_BETA = list(PRE_ALPHA_RESOURCES.keys()) + list(ALPHA_RESOURCES.keys()) + list(BETA_RESOURCES.keys())
 
 # =============================================================================
 # 📁 PATH OVERRIDES
@@ -119,7 +119,7 @@ FOCUS_BETA = list(PRE_ALPHA_SERVICES.keys()) + list(ALPHA_SERVICES.keys()) + lis
 
 SPEC_OVERRIDE = struct(
 DISCOVERY = struct(
-SERVICE_PATTERNS = {{starlarkArray discovery.paths}},
+RESOURCE_PATTERNS = {{starlarkArray discovery.paths}},
 ),
 
 OUTPUT = struct(
@@ -167,13 +167,13 @@ BETA = FOCUS_BETA,
 # =============================================================================
 
 __all__ = [
-"SERVICE_DEFAULTS",
+"RESOURCE_DEFAULTS",
 "DEFAULTS",
-"PRE_ALPHA_SERVICES",
-"ALPHA_SERVICES",
-"BETA_SERVICES",
-"OUT_OF_SCOPE_SERVICES",
-"OPTIONAL_INFRA_SERVICES",
+"PRE_ALPHA_RESOURCES",
+"ALPHA_RESOURCES",
+"BETA_RESOURCES",
+"OUT_OF_SCOPE_RESOURCES",
+"OPTIONAL_INFRA_RESOURCES",
 "FOCUS_PRE_ALPHA",
 "FOCUS_ALPHA",
 "FOCUS_BETA",

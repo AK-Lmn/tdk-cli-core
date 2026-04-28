@@ -13,7 +13,7 @@ Total .star files: 140
 ### Hardcoded Port Numbers Found:
 - 3000, 4000 in manifest/constants.star (PORT_RANGES - should use master config)
 - 3000 in lifecycle/orchestrator.star (identity service URL)
-- 3000 in platform/docker/auth/auth.star (DEFAULT_IDENTITY_SERVICE_URL)
+- 3000 in platform/docker/auth/auth.star (DEFAULT_IDENTITY_RESOURCE_URL)
 - 3000 in platform/docker/compose/compose.star (internal port)
 - 3000 in platform/docker/generators/golden_docker_generator_v2.star (default param)
 - 3000 in platform/services/synthetic-monitor.star (SYNTHETIC_MONITOR_PORT)

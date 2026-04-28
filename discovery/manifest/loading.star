@@ -18,7 +18,7 @@ load('../../engine/topologies/tilt/manifest/constants.star',
      'MANIFEST_DEPRECATION_WARNING')
 load('../../engine/topologies/tilt/common/utils.star', 'Utils')
 load('../../engine/topologies/platform/docker/constants.star', 'PlatformDockerConstants')
-load('../../specs/specs/TILT_SERVICE_DEFAULTS.star', 'BASE_PORT_FRONTEND', 'BASE_PORT_BACKEND', 'HEALTH_CHECK_PATH')
+load('../../specs/specs/TILT_RESOURCE_DEFAULTS.star', 'BASE_PORT_FRONTEND', 'BASE_PORT_BACKEND', 'HEALTH_CHECK_PATH')
 
 # Environment variable to disable deprecation warnings
 _DISABLE_WARNINGS = os.environ.get('TDK_DISABLE_MANIFEST_WARNINGS', '') == 'true'

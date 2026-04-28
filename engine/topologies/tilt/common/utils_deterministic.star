@@ -50,7 +50,7 @@ def deterministic_find(path, pattern):
         return result.split('\n')
     return []
 
-def deterministic_service_discovery(scan_roots):
+def deterministic_resource_discovery(scan_roots):
     """Deterministically discover services across all scan roots.
     
     Args:
@@ -159,7 +159,7 @@ def validate_deterministic_env():
 Determinism = struct(
     is_deterministic_mode=is_deterministic_mode,
     deterministic_find=deterministic_find,
-    deterministic_service_discovery=deterministic_service_discovery,
+    deterministic_resource_discovery=deterministic_resource_discovery,
     deterministic_local=deterministic_local,
     sort_resources_by_name=sort_resources_by_name,
     get_deterministic_env=get_deterministic_env,

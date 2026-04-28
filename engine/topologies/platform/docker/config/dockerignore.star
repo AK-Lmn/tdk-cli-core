@@ -124,7 +124,7 @@ dist
 """
 
 
-def generate_dockerignore(res_path, service_type='backend'):
+def generate_dockerignore(res_path, resource_type='backend'):
     """
     Generate .dockerignore file for a service.
     """
@@ -133,16 +133,16 @@ def generate_dockerignore(res_path, service_type='backend'):
         'dockerignore',
         'Docker.generate_dockerignore()',
         res_path.split('/')[-1],
-        service_type.upper()
+        resource_type.upper()
     )
 
     # Start with common rules
     content = header + _get_common_dockerignore_rules()
 
     # Add service-specific rules
-    if service_type == 'frontend':
+    if resource_type == 'frontend':
         content += _get_frontend_specific_rules()
-    elif service_type == 'migrator':
+    elif resource_type == 'migrator':
         content += _get_migrator_specific_rules()
     else:  # backend
         content += _get_backend_specific_rules()

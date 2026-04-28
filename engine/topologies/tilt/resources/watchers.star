@@ -25,7 +25,7 @@ def setup_package_json_watchers(services, should_enable):
     Tilt will automatically trigger config regeneration.
     
     Args:
-        services: List of APP_SERVICES from registry
+        services: List of APP_RESOURCES from registry
         should_enable: Function that takes service name and returns bool
     """
     watched_paths = []

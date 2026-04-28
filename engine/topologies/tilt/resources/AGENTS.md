@@ -31,7 +31,7 @@ lib_resources = create_lib_resources(ctx, library_map)
 ### Create database resource
 ```starlark
 load("./dbs.star", "create_db_resources")
-db_resources = create_db_resources(ctx, service_name, db_name)
+db_resources = create_db_resources(ctx, resource_name, db_name)
 ```
 
 ### Full orchestration

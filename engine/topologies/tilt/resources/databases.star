@@ -26,7 +26,7 @@ load('../../platform/docker/constants.star', 'PlatformDockerConstants')
 # 🗃️ DATABASE PROVISIONING
 # =============================================================================
 
-def provision_database(service_name, db_name=None):
+def provision_database(resource_name, db_name=None):
     """
     Ensures a logical database exists in the shared PostgreSQL container.
     
@@ -34,18 +34,18 @@ def provision_database(service_name, db_name=None):
     instead of 120 separate containers consuming 32GB+ RAM on Mac M1/M2.
     
     Args:
-        service_name: Service name (e.g., 'users', 'orders')
-        db_name: Optional custom database name (defaults to TDK_{service_name})
+        resource_name: Service name (e.g., 'users', 'orders')
+        db_name: Optional custom database name (defaults to TDK_{resource_name})
     
     Returns:
         local_resource for the database provisioning task
     """
     if db_name == None:
-      db_name = PlatformDockerConstants.get_db_name(service_name)
+      db_name = PlatformDockerConstants.get_db_name(resource_name)
     db_name = db_name.replace('-', '_')
     
-    resource_name = 'provision-db-' + service_name
-    if db_name != PlatformDockerConstants.get_db_name(service_name):
+    resource_name = 'provision-db-' + resource_name
+    if db_name != PlatformDockerConstants.get_db_name(resource_name):
       resource_name = 'provision-db-' + db_name.replace(PlatformDockerConstants.PROJECT_NAME + '_', '')
     
     # Check if Docker is available before trying to use it
@@ -67,7 +67,7 @@ echo "🗃️ ══════════════════════
 if ! command -v docker &> /dev/null; then
     echo "⚠️  Docker not available in this environment"
     echo "📝 Assuming database $DB_NAME is already provisioned..."
-    echo "🎉 Database $DB_NAME is ready for service {service_name}!"
+    echo "🎉 Database $DB_NAME is ready for service {resource_name}!"
     exit 0
 fi
 
@@ -106,11 +106,11 @@ echo ""
 echo "📊 DATABASE VIRTUALIZATION STATUS:"
 docker exec $DB_HOST psql -U $DB_USER -d $MASTER_DB -c "SELECT datname as database, pg_size_pretty(pg_database_size(datname)) as size FROM pg_database WHERE datname LIKE '{db_prefix}%' ORDER BY datname;" || true
 echo ""
-echo "🎉 Database $DB_NAME is ready for service {service_name}!"
+echo "🎉 Database $DB_NAME is ready for service {resource_name}!"
 echo "🗃️ ═══════════════════════════════════════════════════════════════"
 """.format(
         db_name=db_name,
-        service_name=service_name,
+        resource_name=resource_name,
         db_user=PlatformDockerConstants.DB_USER,
         db_host=PlatformDockerConstants.DB_HOST,
         db_prefix=PlatformDockerConstants.PROJECT_NAME + '_',
@@ -126,19 +126,19 @@ echo "🗃️ ══════════════════════
     )
 
 
-def get_database_url(service_name, db_name=None):
+def get_database_url(resource_name, db_name=None):
     """
     Generate DATABASE_URL for a service.
     
     Args:
-        service_name: Service name
+        resource_name: Service name
         db_name: Optional custom database name
     
     Returns:
         PostgreSQL connection URL
     """
     if db_name == None:
-      db_name = PlatformDockerConstants.get_db_name(service_name)
+      db_name = PlatformDockerConstants.get_db_name(resource_name)
     db_name = db_name.replace('-', '_')
     
     return PlatformDockerConstants.get_database_url_for_env(db_name)

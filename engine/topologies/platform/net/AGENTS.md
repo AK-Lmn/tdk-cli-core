@@ -20,7 +20,7 @@ Traefik reverse proxy, networking configuration, and service routing.
 ```starlark
 load("./proxy.star", "generate_traefik_labels")
 labels = generate_traefik_labels(
-    service_name="order-management-backend",
+    resource_name="order-management-backend",
     port=4000,
     host="order.backend.{project}.localhost",
     path_prefix="/api/orders"

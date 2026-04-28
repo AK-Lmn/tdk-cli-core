@@ -54,7 +54,7 @@ GOLDEN_L4_FRONTEND_IMAGE = _docker_cfg.get('golden_l4_frontend_image', _GOLDEN_P
 _docker_health = get_docker_healthcheck_config()
 
 
-def L4_generate_backend_runtime(res_path, port = BASE_PORT_BACKEND, cmd = 'bun run start', use_infisical = True, service_name = 'service', use_golden = True, has_prisma_config = False, manifest = None):
+def L4_generate_backend_runtime(res_path, port = BASE_PORT_BACKEND, cmd = 'bun run start', use_infisical = True, resource_name = 'service', use_golden = True, has_prisma_config = False, manifest = None):
     """
     Generate the backend runtime layer for deployed services.
     
@@ -63,7 +63,7 @@ def L4_generate_backend_runtime(res_path, port = BASE_PORT_BACKEND, cmd = 'bun r
         port: Port to expose (default: BASE_PORT_BACKEND from master config)
         cmd: Command to run (default: 'bun run start')
         use_infisical: Enable Infisical secret management (default: True)
-        service_name: Service name for logging and configuration (default: 'service')
+        resource_name: Service name for logging and configuration (default: 'service')
         use_golden: Whether to use golden L4-backend image (default: True)
         has_prisma_config: Whether service has Prisma config (default: False)
         manifest: Service manifest dict for feature detection (default: None)
@@ -130,9 +130,9 @@ def L4_generate_backend_runtime(res_path, port = BASE_PORT_BACKEND, cmd = 'bun r
         # Use InfisicalDocker generator for proper secret injection setup
         # This uses Starlark generators instead of hardcoded values
         infisical_setup = InfisicalDocker.runtime_setup(
-            service_name=service_name,
-            secret_path=None,  # Auto-generate from service_name
-            service_type="backend",
+            resource_name=resource_name,
+            secret_path=None,  # Auto-generate from resource_name
+            resource_type="backend",
             command=cmd,
             use_entrypoint=True,
         )

@@ -253,7 +253,7 @@ def resolve_deps(manifest, ctx):
     
     # Verify existence
     for dep in deps:
-        if dep not in ctx.all_service_names:
+        if dep not in ctx.all_resource_names:
             raise ConfigError(f"Unknown: {dep}")
     
     # Detect cycles

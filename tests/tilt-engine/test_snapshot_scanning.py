@@ -40,7 +40,7 @@ class TestSnapshotScanning:
         # Import and test
         import sys
         sys.path.insert(0, str(Path("discovery").resolve()))
-        from service_snapshot import get_current_resources
+        from resource_snapshot import get_current_resources
         
         # Change to temp directory for scanning
         original_dir = os.getcwd()
@@ -73,7 +73,7 @@ class TestSnapshotScanning:
         
         import sys
         sys.path.insert(0, str(Path("discovery").resolve()))
-        from service_snapshot import get_current_resources
+        from resource_snapshot import get_current_resources
         
         original_dir = os.getcwd()
         os.chdir(temp_dir)
@@ -107,7 +107,7 @@ class TestSnapshotScanning:
         
         import sys
         sys.path.insert(0, str(Path("discovery").resolve()))
-        from service_snapshot import get_current_resources
+        from resource_snapshot import get_current_resources
         
         original_dir = os.getcwd()
         os.chdir(temp_dir)

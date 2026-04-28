@@ -96,32 +96,32 @@ return {
 },
 }
 
-def get_service_port(service_type, domain_index=0, service_index=0):
+def get_resource_port(resource_type, domain_index=0, resource_index=0):
 """
 Calculate service port based on type and indices.
 
 Args:
-service_type: "frontend" or "backend"
+resource_type: "frontend" or "backend"
 domain_index: Index of the domain (for port allocation)
-service_index: Index of the service within domain
+resource_index: Index of the service within domain
 
 Returns:
 Port number
 """
-if service_type == "frontend":
+if resource_type == "frontend":
 base = BASE_PORT_FRONTEND
-elif service_type == "backend":
+elif resource_type == "backend":
 base = BASE_PORT_BACKEND
 else:
-fail("Unknown service type: {}".format(service_type))
+fail("Unknown service type: {}".format(resource_type))
 
-# Allocate ports: base + (domain_index * 100) + service_index
-return base + (domain_index * 100) + service_index
+# Allocate ports: base + (domain_index * 100) + resource_index
+return base + (domain_index * 100) + resource_index
 
 # Alias for TDK engine compatibility
-def get_default_port(service_type, domain_index=0, service_index=0):
-"""Alias for get_service_port for TDK engine compatibility."""
-return get_service_port(service_type, domain_index, service_index)
+def get_default_port(resource_type, domain_index=0, resource_index=0):
+"""Alias for get_resource_port for TDK engine compatibility."""
+return get_resource_port(resource_type, domain_index, resource_index)
 
 def get_health_check_config():
 """Returns health check endpoint configuration."""
@@ -156,7 +156,7 @@ return {
 },
 }
 
-def get_service_defaults():
+def get_resource_defaults():
 """Returns complete service defaults."""
 return {
 "port": get_port_config(),
@@ -165,7 +165,7 @@ return {
 "runtime": get_runtime_config(),
 }
 
-def validate_service_defaults(config):
+def validate_resource_defaults(config):
 """
 Validates service configuration against defaults.
 
@@ -199,14 +199,14 @@ if port < 1024: errors.append("Port {} is in reserved range (< 1024)".format(por
     # Export public API
     __all__ = [
     "get_port_config",
-    "get_service_port",
+    "get_resource_port",
     "get_default_port",
     "get_health_check_config",
     "get_filewatch_ignore_patterns",
     "get_build_config",
     "get_runtime_config",
-    "get_service_defaults",
-    "validate_service_defaults",
+    "get_resource_defaults",
+    "validate_resource_defaults",
     "BASE_PORT_FRONTEND",
     "BASE_PORT_BACKEND",
     "BASE_PORT_HEALTH",

@@ -39,14 +39,14 @@ def generate_api_path(stack, app_name):
 # This is populated at runtime from discovered manifests
 # No hardcoded resource names
 
-SERVICE_STACK_TO_API_PATH = {}
+RESOURCE_STACK_TO_API_PATH = {}
 
 # =============================================================================
 # API PATH TO SERVICE MAPPING (Dynamic)
 # =============================================================================
 
-API_PATH_TO_SERVICE_STACK = {}
-API_PATH_TO_SERVICE_DOMAIN = API_PATH_TO_SERVICE_STACK
+API_PATH_TO_RESOURCE_STACK = {}
+API_PATH_TO_RESOURCE_DOMAIN = API_PATH_TO_RESOURCE_STACK
 
 # =============================================================================
 # HELPER FUNCTIONS
@@ -110,7 +110,7 @@ def get_api_path_for_stack(stack, manifest=None):
         return manifest.get("apiPath")
     
     # NEW: Use /api/{stack}-management pattern instead of /api/v1/{pluralized}
-    return SERVICE_STACK_TO_API_PATH.get(stack, "/api/" + stack + "-management")
+    return RESOURCE_STACK_TO_API_PATH.get(stack, "/api/" + stack + "-management")
 
 # Backwards compatibility alias
 get_api_path_for_domain = get_api_path_for_stack
@@ -155,7 +155,7 @@ def get_stack_for_api_path(api_path):
     Returns:
         Service stack string
     """
-    return API_PATH_TO_SERVICE_STACK.get(api_path, "")
+    return API_PATH_TO_RESOURCE_STACK.get(api_path, "")
 
 # Backwards compatibility alias
 get_domain_for_api_path = get_stack_for_api_path
@@ -208,7 +208,7 @@ def get_all_api_paths():
     Returns:
         List of API path strings
     """
-    return SERVICE_DOMAIN_TO_API_PATH.values()
+    return RESOURCE_DOMAIN_TO_API_PATH.values()
 
 def is_valid_api_path(api_path):
     """Checks if an API path is valid/defined.
@@ -219,7 +219,7 @@ def is_valid_api_path(api_path):
     Returns:
         True if valid, False otherwise
     """
-    return api_path in API_PATH_TO_SERVICE_DOMAIN
+    return api_path in API_PATH_TO_RESOURCE_DOMAIN
 
 # =============================================================================
 # LEGACY COMPATIBILITY (Deprecated - for migration only)
@@ -227,4 +227,4 @@ def is_valid_api_path(api_path):
 # All legacy paths removed - use dynamic path generation from manifests
 
 LEGACY_DOMAIN_TO_API_PATH = {}
-SERVICE_DOMAIN_TO_API_PATH = LEGACY_DOMAIN_TO_API_PATH
+RESOURCE_DOMAIN_TO_API_PATH = LEGACY_DOMAIN_TO_API_PATH

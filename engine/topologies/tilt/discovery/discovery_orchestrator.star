@@ -20,10 +20,10 @@ MAX_MANIFESTS_PER_ROOT = 50
 
 
 # Inlined function for pure extension loading
-def get_default_port(service_type, domain_index=0, service_index=0):
-    if service_type == 'frontend':
-        return 3000 + (domain_index * 100) + service_index
-    return 4000 + (domain_index * 100) + service_index
+def get_default_port(resource_type, domain_index=0, resource_index=0):
+    if resource_type == 'frontend':
+        return 3000 + (domain_index * 100) + resource_index
+    return 4000 + (domain_index * 100) + resource_index
 
 
 load("../manifest/parser.star", "extract_stack_from_path")
@@ -36,7 +36,7 @@ load("../manifest/constants.star", "MANIFEST_FILENAME", "MANIFEST_FILENAME_YAML"
 # Phase 1: Use json_manifest_scanner for manifest discovery (enables Phase 2 multi-source discovery)
 load("./json_manifest_scanner.star", "discover_json_manifests")
 load("./constants.star", 
-     "SERVICES_ROOT",
+     "RESOURCES_ROOT",
      "DISCOVERY_SCAN_ROOTS",
      "SCAN_ROOT_PATTERNS",
      "MAX_SCAN_TIMEOUT_MS",
@@ -180,8 +180,8 @@ def initialize_discovery(cache, second_pass=False):
     
     # Populate cache
     cache["app_services"] = services
-    cache["service_dependencies"] = dependencies
-    cache["service_aliases"] = aliases
+    cache["resource_dependencies"] = dependencies
+    cache["resource_aliases"] = aliases
     cache["resource_path_map"] = path_map
     cache["domain_configs"] = {}
     cache["initialized"] = True
@@ -313,7 +313,7 @@ def _scan_services():
         if len(path_parts) < 2:
             continue
         
-        service_dir = path_parts[-2]  # e.g., "order-management-frontend"
+        resource_dir = path_parts[-2]  # e.g., "order-management-frontend"
         
         # Phase 2: Use explicit domain extraction patterns
         # Determine which root this manifest came from
@@ -343,7 +343,7 @@ def _scan_services():
         if full_resource_path.startswith('/'):
             full_resource_path = full_resource_path[1:]
         
-        app_name = manifest.get("appName", service_dir)
+        app_name = manifest.get("appName", resource_dir)
         app_type = manifest.get("appType", "backend")
         stack = manifest.get("stack") or manifest.get("domain", domain_dir)
         port = manifest.get("port", get_default_port(app_type))
@@ -374,12 +374,12 @@ def _scan_services():
             resource["backendName"] = manifest.get("backendName", app_name.replace("-frontend", "-backend"))
         
         # Build service entry
-        service_key = stack if stack else app_name.replace("-" + app_type, "")
+        resource_key = stack if stack else app_name.replace("-" + app_type, "")
         
         # Check if service already exists (merge resources for same domain)
         existing_service = None
         for svc in services:
-            if svc["name"] == service_key:
+            if svc["name"] == resource_key:
                 existing_service = svc
                 break
         
@@ -399,7 +399,7 @@ def _scan_services():
         else:
             # Create new service entry
             service = {
-                "name": service_key,
+                "name": resource_key,
                 "path": resource_path,
                 "labels": ["app." + app_name] if app_name else [],
                 "resources": [resource],

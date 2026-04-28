@@ -251,7 +251,7 @@ def _test_facade():
     
     # Test convenience functions
     assert_not_none(Manifest.is_valid_manifest, "is_valid_manifest should exist")
-    assert_not_none(Manifest.get_service_type, "get_service_type should exist")
+    assert_not_none(Manifest.get_resource_type, "get_resource_type should exist")
     
     print("✅ Facade module tests complete\n")
 

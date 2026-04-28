@@ -57,7 +57,7 @@ export interface GeneratorContext {
   infraDescriptions: Record<string, string>;
 }
 
-const SERVICE_DESCRIPTIONS: Record<string, string> = {
+const RESOURCE_DESCRIPTIONS: Record<string, string> = {
   identity: "Authentication & user management",
   mdblaster: "Documentation site",
   "database-management": "PostgreSQL database",
@@ -179,7 +179,7 @@ export class TemplateEngine {
       stacks: projectConfig.stacks,
       optionalInfra: projectConfig.optional_infra,
       allServices,
-      serviceDescriptions: SERVICE_DESCRIPTIONS,
+      serviceDescriptions: RESOURCE_DESCRIPTIONS,
       infraDescriptions: INFRA_DESCRIPTIONS,
     };
   }
@@ -213,10 +213,10 @@ export class TemplateEngine {
   }
 
   /**
-   * Generate TILT_SERVICE_DEFAULTS.star
+   * Generate TILT_RESOURCE_DEFAULTS.star
    */
   generateServiceDefaults(context: GeneratorContext): string {
-    const template = this.loadTemplate("TILT_SERVICE_DEFAULTS.star");
+    const template = this.loadTemplate("TILT_RESOURCE_DEFAULTS.star");
     return template(context);
   }
 
@@ -242,7 +242,7 @@ export class TemplateEngine {
   generateAll(projectConfig: ProjectConfig): {
     "tilt.config.json": string;
     "TILT_TECH_STACK.star": string;
-    "TILT_SERVICE_DEFAULTS.star": string;
+    "TILT_RESOURCE_DEFAULTS.star": string;
     "spec.master": string;
     "Tiltfile": string;
   } {
@@ -251,7 +251,7 @@ export class TemplateEngine {
     return {
       "tilt.config.json": this.generateTiltConfig(context),
       "TILT_TECH_STACK.star": this.generateTechStack(context),
-      "TILT_SERVICE_DEFAULTS.star": this.generateServiceDefaults(context),
+      "TILT_RESOURCE_DEFAULTS.star": this.generateServiceDefaults(context),
       "spec.master": this.generateSpecMaster(context),
       "Tiltfile": this.generateTiltfile(context),
     };
@@ -292,7 +292,7 @@ export function generateMasterConfigs(projectRoot: string): void {
   const allGeneratedFiles = [
     "tilt.config.json",
     "TILT_TECH_STACK.star",
-    "TILT_SERVICE_DEFAULTS.star",
+    "TILT_RESOURCE_DEFAULTS.star",
     "spec.master",
     "Tiltfile",
   ];
@@ -324,7 +324,7 @@ export function verifyMasterConfigs(projectRoot: string): { valid: boolean; erro
     const allGeneratedFiles = [
       "tilt.config.json",
       "TILT_TECH_STACK.star",
-      "TILT_SERVICE_DEFAULTS.star",
+      "TILT_RESOURCE_DEFAULTS.star",
       "spec.master",
       "Tiltfile",
     ];

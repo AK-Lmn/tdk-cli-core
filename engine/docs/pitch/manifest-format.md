@@ -206,7 +206,7 @@ Third-party services (mocked in local dev).
 {
   "environment": {
     "PORT": "${self:port}",
-    "SERVICE_NAME": "${self:name}",
+    "RESOURCE_NAME": "${self:name}",
     "DATABASE_URL": "${deps:postgres:url}"
   }
 }
@@ -223,9 +223,9 @@ Third-party services (mocked in local dev).
 The platform automatically provides:
 
 ```bash
-SERVICE_NAME=my-service
-SERVICE_PORT=3000
-SERVICE_TYPE=api
+RESOURCE_NAME=my-service
+RESOURCE_PORT=3000
+RESOURCE_TYPE=api
 INTERNAL_HOST=my-service
 INTERNAL_PORT=3000
 
@@ -362,7 +362,7 @@ location /api/v1/orders/ {
   "environment": {
     "DATABASE_URL": "${deps:postgres:url}",
     "REDIS_URL": "${deps:redis:url}",
-    "USER_SERVICE_URL": "${deps:user-service:url}"
+    "USER_RESOURCE_URL": "${deps:user-service:url}"
   },
   "replicas": 2,
   "health_check": {

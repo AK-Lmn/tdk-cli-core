@@ -52,7 +52,7 @@ describe('project command templates', () => {
     // Templates are in cli/templates/, not src/templates/
     const templatesDir = join(__dirname, '..', '..', '..', 'templates');
     
-    expect(existsSync(join(templatesDir, 'TILT_SERVICE_DEFAULTS.star.hbs'))).toBe(true);
+    expect(existsSync(join(templatesDir, 'TILT_RESOURCE_DEFAULTS.star.hbs'))).toBe(true);
     expect(existsSync(join(templatesDir, 'TILT_TECH_STACK.star.hbs'))).toBe(true);
     expect(existsSync(join(templatesDir, 'Tiltfile.hbs'))).toBe(true);
     expect(existsSync(join(templatesDir, 'tilt.config.json.hbs'))).toBe(true);
@@ -66,8 +66,8 @@ describe('project command templates', () => {
     // Templates are in cli/templates/
     const templatesDir = join(__dirname, '..', '..', '..', 'templates');
     
-    // Check TILT_SERVICE_DEFAULTS.star.hbs
-    const serviceDefaults = readFileSync(join(templatesDir, 'TILT_SERVICE_DEFAULTS.star.hbs'), 'utf-8');
+    // Check TILT_RESOURCE_DEFAULTS.star.hbs
+    const serviceDefaults = readFileSync(join(templatesDir, 'TILT_RESOURCE_DEFAULTS.star.hbs'), 'utf-8');
     expect(serviceDefaults).toContain('BASE_PORT_FRONTEND');
     expect(serviceDefaults).toContain('BASE_PORT_BACKEND');
     expect(serviceDefaults).toContain('HEALTH_CHECK_PATH');

@@ -13,7 +13,7 @@ import json
 class TestDaemonRegistration:
     """Tests for daemon auto-registration."""
     
-    def test_new_service_triggers_registration(self, temp_dir):
+    def test_new_resource_triggers_registration(self, temp_dir):
         """
         Scenario: New service triggers registration
         WHEN the daemon detects a new service.json file not in the cache
@@ -23,7 +23,7 @@ class TestDaemonRegistration:
         from pathlib import Path
         import sys
         sys.path.insert(0, str(Path("discovery").resolve()))
-        from service_snapshot import diff_snapshots, save_snapshot, load_snapshot
+        from resource_snapshot import diff_snapshots, save_snapshot, load_snapshot
         
         original_dir = Path.cwd()
         
@@ -38,7 +38,7 @@ class TestDaemonRegistration:
             os.chdir(temp_dir)
             
             # Save initial snapshot
-            from service_snapshot import get_current_services
+            from resource_snapshot import get_current_services
             initial_services = get_current_services("services/product")
             save_snapshot(initial_services)
             
@@ -69,16 +69,16 @@ class TestDaemonRegistration:
         import sys
         import os
         sys.path.insert(0, str(Path("discovery").resolve()))
-        from service_snapshot import save_snapshot, load_snapshot, diff_snapshots, get_current_services
+        from resource_snapshot import save_snapshot, load_snapshot, diff_snapshots, get_current_services
         
         original_dir = Path.cwd()
         
         try:
             # Set up services
             services_dir = temp_dir / "services" / "product"
-            service_dir = services_dir / "stable" / "service"
-            service_dir.mkdir(parents=True)
-            (service_dir / "service.json").write_text(json.dumps({"name": "stable"}))
+            resource_dir = services_dir / "stable" / "service"
+            resource_dir.mkdir(parents=True)
+            (resource_dir / "service.json").write_text(json.dumps({"name": "stable"}))
             
             os.chdir(temp_dir)
             
@@ -99,7 +99,7 @@ class TestDaemonRegistration:
         finally:
             os.chdir(original_dir)
     
-    def test_registration_includes_service_metadata(self):
+    def test_registration_includes_resource_metadata(self):
         """Test that registration events include full service metadata."""
         mock_registration_event = {
             "path": "services/product/test/service.json",

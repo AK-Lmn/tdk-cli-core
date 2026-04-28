@@ -5,7 +5,7 @@
 #          Auto-inject configuration from internal dependencies
 # =============================================================================
 
-load("../../../../discovery/registry.star", "get_service_by_name")
+load("../../../../discovery/registry.star", "get_resource_by_name")
 
 def resolve_backend_api_path(manifest):
     """Resolve API path from backend manifest if backendName is specified.
@@ -24,7 +24,7 @@ def resolve_backend_api_path(manifest):
         return None
     
     # Try to find the backend service
-    backend_service = get_service_by_name(backend_name)
+    backend_service = get_resource_by_name(backend_name)
     if not backend_service:
         return None
     
@@ -56,7 +56,7 @@ def resolve_dependency_api_urls(manifest):
     
     urls = {}
     for dep_name in deps:
-        dep_service = get_service_by_name(dep_name)
+        dep_service = get_resource_by_name(dep_name)
         if not dep_service:
             continue
         
@@ -89,7 +89,7 @@ def get_backend_manifest(manifest):
     if not backend_name:
         return None
     
-    backend_service = get_service_by_name(backend_name)
+    backend_service = get_resource_by_name(backend_name)
     if not backend_service:
         return None
     

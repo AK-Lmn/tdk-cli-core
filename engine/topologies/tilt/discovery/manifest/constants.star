@@ -30,7 +30,7 @@ load("../../../tilt/manifest/constants.star",
     "DEFAULT_SYNCS",
     "RUNTIME_CONFIGS",
     "TRAEFIK_DEFAULTS",
-    "SERVICE_NAME_PATTERNS",
+    "RESOURCE_NAME_PATTERNS",
     "VALIDATION_THRESHOLDS",
     "ManifestConstants",
 )

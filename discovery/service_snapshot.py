@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 SNAPSHOT_FILE = Path(".tdk/.tdk-out/snapshots/service-snapshot.json")
 
 
-def compute_service_hash(resource_path: str) -> Optional[str]:
+def compute_resource_hash(resource_path: str) -> Optional[str]:
     """
     Compute MD5 hash of a service.json file for efficient change detection.
     
@@ -49,7 +49,7 @@ def compute_services_hash(services: List[str]) -> str:
     hasher = hashlib.md5()
     for svc in sorted(services):
         hasher.update(svc.encode())
-        svc_hash = compute_service_hash(svc)
+        svc_hash = compute_resource_hash(svc)
         if svc_hash:
             hasher.update(svc_hash.encode())
     return hasher.hexdigest()[:16]
@@ -75,12 +75,12 @@ def save_snapshot(services: List[str], include_hashes: bool = True) -> None:
     
     # Include individual service hashes for change detection
     if include_hashes and services:
-        service_hashes = {}
+        resource_hashes = {}
         for svc in services:
-            svc_hash = compute_service_hash(svc)
+            svc_hash = compute_resource_hash(svc)
             if svc_hash:
-                service_hashes[svc] = svc_hash
-        snapshot["service_hashes"] = service_hashes
+                resource_hashes[svc] = svc_hash
+        snapshot["resource_hashes"] = resource_hashes
     
     # Ensure directory exists
     SNAPSHOT_FILE.parent.mkdir(parents=True, exist_ok=True)
@@ -144,11 +144,11 @@ def diff_snapshots(old: Dict, new: List[str], use_hashes: bool = True) -> Tuple[
             return set(), set(), set()  # No changes at all
     
     # Check for modified services (same path, different content)
-    if use_hashes and "service_hashes" in old:
-        old_hashes = old["service_hashes"]
+    if use_hashes and "resource_hashes" in old:
+        old_hashes = old["resource_hashes"]
         for svc in new_services & old_services:  # Intersection - services in both
             old_hash = old_hashes.get(svc)
-            new_hash = compute_service_hash(svc)
+            new_hash = compute_resource_hash(svc)
             if old_hash and new_hash and old_hash != new_hash:
                 modified.add(svc)
     
@@ -187,7 +187,7 @@ def get_current_services(scan_root: str = "services/product") -> List[str]:
 def main():
     """CLI interface for snapshot operations."""
     if len(sys.argv) < 2:
-        print("Usage: service_snapshot.py <command> [args]")
+        print("Usage: resource_snapshot.py <command> [args]")
         print("Commands:")
         print("  save              - Save current service snapshot")
         print("  load              - Load and display snapshot")
@@ -197,10 +197,10 @@ def main():
         print("  watch [interval]  - Continuous monitoring with hash-based change detection")
         print()
         print("Examples:")
-        print("  python3 service_snapshot.py scan")
-        print("  python3 service_snapshot.py diff")
-        print("  python3 service_snapshot.py profile")
-        print("  python3 service_snapshot.py watch 5")
+        print("  python3 resource_snapshot.py scan")
+        print("  python3 resource_snapshot.py diff")
+        print("  python3 resource_snapshot.py profile")
+        print("  python3 resource_snapshot.py watch 5")
         return
     
     command = sys.argv[1]

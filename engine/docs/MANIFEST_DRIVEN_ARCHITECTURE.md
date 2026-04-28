@@ -10,17 +10,17 @@
 
 ```starlark
 # ❌ Bulk generation loops - No per-resource granularity
-for resource in service_config.get('resources', []):
+for resource in resource_config.get('resources', []):
     Vite.for_manifest(...)              # Loop 1: ALL vite configs
 
-for resource in service_config.get('resources', []):
+for resource in resource_config.get('resources', []):
     Docker.backend(...)                 # Loop 2: ALL dockerfiles
     
-for resource in service_config.get('resources', []):
+for resource in resource_config.get('resources', []):
     TSConfig.backend(...)               # Loop 3: ALL tsconfigs
     TSConfig.prisma(...)
     
-for resource in service_config.get('resources', []):
+for resource in resource_config.get('resources', []):
     PackageConfig.npmrc(...)            # Loop 4: ALL package configs
     PackageConfig.bunfig(...)
 
@@ -41,12 +41,12 @@ for resource in service_config.get('resources', []):
 
 ```starlark
 # ✅ Manifest-driven: 1 manifest → 1 Tilt resource → 10 generators
-for resource in service_config.get('resources', []):
+for resource in resource_config.get('resources', []):
     manifest = Manifest.load_manifest(resource_path)
     
     # Create a VISIBLE Tilt resource for this specific manifest
     config_gen_resource = ManifestResource.create_config_resource(
-        service_name,
+        resource_name,
         resource,
         resource_path,
         manifest,
@@ -57,7 +57,7 @@ for resource in service_config.get('resources', []):
     # Result: user-management-backend-config-gen
     # Watches: manifest.json, package.json
     # Generates: tsconfig, vite, dockerfile, npmrc, bunfig, etc.
-    # Labels: ['config-gen', service_name]
+    # Labels: ['config-gen', resource_name]
 ```
 
 ### New Module: `manifest_resource.star`
@@ -71,7 +71,7 @@ for resource in service_config.get('resources', []):
 **Key Function**:
 ```starlark
 def create_manifest_config_resource(
-    service_name,
+    resource_name,
     resource_config,
     resource_path,
     manifest,

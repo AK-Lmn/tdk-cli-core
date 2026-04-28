@@ -5,17 +5,17 @@
 # Purpose: Shared helper functions for orchestrator
 # =============================================================================
 
-def _get_db_name_for_resource(service_name, res_name):
+def _get_db_name_for_resource(resource_name, res_name):
     """Get database name from manifest databaseName field dynamically."""
     # Database names now come from manifest.json databaseName field
     # No hardcoded mappings - all from platform-computing-provisioner.manifest.json
-    # Default: {project}_{service_name}
-    return service_name
+    # Default: {project}_{resource_name}
+    return resource_name
 
 
-def _get_service_display_name(service_name, res_name):
+def _get_resource_display_name(resource_name, res_name):
     """Get human-readable service name for display."""
-    display_name = service_name.replace('-', ' ').title()
+    display_name = resource_name.replace('-', ' ').title()
     
     # Dynamic service type detection from resource name
     # No hardcoded service names - pattern-based detection
@@ -29,5 +29,5 @@ def _get_service_display_name(service_name, res_name):
 
 OrchestratorHelpers = struct(
     get_db_name = _get_db_name_for_resource,
-    get_display_name = _get_service_display_name,
+    get_display_name = _get_resource_display_name,
 )

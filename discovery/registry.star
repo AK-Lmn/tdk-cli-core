@@ -5,7 +5,7 @@
 load(
     "./config.star",
     "GLOBAL_CONFIG",
-    "INFRA_SERVICES",
+    "INFRA_RESOURCES",
     "CORE_INFRA",
     "INFRA_DOMAIN_MAP",
     "OPTIONAL_INFRA",
@@ -23,7 +23,7 @@ load(
     "PRODUCT_SNAPSHOT_FILES",
     "PRODUCT_TOPOLOGY_DIR",
     "PRODUCT_DOMAINS_INDEX_FILE",
-    "PRODUCT_DOMAIN_SERVICES_FILE",
+    "PRODUCT_DOMAIN_RESOURCES_FILE",
     "DISCOVERY_SCAN_ROOTS",
 )
 load("./manifest/constants.star", "MANIFEST_FILENAME", "MANIFEST_FILENAME_NEW", "MANIFEST_FILENAME_YAML", "MANIFEST_FILENAME_NEW_YAML")
@@ -32,8 +32,8 @@ load("./manifest/constants.star", "MANIFEST_FILENAME", "MANIFEST_FILENAME_NEW", 
 _DISCOVERY_CACHE = {
     "initialized": False,
     "app_services": [],
-    "service_dependencies": {},
-    "service_aliases": {},
+    "resource_dependencies": {},
+    "resource_aliases": {},
     "resource_path_map": {},
     "domain_configs": {},
 }
@@ -42,45 +42,45 @@ _DISCOVERY_CACHE = {
 # 🔄 INCREMENTAL CACHE OPERATIONS (Auto-discovery support)
 # =============================================================================
 
-def add_service_to_cache(service_dict):
+def add_resource_to_cache(resource_dict):
     """
     Add a new service to the discovery cache without rebuilding everything.
     
     Args:
-        service_dict: Service dictionary with 'name', 'path', 'resources', etc.
+        resource_dict: Service dictionary with 'name', 'path', 'resources', etc.
     
     Returns:
         True if added successfully, False if service already exists
     """
-    service_name = service_dict["name"] if "name" in service_dict else ""
-    if not service_name:
+    resource_name = resource_dict["name"] if "name" in resource_dict else ""
+    if not resource_name:
         return False
     
     # Check for duplicates
     for existing in _DISCOVERY_CACHE["app_services"]:
         existing_name = existing["name"] if "name" in existing else ""
-        if existing_name == service_name:
+        if existing_name == resource_name:
             return False
     
     # Add to cache
-    _DISCOVERY_CACHE["app_services"].append(service_dict)
+    _DISCOVERY_CACHE["app_services"].append(resource_dict)
     
     # Update path map
-    resource_path = service_dict["path"] if "path" in service_dict else ""
+    resource_path = resource_dict["path"] if "path" in resource_dict else ""
     if resource_path:
-        _DISCOVERY_CACHE["resource_path_map"][resource_path] = service_name
+        _DISCOVERY_CACHE["resource_path_map"][resource_path] = resource_name
     
     # Update aliases
-    _DISCOVERY_CACHE["service_aliases"][service_name] = resource_path
+    _DISCOVERY_CACHE["resource_aliases"][resource_name] = resource_path
     
     return True
 
-def remove_service_from_cache(service_name):
+def remove_resource_from_cache(resource_name):
     """
     Remove a service from the discovery cache.
     
     Args:
-        service_name: Name of service to remove
+        resource_name: Name of service to remove
     
     Returns:
         True if removed, False if not found
@@ -89,7 +89,7 @@ def remove_service_from_cache(service_name):
     found = False
     for i, svc in enumerate(_DISCOVERY_CACHE["app_services"]):
         svc_name = svc["name"] if "name" in svc else ""
-        if svc_name == service_name:
+        if svc_name == resource_name:
             _DISCOVERY_CACHE["app_services"].pop(i)
             found = True
             break
@@ -99,41 +99,41 @@ def remove_service_from_cache(service_name):
     
     # Clean up path map and aliases
     resource_path = ""
-    if service_name in _DISCOVERY_CACHE["service_aliases"]:
-        resource_path = _DISCOVERY_CACHE["service_aliases"][service_name]
+    if resource_name in _DISCOVERY_CACHE["resource_aliases"]:
+        resource_path = _DISCOVERY_CACHE["resource_aliases"][resource_name]
     if resource_path:
         if resource_path in _DISCOVERY_CACHE["resource_path_map"]:
             # Create new dict without this key (Starlark doesn't support del)
             _DISCOVERY_CACHE["resource_path_map"] = {k: v for k, v in _DISCOVERY_CACHE["resource_path_map"].items() if k != resource_path}
     
-    if service_name in _DISCOVERY_CACHE["service_aliases"]:
+    if resource_name in _DISCOVERY_CACHE["resource_aliases"]:
         # Create new dict without this key (Starlark doesn't support del)
-        _DISCOVERY_CACHE["service_aliases"] = {k: v for k, v in _DISCOVERY_CACHE["service_aliases"].items() if k != service_name}
+        _DISCOVERY_CACHE["resource_aliases"] = {k: v for k, v in _DISCOVERY_CACHE["resource_aliases"].items() if k != resource_name}
     
     # Clean up dependencies
-    if service_name in _DISCOVERY_CACHE["service_dependencies"]:
+    if resource_name in _DISCOVERY_CACHE["resource_dependencies"]:
         # Create new dict without this key (Starlark doesn't support del)
-        _DISCOVERY_CACHE["service_dependencies"] = {k: v for k, v in _DISCOVERY_CACHE["service_dependencies"].items() if k != service_name}
+        _DISCOVERY_CACHE["resource_dependencies"] = {k: v for k, v in _DISCOVERY_CACHE["resource_dependencies"].items() if k != resource_name}
     
     return True
 
-def has_service_in_cache(service_name):
+def has_resource_in_cache(resource_name):
     """
     Check if a service already exists in cache.
     
     Args:
-        service_name: Name to check
+        resource_name: Name to check
     
     Returns:
         True if service exists
     """
     for svc in _DISCOVERY_CACHE["app_services"]:
         svc_name = svc["name"] if "name" in svc else ""
-        if svc_name == service_name:
+        if svc_name == resource_name:
             return True
     return False
 
-def get_service_by_path_from_cache(resource_path):
+def get_resource_by_path_from_cache(resource_path):
     """
     Look up service by its path.
     
@@ -143,13 +143,13 @@ def get_service_by_path_from_cache(resource_path):
     Returns:
         Service dict or None
     """
-    service_name = None
+    resource_name = None
     if resource_path in _DISCOVERY_CACHE["resource_path_map"]:
-        service_name = _DISCOVERY_CACHE["resource_path_map"][resource_path]
-    if service_name:
+        resource_name = _DISCOVERY_CACHE["resource_path_map"][resource_path]
+    if resource_name:
         for svc in _DISCOVERY_CACHE["app_services"]:
             svc_name = svc["name"] if "name" in svc else ""
-            if svc_name == service_name:
+            if svc_name == resource_name:
                 return svc
     return None
 
@@ -166,21 +166,21 @@ def get_cache_stats():
     Get statistics about the current cache state.
     
     Returns:
-        Struct with service_count, initialized status
+        Struct with resource_count, initialized status
     """
     initialized_val = _DISCOVERY_CACHE["initialized"] if "initialized" in _DISCOVERY_CACHE else False
     return struct(
-        service_count=len(_DISCOVERY_CACHE["app_services"]),
+        resource_count=len(_DISCOVERY_CACHE["app_services"]),
         initialized=initialized_val,
-        aliases_count=len(_DISCOVERY_CACHE["service_aliases"]),
+        aliases_count=len(_DISCOVERY_CACHE["resource_aliases"]),
     )
 
 # Export cache operations
 CacheOps = struct(
-    add=add_service_to_cache,
-    remove=remove_service_from_cache,
-    has=has_service_in_cache,
-    get_by_path=get_service_by_path_from_cache,
+    add=add_resource_to_cache,
+    remove=remove_resource_from_cache,
+    has=has_resource_in_cache,
+    get_by_path=get_resource_by_path_from_cache,
     persist=persist_cache_to_file,
     stats=get_cache_stats,
 )
@@ -203,18 +203,18 @@ def get_app_services():
     return _DISCOVERY_CACHE["app_services"]
 
 
-def get_service_dependencies():
+def get_resource_dependencies():
     initialized = _DISCOVERY_CACHE["initialized"] if "initialized" in _DISCOVERY_CACHE else False
     if not initialized:
         get_app_services()  # Trigger two-pass discovery
-    return _DISCOVERY_CACHE["service_dependencies"]
+    return _DISCOVERY_CACHE["resource_dependencies"]
 
 
-def get_service_aliases():
+def get_resource_aliases():
     initialized = _DISCOVERY_CACHE["initialized"] if "initialized" in _DISCOVERY_CACHE else False
     if not initialized:
         get_app_services()  # Trigger two-pass discovery
-    return _DISCOVERY_CACHE["service_aliases"]
+    return _DISCOVERY_CACHE["resource_aliases"]
 
 
 def get_resource_path_map():
@@ -224,7 +224,7 @@ def get_resource_path_map():
     return _DISCOVERY_CACHE["resource_path_map"]
 
 
-def get_service_by_name(name):
+def get_resource_by_name(name):
     for service in get_app_services():
         if service["name"] == name:
             return service
@@ -335,9 +335,9 @@ def _render_readme():
         "## Domains",
     ]
 
-    for service in APP_SERVICES:
-        service_name = service["name"] if "name" in service else "unknown"
-        lines.append("- `" + service_name + "`")
+    for service in APP_RESOURCES:
+        resource_name = service["name"] if "name" in service else "unknown"
+        lines.append("- `" + resource_name + "`")
 
     lines.extend([
         "",
@@ -354,15 +354,15 @@ def _render_index():
         "# AUTOGENERATED FILE - DO NOT EDIT",
         "# ----------------------------------------------------------------------------",
         "",
-        "load('./" + PRODUCT_SNAPSHOT_FILES["services"] + "', 'APP_SERVICES_AUTOGENERATED')",
-        "load('./" + PRODUCT_SNAPSHOT_FILES["dependencies"] + "', 'SERVICE_DEPENDENCIES_AUTOGENERATED')",
-        "load('./" + PRODUCT_SNAPSHOT_FILES["aliases"] + "', 'SERVICE_ALIASES_AUTOGENERATED')",
+        "load('./" + PRODUCT_SNAPSHOT_FILES["services"] + "', 'APP_RESOURCES_AUTOGENERATED')",
+        "load('./" + PRODUCT_SNAPSHOT_FILES["dependencies"] + "', 'RESOURCE_DEPENDENCIES_AUTOGENERATED')",
+        "load('./" + PRODUCT_SNAPSHOT_FILES["aliases"] + "', 'RESOURCE_ALIASES_AUTOGENERATED')",
         "load('./" + PRODUCT_SNAPSHOT_FILES["paths"] + "', 'RESOURCE_PATH_MAP_AUTOGENERATED')",
         "",
         "ProductSnapshotTopology = struct(",
-        "    app_services = APP_SERVICES_AUTOGENERATED,",
-        "    service_dependencies = SERVICE_DEPENDENCIES_AUTOGENERATED,",
-        "    service_aliases = SERVICE_ALIASES_AUTOGENERATED,",
+        "    app_services = APP_RESOURCES_AUTOGENERATED,",
+        "    resource_dependencies = RESOURCE_DEPENDENCIES_AUTOGENERATED,",
+        "    resource_aliases = RESOURCE_ALIASES_AUTOGENERATED,",
         "    resource_path_map = RESOURCE_PATH_MAP_AUTOGENERATED,",
         ")",
         "",
@@ -429,7 +429,7 @@ def _render_product_domains_index(app_services):
     for service in app_services:
         domain = service["name"] if "name" in service else "unknown"
         symbol = _sanitize_symbol(domain) + "_domain"
-        lines.append("load('./" + domain + "/" + PRODUCT_DOMAIN_SERVICES_FILE + "', " + symbol + " = 'ProductDomain')")
+        lines.append("load('./" + domain + "/" + PRODUCT_DOMAIN_RESOURCES_FILE + "', " + symbol + " = 'ProductDomain')")
         domain_rows.append("    '" + domain + "': " + symbol + ",")
 
     lines.extend([
@@ -453,14 +453,14 @@ def generate_product_domain_topology():
     local("mkdir -p " + PRODUCT_TOPOLOGY_DIR, quiet = True)
 
     changes = 0
-    for service in APP_SERVICES:
+    for service in APP_RESOURCES:
         domain = service["name"] if "name" in service else "unknown"
-        domain_file = PRODUCT_TOPOLOGY_DIR + "/" + domain + "/" + PRODUCT_DOMAIN_SERVICES_FILE
+        domain_file = PRODUCT_TOPOLOGY_DIR + "/" + domain + "/" + PRODUCT_DOMAIN_RESOURCES_FILE
         if _write_file_if_changed(domain_file, _render_product_domain_file(service)):
             changes = changes + 1
 
     index_path = PRODUCT_TOPOLOGY_DIR + "/" + PRODUCT_DOMAINS_INDEX_FILE
-    if _write_file_if_changed(index_path, _render_product_domains_index(APP_SERVICES)):
+    if _write_file_if_changed(index_path, _render_product_domains_index(APP_RESOURCES)):
         changes = changes + 1
 
     if changes > 0:
@@ -481,17 +481,17 @@ def generate_product_snapshot_topology():
     changes = 0
     if _write_file_if_changed(
         services_path,
-        _render_star_file("Discovered application services", "APP_SERVICES_AUTOGENERATED", APP_SERVICES),
+        _render_star_file("Discovered application services", "APP_RESOURCES_AUTOGENERATED", APP_RESOURCES),
     ):
         changes = changes + 1
     if _write_file_if_changed(
         deps_path,
-        _render_star_file("Service dependency graph", "SERVICE_DEPENDENCIES_AUTOGENERATED", SERVICE_DEPENDENCIES),
+        _render_star_file("Service dependency graph", "RESOURCE_DEPENDENCIES_AUTOGENERATED", RESOURCE_DEPENDENCIES),
     ):
         changes = changes + 1
     if _write_file_if_changed(
         aliases_path,
-        _render_star_file("Service aliases", "SERVICE_ALIASES_AUTOGENERATED", SERVICE_ALIASES),
+        _render_star_file("Service aliases", "RESOURCE_ALIASES_AUTOGENERATED", RESOURCE_ALIASES),
     ):
         changes = changes + 1
     if _write_file_if_changed(
@@ -518,18 +518,18 @@ def _ensure_initialized():
         get_app_services()
 
 # Run two-pass discovery NOW at module load
-# This ensures APP_SERVICES is populated before exports
+# This ensures APP_RESOURCES is populated before exports
 print("")
 print("🚀 Initializing service discovery...")
 _ensure_initialized()
 print("📦 Exporting services...")
 
-APP_SERVICES = _DISCOVERY_CACHE["app_services"]
-SERVICE_DEPENDENCIES = _DISCOVERY_CACHE["service_dependencies"]
-SERVICE_ALIASES = _DISCOVERY_CACHE["service_aliases"]
+APP_RESOURCES = _DISCOVERY_CACHE["app_services"]
+RESOURCE_DEPENDENCIES = _DISCOVERY_CACHE["resource_dependencies"]
+RESOURCE_ALIASES = _DISCOVERY_CACHE["resource_aliases"]
 RESOURCE_PATH_MAP = _DISCOVERY_CACHE["resource_path_map"]
 
-print("✅ Registry initialized (" + str(len(APP_SERVICES)) + " services)")
+print("✅ Registry initialized (" + str(len(APP_RESOURCES)) + " services)")
 print("")
 
 # Load project-specific defaults from spec.master
@@ -548,7 +548,7 @@ if project_root:
             FOCUS_ALPHA = project_defaults.FOCUS_ALPHA,
             FOCUS_BETA = project_defaults.FOCUS_BETA,
             GLOBAL = Config.GLOBAL,
-            INFRA_SERVICES = Config.INFRA_SERVICES,
+            INFRA_RESOURCES = Config.INFRA_RESOURCES,
             CORE_INFRA = Config.CORE_INFRA,
             INFRA_DOMAIN_MAP = Config.INFRA_DOMAIN_MAP,
             OPTIONAL_INFRA = Config.OPTIONAL_INFRA,
@@ -568,7 +568,7 @@ INFRA_DOMAIN_MAP_EXPORT = INFRA_DOMAIN_MAP
 DEFAULTS_EXPORT = Config.DEFAULTS
 DDD_LIBS_EXPORT = DDD_LIBS
 GLOBAL_CONFIG_EXPORT = GLOBAL_CONFIG
-INFRA_SERVICES_EXPORT = INFRA_SERVICES
+INFRA_RESOURCES_EXPORT = INFRA_RESOURCES
 PLATFORM_LIBS_FRONTEND_EXPORT = PLATFORM_LIBS_FRONTEND
 PRODUCT_LIBS_FRONTEND_EXPORT= PRODUCT_LIBS_FRONTEND
 
@@ -756,24 +756,24 @@ def load_yaml_manifests_as_resources():
         # Use ManifestLoader to properly load the JSON manifest
         # This gives us the correct service name
         load_result = ManifestLoader.load_from_file(json_file)
-        service_name = ''
+        resource_name = ''
         
         if load_result.error:
             print("   ⚠️  Error loading manifest: " + json_file + " - " + load_result.error)
             continue
         
         manifest = load_result.manifest
-        service_name = ""
+        resource_name = ""
         if manifest:
-            service_name = manifest["appName"] if "appName" in manifest else ""
-            if not service_name:
+            resource_name = manifest["appName"] if "appName" in manifest else ""
+            if not resource_name:
                 print("   ⚠️  No appName in manifest: " + json_file)
                 continue
         else:
             print("   ⚠️  Could not load manifest: " + json_file + " - skipping")
             continue
         
-        resource_name = service_name + "-yaml"
+        resource_name = resource_name + "-yaml"
         
         # Skip if this resource name was already created (deduplication)
         if resource_name in created_resources:

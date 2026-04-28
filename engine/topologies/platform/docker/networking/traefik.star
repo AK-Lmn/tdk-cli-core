@@ -69,10 +69,10 @@ def get_frontend_traefik_labels(res_name, domain, base_path, port, traefik_host=
     )
 
 def get_backend_traefik_labels(
-    service_entry_name,
+    resource_entry_name,
     traefik_host,
     traefik_path,
-    traefik_service_name,
+    traefik_resource_name,
     internal_port,
     health_path,
     manifest=None,
@@ -83,7 +83,7 @@ def get_backend_traefik_labels(
         TRAEFIK_BACKEND_ENABLE_HTTP,
         TRAEFIK_BACKEND_ENABLE_HTTPS,
     )
-    middleware_name = service_entry_name + TRAEFIK_MIDDLEWARE_SUFFIX
+    middleware_name = resource_entry_name + TRAEFIK_MIDDLEWARE_SUFFIX
     
     # Check if maintenance feature is enabled
     features = manifest.get('features', []) if manifest else []
@@ -94,7 +94,7 @@ def get_backend_traefik_labels(
     # Build middleware config only if traefik_path is not empty
     if traefik_path:
         middleware_config_lines = [
-            '      - "traefik.http.routers.' + service_entry_name + '.middlewares=' + middleware_name + maintenance_middleware + '"',
+            '      - "traefik.http.routers.' + resource_entry_name + '.middlewares=' + middleware_name + maintenance_middleware + '"',
             '      - "traefik.http.middlewares.' + middleware_name + '.stripprefix.prefixes=' + traefik_path + '"',
         ]
         middleware_config = "\n".join(middleware_config_lines)
@@ -103,22 +103,22 @@ def get_backend_traefik_labels(
         middleware_config = ""
 
     labels = """      - "{traefik_enable_label}"
-      - "traefik.http.routers.{service_entry_name}.rule={backend_route_rule}"
-      - "traefik.http.routers.{service_entry_name}.entrypoints={backend_entrypoints}"
-      - "traefik.http.routers.{service_entry_name}.service={traefik_service_name}"
+      - "traefik.http.routers.{resource_entry_name}.rule={backend_route_rule}"
+      - "traefik.http.routers.{resource_entry_name}.entrypoints={backend_entrypoints}"
+      - "traefik.http.routers.{resource_entry_name}.service={traefik_resource_name}"
 {middleware_config}
-      - "traefik.http.services.{traefik_service_name}.loadbalancer.server.port={internal_port}"
-      - "traefik.http.services.{traefik_service_name}.loadbalancer.healthcheck.path={health_path}"
-      - "traefik.http.services.{traefik_service_name}.loadbalancer.healthcheck.interval={health_interval}"
-      - "traefik.http.services.{traefik_service_name}.loadbalancer.healthcheck.timeout={health_timeout}"
-      - "traefik.http.services.{traefik_service_name}.loadbalancer.healthcheck.followredirects=false"
+      - "traefik.http.services.{traefik_resource_name}.loadbalancer.server.port={internal_port}"
+      - "traefik.http.services.{traefik_resource_name}.loadbalancer.healthcheck.path={health_path}"
+      - "traefik.http.services.{traefik_resource_name}.loadbalancer.healthcheck.interval={health_interval}"
+      - "traefik.http.services.{traefik_resource_name}.loadbalancer.healthcheck.timeout={health_timeout}"
+      - "traefik.http.services.{traefik_resource_name}.loadbalancer.healthcheck.followredirects=false"
       - "traefik.docker.network={traefik_network}"
 """.format(
-        service_entry_name=service_entry_name,
+        resource_entry_name=resource_entry_name,
         traefik_enable_label=TRAEFIK_ENABLE_LABEL,
         backend_route_rule=backend_route_rule,
         backend_entrypoints=backend_entrypoints,
-        traefik_service_name=traefik_service_name,
+        traefik_resource_name=traefik_resource_name,
         middleware_config=middleware_config,
         internal_port=internal_port,
         health_path=health_path,
@@ -144,20 +144,20 @@ def get_backend_traefik_labels(
             old_path_pattern = "/{stack}-management/api/v1".format(stack=stack)
 
             labels += """
-      - "traefik.http.routers.{service_entry_name}-project.rule={project_rule}"
-      - "traefik.http.routers.{service_entry_name}-project.entrypoints={project_entrypoints}"
-      - "traefik.http.routers.{service_entry_name}-project.service={traefik_service_name}"
-      - "traefik.http.routers.{service_entry_name}-project.middlewares={middleware_name}-project{maintenance_middleware}"
+      - "traefik.http.routers.{resource_entry_name}-project.rule={project_rule}"
+      - "traefik.http.routers.{resource_entry_name}-project.entrypoints={project_entrypoints}"
+      - "traefik.http.routers.{resource_entry_name}-project.service={traefik_resource_name}"
+      - "traefik.http.routers.{resource_entry_name}-project.middlewares={middleware_name}-project{maintenance_middleware}"
       - "traefik.http.middlewares.{middleware_name}-project.stripprefix.prefixes={api_path}"
-      - "traefik.http.routers.{service_entry_name}-project.priority={router_priority}"
+      - "traefik.http.routers.{resource_entry_name}-project.priority={router_priority}"
 
       # Redirect middleware for URL restructuring: old path -> new path
-      - "traefik.http.middlewares.{service_entry_name}-redirect.redirectregex.regex=^`{old_path_pattern}/(.*)`"
-      - "traefik.http.middlewares.{service_entry_name}-redirect.redirectregex.replacement=`{api_path}/$$1`"
-      - "traefik.http.middlewares.{service_entry_name}-redirect.redirectregex.permanent=true"
+      - "traefik.http.middlewares.{resource_entry_name}-redirect.redirectregex.regex=^`{old_path_pattern}/(.*)`"
+      - "traefik.http.middlewares.{resource_entry_name}-redirect.redirectregex.replacement=`{api_path}/$$1`"
+      - "traefik.http.middlewares.{resource_entry_name}-redirect.redirectregex.permanent=true"
 """.format(
-                service_entry_name=service_entry_name,
-                traefik_service_name=traefik_service_name,
+                resource_entry_name=resource_entry_name,
+                traefik_resource_name=traefik_resource_name,
                 project_rule=project_rule,
                 project_entrypoints=project_entrypoints,
                 middleware_name=middleware_name,

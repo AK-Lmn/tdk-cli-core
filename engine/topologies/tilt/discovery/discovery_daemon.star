@@ -4,7 +4,7 @@
 # Monitors filesystem for new resources and triggers incremental registration
 # =============================================================================
 
-load("./service_snapshot.star", "ResourceSnapshot")
+load("./resource_snapshot.star", "ResourceSnapshot")
 load("./registry.star", "CacheOps")
 load("../manifest/loader.star", "ManifestLoader")
 

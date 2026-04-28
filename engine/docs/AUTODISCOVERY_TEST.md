@@ -161,7 +161,7 @@ When Tilt starts, you'll see:
 
 - **Discovery Engine**: `.tilt/core/registry.star` (lines 212-638)
 - **Manifest Loader**: `.tilt/core/manifest.star`
-- **Tiltfile Integration**: `Tiltfile` (imports `APP_SERVICES` from registry)
+- **Tiltfile Integration**: `Tiltfile` (imports `APP_RESOURCES` from registry)
 
 ---
 

@@ -12,7 +12,7 @@
 # - Resource registration and dependency tracking
 #
 # Key Functions:
-#   Orchestrator.apply_service(service_config, ctx) - Load and configure a service
+#   Orchestrator.apply_service(resource_config, ctx) - Load and configure a service
 #   Orchestrator.apply_all(services, ctx) - Load all services
 # =============================================================================
 
@@ -21,14 +21,14 @@ load('./orchestrator/helpers.star', 'OrchestratorHelpers')
 load('./orchestrator/generators/env.star', 'EnvGenerators')
 
 _get_db_name_for_resource = OrchestratorHelpers.get_db_name
-_get_service_display_name = OrchestratorHelpers.get_display_name
+_get_resource_display_name = OrchestratorHelpers.get_display_name
 _generate_env_file = EnvGenerators.generate_env_file
 
 
 def apply_all_services(services, ctx):
     """Apply all services in the list."""
-    for service_config in services:
-        apply_app_service(service_config, ctx)
+    for resource_config in services:
+        apply_app_service(resource_config, ctx)
 
 
 # =============================================================================
@@ -43,5 +43,5 @@ Orchestrator = struct(
     # Helpers (exposed for testing)
     generate_env_file = _generate_env_file,
     get_db_name = _get_db_name_for_resource,
-    get_display_name = _get_service_display_name,
+    get_display_name = _get_resource_display_name,
 )

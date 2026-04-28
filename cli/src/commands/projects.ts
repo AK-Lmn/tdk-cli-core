@@ -32,7 +32,7 @@ export const projectsCommand = new Command('projects')
       console.log();
 
       // Check master configs
-      const defaultsPath = resolve(projectRoot, 'TILT_SERVICE_DEFAULTS.star');
+      const defaultsPath = resolve(projectRoot, 'TILT_RESOURCE_DEFAULTS.star');
       const techStackPath = resolve(projectRoot, 'TILT_TECH_STACK.star');
       
       const defaultsExists = existsSync(defaultsPath);
@@ -40,9 +40,9 @@ export const projectsCommand = new Command('projects')
 
       console.log(chalk.bold('Master Configuration:'));
       if (defaultsExists) {
-        console.log(chalk.green(`  ✓ TILT_SERVICE_DEFAULTS.star`));
+        console.log(chalk.green(`  ✓ TILT_RESOURCE_DEFAULTS.star`));
       } else {
-        console.log(chalk.red(`  ✗ TILT_SERVICE_DEFAULTS.star (missing)`));
+        console.log(chalk.red(`  ✗ TILT_RESOURCE_DEFAULTS.star (missing)`));
       }
       
       if (techStackExists) {

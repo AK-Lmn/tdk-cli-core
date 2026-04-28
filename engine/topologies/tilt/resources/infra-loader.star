@@ -46,16 +46,16 @@ def _load_database_management(should_enable):
 
 def _load_verdaccio(should_enable):
     """Load Verdaccio private npm registry."""
-    if not should_enable(PlatformDockerConstants.VERDACCIO_SERVICE_NAME):
+    if not should_enable(PlatformDockerConstants.VERDACCIO_RESOURCE_NAME):
         return
     
     print("📦 Loading Verdaccio...")
     docker_compose('docker-compose.verdaccio.yml')
-    dc_resource(PlatformDockerConstants.VERDACCIO_SERVICE_NAME, labels=['infra.tools', 'registry'], resource_deps=['init-networks'], auto_init=True)
+    dc_resource(PlatformDockerConstants.VERDACCIO_RESOURCE_NAME, labels=['infra.tools', 'registry'], resource_deps=['init-networks'], auto_init=True)
     local_resource(PlatformDockerConstants.VERDACCIO_CONNECT_NETWORK_RESOURCE,
         cmd='docker network connect ' + PlatformDockerConstants.NETWORK_BACKEND + ' ' + PlatformDockerConstants.VERDACCIO_CONTAINER_NAME + ' 2>/dev/null || true',
         labels=['infra.tools', 'registry'], 
-        resource_deps=[PlatformDockerConstants.VERDACCIO_SERVICE_NAME, 'init-networks'], 
+        resource_deps=[PlatformDockerConstants.VERDACCIO_RESOURCE_NAME, 'init-networks'], 
         auto_init=True
     )
 

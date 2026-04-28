@@ -5,13 +5,13 @@
 load("../../../topologies/tilt/common/utils.star", "Utils")
 load(
     "../discovery/registry.star",
-    "APP_SERVICES",
+    "APP_RESOURCES",
     "CORE_INFRA_EXPORT",
     "INFRA_DOMAIN_MAP_EXPORT",
     "OPTIONAL_INFRA_EXPORT",
     "DEFAULTS_EXPORT",
-    "SERVICE_DEPENDENCIES",
-    "SERVICE_ALIASES",
+    "RESOURCE_DEPENDENCIES",
+    "RESOURCE_ALIASES",
 )
 load("../discovery/config.star", "Config")
 
@@ -40,13 +40,13 @@ def expand_release_targets(targets):
     return expanded
 
 def _get_resources_for_domain(domain_name):
-    """Get resource names (backend, frontend) for a domain from APP_SERVICES.
+    """Get resource names (backend, frontend) for a domain from APP_RESOURCES.
     
     Returns both the actual service resources and YAML tracking resources.
     Library resources (appType == 'library') only return YAML resources.
     """
     resources = []
-    for service in APP_SERVICES:
+    for service in APP_RESOURCES:
         if service.get("name") == domain_name:
             for res in service.get("resources", []):
                 res_name = res.get("name", "")
@@ -69,27 +69,27 @@ def get_all_needed_services(targets, skip_frontend = False):
     needed = {}
     visited = {}
 
-    def _resolve_alias(service_name):
-        if service_name in SERVICE_ALIASES:
-            alias_value = SERVICE_ALIASES[service_name]
-            # SERVICE_ALIASES maps names to paths (strings), not to resource lists
+    def _resolve_alias(resource_name):
+        if resource_name in RESOURCE_ALIASES:
+            alias_value = RESOURCE_ALIASES[resource_name]
+            # RESOURCE_ALIASES maps names to paths (strings), not to resource lists
             # Only return alias_value if it's a list (of resource names)
             if type(alias_value) == "list":
                 return alias_value
-        return [service_name]
+        return [resource_name]
 
     def _filter_frontends(resources, include_frontends):
         if include_frontends:
             return resources
         return [resource for resource in resources if "frontend" not in resource]
 
-    def resolve_target(service_name):
+    def resolve_target(resource_name):
         # Explicit focus targets keep their frontends unless --no-frontend is set.
-        return _filter_frontends(_resolve_alias(service_name), not skip_frontend)
+        return _filter_frontends(_resolve_alias(resource_name), not skip_frontend)
 
-    def resolve_dependency(service_name):
+    def resolve_dependency(resource_name):
         # Transitive domain dependencies should not pull dependency UIs.
-        return _filter_frontends(_resolve_alias(service_name), False)
+        return _filter_frontends(_resolve_alias(resource_name), False)
 
     def discover(service):
         if service in visited:
@@ -101,7 +101,7 @@ def get_all_needed_services(targets, skip_frontend = False):
 
         needed[service] = True
 
-        deps = SERVICE_DEPENDENCIES.get(service, [])
+        deps = RESOURCE_DEPENDENCIES.get(service, [])
         for dep in deps:
             for resolved in resolve_dependency(dep):
                 discover(resolved)
@@ -175,7 +175,7 @@ def apply_focus_filter(cfg):
             needed[svc] = True
 
     for target in parsed_targets:
-        if target in SERVICE_ALIASES:
+        if target in RESOURCE_ALIASES:
             needed[target] = True
 
     all_needed = needed.keys()
@@ -196,7 +196,7 @@ def apply_focus_filter(cfg):
     # config.set_enabled_resources accepts only concrete Tilt resources.
     # Service alias keys (e.g. "booking-domain") and domain names (e.g. "identity") must be filtered out.
     # Real Tilt resources always have hyphens (e.g., "identity-management-backend-yaml")
-    resource_only_needed = [r for r in all_needed if r not in logic_toggles and r not in SERVICE_ALIASES and '-' in r]
+    resource_only_needed = [r for r in all_needed if r not in logic_toggles and r not in RESOURCE_ALIASES and '-' in r]
 
     print("🎯 Discovered " + str(len(all_needed)) + " entities via dependency graph:")
 
@@ -217,23 +217,23 @@ def apply_focus_filter(cfg):
 
 
 def create_should_enable_wrapper(focus_mode, focus_enabled_all, cfg, defaults):
-    def should_enable_wrapper(service_name):
+    def should_enable_wrapper(resource_name):
         if focus_mode and focus_enabled_all:
-            # Check if service_name itself is in the list (for infrastructure)
-            if service_name in focus_enabled_all:
+            # Check if resource_name itself is in the list (for infrastructure)
+            if resource_name in focus_enabled_all:
                 return True
-            # Check if service_name starts with any domain in focus_enabled_all
+            # Check if resource_name starts with any domain in focus_enabled_all
             # e.g., "identity-management-backend" starts with "identity"
             for domain in focus_enabled_all:
-                if service_name.startswith(domain + "-"):
+                if resource_name.startswith(domain + "-"):
                     return True
-            # Check SERVICE_ALIASES (if it maps to resource lists)
-            if service_name in SERVICE_ALIASES:
-                alias_value = SERVICE_ALIASES[service_name]
+            # Check RESOURCE_ALIASES (if it maps to resource lists)
+            if resource_name in RESOURCE_ALIASES:
+                alias_value = RESOURCE_ALIASES[resource_name]
                 if type(alias_value) == "list":
                     return any([res in focus_enabled_all for res in alias_value])
             return False
-        return Utils.should_enable(service_name, cfg, defaults)
+        return Utils.should_enable(resource_name, cfg, defaults)
 
     return should_enable_wrapper
 

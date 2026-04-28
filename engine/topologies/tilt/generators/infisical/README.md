@@ -64,16 +64,16 @@ load("engine/topologies/platform/security/secrets.star", "Secrets")
 ```starlark
 # Generate complete configuration for a service
 config = Infisical.Secrets.generate_for_service(
-    service_name="user-management-backend",
+    resource_name="user-management-backend",
     secret_path="/services/user",
-    service_type="backend",
+    resource_type="backend",
     command="bun run src/index.ts",
 )
 
 # Access generated configuration
-print(config["service_name"])        # "user-management-backend"
+print(config["resource_name"])        # "user-management-backend"
 print(config["secret_path"])         # "/services/user"
-print(config["required_secrets"])    # ["DATABASE_URL", "JWT_SECRET", "SERVICE_API_KEY"]
+print(config["required_secrets"])    # ["DATABASE_URL", "JWT_SECRET", "RESOURCE_API_KEY"]
 print(config["docker_compose"]["environment"])
 ```
 
@@ -83,15 +83,15 @@ print(config["docker_compose"]["environment"])
 # In L4 runtime layer generation
 load("engine/topologies/platform/docker/layers/infisical/index.star", "InfisicalLayers")
 
-def generate_backend_runtime(service_name, cmd="bun run start"):
+def generate_backend_runtime(resource_name, cmd="bun run start"):
     parts = []
     
     # ... other Dockerfile setup ...
     
     # Use InfisicalDocker for runtime secret injection
     infisical_setup = InfisicalLayers.Docker.runtime_setup(
-        service_name=service_name,
-        service_type="backend",
+        resource_name=resource_name,
+        resource_type="backend",
         command=cmd,
         use_entrypoint=True,
     )
@@ -105,8 +105,8 @@ def generate_backend_runtime(service_name, cmd="bun run start"):
 ```starlark
 # Generate environment variables for docker-compose
 env = Infisical.Docker.generate_compose_env(
-    service_name="user-management-backend",
-    service_type="backend",
+    resource_name="user-management-backend",
+    resource_type="backend",
 )
 
 # Use in dc_resource
@@ -117,23 +117,23 @@ dc_resource("user-management-backend", env=env)
 
 ### Secrets Generator
 
-#### `generate_for_service(service_name, secret_path, service_type, command, additional_vars)`
+#### `generate_for_service(resource_name, secret_path, resource_type, command, additional_vars)`
 
 Generates complete secret configuration for a service.
 
 **Parameters:**
-- `service_name` (str): Name of the service (e.g., "user-management-backend")
+- `resource_name` (str): Name of the service (e.g., "user-management-backend")
 - `secret_path` (str): Infisical path (e.g., "/services/user")
-- `service_type` (str): Type of service (backend, frontend, payment, notification)
+- `resource_type` (str): Type of service (backend, frontend, payment, notification)
 - `command` (str): Command to run after secret injection (optional)
 - `additional_vars` (dict): Additional environment variables (optional)
 
 **Returns:**
 ```starlark
 {
-    "service_name": str,
+    "resource_name": str,
     "secret_path": str,
-    "service_type": str,
+    "resource_type": str,
     "validation": {"valid": bool, "errors": [str]},
     "docker_compose": {"environment": dict},
     "entrypoint": {"environment": dict},
@@ -157,22 +157,22 @@ configs = Infisical.Secrets.generate_for_services_batch(services)
 
 ### Path Manager
 
-#### `plan_resource_path(service_name, service_type, parent_path)`
+#### `plan_resource_path(resource_name, resource_type, parent_path)`
 
 Plans the Infisical path for a service.
 
 ```starlark
 plan = Infisical.Paths.plan_resource_path(
-    service_name="user-management-backend",
-    service_type="backend",
+    resource_name="user-management-backend",
+    resource_type="backend",
 )
 
 # Returns:
 # {
-#     "service_name": "user-management-backend",
-#     "service_type": "backend",
+#     "resource_name": "user-management-backend",
+#     "resource_type": "backend",
 #     "parent_path": "/services",
-#     "service_folder": "user",
+#     "resource_folder": "user",
 #     "full_path": "/services/user",
 #     "validation": {"valid": True, "errors": [], "warnings": []},
 #     "subpaths": ["/services/user/database", ...],
@@ -233,12 +233,12 @@ dev_machine = Infisical.Identity.generate_development_machine("dev-machine")
 ci_machine = Infisical.Identity.generate_ci_machine("github-actions")
 
 # Service-specific machine (restricted access)
-service_machine = Infisical.Identity.generate_service_specific_machine("user")
+resource_machine = Infisical.Identity.generate_resource_specific_machine("user")
 ```
 
 ### Organization
 
-#### `generate_config(org_name, env_names, service_names)`
+#### `generate_config(org_name, env_names, resource_names)`
 
 Generates complete organization configuration.
 
@@ -246,7 +246,7 @@ Generates complete organization configuration.
 org = Infisical.Org.generate_config(
     org_name="{project}",
     env_names=["dev", "staging", "prod"],
-    service_names=["user", "order", "payment"],
+    resource_names=["user", "order", "payment"],
 )
 
 # Returns complete setup including:
@@ -265,7 +265,7 @@ org = Infisical.Org.generate_config(
 ```dockerfile
 # Hardcoded in Dockerfile generation
 COPY --chmod=0755 shared-platform-engineering/docker-templates/infisical-entrypoint.sh /entrypoint.sh
-ENV SERVICE_NAME=my-service
+ENV RESOURCE_NAME=my-service
 ENV INFISICAL_SECRET_PATH=/services/my-service
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["bun", "run", "start"]
@@ -279,15 +279,15 @@ load("engine/topologies/platform/docker/layers/infisical/index.star", "Infisical
 
 # Generate Dockerfile snippet dynamically
 infisical_setup = InfisicalLayers.Docker.runtime_setup(
-    service_name="my-service",
+    resource_name="my-service",
     secret_path="/services/my-service",  # Auto-generated if not provided
-    service_type="backend",
+    resource_type="backend",
     command="bun run start",
 )
 
 # Returns:
 # COPY --chmod=0755 shared-platform-engineering/docker-templates/infisical-entrypoint.sh /entrypoint.sh
-# ENV SERVICE_NAME=my-service
+# ENV RESOURCE_NAME=my-service
 # ENV INFISICAL_SECRET_PATH=/services/my-service
 # ENV INFISICAL_TOKEN=${INFISICAL_TOKEN:-}
 # ... (all env vars from generator)
@@ -370,7 +370,7 @@ tdk-cli/engine/topologies/
 
 ## Best Practices
 
-1. **Use Predefined Services**: When possible, use `Secrets.PREDEFINED_SERVICES` instead of manual configuration.
+1. **Use Predefined Services**: When possible, use `Secrets.PREDEFINED_RESOURCES` instead of manual configuration.
 
 2. **Validate Early**: Always validate paths and configurations before using them:
    ```starlark

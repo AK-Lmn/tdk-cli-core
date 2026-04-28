@@ -19,11 +19,11 @@ load('./engine/topologies/tilt/discovery/loading.star', _Manifest='Manifest')
 load('./engine/topologies/tilt/config/global.star', _Config='Config')
 load('./engine/topologies/tilt/discovery/registry.star',
     _GLOBAL_CONFIG_EXPORT='GLOBAL_CONFIG_EXPORT',
-    _APP_SERVICES='APP_SERVICES',
-    _INFRA_SERVICES_EXPORT='INFRA_SERVICES_EXPORT',
+    _APP_RESOURCES='APP_RESOURCES',
+    _INFRA_RESOURCES_EXPORT='INFRA_RESOURCES_EXPORT',
     _DDD_LIBS_EXPORT='DDD_LIBS_EXPORT',
     _DEFAULTS_EXPORT='DEFAULTS_EXPORT',
-    _SERVICE_ALIASES='SERVICE_ALIASES',
+    _RESOURCE_ALIASES='RESOURCE_ALIASES',
     _RESOURCE_PATH_MAP='RESOURCE_PATH_MAP',
     _get_platform_libs_export='get_platform_libs_export',
     _get_product_libs_export='get_product_libs_export',
@@ -50,11 +50,11 @@ load('./specs/specs/TILT_TECH_STACK.star', _assert_tech_stack='assert_tech_stack
 load('./discovery/constants.star',
     _MANIFEST_FILENAME='MANIFEST_FILENAME',
     _MANIFEST_FILENAME_YAML='MANIFEST_FILENAME_YAML',
-    _SERVICES_ROOT='SERVICES_ROOT',
+    _RESOURCES_ROOT='RESOURCES_ROOT',
     _DISCOVERY_SCAN_ROOTS='DISCOVERY_SCAN_ROOTS',
 )
 load('./discovery/discovery_orchestrator.star', _initialize_discovery='initialize_discovery')
-load('./discovery/service_snapshot.star', _get_service_snapshot_path='get_service_snapshot_path')
+load('./discovery/resource_snapshot.star', _get_resource_snapshot_path='get_resource_snapshot_path')
 
 # =============================================================================
 # EXT (UI enhancements and IDE components)
@@ -111,11 +111,11 @@ Config = _Config
 
 # Registry Data
 GLOBAL_CONFIG_EXPORT = _GLOBAL_CONFIG_EXPORT
-APP_SERVICES = _APP_SERVICES
-INFRA_SERVICES_EXPORT = _INFRA_SERVICES_EXPORT
+APP_RESOURCES = _APP_RESOURCES
+INFRA_RESOURCES_EXPORT = _INFRA_RESOURCES_EXPORT
 DDD_LIBS_EXPORT = _DDD_LIBS_EXPORT
 DEFAULTS_EXPORT = _DEFAULTS_EXPORT
-SERVICE_ALIASES = _SERVICE_ALIASES
+RESOURCE_ALIASES = _RESOURCE_ALIASES
 RESOURCE_PATH_MAP = _RESOURCE_PATH_MAP
 
 def get_platform_libs_export(autodiscover=False):
@@ -144,10 +144,10 @@ TECH_STACK = _TECH_STACK
 # Discovery
 MANIFEST_FILENAME = _MANIFEST_FILENAME
 MANIFEST_FILENAME_YAML = _MANIFEST_FILENAME_YAML
-SERVICES_ROOT = _SERVICES_ROOT
+RESOURCES_ROOT = _RESOURCES_ROOT
 DISCOVERY_SCAN_ROOTS = _DISCOVERY_SCAN_ROOTS
 initialize_discovery = _initialize_discovery
-get_service_snapshot_path = _get_service_snapshot_path
+get_resource_snapshot_path = _get_resource_snapshot_path
 
 # Determinism Utilities
 Determinism = _Determinism

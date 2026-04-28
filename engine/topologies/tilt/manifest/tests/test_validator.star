@@ -226,7 +226,7 @@ def _test_cross_field_validation():
 # TEST SUITE: Cross-Service Validation
 # =============================================================================
 
-def _test_cross_service_validation():
+def _test_cross_resource_validation():
     """Test cross-service validation."""
     print("🔍 Testing cross-service validation...")
     
@@ -438,7 +438,7 @@ def run_tests():
     _test_schema_validation()
     _test_value_validation()
     _test_cross_field_validation()
-    _test_cross_service_validation()
+    _test_cross_resource_validation()
     _test_full_validation()
     _test_is_valid()
     _test_validation_report()

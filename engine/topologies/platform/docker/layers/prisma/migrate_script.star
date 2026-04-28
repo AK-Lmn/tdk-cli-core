@@ -49,12 +49,12 @@ def _prisma_run_block():
     )
 
 
-def migrate_sh_content(service_name):
+def migrate_sh_content(resource_name):
     """
     Return the full text of migrate.sh for the given service.
 
     Args:
-        service_name: Used in SERVICE_NAME env var and Infisical secret path
+        resource_name: Used in RESOURCE_NAME env var and Infisical secret path
                       (e.g. 'user-service', 'order-service').
     """
     done_msg = (
@@ -66,7 +66,7 @@ def migrate_sh_content(service_name):
         "#!/bin/sh\n"
         + "set -e\n"
         + _log(
-            "echo \"\\U0001f5c4\\ufe0f Starting database migration for $SERVICE_NAME...\"\n",
+            "echo \"\\U0001f5c4\\ufe0f Starting database migration for $RESOURCE_NAME...\"\n",
             "echo \"Starting database migration...\"\n",
         )
         + "\n# --- 1. Resolve DATABASE_URL ---\n"
@@ -80,17 +80,17 @@ def migrate_sh_content(service_name):
     )
 
 
-def migrate_sh_dockerfile_block(service_name):
+def migrate_sh_dockerfile_block(resource_name):
     """
     Return the Dockerfile fragment that writes migrate.sh and makes it executable.
 
     Args:
-        service_name: Forwarded to migrate_sh_content().
+        resource_name: Forwarded to migrate_sh_content().
     """
     return (
         "# Provide the migrate entrypoint\n"
         + "RUN cat > " + MIGRATE_SH_ABS_PATH + " << 'EOF'\n"
-        + migrate_sh_content(service_name)
+        + migrate_sh_content(resource_name)
         + "EOF\n"
         + "RUN chmod +x " + MIGRATE_SH_ABS_PATH + "\n"
     )

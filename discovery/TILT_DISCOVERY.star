@@ -14,7 +14,7 @@
 #
 # 🔗 ARCHITECTURE:
 #   - TILT_TECH_STACK.star: Technology choices
-#   - TILT_SERVICE_DEFAULTS.star: Service defaults (ports, health checks)
+#   - TILT_RESOURCE_DEFAULTS.star: Service defaults (ports, health checks)
 #   - TILT_DISCOVERY.star: Discovery-specific settings (scan intervals, synthesis)
 #   - spec.master: Project-specific service lists
 #
@@ -86,7 +86,7 @@ def get_manifest_discovery_config():
         },
 
         # Service type detection patterns (suffixes)
-        "service_type_patterns": {
+        "resource_type_patterns": {
             "frontend": "-frontend",
             "backend": "-backend",
             "sdk": "-sdk",
@@ -125,7 +125,7 @@ def get_synthesis_config():
         # Enable auto-computation of basePath for frontends
         "auto_compute_base_path": True,
 
-        # Database naming pattern: {project}_{domain}_{service_function}
+        # Database naming pattern: {project}_{domain}_{resource_function}
         # Example: services/product/users/user-management-backend -> {project}_user_management
         "database_name_pattern": "TDK_{domain}_{function}",
 
@@ -164,7 +164,7 @@ def get_valid_domains():
 # Valid service types for the platform.
 
 
-def get_valid_service_types():
+def get_valid_resource_types():
     """Return list of valid service types.
 
     Returns:
@@ -303,7 +303,7 @@ def get_discovery_defaults():
         "manifest": get_manifest_discovery_config(),
         "synthesis": get_synthesis_config(),
         "domains": get_valid_domains(),
-        "service_types": get_valid_service_types(),
+        "resource_types": get_valid_resource_types(),
         "features": get_valid_features(),
         "port_ranges": get_port_ranges(),
         "dependencies": get_dependency_resolution_config(),
@@ -368,7 +368,7 @@ DISCOVERY_SCAN_CONFIG = get_discovery_scan_config()
 MANIFEST_DISCOVERY_CONFIG = get_manifest_discovery_config()
 SYNTHESIS_CONFIG = get_synthesis_config()
 VALID_DOMAINS = get_valid_domains()
-VALID_SERVICE_TYPES = get_valid_service_types()
+VALID_RESOURCE_TYPES = get_valid_resource_types()
 VALID_FEATURES = get_valid_features()
 PORT_RANGES = get_port_ranges()
 DEPENDENCY_CONFIG = get_dependency_resolution_config()
@@ -389,7 +389,7 @@ __all__ = [
     "get_manifest_discovery_config",
     "get_synthesis_config",
     "get_valid_domains",
-    "get_valid_service_types",
+    "get_valid_resource_types",
     "get_valid_features",
     "get_port_ranges",
     "get_dependency_resolution_config",
@@ -402,7 +402,7 @@ __all__ = [
     "MANIFEST_DISCOVERY_CONFIG",
     "SYNTHESIS_CONFIG",
     "VALID_DOMAINS",
-    "VALID_SERVICE_TYPES",
+    "VALID_RESOURCE_TYPES",
     "VALID_FEATURES",
     "PORT_RANGES",
     "DEPENDENCY_CONFIG",

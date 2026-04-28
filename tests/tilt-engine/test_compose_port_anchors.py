@@ -15,7 +15,7 @@ class TestReplacePortsWithAnchors:
     """Test the port anchor replacement logic that caused the Traefik bug."""
     
     @pytest.fixture
-    def backend_service_entry(self) -> str:
+    def backend_resource_entry(self) -> str:
         """Backend service entry - should get *backend-port."""
         return '''  identity-backend:
     image: identity_identity-backend:dev
@@ -32,7 +32,7 @@ class TestReplacePortsWithAnchors:
 '''
     
     @pytest.fixture
-    def frontend_service_entry(self) -> str:
+    def frontend_resource_entry(self) -> str:
         """Frontend service entry - should get *frontend-port."""
         return '''  identity-frontend:
     image: identity_identity-frontend:dev
@@ -45,7 +45,7 @@ class TestReplacePortsWithAnchors:
 '''
     
     @pytest.fixture
-    def sdk_service_entry(self) -> str:
+    def sdk_resource_entry(self) -> str:
         """SDK service entry - should get *sdk-port."""
         return '''  identity-sdk:
     image: identity_identity-sdk:dev
@@ -114,10 +114,10 @@ class TestReplacePortsWithAnchors:
         
         return '\n'.join(result)
     
-    def test_backend_gets_backend_port_anchor(self, backend_service_entry: str):
+    def test_backend_gets_backend_port_anchor(self, backend_resource_entry: str):
         """Backend with port 4004 must get *backend-port anchor."""
         result = self.simulate_replace_ports_with_anchors(
-            backend_service_entry,
+            backend_resource_entry,
             has_sdk=False,
             has_frontend=True,  # Simulate identity stack which has frontend
             has_backend=True
@@ -128,10 +128,10 @@ class TestReplacePortsWithAnchors:
         assert "*frontend-port" not in result, "Backend must NOT use *frontend-port anchor"
         assert "*sdk-port" not in result, "Backend must NOT use *sdk-port anchor"
     
-    def test_frontend_gets_frontend_port_anchor(self, frontend_service_entry: str):
+    def test_frontend_gets_frontend_port_anchor(self, frontend_resource_entry: str):
         """Frontend with port 3000 (or other) must get *frontend-port anchor."""
         result = self.simulate_replace_ports_with_anchors(
-            frontend_service_entry,
+            frontend_resource_entry,
             has_sdk=False,
             has_frontend=True,
             has_backend=False
@@ -160,10 +160,10 @@ class TestReplacePortsWithAnchors:
         assert "*frontend-port" in result, "Frontend must use *frontend-port"
         assert "*backend-port" not in result, "Frontend must NOT use *backend-port"
     
-    def test_sdk_gets_sdk_port_anchor(self, sdk_service_entry: str):
+    def test_sdk_gets_sdk_port_anchor(self, sdk_resource_entry: str):
         """SDK with port 5175 must get *sdk-port anchor."""
         result = self.simulate_replace_ports_with_anchors(
-            sdk_service_entry,
+            sdk_resource_entry,
             has_sdk=True,
             has_frontend=True,
             has_backend=True
@@ -175,12 +175,12 @@ class TestReplacePortsWithAnchors:
     
     def test_port_3000_always_backend_port(self):
         """Port 3000 always maps to *backend-port regardless of service type."""
-        service_with_3000 = '''  some-service:
+        resource_with_3000 = '''  some-service:
     labels:
       - "traefik.http.services.some-service.loadbalancer.server.port=3000"
 '''
         result = self.simulate_replace_ports_with_anchors(
-            service_with_3000,
+            resource_with_3000,
             has_sdk=False,
             has_frontend=True,
             has_backend=True

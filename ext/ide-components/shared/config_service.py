@@ -37,7 +37,7 @@ class ConfigService:
     
     # Master configs allowed at project root
     ALLOWED_ROOT_CONFIGS = [
-        'TILT_SERVICE_DEFAULTS.star',
+        'TILT_RESOURCE_DEFAULTS.star',
         'spec.master',
         'engine/spec.master',
     ]
@@ -66,7 +66,7 @@ class ConfigService:
         
         Allowed paths:
         - Within engine/topologies/
-        - Project root master configs: TILT_SERVICE_DEFAULTS.star, spec.master, engine/spec.master
+        - Project root master configs: TILT_RESOURCE_DEFAULTS.star, spec.master, engine/spec.master
         
         Returns: Absolute Path if valid, None if invalid.
         """
@@ -431,7 +431,7 @@ if __name__ == '__main__':
     # Test validate_write_path
     test_paths = [
         'engine/topologies/tilt/discovery/registry.star',
-        'TILT_SERVICE_DEFAULTS.star',
+        'TILT_RESOURCE_DEFAULTS.star',
         'spec.master',
         'engine/spec.master',
         '../outside',  # Should fail

@@ -104,7 +104,7 @@ graph TD
     D --> F[Apply Smart Defaults]
     F --> G[Validate manifest]
     G --> H{Valid?}
-    H -->|Yes| I[Add to APP_SERVICES]
+    H -->|Yes| I[Add to APP_RESOURCES]
     H -->|No| J[Log error, skip]
     I --> K[Generate all configs]
     K --> L[Create Tilt resources]

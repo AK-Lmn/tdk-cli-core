@@ -42,7 +42,7 @@ load('./.tilt/core/dependency-sync.star', 'DepSync')
 
 # 2️⃣ LOAD CONFIGURATION & SERVICE REGISTRY
 load('./.tilt/config.star', 'Config')
-load('./.tilt/core/registry.star', 'APP_SERVICES', 'DEFAULTS', ...)
+load('./.tilt/core/registry.star', 'APP_RESOURCES', 'DEFAULTS', ...)
 
 # 3️⃣ LOAD PROVIDERS (Generators)
 load('./.tilt/providers/vite.star', 'Vite')
@@ -136,7 +136,7 @@ TSConfig.backend(path, prisma_path, write_fn, internal_deps, is_docker)
 TSConfig.frontend(path, write_fn, internal_deps, is_docker)
 TSConfig.library_backend(path, write_fn, internal_deps)
 TSConfig.library_frontend(path, write_fn, internal_deps)
-TSConfig.prisma(path, service_name, db_name, write_fn)
+TSConfig.prisma(path, resource_name, db_name, write_fn)
 ```
 
 #### `docker/` - Dockerfile & Compose Generation (modularized)
@@ -145,9 +145,9 @@ TSConfig.prisma(path, service_name, db_name, write_fn)
 load('./.tilt/providers/docker/index.star', 'Docker')
 
 Docker.generate_frontend_dockerfile(path, name, target_path, use_nginx)
-Docker.generate_app_dockerfile(path, service_name, start_command)
-Docker.generate_migrator_dockerfile(path, service_name)
-Docker.generate_backend_compose_entry(path, service_name, resource, manifest)
+Docker.generate_app_dockerfile(path, resource_name, start_command)
+Docker.generate_migrator_dockerfile(path, resource_name)
+Docker.generate_backend_compose_entry(path, resource_name, resource, manifest)
 ```
 
 #### `npmrc.star` - Registry Configuration
@@ -168,7 +168,7 @@ PackageConfig.generate_bunfig(path, registry_url, is_docker)
 ```starlark
 load('./.tilt/provisioner/libs.star', 'Libs')
 
-lib_deps = Libs.discover_service_libraries(ctx, resource_path)
+lib_deps = Libs.discover_resource_libraries(ctx, resource_path)
 Libs.define_library_resource(ctx, lib_name, lib_config, should_enable)
 library_map = Libs.setup_libraries(ctx, should_enable, DDD_LIBS, PLATFORM_LIBS, PRODUCT_LIBS, generators)
 ```
@@ -244,7 +244,7 @@ Adding a new generator (e.g., for Kubernetes) = create new file in `providers/`.
 
 1. Add to `.tilt/core/registry.star`:
 ```starlark
-APP_SERVICES.append({
+APP_RESOURCES.append({
     'name': 'my-service',
     'path': 'services/product/my-domain/my-service',
     'labels': ['app.my-domain'],

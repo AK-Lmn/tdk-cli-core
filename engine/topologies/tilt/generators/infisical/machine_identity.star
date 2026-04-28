@@ -204,7 +204,7 @@ def _generate_development_machine(identity_name="dev-machine", project_id=None):
 def _generate_production_machine(identity_name="prod-machine", project_id=None, resource_paths=None):
     """Generate a production machine identity with restricted access."""
     if not resource_paths:
-        resource_paths = ["/services/${SERVICE_NAME}"]
+        resource_paths = ["/services/${RESOURCE_NAME}"]
     
     return _generate_universal_auth_config(
         identity_name=identity_name,
@@ -225,12 +225,12 @@ def _generate_ci_machine(identity_name="ci-machine", project_id=None):
         environment="dev",
     )
 
-def _generate_service_specific_machine(service_name, project_id=None):
+def _generate_resource_specific_machine(resource_name, project_id=None):
     """Generate a machine identity for a specific service only."""
-    path = "/services/{}".format(service_name)
+    path = "/services/{}".format(resource_name)
     
     return _generate_universal_auth_config(
-        identity_name="{}-machine".format(service_name),
+        identity_name="{}-machine".format(resource_name),
         access_paths=[path, "{}/*".format(path)],
         project_id=project_id,
         environment="dev",
@@ -400,7 +400,7 @@ MachineIdentity = struct(
     generate_development_machine=_generate_development_machine,
     generate_production_machine=_generate_production_machine,
     generate_ci_machine=_generate_ci_machine,
-    generate_service_specific_machine=_generate_service_specific_machine,
+    generate_resource_specific_machine=_generate_resource_specific_machine,
     
     # Registry
     get_predefined_machine=_get_predefined_machine,

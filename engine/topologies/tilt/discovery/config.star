@@ -2,7 +2,7 @@
 # 🗺️ TOPOLOGIES - DISCOVERY CONFIG
 # =============================================================================
 
-load("./constants.star", "SERVICES_ROOT")
+load("./constants.star", "RESOURCES_ROOT")
 load("../../platform/docker/constants.star", "PlatformDockerConstants")
 
 # NOTE: DEFAULTS and focus lists are now loaded dynamically in registry.star
@@ -53,17 +53,17 @@ def load_project_defaults(project_root):
     # Ensure content is a string (read_file may return bytes)
     spec_content = str(spec_content_raw)
     
-    # Extract PRE_ALPHA_SERVICES from the file
+    # Extract PRE_ALPHA_RESOURCES from the file
     # This is a simple parser for the expected format
     defaults = {}
     pre_alpha = []
     alpha = []
     beta = []
     
-    # Parse PRE_ALPHA_SERVICES
-    if "PRE_ALPHA_SERVICES" in spec_content:
+    # Parse PRE_ALPHA_RESOURCES
+    if "PRE_ALPHA_RESOURCES" in spec_content:
         # Extract the dict content between { and }
-        start = spec_content.find("PRE_ALPHA_SERVICES = {")
+        start = spec_content.find("PRE_ALPHA_RESOURCES = {")
         if start != -1:
             start = spec_content.find("{", start)
             end = spec_content.find("}", start)
@@ -86,9 +86,9 @@ def load_project_defaults(project_root):
                                     defaults[key] = True
                                     pre_alpha.append(key)
     
-    # Parse ALPHA_SERVICES
-    if "ALPHA_SERVICES" in spec_content:
-        start = spec_content.find("ALPHA_SERVICES = {")
+    # Parse ALPHA_RESOURCES
+    if "ALPHA_RESOURCES" in spec_content:
+        start = spec_content.find("ALPHA_RESOURCES = {")
         if start != -1:
             start = spec_content.find("{", start)
             end = spec_content.find("}", start)
@@ -107,9 +107,9 @@ def load_project_defaults(project_root):
                                     defaults[key] = True
                                     alpha.append(key)
     
-    # Parse BETA_SERVICES
-    if "BETA_SERVICES" in spec_content:
-        start = spec_content.find("BETA_SERVICES = {")
+    # Parse BETA_RESOURCES
+    if "BETA_RESOURCES" in spec_content:
+        start = spec_content.find("BETA_RESOURCES = {")
         if start != -1:
             start = spec_content.find("{", start)
             end = spec_content.find("}", start)
@@ -164,7 +164,7 @@ def get_global_config():
             "ddd": "shared-ddd-layers",
         },
         # Relative to .tilt/topologies/tilt/discovery/
-        "services_root": SERVICES_ROOT,
+        "services_root": RESOURCES_ROOT,
         "database": PlatformDockerConstants.DB_CONFIG,
         "docker": {
             "base_image": PlatformDockerConstants.BUN_IMAGE,
@@ -191,7 +191,7 @@ def get_global_config():
 
 GLOBAL_CONFIG = get_global_config()
 
-INFRA_SERVICES = [
+INFRA_RESOURCES = [
     {"name": "database-management", "memory": 1152},
     {"name": "proxy", "memory": 384},
     {"name": "api-gateway", "memory": 512},
@@ -280,7 +280,7 @@ Config = struct(
     FOCUS_ALPHA = FOCUS_ALPHA,
     FOCUS_BETA = FOCUS_BETA,
     GLOBAL = GLOBAL_CONFIG,
-    INFRA_SERVICES = INFRA_SERVICES,
+    INFRA_RESOURCES = INFRA_RESOURCES,
     CORE_INFRA = CORE_INFRA,
     INFRA_DOMAIN_MAP = INFRA_DOMAIN_MAP,
     OPTIONAL_INFRA = OPTIONAL_INFRA,

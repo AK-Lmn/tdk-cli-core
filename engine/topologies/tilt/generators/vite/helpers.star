@@ -53,11 +53,11 @@ def generate_frontend_internal_aliases(resource_path, manifest, config_depth_off
         return '      // No internal dependencies detected'
 
     # Calculate depth for relative paths (Starlark-compatible)
-    service_parts = []
+    resource_parts = []
     for p in resource_path.split('/'):
         if p:
-            service_parts.append(p)
-    depth = len(service_parts) + config_depth_offset
+            resource_parts.append(p)
+    depth = len(resource_parts) + config_depth_offset
     rel_to_root = '../' * depth
 
     lines = ['      // 🔥 Auto-generated internal package aliases (from package.json)']

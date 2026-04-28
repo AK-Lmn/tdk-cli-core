@@ -49,7 +49,7 @@ server:
 
 The PostgreSQL-per-service pattern with shared engine:
 ```starlark
-def provision_database(service_name, db_name):
+def provision_database(resource_name, db_name):
     # Shared PostgreSQL instance, isolated databases
     return f'postgresql://postgres@shared-pg/{db_name}'
 ```

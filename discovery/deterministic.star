@@ -39,7 +39,7 @@ def deterministic_find(path, pattern):
         return result.split('\n')
     return []
 
-def deterministic_service_discovery(scan_roots):
+def deterministic_resource_discovery(scan_roots):
     """Deterministically discover services across all scan roots.
     
     Args:
@@ -172,22 +172,22 @@ def deterministic_yaml_generation(resource_paths):
     yaml_paths = []
     
     # Process in sorted order for determinism
-    for service_json in sorted(resource_paths):
-        service_dir = os.path.dirname(service_json)
-        service_yaml = os.path.join(service_dir, 'service.yaml')
+    for resource_json in sorted(resource_paths):
+        resource_dir = os.path.dirname(resource_json)
+        resource_yaml = os.path.join(resource_dir, 'service.yaml')
         
         # Check if regeneration needed
         needs_regen = False
-        if not os.path.exists(service_yaml):
+        if not os.path.exists(resource_yaml):
             needs_regen = True
         else:
             # Compare modification times
-            json_stat = os.stat(service_json)
-            yaml_stat = os.path.exists(service_yaml) and os.stat(service_yaml)
+            json_stat = os.stat(resource_json)
+            yaml_stat = os.path.exists(resource_yaml) and os.stat(resource_yaml)
             if yaml_stat and json_stat.st_mtime > yaml_stat.st_mtime:
                 needs_regen = True
         
-        yaml_paths.append(service_yaml)
+        yaml_paths.append(resource_yaml)
     
     return sorted(yaml_paths)
 
@@ -197,7 +197,7 @@ def deterministic_yaml_generation(resource_paths):
 
 DETERMINISTIC_EXPORTS = {
     'deterministic_find': deterministic_find,
-    'deterministic_service_discovery': deterministic_service_discovery,
+    'deterministic_resource_discovery': deterministic_resource_discovery,
     'deterministic_local': deterministic_local,
     'sort_resources_by_name': sort_resources_by_name,
     'get_deterministic_env': get_deterministic_env,

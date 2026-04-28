@@ -12,7 +12,7 @@ from pathlib import Path
 class TestDaemonValidation:
     """Tests for service validation."""
     
-    def test_invalid_service_json_rejected(self):
+    def test_invalid_resource_json_rejected(self):
         """
         Scenario: Invalid service.json rejected
         WHEN a new service.json file has missing required fields (e.g., no `name`)
@@ -37,7 +37,7 @@ class TestDaemonValidation:
         is_valid = len(missing_fields) == 0
         assert not is_valid, "Invalid service should be rejected"
     
-    def test_valid_service_json_accepted(self):
+    def test_valid_resource_json_accepted(self):
         """
         Scenario: Valid service.json accepted
         WHEN a new service.json file has all required fields (`name`, `type`, `domain`, `port`)
@@ -89,7 +89,7 @@ class TestDaemonValidation:
     
     def test_validation_allows_optional_fields(self):
         """Test that optional fields don't cause validation failure."""
-        service_with_optional = {
+        resource_with_optional = {
             "name": "test-service",
             "type": "backend",
             "domain": "test",
@@ -102,6 +102,6 @@ class TestDaemonValidation:
         }
         
         required_fields = ["name", "type", "domain", "path"]
-        has_all_required = all(f in service_with_optional for f in required_fields)
+        has_all_required = all(f in resource_with_optional for f in required_fields)
         
         assert has_all_required, "Service with optional fields should still be valid"

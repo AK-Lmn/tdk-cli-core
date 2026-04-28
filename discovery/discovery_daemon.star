@@ -4,7 +4,7 @@
 # Monitors filesystem for new services and triggers incremental registration
 # =============================================================================
 
-load("./service_snapshot.star", "ServiceSnapshot")
+load("./resource_snapshot.star", "ServiceSnapshot")
 load("./registry.star", "CacheOps")
 load("../manifest/loader.star", "ManifestLoader")
 # Discovery config - inlined for unified repo
@@ -119,12 +119,12 @@ def _handle_new_service(
         on_new_service: Optional callback
     """
     # Extract service directory
-    service_dir = resource_path.rsplit("/", 1)[0] if "/" in resource_path else resource_path
+    resource_dir = resource_path.rsplit("/", 1)[0] if "/" in resource_path else resource_path
     
     # Check for package.json (complete service structure)
-    package_json_path = service_dir + "/package.json"
+    package_json_path = resource_dir + "/package.json"
     if not _file_exists(package_json_path):
-        print("⏳ Waiting for package.json in {}".format(service_dir))
+        print("⏳ Waiting for package.json in {}".format(resource_dir))
         return
     
     # Load and validate manifest
@@ -140,32 +140,32 @@ def _handle_new_service(
         return
     
     # Get service name
-    service_name = manifest.get("appName", "")
-    if not service_name:
+    resource_name = manifest.get("appName", "")
+    if not resource_name:
         print("❌ Missing appName in: {}".format(resource_path))
         return
     
     # Check for duplicates
-    if CacheOps.has(service_name):
+    if CacheOps.has(resource_name):
         if verbose:
-            print("ℹ️  Service already registered: {}".format(service_name))
+            print("ℹ️  Service already registered: {}".format(resource_name))
         return
     
     # Check focus mode
     domain = manifest.get("domain", "")
     if focus_mode and focus_domains and domain not in focus_domains:
-        print("📋 Focus mode: Skipping {} (domain: {})".format(service_name, domain))
+        print("📋 Focus mode: Skipping {} (domain: {})".format(resource_name, domain))
         return
     
     # Log detection
-    print("🔍 New service detected: {}".format(service_name))
+    print("🔍 New service detected: {}".format(resource_name))
     print("  └─ Path: {}".format(resource_path))
     print("  └─ Domain: {}".format(domain))
     print("  └─ Type: {}".format(manifest.get("appType", "unknown")))
     
     # Call callback if provided
     if on_new_service:
-        on_new_service(service_name, resource_path, manifest, auto_init)
+        on_new_service(resource_name, resource_path, manifest, auto_init)
 
 def _file_exists(path):
     """Check if a file exists."""

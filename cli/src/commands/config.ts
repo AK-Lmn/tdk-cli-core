@@ -33,7 +33,7 @@ export const configCommand = new Command('config')
             console.log(chalk.gray('Would regenerate:'));
             console.log(chalk.gray('  - tilt.config.json'));
             console.log(chalk.gray('  - TILT_TECH_STACK.star'));
-            console.log(chalk.gray('  - TILT_SERVICE_DEFAULTS.star'));
+            console.log(chalk.gray('  - TILT_RESOURCE_DEFAULTS.star'));
             console.log(chalk.gray('  - spec.master'));
             return;
           }

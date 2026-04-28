@@ -10,14 +10,14 @@ import pytest
 class TestCacheOperations:
     """Tests for registry cache CRUD operations."""
     
-    def test_add_new_service_to_cache(self, service_registry_cache):
+    def test_add_new_resource_to_cache(self, resource_registry_cache):
         """
         Scenario: Add new service to cache
-        WHEN `CacheOps.add_service_to_cache()` is called with a valid service object
+        WHEN `CacheOps.add_resource_to_cache()` is called with a valid service object
         THEN the service SHALL be stored in `_DISCOVERY_CACHE`
-        AND it SHALL be retrievable by path via `CacheOps.get_service_by_path_from_cache()`
+        AND it SHALL be retrievable by path via `CacheOps.get_resource_by_path_from_cache()`
         """
-        cache = service_registry_cache
+        cache = resource_registry_cache
         service = {
             "name": "test-service",
             "path": "services/product/test/test-service"
@@ -31,14 +31,14 @@ class TestCacheOperations:
         assert retrieved is not None
         assert retrieved["name"] == "test-service"
     
-    def test_add_service_with_metadata(self, service_registry_cache):
+    def test_add_resource_with_metadata(self, resource_registry_cache):
         """
         Scenario: Add service with metadata
         WHEN adding a service with fields `name`, `type`, `path`, `domain`, `port`
         THEN all fields SHALL be preserved in the cache
         AND retrieval SHALL return the exact same data
         """
-        cache = service_registry_cache
+        cache = resource_registry_cache
         service = {
             "name": "identity-backend",
             "type": "backend",
@@ -55,14 +55,14 @@ class TestCacheOperations:
         assert retrieved["domain"] == "identity"
         assert retrieved["port"] == 4001
     
-    def test_prevent_duplicate_adds(self, service_registry_cache):
+    def test_prevent_duplicate_adds(self, resource_registry_cache):
         """
         Scenario: Prevent duplicate adds
         WHEN attempting to add a service with a path already in cache
         THEN the new service data SHALL overwrite the old data (update semantics)
         AND the cache SHALL contain only one entry for that path
         """
-        cache = service_registry_cache
+        cache = resource_registry_cache
         path = "services/product/test/service"
         
         # Add initial version
@@ -76,14 +76,14 @@ class TestCacheOperations:
         assert retrieved["name"] == "v2"
         assert retrieved["port"] == 4001
     
-    def test_remove_existing_service(self, service_registry_cache):
+    def test_remove_existing_service(self, resource_registry_cache):
         """
         Scenario: Remove existing service
-        WHEN `CacheOps.remove_service_from_cache()` is called with a path in cache
+        WHEN `CacheOps.remove_resource_from_cache()` is called with a path in cache
         THEN the service SHALL be removed from `_DISCOVERY_CACHE`
-        AND subsequent `CacheOps.has_service_in_cache()` SHALL return `False`
+        AND subsequent `CacheOps.has_resource_in_cache()` SHALL return `False`
         """
-        cache = service_registry_cache
+        cache = resource_registry_cache
         path = "services/product/test/service"
         
         # Add and verify
@@ -96,14 +96,14 @@ class TestCacheOperations:
         # Verify removed
         assert not self._has_in_cache(cache, path)
     
-    def test_remove_non_existent_service(self, service_registry_cache):
+    def test_remove_non_existent_service(self, resource_registry_cache):
         """
         Scenario: Remove non-existent service
         WHEN attempting to remove a path not in cache
         THEN it SHALL complete without error (idempotent)
         AND other cache entries SHALL remain unaffected
         """
-        cache = service_registry_cache
+        cache = resource_registry_cache
         
         # Add a service
         self._add_to_cache(cache, "path1", {"name": "service1"})
@@ -114,36 +114,36 @@ class TestCacheOperations:
         # Verify other entries unaffected
         assert self._has_in_cache(cache, "path1")
     
-    def test_check_service_existence(self, service_registry_cache):
+    def test_check_resource_existence(self, resource_registry_cache):
         """
         Scenario: Check service existence
-        WHEN `CacheOps.has_service_in_cache()` is called with a cached path
+        WHEN `CacheOps.has_resource_in_cache()` is called with a cached path
         THEN it SHALL return `True`
         """
-        cache = service_registry_cache
+        cache = resource_registry_cache
         path = "services/product/test/service"
         
         self._add_to_cache(cache, path, {"name": "test"})
         
         assert self._has_in_cache(cache, path)
     
-    def test_check_non_existent_service(self, service_registry_cache):
+    def test_check_non_existent_service(self, resource_registry_cache):
         """
         Scenario: Check non-existent service
-        WHEN `CacheOps.has_service_in_cache()` is called with an unknown path
+        WHEN `CacheOps.has_resource_in_cache()` is called with an unknown path
         THEN it SHALL return `False`
         """
-        cache = service_registry_cache
+        cache = resource_registry_cache
         
         assert not self._has_in_cache(cache, "nonexistent")
     
-    def test_get_service_by_path(self, service_registry_cache):
+    def test_get_resource_by_path(self, resource_registry_cache):
         """
         Scenario: Get service by path
-        WHEN `CacheOps.get_service_by_path_from_cache()` is called with a cached path
+        WHEN `CacheOps.get_resource_by_path_from_cache()` is called with a cached path
         THEN it SHALL return the full service object
         """
-        cache = service_registry_cache
+        cache = resource_registry_cache
         service = {"name": "test", "type": "backend"}
         path = "services/product/test/service"
         
@@ -152,13 +152,13 @@ class TestCacheOperations:
         
         assert retrieved == service
     
-    def test_get_non_existent_service_returns_none(self, service_registry_cache):
+    def test_get_non_existent_resource_returns_none(self, resource_registry_cache):
         """
         Scenario: Get non-existent service
-        WHEN `CacheOps.get_service_by_path_from_cache()` is called with an unknown path
+        WHEN `CacheOps.get_resource_by_path_from_cache()` is called with an unknown path
         THEN it SHALL return `None` (not raise an exception)
         """
-        cache = service_registry_cache
+        cache = resource_registry_cache
         
         result = self._get_from_cache(cache, "nonexistent")
         

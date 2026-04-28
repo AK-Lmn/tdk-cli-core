@@ -20,20 +20,20 @@ class TestConfigInspector:
         THEN it SHALL display a single pane with the first master config
         """
         # Simulate default view
-        panes = [{"name": "TILT_SERVICE_DEFAULTS.star", "content": "# Content"}]
+        panes = [{"name": "TILT_RESOURCE_DEFAULTS.star", "content": "# Content"}]
         
         assert len(panes) == 1, "Default view should have 1 pane"
-        assert "TILT_SERVICE_DEFAULTS.star" in panes[0]["name"]
+        assert "TILT_RESOURCE_DEFAULTS.star" in panes[0]["name"]
     
     def test_dual_pane_comparison(self):
         """
         Scenario: Dual-pane comparison
-        WHEN a user requests `GET /?master1=TILT_SERVICE_DEFAULTS.star&master2=spec.master`
+        WHEN a user requests `GET /?master1=TILT_RESOURCE_DEFAULTS.star&master2=spec.master`
         THEN it SHALL display two panes side-by-side
         AND both configs SHALL be viewable simultaneously
         """
         # Simulate dual-pane request
-        requested_masters = ["TILT_SERVICE_DEFAULTS.star", "spec.master"]
+        requested_masters = ["TILT_RESOURCE_DEFAULTS.star", "spec.master"]
         
         panes = [
             {"name": name, "content": f"# {name} content"}

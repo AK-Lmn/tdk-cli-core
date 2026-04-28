@@ -68,11 +68,11 @@ def _compute_env_file_rel_path(resource_path, full_resource_path, env_filename):
 # 🚦 FRONTEND / BACKEND ENTRIES
 # =============================================================================
 
-def generate_frontend_compose(resource_path, service_name, res, manifest=None):
+def generate_frontend_compose(resource_path, resource_name, res, manifest=None):
     """Generate frontend docker-compose entry with Traefik routing."""
     res_name = res['name']
-    image_name = with_runtime_image_tag(service_name + '_' + res_name)
-    stack = manifest.get('stack', service_name) if manifest else service_name
+    image_name = with_runtime_image_tag(resource_name + '_' + res_name)
+    stack = manifest.get('stack', resource_name) if manifest else resource_name
     
     target_path = res.get('target_path', manifest.get('target_path', '/usr/share/nginx/html'))
     use_nginx = 'nginx' in target_path or target_path == '/usr/share/nginx/html'
@@ -146,12 +146,12 @@ def generate_frontend_compose(resource_path, service_name, res, manifest=None):
     )
 
 
-def _generate_single_backend_entry(resource_path, service_name, res, manifest, instance_id=None):
+def _generate_single_backend_entry(resource_path, resource_name, res, manifest, instance_id=None):
     """
     Generate a single backend docker-compose entry.
     """
     res_name = res['name']
-    stack = manifest.get('stack', service_name) if manifest else service_name
+    stack = manifest.get('stack', resource_name) if manifest else resource_name
     
     # Get full service path from resource (for cross-root service support)
     full_resource_path = res.get('_resource_path', resource_path + '/' + res_name)
@@ -200,12 +200,12 @@ def _generate_single_backend_entry(resource_path, service_name, res, manifest, i
     auth_config = {
         'authMode': auth_mode,
         'jwtSecret': manifest.get('jwtSecret') if manifest else None,
-        'identityServiceUrl': manifest.get('envVars', {}).get('IDENTITY_SERVICE_URL') if manifest else None,
+        'identityServiceUrl': manifest.get('envVars', {}).get('IDENTITY_RESOURCE_URL') if manifest else None,
     }
     
     # If we auto-detected identity-service mode but no URL is set, use default
     if auth_mode == 'identity-service' and not auth_config['identityServiceUrl']:
-        auth_config['identityServiceUrl'] = AuthConfig.get_identity_service_url(None)
+        auth_config['identityServiceUrl'] = AuthConfig.get_identity_resource_url(None)
     
     auth_env = AuthConfig.generate_docker_compose_auth_env(auth_config)
     
@@ -220,23 +220,23 @@ def _generate_single_backend_entry(resource_path, service_name, res, manifest, i
     # Determine service name based on instance
     if instance_id:
         # Replica instance: add instance suffix
-        service_entry_name = res_name + '-' + str(instance_id)
+        resource_entry_name = res_name + '-' + str(instance_id)
         instance_label = str(instance_id)
         # Replicas should reuse the already-built image; avoid per-replica builds
         build_config = ""
     else:
         # Primary instance
-        service_entry_name = res_name
+        resource_entry_name = res_name
         instance_label = '0'
     
     # All instances share the same Traefik service for load balancing
-    traefik_service_name = res_name  # LB service name (shared)
+    traefik_resource_name = res_name  # LB service name (shared)
     
     traefik_labels = get_backend_traefik_labels(
-        service_entry_name=service_entry_name, 
+        resource_entry_name=resource_entry_name, 
         traefik_host=traefik_host, 
         traefik_path=traefik_path, 
-        traefik_service_name=traefik_service_name, 
+        traefik_resource_name=traefik_resource_name, 
         internal_port=internal_port, 
         health_path=health_path,
         manifest=manifest,
@@ -246,7 +246,7 @@ def _generate_single_backend_entry(resource_path, service_name, res, manifest, i
     # Build auth environment variables section using centralized auth utilities
     
     return """
-  {service_entry_name}:
+  {resource_entry_name}:
     image: {image_name}
     restart: unless-stopped
 {build_config}
@@ -255,7 +255,7 @@ def _generate_single_backend_entry(resource_path, service_name, res, manifest, i
       - {env_file_rel_path}
     environment:
 {infisical_env}
-      - SERVICE_NAME={stack}
+      - RESOURCE_NAME={stack}
       - PORT={port_anchor}
       - INSTANCE_ID={instance_label}
       - NATS_QUEUE_GROUP={nats_queue}
@@ -289,10 +289,10 @@ def _generate_single_backend_entry(resource_path, service_name, res, manifest, i
           cpus: '0.2'
           memory: 256M
 """.format(
-        service_entry_name=service_entry_name,
+        resource_entry_name=resource_entry_name,
         res_name=res_name,
-        service_name=service_name,
-        image_name=with_runtime_image_tag(service_name + '_' + res_name),
+        resource_name=resource_name,
+        image_name=with_runtime_image_tag(resource_name + '_' + res_name),
         build_config=build_config,
         ports_section=ports_section,
         env_file_rel_path=env_file_rel_path,
@@ -307,7 +307,7 @@ def _generate_single_backend_entry(resource_path, service_name, res, manifest, i
         health_path=health_path,
         traefik_host=traefik_host,
         traefik_path=traefik_path,
-        traefik_service_name=traefik_service_name,
+        traefik_resource_name=traefik_resource_name,
         nats_queue=nats_queue,
         nats_url=nats_url,
         traefik_labels=traefik_labels,
@@ -320,7 +320,7 @@ def _generate_single_backend_entry(resource_path, service_name, res, manifest, i
     )
 
 
-def generate_backend_compose_entry(resource_path, service_name, res, manifest=None):
+def generate_backend_compose_entry(resource_path, resource_name, res, manifest=None):
     """
     Generate backend docker-compose entries with TRUE multi-replica support.
     """
@@ -328,22 +328,22 @@ def generate_backend_compose_entry(resource_path, service_name, res, manifest=No
     
     if replicas <= 1:
         # Single instance - simple case
-        return _generate_single_backend_entry(resource_path, service_name, res, manifest, instance_id=None)
+        return _generate_single_backend_entry(resource_path, resource_name, res, manifest, instance_id=None)
     
     # Multi-replica: generate separate service entries
     entries = []
     
     # Primary instance (gets the port mapping)
-    entries.append(_generate_single_backend_entry(resource_path, service_name, res, manifest, instance_id=None))
+    entries.append(_generate_single_backend_entry(resource_path, resource_name, res, manifest, instance_id=None))
     
     # Additional replicas (numbered, expose only)
     for i in range(1, replicas):
-        entries.append(_generate_single_backend_entry(resource_path, service_name, res, manifest, instance_id=i))
+        entries.append(_generate_single_backend_entry(resource_path, resource_name, res, manifest, instance_id=i))
     
     return ''.join(entries)
 
 
-def _generate_port_anchors(service_entries):
+def _generate_port_anchors(resource_entries):
     """Extract unique ports and generate YAML anchors for them."""
     backend_port = None
     frontend_port = None
@@ -352,7 +352,7 @@ def _generate_port_anchors(service_entries):
     has_sdk = False
     has_frontend = False
 
-    for entry in service_entries:
+    for entry in resource_entries:
         # Check if this is an SDK (ends with -sdk)
         if "-sdk:" in entry or entry.strip().startswith("identity-sdk:"):
             has_sdk = True
@@ -402,23 +402,23 @@ def _generate_port_anchors(service_entries):
     return "\n".join(anchors)
 
 
-def _detect_sdk_in_entries(service_entries):
+def _detect_sdk_in_entries(resource_entries):
     """Check if any entry is an SDK."""
-    for entry in service_entries:
+    for entry in resource_entries:
         if "-sdk:" in entry or entry.strip().startswith("identity-sdk:"):
             return True
     return False
 
-def _detect_frontend_in_entries(service_entries):
+def _detect_frontend_in_entries(resource_entries):
     """Check if any entry is a frontend."""
-    for entry in service_entries:
+    for entry in resource_entries:
         if "<<: *frontend-memory-limit" in entry:
             return True
     return False
 
-def _detect_backend_in_entries(service_entries):
+def _detect_backend_in_entries(resource_entries):
     """Check if any entry is a backend."""
-    for entry in service_entries:
+    for entry in resource_entries:
         if _is_backend_entry(entry):
             return True
     return False
@@ -490,26 +490,26 @@ def _replace_ports_with_anchors(entry, has_sdk=False, has_frontend=False, has_ba
 
     return "\n".join(result)
 
-def _process_entries_with_anchors(service_entries, has_sdk, has_frontend, has_backend):
+def _process_entries_with_anchors(resource_entries, has_sdk, has_frontend, has_backend):
     """Replace ports with anchors in all entries."""
     result = []
-    for entry in service_entries:
+    for entry in resource_entries:
         result.append(_replace_ports_with_anchors(entry, has_sdk, has_frontend, has_backend))
     return result
 
-def generate_app_compose_from_entries(resource_path, service_entries, write_file_if_changed_fn=None):
+def generate_app_compose_from_entries(resource_path, resource_entries, write_file_if_changed_fn=None):
     """Generate docker-compose.app.autogenerated.yml from service entries with port anchors."""
 
     # Detect service types
-    has_sdk = _detect_sdk_in_entries(service_entries)
-    has_frontend = _detect_frontend_in_entries(service_entries)
-    has_backend = _detect_backend_in_entries(service_entries)
+    has_sdk = _detect_sdk_in_entries(resource_entries)
+    has_frontend = _detect_frontend_in_entries(resource_entries)
+    has_backend = _detect_backend_in_entries(resource_entries)
 
     # Replace ports with anchors in entries
-    processed_entries = _process_entries_with_anchors(service_entries, has_sdk, has_frontend, has_backend)
+    processed_entries = _process_entries_with_anchors(resource_entries, has_sdk, has_frontend, has_backend)
 
     # Generate port anchors
-    port_anchors = _generate_port_anchors(service_entries)
+    port_anchors = _generate_port_anchors(resource_entries)
 
     header = """###############################################################################
 # 🛑 CRITICAL: SYSTEM-GENERATED FILE - DO NOT MODIFY DIRECTLY
@@ -571,13 +571,13 @@ networks:
     return content
 
 
-def generate_migrator_compose(resource_path, service_name, dockerfile_path=None, write_file_if_changed_fn=None):
+def generate_migrator_compose(resource_path, resource_name, dockerfile_path=None, write_file_if_changed_fn=None):
     """Generate docker-compose for database migrators."""
-    migrator_name = service_name + '-db-migrator'
-    image_name = with_runtime_image_tag(service_name + '-db-migrator')
+    migrator_name = resource_name + '-db-migrator'
+    image_name = with_runtime_image_tag(resource_name + '-db-migrator')
     
     # Use PROJECT_NAME from PlatformDockerConstants for portable database naming
-    db_name = PlatformDockerConstants.PROJECT_NAME + '_' + service_name
+    db_name = PlatformDockerConstants.PROJECT_NAME + '_' + resource_name
     default_db_url = PlatformDockerConstants.get_database_url_for_env(db_name)
 
     dockerfile_ref = dockerfile_path if dockerfile_path else resource_path + "/" + OUTPUT.AUTOGENERATED_FOLDER + "/Dockerfile.migrator.autogenerated"
@@ -598,7 +598,7 @@ services:
       target: migrator
     environment:
 {infisical_env}
-      SERVICE_NAME: {service_name}
+      RESOURCE_NAME: {resource_name}
       TILT_DATABASE_URL: "{default_db_url}"
       DATABASE_URL: ${{DATABASE_URL:-{default_db_url}}}
     networks:
@@ -619,7 +619,7 @@ networks:
         image_name=image_name, 
         resource_path=resource_path,
         dockerfile_ref=dockerfile_ref,
-        service_name=service_name,
+        resource_name=resource_name,
         db_name=db_name,
         default_db_url=default_db_url,
         infisical_env=infisical_env,

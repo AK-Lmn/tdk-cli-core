@@ -42,7 +42,7 @@ graph TB
     subgraph "Core Layer"
         Utils[Utils Module<br/>I/O, validation, helpers]
         Manifest[Manifest Module<br/>JSON loading & validation]
-        Registry[Service Registry<br/>APP_SERVICES definition]
+        Registry[Service Registry<br/>APP_RESOURCES definition]
         DepSync[Dependency Sync<br/>package.json → configs]
     end
     
@@ -203,12 +203,12 @@ for resource in ALL_RESOURCES:
 
 **After (Manifest-Driven)** - Lines 114-136 of apply.star:
 ```starlark
-for resource in service_resources:
+for resource in resource_resources:
     manifest = load_manifest(resource)
     
     # Create ONE Tilt resource that generates ALL configs for THIS service
     config_gen_resource = ManifestResource.create_config_resource(
-        service_name, resource, manifest, backend_manifest, ctx
+        resource_name, resource, manifest, backend_manifest, ctx
     )
     # Result: user-management-backend-config-gen (visible in Tilt UI)
 

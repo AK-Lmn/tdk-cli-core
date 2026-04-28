@@ -237,12 +237,12 @@ FOLDER_TEMPLATES = {
     },
 }
 
-def _generate_folder_structure(service_names=None):
+def _generate_folder_structure(resource_names=None):
     """
     Generate complete folder structure for organization.
     
     Args:
-        service_names: List of service names to create under /services
+        resource_names: List of service names to create under /services
     
     Returns:
         Dict with complete folder structure
@@ -253,11 +253,11 @@ def _generate_folder_structure(service_names=None):
         folder = dict(template)  # Copy
         
         # Add service folders under /services
-        if template_name == "services" and service_names:
-            for service_name in service_names:
+        if template_name == "services" and resource_names:
+            for resource_name in resource_names:
                 folder["children"].append({
-                    "name": service_name,
-                    "description": "{} service secrets".format(service_name),
+                    "name": resource_name,
+                    "description": "{} service secrets".format(resource_name),
                 })
         
         structure[template_name] = folder
@@ -319,7 +319,7 @@ SECRET_TEMPLATES = {
         },
     },
     "api": {
-        "SERVICE_API_KEY": {
+        "RESOURCE_API_KEY": {
             "type": "string",
             "description": "Service API key for inter-service communication",
             "sensitive": True,
@@ -406,12 +406,12 @@ SECRET_TEMPLATES = {
     },
 }
 
-def _generate_secrets_for_service(service_type="backend"):
+def _generate_secrets_for_service(resource_type="backend"):
     """
     Generate secret templates for a service type.
     
     Args:
-        service_type: Type of service (backend, frontend, payment, etc.)
+        resource_type: Type of service (backend, frontend, payment, etc.)
     
     Returns:
         Dict with secret templates
@@ -424,14 +424,14 @@ def _generate_secrets_for_service(service_type="backend"):
     secrets.update(SECRET_TEMPLATES["api"])
     
     # Type-specific secrets
-    if service_type in ["backend", "api-gateway"]:
+    if resource_type in ["backend", "api-gateway"]:
         secrets.update(SECRET_TEMPLATES["redis"])
         secrets.update(SECRET_TEMPLATES["nats"])
     
-    if service_type == "payment":
+    if resource_type == "payment":
         secrets.update(SECRET_TEMPLATES["payment"])
     
-    if service_type == "notification":
+    if resource_type == "notification":
         secrets.update(SECRET_TEMPLATES["email"])
     
     return secrets
@@ -440,7 +440,7 @@ def _generate_secrets_for_service(service_type="backend"):
 # Complete Organization Configuration
 # =============================================================================
 
-def _generate_organization_config(org_name=None, project_name=None, env_names=None, service_names=None):
+def _generate_organization_config(org_name=None, project_name=None, env_names=None, resource_names=None):
     """
     Generate complete organization configuration.
 
@@ -448,7 +448,7 @@ def _generate_organization_config(org_name=None, project_name=None, env_names=No
         org_name: Organization name (default: from project.json or 'tdk-project')
         project_name: Project name (default: {org_name}-secrets)
         env_names: List of environments (default: [dev, staging, prod])
-        service_names: List of services to create folders for
+        resource_names: List of services to create folders for
 
     Returns:
         Dict with complete organization configuration
@@ -473,7 +473,7 @@ def _generate_organization_config(org_name=None, project_name=None, env_names=No
         "project": project,
         "environments": _generate_all_environments(env_names),
         "roles": ROLES,
-        "folder_structure": _generate_folder_structure(service_names),
+        "folder_structure": _generate_folder_structure(resource_names),
         "secret_templates": SECRET_TEMPLATES,
         "generated_at": _get_timestamp(),
     }

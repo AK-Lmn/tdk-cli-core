@@ -10,7 +10,7 @@ load('../../platform/docker/constants.star', 'PlatformDockerConstants')
 _get_lib_path_from_package_name = LibsPaths.get_path
 _read_package_json_deps = LibsPaths.read_package_json_deps
 _get_resource_paths_for_focus = LibsPaths.get_resource_paths
-_discover_service_libraries = LibsDiscovery.discover_service_libs
+_discover_resource_libraries = LibsDiscovery.discover_resource_libs
 _define_library_resource = LibsResourceDefinition.define_resource
 
 
@@ -32,7 +32,7 @@ def setup_libraries(ctx, should_enable_fn, ddd_libs, platform_libs, product_libs
     generate_vite = config_generators.get('vite')
     write_fn = config_generators.get('write_fn')
 
-    if not should_enable_fn(PlatformDockerConstants.VERDACCIO_SERVICE_NAME):
+    if not should_enable_fn(PlatformDockerConstants.VERDACCIO_RESOURCE_NAME):
         return library_map
 
     if focus_enabled_all != None:
@@ -46,7 +46,7 @@ def setup_libraries(ctx, should_enable_fn, ddd_libs, platform_libs, product_libs
 
         print("   🔍 Scanning " + str(len(resource_paths)) + " services")
 
-        needed_libs = _discover_service_libraries(ctx, resource_paths)
+        needed_libs = _discover_resource_libraries(ctx, resource_paths)
 
         if len(needed_libs) == 0:
             print("   ℹ️  No internal library dependencies found")
@@ -73,8 +73,8 @@ def setup_libraries(ctx, should_enable_fn, ddd_libs, platform_libs, product_libs
 
             consumer_paths = []
             for resource_path in resource_paths:
-                service_internal_deps = _read_package_json_deps(ctx, resource_path + '/package.json')
-                if pkg_name in service_internal_deps:
+                resource_internal_deps = _read_package_json_deps(ctx, resource_path + '/package.json')
+                if pkg_name in resource_internal_deps:
                     consumer_paths.append(resource_path)
 
             if generate_npmrc:

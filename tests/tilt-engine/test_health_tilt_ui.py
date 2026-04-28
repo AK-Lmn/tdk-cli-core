@@ -10,7 +10,7 @@ import pytest
 class TestHealthTiltUI:
     """Tests for Tilt UI health status display."""
     
-    def test_ready_service_shows_green(self, mock_tilt_ui_status):
+    def test_ready_resource_shows_green(self, mock_tilt_ui_status):
         """
         Scenario: Ready service shows green
         WHEN `/health/ready` returns `200 OK` with `status: "ready"`
@@ -27,7 +27,7 @@ class TestHealthTiltUI:
         assert tilt_status["indicator"] == "green"
         assert tilt_status["status"] == "Ready"
     
-    def test_starting_service_shows_yellow(self, mock_tilt_ui_status):
+    def test_starting_resource_shows_yellow(self, mock_tilt_ui_status):
         """
         Scenario: Starting service shows yellow
         WHEN `/health/ready` returns `503 Service Unavailable` but `/health/live` returns `200`
@@ -47,7 +47,7 @@ class TestHealthTiltUI:
         assert tilt_status["indicator"] == "yellow"
         assert tilt_status["status"] == "Starting"
     
-    def test_error_service_shows_red(self, mock_tilt_ui_status):
+    def test_error_resource_shows_red(self, mock_tilt_ui_status):
         """
         Scenario: Error service shows red
         WHEN `/health/live` fails or returns non-200

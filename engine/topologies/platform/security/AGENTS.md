@@ -20,13 +20,13 @@ Secrets management, Infisical integration, and security configuration.
 ### Load secrets from Infisical
 ```starlark
 load("./infisical.star", "Infisical")
-secrets = Infisical.load_secrets(service_name, environment)
+secrets = Infisical.load_secrets(resource_name, environment)
 ```
 
 ### Get database credentials
 ```starlark
 load("./infisical.star", "Infisical")
-db_url = Infisical.get_database_url(service_name)
+db_url = Infisical.get_database_url(resource_name)
 ```
 
 ## Integration

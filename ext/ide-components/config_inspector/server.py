@@ -82,7 +82,7 @@ class ConfigInspectorHandler(BaseHTTPRequestHandler):
         
         # First, add project root master configs
         root_configs = [
-            'TILT_SERVICE_DEFAULTS.star',
+            'TILT_RESOURCE_DEFAULTS.star',
             'spec.master',
             'engine/spec.master',
         ]
@@ -149,16 +149,16 @@ class ConfigInspectorHandler(BaseHTTPRequestHandler):
                         
                         # Determine service name from path
                         parts = str(rel_path).split('/')
-                        service_name = 'unknown'
+                        resource_name = 'unknown'
                         for i, part in enumerate(parts):
                             if part == 'services' and i + 2 < len(parts):
-                                service_name = parts[i + 2]
+                                resource_name = parts[i + 2]
                                 break
                         
                         configs.append({
                             'path': str(rel_path),
                             'name': file,
-                            'service': service_name,
+                            'service': resource_name,
                             'type': self.get_autogen_type(file),
                         })
         
@@ -465,7 +465,7 @@ class ConfigInspectorHandler(BaseHTTPRequestHandler):
         
         return content_html
     
-    def check_service_status(self) -> dict:
+    def check_resource_status(self) -> dict:
         """Check if other IDE services are running"""
         import socket
         services = {
@@ -492,7 +492,7 @@ class ConfigInspectorHandler(BaseHTTPRequestHandler):
         template_path = Path(__file__).parent.parent / 'shared' / 'templates' / 'base.html'
         
         # Check service status for other IDE components
-        service_status = self.check_service_status()
+        resource_status = self.check_resource_status()
         
         # Read template
         try:
@@ -556,9 +556,9 @@ class ConfigInspectorHandler(BaseHTTPRequestHandler):
         result = result.replace('{sidebar}', f'<aside class="sidebar">{sidebar}</aside>')
         result = result.replace('{content}', content)
         result = result.replace('{scripts}', scripts)
-        result = result.replace('{files_available}', 'true' if service_status.get('files') else 'false')
-        result = result.replace('{viewer_available}', 'true' if service_status.get('viewer') else 'false')
-        result = result.replace('{terminal_available}', 'true' if service_status.get('terminal') else 'false')
+        result = result.replace('{files_available}', 'true' if resource_status.get('files') else 'false')
+        result = result.replace('{viewer_available}', 'true' if resource_status.get('viewer') else 'false')
+        result = result.replace('{terminal_available}', 'true' if resource_status.get('terminal') else 'false')
         
         return result
     
