@@ -14,10 +14,10 @@ def validate_manifest(manifest):
     🎯 ENTERPRISE VALIDATOR: Strict structure and value validation.
     
     Validates:
-    - Required fields: appName, appType, domain, port
+    - Required fields: appName, appType, stack, port
     - appName pattern: kebab-case, 3-64 chars
     - appType: from VALID_APP_TYPES
-    - domain: from VALID_DOMAINS
+    - stack: from VALID_DOMAINS
     - port: within range for appType (backends: 4000-5999, frontends: 3000-3999)
     - features: from VALID_FEATURES
     - internalDependencies: from VALID_DOMAINS (service aliases)
@@ -52,10 +52,10 @@ def validate_manifest(manifest):
     elif app_type not in VALID_APP_TYPES:
         issues.append("Invalid appType: " + str(app_type) + ". Must be one of: " + ', '.join(VALID_APP_TYPES))
     
-    # 3. stack validation (supports legacy 'domain' field)
-    stack = manifest.get('stack') or manifest.get('domain')
+    # 3. stack validation (supports legacy 'stack' field)
+    stack = manifest.get('stack') or manifest.get('stack')
     if not stack:
-        issues.append("Missing required field: stack (or domain)")
+        issues.append("Missing required field: stack (or stack)")
     elif len(VALID_DOMAINS) > 0 and stack not in VALID_DOMAINS:
         # Only validate against list if VALID_DOMAINS is not empty
         issues.append("Invalid stack: " + str(stack) + ". Must be one of: " + ', '.join(VALID_DOMAINS))

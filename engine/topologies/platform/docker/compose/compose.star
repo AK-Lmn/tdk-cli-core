@@ -72,7 +72,7 @@ def generate_frontend_compose(service_path, service_name, res, manifest=None):
     """Generate frontend docker-compose entry with Traefik routing."""
     res_name = res['name']
     image_name = with_runtime_image_tag(service_name + '_' + res_name)
-    domain = manifest.get('domain', service_name) if manifest else service_name
+    stack = manifest.get('stack', service_name) if manifest else service_name
     
     target_path = res.get('target_path', manifest.get('target_path', '/usr/share/nginx/html'))
     use_nginx = 'nginx' in target_path or target_path == '/usr/share/nginx/html'
@@ -80,7 +80,7 @@ def generate_frontend_compose(service_path, service_name, res, manifest=None):
     port = manifest.get('port', 80 if use_nginx else BASE_PORT_FRONTEND)
     
     # Base path for routing on {project}.localhost
-    base_path = '/' + manifest.get('basePath', domain + 's').lstrip('/')
+    base_path = '/' + manifest.get('basePath', stack + 's').lstrip('/')
     
     traefik_cfg = manifest.get('traefik', {}) if manifest else {}
     traefik_host = traefik_cfg.get('host')
@@ -151,7 +151,7 @@ def _generate_single_backend_entry(service_path, service_name, res, manifest, in
     Generate a single backend docker-compose entry.
     """
     res_name = res['name']
-    domain = manifest.get('domain', service_name) if manifest else service_name
+    stack = manifest.get('stack', service_name) if manifest else service_name
     
     # Get full service path from resource (for cross-root service support)
     full_service_path = res.get('_service_path', service_path + '/' + res_name)

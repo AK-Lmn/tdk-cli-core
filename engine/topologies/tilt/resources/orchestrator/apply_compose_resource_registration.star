@@ -46,10 +46,10 @@ def _resolve_dependency_to_resource(dep_name, all_services_map):
     if yaml_name in all_services_map:
         return yaml_name
     
-    # Try to find matching service by domain/short name
+    # Try to find matching service by stack/short name
     for service_name, service_info in all_services_map.items():
-        # Check if this service's domain matches the dependency
-        service_domain = service_info.get('domain', '')
+        # Check if this service's stack matches the dependency
+        service_domain = service_info.get('stack', '')
         if service_domain == dep_name:
             # Return the first resource of this service with -yaml suffix
             resources = service_info.get('resources', [])

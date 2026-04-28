@@ -286,7 +286,7 @@ else:
     if Manifest.is_valid_manifest(manifest):
         print("✅ Valid manifest:", manifest['appName'])
         print("   Type:", manifest['appType'])
-        print("   Domain:", manifest['domain'])
+        print("   Stack:", manifest['stack'])
         print("   Port:", manifest['port'])
     else:
         print("⚠️  Invalid manifest structure")
@@ -299,7 +299,7 @@ json_content = '''
 {
     "appName": "my-new-service",
     "appType": "backend",
-    "domain": "user",
+    "stack": "user",
     "port": 4001,
     "features": ["nats", "prisma"]
 }
@@ -329,7 +329,7 @@ result = Manifest.load_all(
     "services/product",
     filters={
         'appType': 'backend',
-        'domain': ['user', 'order'],
+        'stack': ['user', 'order'],
     }
 )
 
@@ -368,7 +368,7 @@ else:
 manifest = {
     'appName': 'my-service',
     'appType': 'backend',
-    'domain': 'user',
+    'stack': 'user',
     'port': 4001,
     'features': ['nats', 'prisma'],
     'databaseName': 'my_db',
@@ -396,7 +396,7 @@ all_manifests = Manifest.load_all("services/product").manifests
 new_manifest = {
     'appName': 'new-frontend',
     'appType': 'frontend',
-    'domain': 'user',
+    'stack': 'user',
     'port': 3005,
     'backendName': 'user-management-backend',  # References existing service
 }
@@ -417,7 +417,7 @@ else:
 manifest = {
     'appName': 'test-service',
     'appType': 'backend',
-    'domain': 'user',
+    'stack': 'user',
     'port': 4001,
 }
 

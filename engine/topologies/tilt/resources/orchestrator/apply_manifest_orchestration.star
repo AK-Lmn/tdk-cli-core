@@ -28,13 +28,13 @@ def prepare_resource_manifests(service_config, ctx):
         resource_manifests[resource['name']] = manifest
 
         app_name = manifest.get('appName', resource['name'])
-        domain = manifest.get('domain', service_name)
+        stack = manifest.get('stack', service_name)
         port = manifest.get('port', BASE_PORT_FRONTEND)
         app_type = manifest.get('appType', 'backend')
 
         print(
             "   [Tilt] ✅ Loaded: " + app_name
-            + " | Domain: " + domain
+            + " | Stack: " + stack
             + " | Port: " + str(port)
             + " | Type: " + app_type
         )

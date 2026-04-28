@@ -23,7 +23,7 @@ FIELD_MAPPINGS = {
     # Core application fields
     'appName': ['appName', 'name', 'metadata.name', 'serviceName', 'app.name'],
     'appType': ['appType', 'type', 'metadata.type', 'serviceType', 'app.type', 'kind'],
-    'stack': ['stack', 'domain', 'metadata.stack', 'metadata.domain', 'namespace', 'app.stack', 'app.domain'],
+    'stack': ['stack', 'stack', 'metadata.stack', 'metadata.domain', 'namespace', 'app.stack', 'app.domain'],
     'port': ['port', 'portNewNameOfAttr', 'spec.port', 'metadata.port', 'servicePort', 'app.port'],
     
     # Runtime fields

@@ -334,12 +334,12 @@ MANIFEST_SCHEMA = {
         'description': 'Type of application',
         'default': 'backend',
     },
-    'domain': {
+    'stack': {
         'type': 'string',
         'required': True,
         'enum': ['user', 'staff', 'identity', 'order', 'treatment', 
                  'platform', 'inventory', 'billing', 'notification', 'analytics'],
-        'description': 'Business domain this service belongs to',
+        'description': 'Business stack this service belongs to',
     },
     'port': {
         'type': 'integer',

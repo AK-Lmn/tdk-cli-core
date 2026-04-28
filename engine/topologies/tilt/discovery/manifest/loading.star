@@ -292,14 +292,14 @@ def _apply_manifest_defaults(manifest, service_path):
     if result.get('hmrPort') == None and app_type == 'frontend':
         result['hmrPort'] = result['port'] + 1000  # 3000 -> 4000
     
-    # Extract domain from path if not set
-    if 'domain' not in result:
-        result['domain'] = _extract_domain_from_path(service_path, app_name)
+    # Extract stack from path if not set
+    if 'stack' not in result:
+        result['stack'] = _extract_domain_from_path(service_path, app_name)
     
-    domain = result['domain']
+    stack = result['stack']
     
     # 🎯 SMART DATABASE NAME with override detection
-    computed_db_name = PlatformDockerConstants.get_db_name(domain)
+    computed_db_name = PlatformDockerConstants.get_db_name(stack)
     if 'databaseName' not in result:
         result['databaseName'] = computed_db_name
     elif result['databaseName'] != computed_db_name:

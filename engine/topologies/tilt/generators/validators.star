@@ -184,8 +184,8 @@ def validate_dependency_graph(service_path, manifest, all_services):
     for dep in internal_deps:
         dep_exists = False
         for svc in all_services:
-            # Check service name/stack match (supports legacy 'domain' field)
-            svc_stack = svc.get("stack") or svc.get("domain")
+            # Check service name/stack match (supports legacy 'stack' field)
+            svc_stack = svc.get("stack") or svc.get("stack")
             if svc.get("name") == dep or svc_stack == dep:
                 dep_exists = True
                 break
