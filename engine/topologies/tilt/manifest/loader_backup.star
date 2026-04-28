@@ -141,7 +141,7 @@ def load_all(services_root, filters=None):
         services_root: Root directory to search (e.g., "services/product")
         filters: Optional dict of filters:
             - appType: ['frontend', 'backend', ...] or single string
-            - domain: ['user', 'order', ...] or single string
+            - stack: ['user', 'order', ...] or single string
             - features: ['nats', 'prisma', ...] - must have at least one
             - enabled_only: True/False - only enabled services
     
