@@ -201,6 +201,29 @@ def _scan_services_from_yaml():
     return []
 
 
+def _get_discovery_scan_roots_with_project():
+    """
+    Get discovery scan roots - use project-specific patterns from spec.master if available,
+    otherwise fall back to hardcoded DISCOVERY_SCAN_ROOTS.
+    """
+    # Check if we have project-specific discovery patterns from TDK_PROJECT_ROOT
+    project_root = os.environ.get('TDK_PROJECT_ROOT', '')
+    if project_root:
+        # Try to load spec.master to get custom patterns
+        spec_master_path = project_root + '/.tdk/spec.master'
+        try:
+            spec = read_json(spec_master_path)
+            if spec and 'RESOURCE_PATTERNS' in spec and spec['RESOURCE_PATTERNS']:
+                patterns = spec['RESOURCE_PATTERNS']
+                print("📍 Using project-specific discovery patterns: " + str(patterns))
+                return patterns
+        except:
+            pass  # Fall back to default patterns
+    
+    # Fall back to hardcoded constants
+    return DISCOVERY_SCAN_ROOTS
+
+
 def _scan_services():
     """
     FIRST PASS: Scan for all services with JSON manifest files from multiple roots.
@@ -218,17 +241,20 @@ def _scan_services():
     }
     skipped_domains = {}  # Track skipped domains for summary
     
+    # Get scan roots (with project-specific patterns if available)
+    scan_roots = _get_discovery_scan_roots_with_project()
+    
     # Phase 2: Validate scan roots don't overlap (prevents duplicate scanning)
-    _validate_scan_roots(DISCOVERY_SCAN_ROOTS)
+    _validate_scan_roots(scan_roots)
     
     # Phase 2: Scan all root directories and collect manifest paths
     all_manifest_paths = []  # Collect from all roots
     
     # Show consolidated loading message
-    total_roots = len(DISCOVERY_SCAN_ROOTS)
+    total_roots = len(scan_roots)
     print("📦 Loading from {} scan roots...".format(total_roots))
     
-    for root in DISCOVERY_SCAN_ROOTS:
+    for root in scan_roots:
         # Use json_manifest_scanner.discover_json_manifests() to find all manifest files
         paths = discover_json_manifests(root)
         
@@ -318,7 +344,7 @@ def _scan_services():
         # Phase 2: Use explicit domain extraction patterns
         # Determine which root this manifest came from
         matching_root = None
-        for root in DISCOVERY_SCAN_ROOTS:
+        for root in scan_roots:
             if manifest_path.startswith(root):
                 matching_root = root
                 break
