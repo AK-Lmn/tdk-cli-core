@@ -143,52 +143,52 @@
 
 ## 12. Engine Topologies Tilt - More Resource Files
 
-- [ ] 12.1 Rename `domain` references in `engine/topologies/tilt/resources/backend_resource.star` to `stack`
-- [ ] 12.2 Update variable names in `engine/topologies/tilt/resources/backend_resource.star` from `svc` to `resource`
-- [ ] 12.3 Rename `domain` references in `engine/topologies/tilt/resources/database_resource.star` to `stack`
-- [ ] 12.4 Update variable names in `engine/topologies/tilt/resources/database_resource.star` from `svc` to `resource`
-- [ ] 12.5 Rename `domain` references in `engine/topologies/tilt/resources/infra_resource.star` to `stack`
-- [ ] 12.6 Update variable names in `engine/topologies/tilt/resources/infra_resource.star` from `svc` to `resource`
-- [ ] 12.7 Rename `domain` references in `engine/topologies/tilt/resources/proxy_resource.star` to `stack`
-- [ ] 12.8 Update variable names in `engine/topologies/tilt/resources/proxy_resource.star` from `svc` to `resource`
-- [ ] 12.9 Rename `domain` references in `engine/topologies/tilt/resources/migration_resource.star` to `stack`
-- [ ] 12.10 Update variable names in `engine/topologies/tilt/resources/migration_resource.star` from `svc` to `resource`
+- [x] 12.1 Rename `domain` references in `engine/topologies/tilt/resources/backend_resource.star` to `stack` (file doesn't exist)
+- [x] 12.2 Update variable names in `engine/topologies/tilt/resources/backend_resource.star` from `svc` to `resource` (file doesn't exist)
+- [x] 12.3 Rename `domain` references in `engine/topologies/tilt/resources/database_resource.star` to `stack` (file doesn't exist)
+- [x] 12.4 Update variable names in `engine/topologies/tilt/resources/database_resource.star` from `svc` to `resource` (file doesn't exist)
+- [x] 12.5 Rename `domain` references in `engine/topologies/tilt/resources/infra_resource.star` to `stack` (file doesn't exist)
+- [x] 12.6 Update variable names in `engine/topologies/tilt/resources/infra_resource.star` from `svc` to `resource` (file doesn't exist)
+- [x] 12.7 Rename `domain` references in `engine/topologies/tilt/resources/proxy_resource.star` to `stack` (file doesn't exist)
+- [x] 12.8 Update variable names in `engine/topologies/tilt/resources/proxy_resource.star` from `svc` to `resource` (file doesn't exist)
+- [x] 12.9 Rename `domain` references in `engine/topologies/tilt/resources/migration_resource.star` to `stack` (file doesn't exist)
+- [x] 12.10 Update variable names in `engine/topologies/tilt/resources/migration_resource.star` from `svc` to `resource` (file doesn't exist)
 
 ## 13. Engine Topologies Platform - Docker and Compose
 
-- [ ] 13.1 Rename `domain` references in `engine/topologies/platform/docker/compose/compose.star` to `stack`
-- [ ] 13.2 Update docstrings in `engine/topologies/platform/docker/compose/compose.star` from "service" to "resource"
-- [ ] 13.3 Rename `domain` references in `engine/topologies/platform/docker/layers.star` to `stack`
-- [ ] 13.4 Update docstrings in `engine/topologies/platform/docker/layers.star` from "service" to "resource"
+- [x] 13.1 Rename `domain` references in `engine/topologies/platform/docker/compose/compose.star` to `stack`
+- [x] 13.2 Update docstrings in `engine/topologies/platform/docker/compose/compose.star` from "service" to "resource"
+- [x] 13.3 Rename `domain` references in `engine/topologies/platform/docker/layers.star` to `stack` (file doesn't exist)
+- [x] 13.4 Update docstrings in `engine/topologies/platform/docker/layers.star` from "service" to "resource" (file doesn't exist)
 - [x] 13.5 Rename `domain` references in `engine/topologies/platform/docker/networking/traefik.star` to `stack`
 - [x] 13.6 Update docstrings in `engine/topologies/platform/docker/networking/traefik.star` from "service" to "resource"
 - [x] 13.7 Rename `domain` references in `engine/topologies/platform/docker/networking/traefik_helpers.star` to `stack`
 - [x] 13.8 Update docstrings in `engine/topologies/platform/docker/networking/traefik_helpers.star` from "service" to "resource"
-- [ ] 13.9 Rename `domain` references in `engine/topologies/platform/docker/constants.star` to `stack`
-- [ ] 13.10 Update docstrings in `engine/topologies/platform/docker/constants.star` from "service" to "resource"
+- [x] 13.9 Rename `domain` references in `engine/topologies/platform/docker/constants.star` to `stack`
+- [x] 13.10 Update docstrings in `engine/topologies/platform/docker/constants.star` from "service" to "resource"
 
 ## 14. Engine Topologies Platform - Security and Proxy
 
-- [ ] 14.1 Rename `domain` references in `engine/topologies/platform/security/secrets.star` to `stack`
-- [ ] 14.2 Update docstrings in `engine/topologies/platform/security/secrets.star` from "service" to "resource"
-- [ ] 14.3 Rename `domain` references in `engine/topologies/platform/security/infisical.star` to `stack`
-- [ ] 14.4 Update docstrings in `engine/topologies/platform/security/infisical.star` from "service" to "resource"
-- [ ] 14.5 Rename `domain` references in `engine/topologies/platform/proxy/caddy.star` to `stack`
-- [ ] 14.6 Update docstrings in `engine/topologies/platform/proxy/caddy.star` from "service" to "resource"
-- [ ] 14.7 Rename `domain` references in `engine/topologies/platform/proxy/nginx.star` to `stack`
-- [ ] 14.8 Update docstrings in `engine/topologies/platform/proxy/nginx.star` from "service" to "resource"
-- [ ] 14.9 Rename `domain` references in `engine/topologies/platform/state/persistence.star` to `stack`
-- [ ] 14.10 Update docstrings in `engine/topologies/platform/state/persistence.star` from "service" to "resource"
+- [x] 14.1 Rename `domain` references in `engine/topologies/platform/security/secrets.star` to `stack`
+- [x] 14.2 Update docstrings in `engine/topologies/platform/security/secrets.star` from "service" to "resource"
+- [x] 14.3 Rename `domain` references in `engine/topologies/platform/security/infisical.star` to `stack` (file doesn't exist)
+- [x] 14.4 Update docstrings in `engine/topologies/platform/security/infisical.star` from "service" to "resource" (file doesn't exist)
+- [x] 14.5 Rename `domain` references in `engine/topologies/platform/proxy/caddy.star` to `stack` (file doesn't exist)
+- [x] 14.6 Update docstrings in `engine/topologies/platform/proxy/caddy.star` from "service" to "resource" (file doesn't exist)
+- [x] 14.7 Rename `domain` references in `engine/topologies/platform/proxy/nginx.star` to `stack` (file doesn't exist)
+- [x] 14.8 Update docstrings in `engine/topologies/platform/proxy/nginx.star` from "service" to "resource" (file doesn't exist)
+- [x] 14.9 Rename `domain` references in `engine/topologies/platform/state/persistence.star` to `stack` (file doesn't exist)
+- [x] 14.10 Update docstrings in `engine/topologies/platform/state/persistence.star` from "service" to "resource" (file doesn't exist)
 
 ## 15. Autogenerated Files and Final Verification
 
 - [x] 15.1 Update autogenerated file naming in `discovery/registry.star` from `domains` to `stacks`
 - [x] 15.2 Update autogenerated file naming in `engine/topologies/tilt/discovery/registry.star` from `domains` to `stacks`
-- [ ] 15.3 Update all `load()` statements that reference domain-named files to stack-named files
-- [ ] 15.4 Run test suite to verify all terminology changes work correctly
+- [x] 15.3 Update all `load()` statements that reference domain-named files to stack-named files
+- [x] 15.4 Run test suite to verify all terminology changes work correctly
 - [x] 15.5 Grep for remaining `manifest.get('domain')` patterns - should be 0
 - [x] 15.6 Grep for remaining `domain_configs` references - should be 0
-- [ ] 15.7 Grep for remaining `svc` variables that should be `resource` - verify minimal
-- [ ] 15.8 Grep for remaining `service` docstrings that should say `resource` - should be 0
+- [x] 15.7 Grep for remaining `svc` variables that should be `resource` - verified minimal
+- [x] 15.8 Grep for remaining `service` docstrings that should say `resource` - verified 0
 - [x] 15.9 Verify `app_resources` cache key is intentionally kept (per design decision)
-- [ ] 15.10 Final review: All domain→stack and service→resource migrations complete
+- [x] 15.10 Final review: All domain→stack and service→resource migrations complete
