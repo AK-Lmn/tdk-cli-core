@@ -129,7 +129,7 @@ def get_backend_traefik_labels(
 
     # Generate project localhost routing from manifest stack
     if manifest:
-        stack = manifest.get("stack") or manifest.get("domain", "")
+        stack = manifest.get("stack", "")
         if stack:
             api_path = get_api_path(stack, manifest)
             project_rule = project_backend_rule(manifest)

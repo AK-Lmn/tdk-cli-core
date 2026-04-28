@@ -8,7 +8,7 @@ load("../../platform/docker/constants.star", "PlatformDockerConstants")
 
 # NOTE: DEFAULTS and focus lists are now loaded dynamically in registry.star
 # from the project's spec.master (using TDK_PROJECT_ROOT environment variable).
-# This allows per-project service configuration.
+# This allows per-project resource configuration.
 
 # Default empty values - will be populated by _load_project_defaults() in registry.star
 DEFAULTS = {}
@@ -136,14 +136,14 @@ def load_project_defaults(project_root):
     )
 
 # -----------------------------------------------------------------------------
-# 🎛️ SERVICE DEFAULTS
+# 🎛️ RESOURCE DEFAULTS
 # -----------------------------------------------------------------------------
 # LOADED FROM: spec.master (searched in order):
 #   1. .tdk/.tdk-out/generated/spec.master (new unified output folder)
 #   2. spec.master (legacy location in project root)
-# PURPOSE: Single source of truth for service enable/disable configuration
+# PURPOSE: Single source of truth for resource enable/disable configuration
 # 
-# 📖 To modify which services run, edit: spec.master
+# 📖 To modify which resources run, edit: spec.master
 # -----------------------------------------------------------------------------
 
 
@@ -163,7 +163,7 @@ def get_global_config():
             "ddd": "shared-ddd-layers",
         },
         # Relative to .tilt/topologies/tilt/discovery/
-        "services_root": RESOURCES_ROOT,
+        "resources_root": RESOURCES_ROOT,
         "database": PlatformDockerConstants.DB_CONFIG,
         "docker": {
             "base_image": PlatformDockerConstants.BUN_IMAGE,
@@ -211,7 +211,7 @@ CORE_INFRA = [
     "traefik",
 ]
 
-INFRA_DOMAIN_MAP = {
+INFRA_STACK_MAP = {
     "golden-layers-build": "golden-image",
     "postgres": "database-management",
     "nats": "database-management",
@@ -281,7 +281,7 @@ Config = struct(
     GLOBAL = GLOBAL_CONFIG,
     INFRA_RESOURCES = INFRA_RESOURCES,
     CORE_INFRA = CORE_INFRA,
-    INFRA_DOMAIN_MAP = INFRA_DOMAIN_MAP,
+    INFRA_STACK_MAP = INFRA_STACK_MAP,
     OPTIONAL_INFRA = OPTIONAL_INFRA,
     DDD_LIBS = DDD_LIBS,
     PLATFORM_LIBS_EXPLICIT = PLATFORM_LIBS_EXPLICIT,

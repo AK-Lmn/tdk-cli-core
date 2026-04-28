@@ -10,12 +10,12 @@ load("../resources/orchestrator/generators/manifest_resource.star", "ManifestRes
 load("../manifest/loader.star", "ManifestLoader")
 load("../../specs/specs/TILT_RESOURCE_DEFAULTS.star", "BASE_PORT_BACKEND")
 
-def register_new_service(resource_path, manifest, ctx, auto_init=True, verbose=False):
+def register_new_resource(resource_path, manifest, ctx, auto_init=True, verbose=False):
     """
-    Register a newly discovered service and create its Tilt resources.
+    Register a newly discovered resource and create its Tilt resources.
     
     Args:
-        resource_path: Path to service directory
+        resource_path: Path to resource directory
         manifest: Loaded manifest dict
         ctx: Tilt context with generators and config
         auto_init: Whether to auto-init resources
@@ -26,16 +26,16 @@ def register_new_service(resource_path, manifest, ctx, auto_init=True, verbose=F
     """
     resource_name = manifest.get("appName", "")
     app_type = manifest.get("appType", "backend")
-    domain = manifest.get("domain", "")
+    stack = manifest.get("stack", "")
     
     if verbose:
-        print("🚀 Registering new service: {}".format(resource_name))
+        print("🚀 Registering new resource: {}".format(resource_name))
     
     # Normalize manifest to discovery format
     resource = _normalize_manifest(manifest, resource_path)
     
-    # Build service structure
-    resource_dict = {
+    # Build app resource structure
+    app_resource_dict = {
         "name": resource_name,
         "path": resource_path,
         "labels": ["app." + resource_name],
@@ -43,7 +43,7 @@ def register_new_service(resource_path, manifest, ctx, auto_init=True, verbose=F
     }
     
     # Add to cache
-    if not CacheOps.add(resource_dict):
+    if not CacheOps.add(app_resource_dict):
         print("⚠️  Failed to add {} to cache (may already exist)".format(resource_name))
         return struct(success=False, error="cache_add_failed")
     
@@ -86,7 +86,7 @@ def register_new_service(resource_path, manifest, ctx, auto_init=True, verbose=F
     
     # Log success
     print("✅ Auto-registered: {}".format(resource_name))
-    print("  └─ Domain: {}".format(domain))
+    print("  └─ Stack: {}".format(stack))
     print("  └─ Type: {}".format(app_type))
     print("  └─ Resources: {} created".format(len(created_resources)))
     
@@ -98,7 +98,7 @@ def register_new_service(resource_path, manifest, ctx, auto_init=True, verbose=F
     )
 
 def _create_config_gen_resource(resource_name, resource, resource_path, manifest, ctx, auto_init):
-    """Create config-gen resource for a service."""
+    """Create config-gen resource for a resource."""
     # Get backend manifest if frontend
     backend_manifest = None
     if resource.get("frontend", False):
@@ -124,14 +124,14 @@ def _create_config_gen_resource(resource_name, resource, resource_path, manifest
     return config_gen_name
 
 def _create_docker_resource(resource_name, resource, resource_path, manifest, ctx):
-    """Create Docker build resource for a service."""
+    """Create Docker build resource for a resource."""
     # Docker resource is created through the orchestrator
     # This is handled when the config-gen resource runs
     # Return the expected resource name for tracking
     return resource_name
 
 def _create_frontend_resources(resource_name, resource, resource_path, manifest, ctx, auto_init):
-    """Create additional resources for frontend services."""
+    """Create additional resources for frontend app resources."""
     resources = []
     
     # Frontend dev server resource is auto-created by the orchestrator
@@ -140,11 +140,11 @@ def _create_frontend_resources(resource_name, resource, resource_path, manifest,
     return resources
 
 def _get_backend_manifest(backend_name):
-    """Look up backend manifest for a frontend service."""
+    """Look up backend manifest for a frontend app resource."""
     # Search in current cache
-    for service in CacheOps.stats().services:
-        if service.get("name") == backend_name:
-            resources = service.get("resources", [])
+    for app_resource in get_app_resources():
+        if app_resource.get("name") == backend_name:
+            resources = app_resource.get("resources", [])
             for res in resources:
                 if res.get("_manifest"):
                     return res.get("_manifest")
@@ -152,10 +152,10 @@ def _get_backend_manifest(backend_name):
 
 def validate_resource_structure(resource_path):
     """
-    Validate that a service has complete structure before registration.
+    Validate that an app resource has complete structure before registration.
     
     Args:
-        resource_path: Path to service directory
+        resource_path: Path to app resource directory
     
     Returns:
         Struct with valid status and missing files
@@ -180,9 +180,9 @@ def validate_resource_structure(resource_path):
         has_package_json="package.json" not in missing
     )
 
-def check_duplicate_service(resource_name):
+def check_duplicate_resource(resource_name):
     """
-    Check if a service name already exists.
+    Check if a resource name already exists.
     
     Args:
         resource_name: Name to check
@@ -191,15 +191,15 @@ def check_duplicate_service(resource_name):
         Struct with duplicate status and existing info
     """
     if CacheOps.has(resource_name):
-        # Find existing service path
-        for svc in get_app_resources():
-            if svc.get("name") == resource_name:
+        # Find existing resource path
+        for app_resource in get_app_resources():
+            if app_resource.get("name") == resource_name:
                 return struct(
                     duplicate=True,
-                    existing_path=svc.get("path", "unknown"),
-                    message="Service '{}' already exists at {}".format(
+                    existing_path=app_resource.get("path", "unknown"),
+                    message="Resource '{}' already exists at {}".format(
                         resource_name,
-                        svc.get("path", "unknown")
+                        app_resource.get("path", "unknown")
                     )
                 )
     
@@ -207,7 +207,7 @@ def check_duplicate_service(resource_name):
 
 # Export public API
 IncrementalDiscovery = struct(
-    register=register_new_service,
+    register=register_new_resource,
     validate_structure=validate_resource_structure,
-    check_duplicate=check_duplicate_service,
+    check_duplicate=check_duplicate_resource,
 )

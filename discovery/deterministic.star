@@ -40,23 +40,23 @@ def deterministic_find(path, pattern):
     return []
 
 def deterministic_resource_discovery(scan_roots):
-    """Deterministically discover services across all scan roots.
+    """Deterministically discover resources across all scan roots.
     
     Args:
         scan_roots: List of directories to scan for service.json files
         
     Returns:
-        Sorted list of service paths (guaranteed order across runs)
+        Sorted list of resource paths (guaranteed order across runs)
     """
-    all_services = []
+    all_resources = []
     
     # Process scan roots in fixed order (not parallel)
     for root in sorted(scan_roots):
-        services = deterministic_find(root, 'service.json')
-        all_services.extend(services)
+        resources = deterministic_find(root, 'service.json')
+        all_resources.extend(resources)
     
     # Final sort to ensure absolute ordering
-    return sorted(all_services)
+    return sorted(all_resources)
 
 # =============================================================================
 # DETERMINISTIC LOCAL EXECUTION

@@ -1,7 +1,7 @@
 # =============================================================================
-# 📸 SERVICE SNAPSHOT - Starlark Interface
+# 📸 RESOURCE SNAPSHOT - Starlark Interface
 # =============================================================================
-# Provides Starlark functions for snapshot-based incremental service discovery
+# Provides Starlark functions for snapshot-based incremental resource discovery
 # =============================================================================
 
 # Python script path (relative to Tiltfile)
@@ -16,12 +16,12 @@ def _run_snapshot_command(cmd):
     )
     return str(result)
 
-def save_snapshot(services):
+def save_snapshot(resources):
     """
-    Save current service list to snapshot file.
+    Save current resource list to snapshot file.
     
     Args:
-        services: List of service.json file paths
+        resources: List of service.json file paths
     """
     # Use Python to save snapshot directly
     result = local(
@@ -37,7 +37,7 @@ def load_from_file():
     Load previous snapshot from file.
     
     Returns:
-        Dict with 'timestamp', 'services', 'count'
+        Dict with 'timestamp', 'resources', 'count'
     """
     result = _run_snapshot_command("load")
     
@@ -55,36 +55,36 @@ def load_from_file():
         "count": 0
     }
 
-def diff_snapshots(old_snapshot, current_services):
+def diff_snapshots(old_snapshot, current_resources):
     """
-    Compare old snapshot with current services.
+    Compare old snapshot with current resources.
     
     Args:
         old_snapshot: Previous snapshot dict
-        current_services: Current list of service paths
+        current_resources: Current list of resource paths
     
     Returns:
         Struct with 'added' and 'removed' lists
     """
     old_set = {}
-    for svc in old_snapshot.get("services", []):
-        old_set[svc] = True
+    for resource in old_snapshot.get("resources", []):
+        old_set[resource] = True
     
     current_set = {}
-    for svc in current_services:
-        current_set[svc] = True
+    for resource in current_resources:
+        current_set[resource] = True
     
-    # Find added services
+    # Find added resources
     added = []
-    for svc in current_services:
-        if svc not in old_set:
-            added.append(svc)
+    for resource in current_resources:
+        if resource not in old_set:
+            added.append(resource)
     
-    # Find removed services
+    # Find removed resources
     removed = []
-    for svc in old_snapshot.get("services", []):
-        if svc not in current_set:
-            removed.append(svc)
+    for resource in old_snapshot.get("resources", []):
+        if resource not in current_set:
+            removed.append(resource)
     
     return struct(
         added=added,
@@ -93,7 +93,7 @@ def diff_snapshots(old_snapshot, current_services):
         removed_count=len(removed)
     )
 
-def get_current_services(scan_roots=["services/product"]):
+def get_current_resources(scan_roots=["services/product"]):
     """
     Scan filesystem for current service.json files.
     
@@ -103,7 +103,7 @@ def get_current_services(scan_roots=["services/product"]):
     Returns:
         List of service.json file paths (relative to project root)
     """
-    all_services = []
+    all_resources = []
     
     for root in scan_roots:
         # Use find command to locate service.json files
@@ -115,9 +115,9 @@ def get_current_services(scan_roots=["services/product"]):
             for line in lines:
                 line = line.strip()
                 if line:
-                    all_services.append(line)
+                    all_resources.append(line)
     
-    return all_services
+    return all_resources
 
 def snapshot_exists():
     """Check if snapshot file exists."""
@@ -128,16 +128,16 @@ def snapshot_exists():
     )
     return str(result).strip() == "yes"
 
-# Get the path to the service snapshot file
+# Get the path to the resource snapshot file
 def get_resource_snapshot_path():
-    """Return the path to the service snapshot JSON file."""
+    """Return the path to the resource snapshot JSON file."""
     return ".tdk/.tdk-out/snapshots/resource-snapshot.json"
 
 # Export public API
-ServiceSnapshot = struct(
+ResourceSnapshot = struct(
     save=save_snapshot,
     load_from_file=load_from_file,
     diff=diff_snapshots,
-    scan=get_current_services,
+    scan=get_current_resources,
     exists=snapshot_exists,
 )

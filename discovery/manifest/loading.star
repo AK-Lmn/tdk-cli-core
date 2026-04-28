@@ -29,7 +29,7 @@ _LEGACY_LOADER_ONLY = os.environ.get('TDK_LEGACY_LOADER_ONLY', '') == 'true'
 
 def _check_prisma_folder(resource_path):
     """
-    Check if prisma/ directory exists in service path (silent).
+    Check if prisma/ directory exists in resource path (silent).
     Used to auto-detect has_migrator when not in features.
     """
     check_cmd = "test -d '{path}/prisma' && echo 'yes' || echo 'no'".format(path=resource_path)
@@ -57,22 +57,22 @@ def get_default_syncs_for_type(app_type, features=None):
     return syncs
 
 
-def _extract_domain_from_path(resource_path, app_name):
+def _extract_stack_from_path(resource_path, app_name):
     """
-    Extract domain from service path or app name.
+    Extract stack from resource path or app name.
     
-    Convention: services/product/{domain}/{service-name}
+    Convention: services/product/{stack}/{resource-name}
     Fallback: First segment of app_name before hyphen
     
     Special handling: profile -> identity
     """
     parts = resource_path.rstrip('/').split('/')
     if len(parts) >= 4 and parts[-4] == 'services' and parts[-3] == 'product':
-        domain = parts[-2]
+        stack = parts[-2]
         # Normalize profile to identity
-        if domain == 'profile':
+        if stack == 'profile':
             return 'identity'
-        return domain
+        return stack
     else:
         return app_name.split('-')[0] if '-' in app_name else app_name
 
@@ -84,10 +84,10 @@ def load_manifest(resource_path, persist_to_disk=False):
     Priority order (CEO Review: rename-service-manifest):
       1. service.json (new preferred filename)
       2. platform-computing-provisioner.manifest.json (legacy, with deprecation warning)
-      3. Synthesize from directory structure (synthesis-by-default for standard services)
+      3. Synthesize from directory structure (synthesis-by-default for standard resources)
     
     Args:
-        resource_path: Path to service directory
+        resource_path: Path to resource directory
         persist_to_disk: If True, sync _internalDeps back to the physical manifest file
         
     Returns:
@@ -161,11 +161,11 @@ def _synthesize_manifest_from_path(resource_path):
     Create a manifest based on directory naming conventions.
     Used when manifest.json doesn't exist (backward compatibility).
     
-    Convention: services/product/{domain}/{domain}-{component}-{type}
-    Example: services/product/{domain}/{app-name}-{type}
+    Convention: services/product/{stack}/{stack}-{component}-{type}
+    Example: services/product/{stack}/{app-name}-{type}
              -> appName: {app-name}-{type}
              -> appType: {type}
-             -> domain: {domain}
+             -> stack: {stack}
     """
     parts = resource_path.rstrip('/').split('/')
     dir_name = parts[-1] if parts else 'unknown-service'
@@ -275,9 +275,9 @@ def _apply_manifest_defaults(manifest, resource_path):
     if result.get('hmrPort') == None and app_type == 'frontend':
         result['hmrPort'] = result['port'] + 1000  # 3000 -> 4000
     
-    # Extract domain from path if not set
+    # Extract stack from path if not set
     if 'stack' not in result:
-        result['stack'] = _extract_domain_from_path(resource_path, app_name)
+        result['stack'] = _extract_stack_from_path(resource_path, app_name)
     
     stack = result['stack']
     
@@ -356,7 +356,7 @@ def _apply_manifest_defaults(manifest, resource_path):
 
 def load_related_manifest(frontend_manifest, backend_suffix='-backend'):
     """
-    Load the related backend manifest for a frontend service.
+    Load the related backend manifest for a frontend resource.
     
     CEO Review update: Supports dual-filename and synthesis-by-default.
     
@@ -379,12 +379,12 @@ def load_related_manifest(frontend_manifest, backend_suffix='-backend'):
 
 def get_manifest_filename(resource_path):
     """
-    Determine which manifest filename is being used for a service.
+    Determine which manifest filename is being used for a resource.
     
     CEO Review addition: Utility for filename detection.
     
     Args:
-        resource_path: Path to service directory
+        resource_path: Path to resource directory
         
     Returns:
         Filename string or None if neither exists (synthesis will be used)

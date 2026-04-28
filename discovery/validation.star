@@ -33,9 +33,9 @@ def validate(manifest):
     elif app_type not in VALID_APP_TYPES:
         issues.append("Invalid appType: " + str(app_type) + ". Must be one of: " + ", ".join(VALID_APP_TYPES))
 
-    stack = manifest.get("stack") or manifest.get("domain")
+    stack = manifest.get("stack")
     if not stack:
-        issues.append("Missing required field: stack (or domain)")
+        issues.append("Missing required field: stack")
     elif len(VALID_DOMAINS) > 0 and stack not in VALID_DOMAINS:
         # Only validate against list if VALID_DOMAINS is not empty
         issues.append("Invalid stack: " + str(stack) + ". Must be one of: " + ", ".join(VALID_DOMAINS))

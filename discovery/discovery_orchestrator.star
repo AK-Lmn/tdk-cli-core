@@ -2,8 +2,8 @@ load("../engine/topologies/tilt/manifest/parser.star", "extract_stack_from_path"
 load("../engine/topologies/tilt/manifest/loader.star", "ManifestLoader")
 load("./manifest/loading.star", "get_default_syncs_for_type")
 
-# Out of scope domains - defined locally for unified repo
-OUT_OF_SCOPE_DOMAINS = ["warehouse", "logistics", "accounting"]
+# Out of scope stacks - defined locally for unified repo
+OUT_OF_SCOPE_STACKS = ["warehouse", "logistics", "accounting"]
 
 load("./manifest/constants.star", "MANIFEST_FILENAME", "MANIFEST_FILENAME_YAML")
 
@@ -76,13 +76,13 @@ def _normalize_manifest(manifest, resource_path):
         # Extract fields from normalized manifest
         app_name = manifest.get("appName", resource_path.split("/")[-1])
         app_type = manifest.get("appType", _determine_app_type(manifest, resource_path))
-        stack = manifest.get("stack") or manifest.get("domain") or extract_stack_from_path(resource_path)
+        stack = manifest.get("stack", extract_stack_from_path(resource_path))
         port = manifest.get("port", BASE_PORT_BACKEND if app_type == "backend" else BASE_PORT_FRONTEND)
     else:
         # Legacy path: compute fields
         app_name = manifest.get("appName", resource_path.split("/")[-1])
         app_type = _determine_app_type(manifest, resource_path)
-        stack = manifest.get("stack") or manifest.get("domain") or extract_stack_from_path(resource_path)
+        stack = manifest.get("stack", extract_stack_from_path(resource_path))
         port = manifest.get("port", BASE_PORT_BACKEND if app_type == "backend" else BASE_PORT_FRONTEND)
     
     features = manifest.get("features", [])
@@ -115,8 +115,8 @@ def _normalize_manifest(manifest, resource_path):
     return resource
 
 
-def _get_domain_path(domain):
-    return "services/product/" + domain
+def _get_stack_path(stack):
+    return "services/product/" + stack
 
 
 def initialize_discovery(cache, second_pass=False):
@@ -130,6 +130,49 @@ def initialize_discovery(cache, second_pass=False):
     if cache.get("initialized"):
         return
     
+    # Scan for resources from JSON manifests (source of truth)
+    # YAML files are only for Tilt resource tracking, not data parsing
+    if second_pass:
+        print("📄 Pass 2/2: Preparing Tilt resources...")
+        print("  └─ Re-loading from cache and creating local resources")
+    else:
+        print("📄 Pass 1/2: Building resource registry from service.json...")
+        print("  └─ Scanning, validating, and caching resource definitions")
+    
+    resources = _scan_resources()
+    
+    # Build dependency graph and aliases
+    dependencies = {}
+    aliases = {}
+    path_map = {}
+    
+    for resource in resources:
+        name = resource.get("name", "")
+        path = resource.get("path", "")
+        
+        # Map name to path
+        if name:
+            aliases[name] = path
+            path_map[path] = name
+            
+            # Extract dependencies from manifest
+            manifest = resource.get("_manifest", {})
+            deps = manifest.get("internalDependencies", [])
+            if deps:
+                dependencies[name] = deps
+    
+    # Populate cache
+    cache["app_resources"] = resources
+    cache["resource_dependencies"] = dependencies
+    cache["resource_aliases"] = aliases
+    cache["resource_path_map"] = path_map
+    cache["stack_configs"] = {}
+    cache["initialized"] = True
+    if second_pass:
+        cache["second_pass"] = True
+    if cache.get("initialized"):
+        return
+    
     # Scan for services from JSON manifests (source of truth)
     # YAML files are only for Tilt resource tracking, not data parsing
     if second_pass:
@@ -139,16 +182,16 @@ def initialize_discovery(cache, second_pass=False):
         print("📄 Pass 1/2: Building service registry from service.json...")
         print("  └─ Scanning, validating, and caching service definitions")
     
-    services = _scan_services()
+    resources = _scan_resources()
     
     # Build dependency graph and aliases
     dependencies = {}
     aliases = {}
     path_map = {}
     
-    for svc in services:
-        name = svc.get("name", "")
-        path = svc.get("path", "")
+    for resource in resources:
+        name = resource.get("name", "")
+        path = resource.get("path", "")
         
         # Map name to path
         if name:
@@ -156,17 +199,17 @@ def initialize_discovery(cache, second_pass=False):
             path_map[path] = name
             
             # Extract dependencies from manifest
-            manifest = svc.get("_manifest", {})
+            manifest = resource.get("_manifest", {})
             deps = manifest.get("internalDependencies", [])
             if deps:
                 dependencies[name] = deps
     
     # Populate cache
-    cache["app_resources"] = services
+    cache["app_resources"] = resources
     cache["resource_dependencies"] = dependencies
     cache["resource_aliases"] = aliases
     cache["resource_path_map"] = path_map
-    cache["domain_configs"] = {}
+    cache["stack_configs"] = {}
     cache["initialized"] = True
     if second_pass:
         cache["second_pass"] = True
@@ -184,22 +227,22 @@ def _scan_services_from_yaml():
     return []
 
 
-def _scan_services():
+def _scan_resources():
     """
-    FIRST PASS: Scan for all services with JSON manifest files from multiple roots.
-    Phase 2: Multi-root discovery with validation, deduplication, and explicit domain extraction.
-    Returns list of service dictionaries.
+    FIRST PASS: Scan for all resources with JSON manifest files from multiple roots.
+    Phase 2: Multi-root discovery with validation, deduplication, and explicit stack extraction.
+    Returns list of resource dictionaries.
     """
-    services = []
+    resources = []
     
-    # Phase 1.5: Track validation stats and skipped domains for discovery summary
+    # Phase 1.5: Track validation stats and skipped stacks for discovery summary
     validation_stats = {
         "total_manifests": 0,
         "valid_manifests": 0,
         "manifests_with_warnings": 0,
         "total_warnings": 0,
     }
-    skipped_domains = {}  # Track skipped domains for summary
+    skipped_stacks = {}  # Track skipped stacks for summary
     
     # Phase 2: Validate scan roots don't overlap (prevents duplicate scanning)
     _validate_scan_roots(DISCOVERY_SCAN_ROOTS)
@@ -235,7 +278,7 @@ def _scan_services():
             manifest_paths.append(path)
     
     if not manifest_paths:
-        return services
+        return resources
     
     for manifest_path in manifest_paths:
         # manifest_path already stripped by json_manifest_scanner
@@ -273,13 +316,13 @@ def _scan_services():
         else:
             validation_stats["valid_manifests"] += 1
         
-        # Skip out-of-scope domains for alpha (defined in spec.master)
-        stack = manifest.get("stack") or manifest.get("domain", "")
-        if stack in OUT_OF_SCOPE_DOMAINS:
-            # Track skipped domain for summary instead of printing immediately
-            if stack not in skipped_domains:
-                skipped_domains[stack] = 0
-            skipped_domains[stack] += 1
+        # Skip out-of-scope stacks for alpha (defined in spec.master)
+        stack = manifest.get("stack", "")
+        if stack in OUT_OF_SCOPE_STACKS:
+            # Track skipped stack for summary instead of printing immediately
+            if stack not in skipped_stacks:
+                skipped_stacks[stack] = 0
+            skipped_stacks[stack] += 1
             continue
         
         # Convert relative path to project-root-relative path
@@ -298,7 +341,7 @@ def _scan_services():
         
         resource_dir = path_parts[-2]  # e.g., "user-management-frontend"
         
-        # Phase 2: Use explicit domain extraction patterns
+        # Phase 2: Use explicit stack extraction patterns
         # Determine which root this manifest came from
         matching_root = None
         for root in DISCOVERY_SCAN_ROOTS:
@@ -307,14 +350,14 @@ def _scan_services():
                 break
         
         # Use configured pattern or default to parent folder
-        pattern = SCAN_ROOT_PATTERNS.get(matching_root, {"domain_depth": -2})
-        depth = pattern["domain_depth"]
+        pattern = SCAN_ROOT_PATTERNS.get(matching_root, {"stack_depth": -2})
+        depth = pattern["stack_depth"]
         
-        # Extract domain based on configured depth
+        # Extract stack based on configured depth
         if abs(depth) <= len(path_parts):
-            domain_dir = path_parts[depth]
+            stack_dir = path_parts[depth]
         else:
-            domain_dir = path_parts[-2] if len(path_parts) >= 2 else ""  # Fallback to parent
+            stack_dir = path_parts[-2] if len(path_parts) >= 2 else ""  # Fallback to parent
         
         # Build paths relative to project root (for use by other modules)
         base_path = "/".join(path_parts[:-2])  # e.g., "services/product/users"
@@ -328,7 +371,7 @@ def _scan_services():
         
         app_name = manifest.get("appName", resource_dir)
         app_type = manifest.get("appType", "backend")
-        stack = manifest.get("stack") or manifest.get("domain", domain_dir)
+        stack = manifest.get("stack", stack_dir)
         port = manifest.get("port", get_default_port(app_type))
         features = manifest.get("features", [])
         
@@ -356,46 +399,46 @@ def _scan_services():
             resource["frontend"] = True
             resource["backendName"] = manifest.get("backendName", app_name.replace("-frontend", "-backend"))
         
-        # Build service entry
+        # Build resource entry
         resource_key = stack if stack else app_name.replace("-" + app_type, "")
         
-        # Check if service already exists (merge resources for same domain)
-        existing_service = None
-        for svc in services:
-            if svc["name"] == resource_key:
-                existing_service = svc
+        # Check if app resource already exists (merge resources for same stack)
+        existing_app_resource = None
+        for app_res in resources:
+            if app_res["name"] == resource_key:
+                existing_app_resource = app_res
                 break
         
-        if existing_service:
+        if existing_app_resource:
             # Check if resource with same name already exists (prevent duplicates from multiple scan roots)
             resource_exists = False
-            for existing_res in existing_service["resources"]:
+            for existing_res in existing_app_resource["resources"]:
                 if existing_res.get("name") == resource["name"]:
                     resource_exists = True
                     print("   ⚠️  Skipping duplicate resource: " + app_name + " (from " + resource_path + ")")
                     break
             
             if not resource_exists:
-                # Add resource to existing service
-                existing_service["resources"].append(resource)
-                existing_service["labels"].append("app." + app_name)
+                # Add resource to existing app resource
+                existing_app_resource["resources"].append(resource)
+                existing_app_resource["labels"].append("app." + app_name)
         else:
-            # Create new service entry
-            service = {
+            # Create new app resource entry
+            app_resource = {
                 "name": resource_key,
                 "path": resource_path,
                 "labels": ["app." + app_name] if app_name else [],
                 "resources": [resource],
             }
-            services.append(service)
+            resources.append(app_resource)
     
     # Phase 1.5: Print consolidated discovery summary
     if validation_stats["total_manifests"] > 0:
         # Calculate total skipped manually (sum() not available in Starlark)
         total_skipped = 0
-        for count in skipped_domains.values():
+        for count in skipped_stacks.values():
             total_skipped += count
-        print("✅ {} services loaded ({} valid, {} skipped)".format(
+        print("✅ {} resources loaded ({} valid, {} skipped)".format(
             validation_stats["total_manifests"],
             validation_stats["valid_manifests"],
             total_skipped))
@@ -405,8 +448,8 @@ def _scan_services():
                 validation_stats["manifests_with_warnings"], 
                 validation_stats["total_warnings"]))
         
-        if skipped_domains and os.environ.get('TILT_LOG_LEVEL') == 'verbose':
-            skipped_list = ", ".join(["{} ({})".format(d, c) for d, c in skipped_domains.items()])
+        if skipped_stacks and os.environ.get('TILT_LOG_LEVEL') == 'verbose':
+            skipped_list = ", ".join(["{} ({})".format(d, c) for d, c in skipped_stacks.items()])
             print("  📋 Focus mode skipped: {}".format(skipped_list))
     
-    return services
+    return resources

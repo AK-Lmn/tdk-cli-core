@@ -34,7 +34,7 @@ def generate_frontend_api_client(manifest, write_fn=None):
     Returns:
         str: Generated file content
     """
-    stack = manifest.get("stack") or manifest.get("domain", "app")
+    stack = manifest.get("stack", "app")
 
     # Auto-resolve apiPath from backend manifest if backendName is specified
     backend_api_path = resolve_backend_api_path(manifest)
@@ -87,7 +87,7 @@ def generate_frontend_env_ts(manifest, write_fn=None):
     Returns:
         str: Generated file content
     """
-    stack = manifest.get("stack") or manifest.get("domain", "app")
+    stack = manifest.get("stack", "app")
 
     # Auto-resolve apiPath from backend manifest if backendName is specified
     backend_api_path = resolve_backend_api_path(manifest)

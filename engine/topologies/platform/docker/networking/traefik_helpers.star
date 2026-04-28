@@ -137,7 +137,7 @@ def project_backend_rule(manifest):
     if not manifest:
         return ""
     
-    stack = manifest.get("stack") or manifest.get("domain", "")
+    stack = manifest.get("stack", "")
     if not stack:
         return ""
 

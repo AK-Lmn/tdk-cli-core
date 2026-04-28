@@ -1,10 +1,10 @@
 # =============================================================================
 # 👁️ DISCOVERY DAEMON - Continuous Service Monitoring
 # =============================================================================
-# Monitors filesystem for new services and triggers incremental registration
+# Monitors filesystem for new resources and triggers incremental registration
 # =============================================================================
 
-load("./resource_snapshot.star", "ServiceSnapshot")
+load("./resource_snapshot.star", "ResourceSnapshot")
 load("./registry.star", "CacheOps")
 load("../manifest/loader.star", "ManifestLoader")
 # Discovery config - inlined for unified repo
@@ -21,23 +21,23 @@ _DISCOVERY_CONFIG = get_discovery_config()
 def run_discovery_daemon(
     scan_interval_seconds=_DISCOVERY_CONFIG["scan_interval_seconds"],
     focus_mode=False,
-    focus_domains=[],
+    focus_stacks=[],
     auto_init_new=True,
-    on_new_service=None,
+    on_new_resource=None,
     verbose=False
 ):
     """
     Run the discovery daemon with continuous monitoring loop.
     
     This function is designed to be called as a serve_cmd in a local_resource,
-    running continuously to monitor for new services.
+    running continuously to monitor for new resources.
     
     Args:
         scan_interval_seconds: Seconds between scans (default: from get_discovery_config)
         focus_mode: Whether focus mode is active
-        focus_domains: List of domains to focus on (empty = all)
-        auto_init_new: Whether to auto-init new services
-        on_new_service: Callback function for new service detection
+        focus_stacks: List of domains to focus on (empty = all)
+        auto_init_new: Whether to auto-init new resources
+        on_new_resource: Callback function for new resource detection
         verbose: Enable verbose logging
     """
     print("🔍 Discovery daemon starting...")
@@ -46,9 +46,9 @@ def run_discovery_daemon(
     print("  └─ Auto-init: {}".format("enabled" if auto_init_new else "disabled"))
     
     # Initialize snapshot if it doesn't exist
-    if not ServiceSnapshot.exists():
-        initial_services = ServiceSnapshot.scan()
-        ServiceSnapshot.save(initial_services)
+    if not ResourceSnapshot.exists():
+        initial_services = ResourceSnapshot.scan()
+        ResourceSnapshot.save(initial_services)
         print("✅ Initial snapshot created: {} services".format(len(initial_services)))
     
     # Continuous monitoring loop
@@ -56,27 +56,27 @@ def run_discovery_daemon(
         start_time = 0
         
         # Load previous snapshot
-        old_snapshot = ServiceSnapshot.load_from_file()
+        old_snapshot = ResourceSnapshot.load_from_file()
         
         # Scan for current services
-        current_services = ServiceSnapshot.scan()
+        current_services = ResourceSnapshot.scan()
         
         # Compare to find changes
-        diff = ServiceSnapshot.diff(old_snapshot, current_services)
+        diff = ResourceSnapshot.diff(old_snapshot, current_services)
         
-        # Handle new services
+        # Handle new resources
         if diff.added_count > 0:
             if verbose:
-                print("🔍 Detected {} new service(s)".format(diff.added_count))
+                print("🔍 Detected {} new resource(s)".format(diff.added_count))
             
             for resource_path in diff.added:
                 _handle_new_service(
                     resource_path,
                     focus_mode=focus_mode,
-                    focus_domains=focus_domains,
+                    focus_stacks=focus_stacks,
                     auto_init=auto_init_new,
                     verbose=verbose,
-                    on_new_service=on_new_service
+                    on_new_resource=on_new_resource
                 )
         
         # Handle removed services (optional - just log for now)
@@ -87,7 +87,7 @@ def run_discovery_daemon(
         
         # Update snapshot if there were changes
         if diff.added_count > 0 or diff.removed_count > 0:
-            ServiceSnapshot.save(current_services)
+            ResourceSnapshot.save(current_services)
             if verbose:
                 print("📸 Snapshot updated: {} services".format(len(current_services)))
         
@@ -102,21 +102,21 @@ def run_discovery_daemon(
 def _handle_new_service(
     resource_path,
     focus_mode=False,
-    focus_domains=[],
+    focus_stacks=[],
     auto_init=True,
     verbose=False,
-    on_new_service=None
+    on_new_resource=None
 ):
     """
     Process a newly detected service.
     
     Args:
         resource_path: Path to service.json
-        focus_mode: Whether to filter by domain
-        focus_domains: Allowed domains
+        focus_mode: Whether to filter by stack
+        focus_stacks: Allowed domains
         auto_init: Whether to auto-init the service
         verbose: Verbose logging
-        on_new_service: Optional callback
+        on_new_resource: Optional callback
     """
     # Extract service directory
     resource_dir = resource_path.rsplit("/", 1)[0] if "/" in resource_path else resource_path
@@ -152,20 +152,20 @@ def _handle_new_service(
         return
     
     # Check focus mode
-    domain = manifest.get("domain", "")
-    if focus_mode and focus_domains and domain not in focus_domains:
-        print("📋 Focus mode: Skipping {} (domain: {})".format(resource_name, domain))
+    stack = manifest.get("stack", "")
+    if focus_mode and focus_stacks and stack not in focus_stacks:
+        print("📋 Focus mode: Skipping {} (stack: {})".format(resource_name, stack))
         return
     
     # Log detection
-    print("🔍 New service detected: {}".format(resource_name))
+    print("🔍 New resource detected: {}".format(resource_name))
     print("  └─ Path: {}".format(resource_path))
-    print("  └─ Domain: {}".format(domain))
+    print("  └─ Stack: {}".format(stack))
     print("  └─ Type: {}".format(manifest.get("appType", "unknown")))
     
     # Call callback if provided
-    if on_new_service:
-        on_new_service(resource_name, resource_path, manifest, auto_init)
+    if on_new_resource:
+        on_new_resource(resource_name, resource_path, manifest, auto_init)
 
 def _file_exists(path):
     """Check if a file exists."""

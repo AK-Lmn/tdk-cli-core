@@ -156,7 +156,7 @@ def _load_all_manifests(root_path, warn_only=True):
 
 
 def _get_port(manifest):
-    """Get the service port from manifest."""
+    """Get the resource port from manifest."""
     return manifest.get('port', MANIFEST_DEFAULTS['port'])
 
 
@@ -211,7 +211,7 @@ def _print_summary(manifests):
     print("")
 
 
-def _generate_manifest_template(app_name, domain, app_type='backend', port=4000):
+def _generate_manifest_template(app_name, stack, app_type='backend', port=4000):
     """
     🎯 TEMPLATE GENERATOR: Returns a string with a standard manifest.
     """
@@ -219,7 +219,7 @@ def _generate_manifest_template(app_name, domain, app_type='backend', port=4000)
         "$schema": "https://" + PlatformDockerConstants.EMAIL_DOMAIN + "/schemas/manifest-schema.json",
         "appName": app_name,
         "appType": app_type,
-        "domain": domain,
+        "stack": stack,
         "port": port,
         "replicas": 1,
         "features": [MESSAGING, "infisical"],
@@ -253,5 +253,5 @@ def print_summary(manifests):
     return _print_summary(manifests)
 
 
-def generate_manifest_template(app_name, domain, app_type='backend', port=4000):
-    return _generate_manifest_template(app_name, domain, app_type=app_type, port=port)
+def generate_manifest_template(app_name, stack, app_type='backend', port=4000):
+    return _generate_manifest_template(app_name, stack, app_type=app_type, port=port)

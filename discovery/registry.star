@@ -22,8 +22,8 @@ load(
     "PRODUCT_SNAPSHOT_DIR",
     "PRODUCT_SNAPSHOT_FILES",
     "PRODUCT_TOPOLOGY_DIR",
-    "PRODUCT_DOMAINS_INDEX_FILE",
-    "PRODUCT_DOMAIN_RESOURCES_FILE",
+    "PRODUCT_STACKS_INDEX_FILE",
+    "PRODUCT_STACK_RESOURCES_FILE",
     "DISCOVERY_SCAN_ROOTS",
 )
 load("./manifest/constants.star", "MANIFEST_FILENAME", "MANIFEST_FILENAME_NEW", "MANIFEST_FILENAME_YAML", "MANIFEST_FILENAME_NEW_YAML")
@@ -87,9 +87,9 @@ def remove_resource_from_cache(resource_name):
     """
     # Find and remove from app_resources
     found = False
-    for i, svc in enumerate(_DISCOVERY_CACHE["app_resources"]):
-        svc_name = svc["name"] if "name" in svc else ""
-        if svc_name == resource_name:
+    for i, resource in enumerate(_DISCOVERY_CACHE["app_resources"]):
+        resource_name_check = resource["name"] if "name" in resource else ""
+        if resource_name_check == resource_name:
             _DISCOVERY_CACHE["app_resources"].pop(i)
             found = True
             break
@@ -127,9 +127,9 @@ def has_resource_in_cache(resource_name):
     Returns:
         True if resource exists
     """
-    for svc in _DISCOVERY_CACHE["app_resources"]:
-        svc_name = svc["name"] if "name" in svc else ""
-        if svc_name == resource_name:
+    for resource in _DISCOVERY_CACHE["app_resources"]:
+        resource_name_check = resource["name"] if "name" in resource else ""
+        if resource_name_check == resource_name:
             return True
     return False
 
@@ -147,10 +147,10 @@ def get_resource_by_path_from_cache(resource_path):
     if resource_path in _DISCOVERY_CACHE["resource_path_map"]:
         resource_name = _DISCOVERY_CACHE["resource_path_map"][resource_path]
     if resource_name:
-        for svc in _DISCOVERY_CACHE["app_resources"]:
-            svc_name = svc["name"] if "name" in svc else ""
-            if svc_name == resource_name:
-                return svc
+        for resource in _DISCOVERY_CACHE["app_resources"]:
+            resource_name_check = resource["name"] if "name" in resource else ""
+            if resource_name_check == resource_name:
+                return resource
     return None
 
 def persist_cache_to_file():
@@ -192,14 +192,14 @@ def get_app_resources():
     # Pass 2: Re-load from JSON (data refresh) and create Tilt local_resource from YAML
     initialized = _DISCOVERY_CACHE["initialized"] if "initialized" in _DISCOVERY_CACHE else False
     if not initialized:
-        print("")
-        print("🔍 Starting service discovery...")
-        # First pass - load JSON and generate YAML
-        initialize_discovery(_DISCOVERY_CACHE, second_pass=False)
-        # Second pass - reload from JSON (not YAML - JSON is source of truth)
-        _DISCOVERY_CACHE["initialized"] = False
-        initialize_discovery(_DISCOVERY_CACHE, second_pass=True)
-        print("")
+    print("")
+    print("🔍 Starting resource discovery...")
+    # First pass - load JSON and generate YAML
+    initialize_discovery(_DISCOVERY_CACHE, second_pass=False)
+    # Second pass - reload from JSON (not YAML - JSON is source of truth)
+    _DISCOVERY_CACHE["initialized"] = False
+    initialize_discovery(_DISCOVERY_CACHE, second_pass=True)
+    print("")
     return _DISCOVERY_CACHE["app_resources"]
 
 
@@ -225,16 +225,16 @@ def get_resource_path_map():
 
 
 def get_resource_by_name(name):
-    for service in get_app_resources():
-        if service["name"] == name:
-            return service
+    for resource in get_app_resources():
+        if resource["name"] == name:
+            return resource
     return None
 
 
 def get_all_backend_resources():
     backends = []
-    for service in get_app_resources():
-        resources = service["resources"] if "resources" in service else []
+    for app_resource in get_app_resources():
+        resources = app_resource["resources"] if "resources" in app_resource else []
         for resource in resources:
             is_frontend = resource["frontend"] if "frontend" in resource else False
             if not is_frontend:
@@ -246,8 +246,8 @@ def get_all_backend_resources():
 
 def get_all_frontend_resources():
     frontends = []
-    for service in get_app_resources():
-        resources = service["resources"] if "resources" in service else []
+    for app_resource in get_app_resources():
+        resources = app_resource["resources"] if "resources" in app_resource else []
         for resource in resources:
             is_frontend = resource["frontend"] if "frontend" in resource else False
             if is_frontend:
@@ -332,11 +332,11 @@ def _render_readme():
         "This folder is generated from manifest autodiscovery.",
         "Do not edit files in this directory manually.",
         "",
-        "## Domains",
+        "## Stacks",
     ]
 
-    for service in APP_RESOURCES:
-        resource_name = service["name"] if "name" in service else "unknown"
+    for app_resource in APP_RESOURCES:
+        resource_name = app_resource["name"] if "name" in app_resource else "unknown"
         lines.append("- `" + resource_name + "`")
 
     lines.extend([
@@ -381,43 +381,43 @@ def _sanitize_symbol(raw):
             out.append("_")
     value = "".join(out)
     if not value:
-        value = "domain"
+        value = "stack"
     if value[0].isdigit():
         value = "_" + value
     return value
 
 
-def _render_product_domain_file(service):
+def _render_product_stack_file(app_resource):
     header = (
         "# ----------------------------------------------------------------------------\n"
         + "# AUTOGENERATED FILE - DO NOT EDIT\n"
         + "# Source: manifest autodiscovery from .tilt/topologies/tilt/discovery/registry.star\n"
         + "# ----------------------------------------------------------------------------\n\n"
     )
-    domain = service["name"] if "name" in service else "unknown"
-    safe_domain = str(domain).replace("'", "\\'")
-    resources = service["resources"] if "resources" in service else []
+    stack = app_resource["name"] if "name" in app_resource else "unknown"
+    safe_stack = str(stack).replace("'", "\\'")
+    resources = app_resource["resources"] if "resources" in app_resource else []
     return (
         header
-        + "DOMAIN_NAME = '"
-        + safe_domain
+        + "STACK_NAME = '"
+        + safe_stack
         + "'"
         + "\n"
-        + "DOMAIN_TOPOLOGY = "
-        + _starlark_literal(service)
+        + "STACK_TOPOLOGY = "
+        + _starlark_literal(app_resource)
         + "\n"
-        + "DOMAIN_RESOURCES = "
+        + "STACK_RESOURCES = "
         + _starlark_literal(resources)
         + "\n\n"
-        + "ProductDomain = struct(\n"
-        + "    name = DOMAIN_NAME,\n"
-        + "    topology = DOMAIN_TOPOLOGY,\n"
-        + "    resources = DOMAIN_RESOURCES,\n"
+        + "ProductStack = struct(\n"
+        + "    name = STACK_NAME,\n"
+        + "    topology = STACK_TOPOLOGY,\n"
+        + "    resources = STACK_RESOURCES,\n"
         + ")\n"
     )
 
 
-def _render_product_domains_index(app_resources):
+def _render_product_stacks_index(app_resources):
     lines = [
         "# ----------------------------------------------------------------------------",
         "# AUTOGENERATED FILE - DO NOT EDIT",
@@ -425,46 +425,46 @@ def _render_product_domains_index(app_resources):
         "",
     ]
 
-    domain_rows = []
-    for service in app_resources:
-        domain = service["name"] if "name" in service else "unknown"
-        symbol = _sanitize_symbol(domain) + "_domain"
-        lines.append("load('./" + domain + "/" + PRODUCT_DOMAIN_RESOURCES_FILE + "', " + symbol + " = 'ProductDomain')")
-        domain_rows.append("    '" + domain + "': " + symbol + ",")
+    stack_rows = []
+    for app_resource in app_resources:
+        stack = app_resource["name"] if "name" in app_resource else "unknown"
+        symbol = _sanitize_symbol(stack) + "_stack"
+        lines.append("load('./" + stack + "/" + PRODUCT_STACK_RESOURCES_FILE + "', " + symbol + " = 'ProductStack')")
+        stack_rows.append("    '" + stack + "': " + symbol + ",")
 
     lines.extend([
         "",
-        "ProductDomains = {",
+        "ProductStacks = {",
     ])
-    lines.extend(domain_rows)
+    lines.extend(stack_rows)
     lines.extend([
         "}",
         "",
         "ProductTopology = struct(",
-        "    domains = ProductDomains,",
+        "    stacks = ProductStacks,",
         ")",
         "",
     ])
     return "\n".join(lines)
 
 
-def generate_product_domain_topology():
-    print("🗂️  Generating product domain topology...")
+def generate_product_stack_topology():
+    print("🗂️  Generating product stack topology...")
     local("mkdir -p " + PRODUCT_TOPOLOGY_DIR, quiet = True)
 
     changes = 0
-    for service in APP_RESOURCES:
-        domain = service["name"] if "name" in service else "unknown"
-        domain_file = PRODUCT_TOPOLOGY_DIR + "/" + domain + "/" + PRODUCT_DOMAIN_RESOURCES_FILE
-        if _write_file_if_changed(domain_file, _render_product_domain_file(service)):
+    for app_resource in APP_RESOURCES:
+        stack = app_resource["name"] if "name" in app_resource else "unknown"
+        stack_file = PRODUCT_TOPOLOGY_DIR + "/" + stack + "/" + PRODUCT_STACK_RESOURCES_FILE
+        if _write_file_if_changed(stack_file, _render_product_stack_file(app_resource)):
             changes = changes + 1
 
-    index_path = PRODUCT_TOPOLOGY_DIR + "/" + PRODUCT_DOMAINS_INDEX_FILE
-    if _write_file_if_changed(index_path, _render_product_domains_index(APP_RESOURCES)):
+    index_path = PRODUCT_TOPOLOGY_DIR + "/" + PRODUCT_STACKS_INDEX_FILE
+    if _write_file_if_changed(index_path, _render_product_stacks_index(APP_RESOURCES)):
         changes = changes + 1
 
     if changes > 0:
-        print("✅ Regenerated product domain folders (" + str(changes) + " file(s) changed)")
+        print("✅ Regenerated product stack folders (" + str(changes) + " file(s) changed)")
 
 
 def generate_product_snapshot_topology():
@@ -481,22 +481,22 @@ def generate_product_snapshot_topology():
     changes = 0
     if _write_file_if_changed(
         services_path,
-        _render_star_file("Discovered application services", "APP_RESOURCES_AUTOGENERATED", APP_RESOURCES),
+        _render_star_file("Discovered application resources", "APP_RESOURCES_AUTOGENERATED", APP_RESOURCES),
     ):
         changes = changes + 1
     if _write_file_if_changed(
         deps_path,
-        _render_star_file("Service dependency graph", "RESOURCE_DEPENDENCIES_AUTOGENERATED", RESOURCE_DEPENDENCIES),
+        _render_star_file("Resource dependency graph", "RESOURCE_DEPENDENCIES_AUTOGENERATED", RESOURCE_DEPENDENCIES),
     ):
         changes = changes + 1
     if _write_file_if_changed(
         aliases_path,
-        _render_star_file("Service aliases", "RESOURCE_ALIASES_AUTOGENERATED", RESOURCE_ALIASES),
+        _render_star_file("Resource aliases", "RESOURCE_ALIASES_AUTOGENERATED", RESOURCE_ALIASES),
     ):
         changes = changes + 1
     if _write_file_if_changed(
         paths_path,
-        _render_star_file("Service path map", "RESOURCE_PATH_MAP_AUTOGENERATED", RESOURCE_PATH_MAP),
+        _render_star_file("Resource path map", "RESOURCE_PATH_MAP_AUTOGENERATED", RESOURCE_PATH_MAP),
     ):
         changes = changes + 1
     if _write_file_if_changed(index_path, _render_index()):
@@ -520,16 +520,16 @@ def _ensure_initialized():
 # Run two-pass discovery NOW at module load
 # This ensures APP_RESOURCES is populated before exports
 print("")
-print("🚀 Initializing service discovery...")
+print("🚀 Initializing resource discovery...")
 _ensure_initialized()
-print("📦 Exporting services...")
+print("📦 Exporting resources...")
 
 APP_RESOURCES = _DISCOVERY_CACHE["app_resources"]
 RESOURCE_DEPENDENCIES = _DISCOVERY_CACHE["resource_dependencies"]
 RESOURCE_ALIASES = _DISCOVERY_CACHE["resource_aliases"]
 RESOURCE_PATH_MAP = _DISCOVERY_CACHE["resource_path_map"]
 
-print("✅ Registry initialized (" + str(len(APP_RESOURCES)) + " services)")
+print("✅ Registry initialized (" + str(len(APP_RESOURCES)) + " resources)")
 print("")
 
 # Load project-specific defaults from spec.master
@@ -539,7 +539,7 @@ if project_root:
     project_defaults = Config.load_project_defaults(project_root)
     if project_defaults:
         print("📄 Loaded project defaults from spec.master")
-        print("   Pre-alpha services: " + str(len(project_defaults.FOCUS_PRE_ALPHA)))
+        print("   Pre-alpha resources: " + str(len(project_defaults.FOCUS_PRE_ALPHA)))
         # Update Config with loaded values
         Config = struct(
             load_project_defaults = Config.load_project_defaults,
@@ -596,7 +596,7 @@ def _json_to_yaml(json_data, indent=0):
     
     if type(json_data) == "dict":
         # Define field order: important fields first, then alphabetical
-        priority_fields = ["appName", "appType", "domain", "port"]
+        priority_fields = ["appName", "appType", "stack", "port"]
         
         # Sort keys: priority fields first (in order), then rest alphabetically
         # In Starlark, iterating over dict gives keys directly

@@ -20,7 +20,7 @@ def validate_manifest(manifest):
     - stack: from VALID_DOMAINS
     - port: within range for appType (backends: 4000-5999, frontends: 3000-3999)
     - features: from VALID_FEATURES
-    - internalDependencies: from VALID_DOMAINS (service aliases)
+    - internalDependencies: from VALID_DOMAINS (resource aliases)
     - replicas: 1-10
     """
     issues = []
@@ -52,10 +52,10 @@ def validate_manifest(manifest):
     elif app_type not in VALID_APP_TYPES:
         issues.append("Invalid appType: " + str(app_type) + ". Must be one of: " + ', '.join(VALID_APP_TYPES))
     
-    # 3. stack validation (supports legacy 'stack' field)
-    stack = manifest.get('stack') or manifest.get('stack')
+    # 3. stack validation
+    stack = manifest.get('stack')
     if not stack:
-        issues.append("Missing required field: stack (or stack)")
+        issues.append("Missing required field: stack")
     elif len(VALID_DOMAINS) > 0 and stack not in VALID_DOMAINS:
         # Only validate against list if VALID_DOMAINS is not empty
         issues.append("Invalid stack: " + str(stack) + ". Must be one of: " + ', '.join(VALID_DOMAINS))
@@ -82,13 +82,13 @@ def validate_manifest(manifest):
             if f not in VALID_FEATURES:
                 issues.append("Invalid feature: " + str(f) + ". Must be one of: " + ', '.join(VALID_FEATURES))
     
-    # 6. Validate internalDependencies array (must be valid service aliases)
+    # 6. Validate internalDependencies array (must be valid resource aliases)
     deps = manifest.get('internalDependencies', [])
     if type(deps) != 'list':
         issues.append("Invalid internalDependencies: must be an array")
     else:
         # Valid dependency targets are discovered dynamically from manifests
-        # No hardcoded list - all dependencies validated against discovered services
+        # No hardcoded list - all dependencies validated against discovered resources
         # The actual validation happens at orchestration time, not here
         pass
     
