@@ -6,7 +6,7 @@
 
 load('../databases.star', 'Database')
 load('./apply_runtime_flags.star', 'RuntimeFlags')
-load('./apply_resource_validation.star', 'ServiceValidation')
+load('./apply_resource_validation.star', 'ResourceValidation')
 load('./apply_manifest_orchestration.star', 'ManifestOrchestration')
 load('./apply_compose_resource_registration.star', 'ComposeResourceRegistration')
 load('./apply_migrator_orchestration.star', 'MigratorOrchestration')
@@ -28,7 +28,7 @@ def apply_app_service(resource_config, ctx):
 
     print("🚀 Loading " + resource_name + " services...")
 
-    ServiceValidation.validate(resource_config)
+    ResourceValidation.validate(resource_config)
 
     # Only provision database if service has a backend resource (not just frontend)
     has_backend = False
