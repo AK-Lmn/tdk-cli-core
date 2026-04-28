@@ -403,14 +403,14 @@ def _scan_resources():
             resource["frontend"] = True
             resource["backendName"] = manifest.get("backendName", app_name.replace("-frontend", "-backend"))
         
-        # Build service entry
+        # Build resource entry
         resource_key = stack if stack else app_name.replace("-" + app_type, "")
         
-        # Check if service already exists (merge resources for same domain)
+        # Check if resource entry already exists (merge resources for same domain)
         existing_app_resource = None
-        for app_res in services:
+        for app_res in resources:
             if app_res["name"] == resource_key:
-                existing_app_resource = svc
+                existing_app_resource = app_res
                 break
         
         if existing_app_resource:
@@ -427,14 +427,14 @@ def _scan_resources():
                 existing_app_resource["resources"].append(resource)
                 existing_app_resource["labels"].append("app." + app_name)
         else:
-            # Create new service entry
-            service = {
+            # Create new resource entry
+            resource_entry = {
                 "name": resource_key,
                 "path": resource_path,
                 "labels": ["app." + app_name] if app_name else [],
                 "resources": [resource],
             }
-            service.append(service)
+            resources.append(resource_entry)
     
     # Phase 1.5: Print consolidated discovery summary
     if validation_stats["total_manifests"] > 0:
@@ -544,14 +544,14 @@ def scan_services_with_patterns(patterns):
             resource["frontend"] = True
             resource["backendName"] = manifest.get("backendName", app_name.replace("-frontend", "-backend"))
         
-        # Build service entry
+        # Build resource entry
         resource_key = stack if stack else app_name.replace("-" + app_type, "")
         
-        # Check if service already exists
+        # Check if resource entry already exists
         existing_app_resource = None
         for app_res in services:
             if app_res["name"] == resource_key:
-                existing_app_resource = svc
+                existing_app_resource = app_res
                 break
         
         if existing_app_resource:
@@ -566,14 +566,14 @@ def scan_services_with_patterns(patterns):
                 existing_app_resource["resources"].append(resource)
                 existing_app_resource["labels"].append("app." + app_name)
         else:
-            # Create new service entry
-            service = {
+            # Create new resource entry
+            resource_entry = {
                 "name": resource_key,
                 "path": resource_path,
                 "labels": ["app." + app_name] if app_name else [],
                 "resources": [resource],
             }
-            service.append(service)
+            services.append(resource_entry)
     
     # Print summary
     if validation_stats["total_manifests"] > 0:
