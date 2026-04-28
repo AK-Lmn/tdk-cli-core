@@ -27,6 +27,7 @@ load('./engine/topologies/tilt/discovery/registry.star',
     _RESOURCE_PATH_MAP='RESOURCE_PATH_MAP',
     _get_platform_libs_export='get_platform_libs_export',
     _get_product_libs_export='get_product_libs_export',
+    _Registry='Registry',
 )
 load('./engine/topologies/tilt/generators/vite_config.star', _Vite='Vite')
 load('./engine/topologies/tilt/generators/tsconfig.star', _TSConfig='TSConfig')
@@ -117,6 +118,7 @@ DDD_LIBS_EXPORT = _DDD_LIBS_EXPORT
 DEFAULTS_EXPORT = _DEFAULTS_EXPORT
 RESOURCE_ALIASES = _RESOURCE_ALIASES
 RESOURCE_PATH_MAP = _RESOURCE_PATH_MAP
+Registry = _Registry
 
 def get_platform_libs_export(autodiscover=False):
     return _get_platform_libs_export(autodiscover)

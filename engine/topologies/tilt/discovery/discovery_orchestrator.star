@@ -458,3 +458,129 @@ def _scan_services():
             print("  📋 Focus mode skipped: {}".format(skipped_list))
     
     return services
+
+
+def scan_services_with_patterns(patterns):
+    """
+    Scan for services using the provided patterns (instead of DISCOVERY_SCAN_ROOTS).
+    This is used for re-initialization with project-specific patterns.
+    """
+    if not patterns:
+        return None
+    
+    services = []
+    validation_stats = {
+        "total_manifests": 0,
+        "valid_manifests": 0,
+        "manifests_with_warnings": 0,
+        "total_warnings": 0,
+    }
+    skipped_domains = {}
+    
+    # Validate scan roots
+    _validate_scan_roots(patterns)
+    
+    print("📦 Loading from {} custom patterns...".format(len(patterns)))
+    
+    # Scan all patterns and collect manifest paths
+    all_manifest_paths = []
+    
+    for root in patterns:
+        paths = discover_json_manifests(root)
+        if paths:
+            if len(paths) > MAX_MANIFESTS_PER_ROOT:
+                print("  ⚠️  Large root: {} has {} manifests (max: {})".format(
+                    root, len(paths), MAX_MANIFESTS_PER_ROOT))
+            all_manifest_paths.extend(paths)
+    
+    # Deduplicate by path
+    seen_paths = {}
+    manifest_paths = []
+    for path in all_manifest_paths:
+        if path not in seen_paths:
+            seen_paths[path] = True
+            manifest_paths.append(path)
+    
+    # Process manifests (simplified version of _scan_services)
+    for manifest_path in manifest_paths:
+        manifest = ManifestLoader.load_json_manifest(manifest_path)
+        validation_stats["total_manifests"] += 1
+        
+        if not manifest:
+            continue
+        
+        # Basic validation
+        is_valid = True
+        warnings = []
+        
+        if not manifest.get("appName"):
+            is_valid = False
+            warnings.append("Missing appName")
+        
+        app_type = manifest.get("appType", "backend")
+        if app_type not in ["frontend", "backend", "library", "migrator", "sdk", "worker"]:
+            is_valid = False
+            warnings.append("Invalid appType: {}".format(app_type))
+        
+        if not is_valid:
+            validation_stats["manifests_with_warnings"] += 1
+            validation_stats["total_warnings"] += len(warnings)
+            continue
+        
+        validation_stats["valid_manifests"] += 1
+        
+        # Extract resource info
+        resource_path = manifest_path[:-len("/" + MANIFEST_FILENAME)]
+        app_name = manifest.get("appName", "")
+        stack = manifest.get("stack", "")
+        
+        # Create resource dict
+        resource = _normalize_manifest(manifest, resource_path)
+        
+        # Add frontend-specific fields
+        if app_type == "frontend":
+            resource["frontend"] = True
+            resource["backendName"] = manifest.get("backendName", app_name.replace("-frontend", "-backend"))
+        
+        # Build service entry
+        resource_key = stack if stack else app_name.replace("-" + app_type, "")
+        
+        # Check if service already exists
+        existing_service = None
+        for svc in services:
+            if svc["name"] == resource_key:
+                existing_service = svc
+                break
+        
+        if existing_service:
+            # Check for duplicate
+            resource_exists = False
+            for existing_res in existing_service["resources"]:
+                if existing_res.get("name") == resource["name"]:
+                    resource_exists = True
+                    break
+            
+            if not resource_exists:
+                existing_service["resources"].append(resource)
+                existing_service["labels"].append("app." + app_name)
+        else:
+            # Create new service entry
+            service = {
+                "name": resource_key,
+                "path": resource_path,
+                "labels": ["app." + app_name] if app_name else [],
+                "resources": [resource],
+            }
+            services.append(service)
+    
+    # Print summary
+    if validation_stats["total_manifests"] > 0:
+        total_skipped = 0
+        for count in skipped_domains.values():
+            total_skipped += count
+        print("✅ {} services loaded from custom patterns ({} valid, {} skipped)".format(
+            validation_stats["total_manifests"],
+            validation_stats["valid_manifests"],
+            total_skipped))
+    
+    return services

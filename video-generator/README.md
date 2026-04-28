@@ -1,75 +1,102 @@
 # TDK Video Generator
 
-## Quick Start
+Two implementations:
+1. **Swift version** (requires full Xcode) - Full-featured with scenes, animations, terminal rendering
+2. **Shell script** (FFmpeg only) - Quick generation with chapter markers
 
-### 1. Build the Project
+---
+
+## Quick Start (Shell Script - Recommended)
+
+For immediate results without full Xcode:
 
 ```bash
 cd video-generator
+
+# Generate 20-minute 1440p tutorial
+./generate.sh
+
+# Generate 1080p version (smaller file)
+./generate.sh --resolution 1080p
+
+# Generate 1-minute test
+./generate.sh --duration 60 -o test.mp4
+```
+
+**Requirements:** FFmpeg only (`brew install ffmpeg`)
+
+---
+
+## Swift Version (Full-Featured)
+
+### Requirements
+
+- **macOS 14.0+**
+- **Full Xcode 15+** (App Store or developer.apple.com)
+- **Swift 5.9+**
+- **FFmpeg** (`brew install ffmpeg`)
+
+⚠️ **Note:** Command Line Tools alone are insufficient for Swift Package Manager.
+
+### Build & Run
+
+```bash
+cd video-generator
+
+# Build
 swift build
-```
 
-### 2. Validate System
-
-```bash
-# First, verify Xcode is properly selected
-xcode-select -p
-
-# If you see /Library/Developer/CommandLineTools, switch to full Xcode:
-# sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-
-# Now validate
+# Validate
 swift run tdk-video validate
-```
 
-This checks for:
-- ✅ Full Xcode installation (not just Command Line Tools)
-- ✅ FFmpeg installation
-- ✅ macOS 14.0+
-- ✅ Swift 5.9+
-
-### 3. Generate Default Tutorial
-
-```bash
+# Generate
 swift run tdk-video generate
 ```
 
-This generates `TDK_Tutorial_1440p.mp4` (20 minutes, 2560x1440, 6 chapters)
-
-### 4. Custom Configuration
-
-```bash
-swift run tdk-video generate --config my-tutorial.yaml --o my-video.mp4
-```
+The Swift version provides:
+- Scene-based rendering with transitions
+- Terminal recording playback (asciinema)
+- Syntax-highlighted code scenes
+- Animated title cards
+- Cursor animation
+- Highlight regions
 
 ## Project Structure
 
 ```
 video-generator/
-├── Package.swift                    # Swift Package Manager manifest
+├── generate.sh                      # ⭐ Quick FFmpeg script (no Xcode needed)
+├── generate_video.py                # Python alternative (advanced)
+├── Package.swift                    # Swift Package Manager
 ├── README.md                        # This file
-├── tutorial.yaml                    # Default tutorial configuration
-├── Sources/
-│   ├── TDKVideoCLI/                 # CLI entry point
-│   │   └── main.swift
-│   └── TDKVideoGenerator/           # Library
-│       ├── Core/                    # Scene protocol, specs
-│       │   ├── Scene.swift
-│       │   └── ScreenRecording.swift
-│       ├── Scenes/                  # Scene implementations
-│       │   ├── ScreencastScene.swift
-│       │   ├── CodeScene.swift
-│       │   └── TitleCardScene.swift
-│       ├── Terminal/                # Asciinema support
-│       │   ├── AsciinemaParser.swift
-│       │   └── TerminalRenderer.swift
-│       ├── Rendering/               # AVFoundation rendering
-│       │   └── VideoRenderer.swift
-│       └── FFmpeg/                  # FFmpeg encoding
-│           └── FFmpegEncoder.swift
-├── Tests/                           # Unit tests
-└── Resources/                       # Assets
+├── tutorial.yaml                    # Tutorial configuration
+├── Sources/                         # Swift implementation
+│   ├── TDKVideoCLI/
+│   │   └── main.swift              # CLI entry
+│   └── TDKVideoGenerator/
+│       ├── Core/                   # Scene protocol, specs
+│       ├── Scenes/                 # Title cards, code, terminal
+│       ├── Terminal/               # Asciinema parser
+│       ├── Rendering/              # AVFoundation
+│       └── FFmpeg/                 # Encoder wrapper
+├── Tests/
+└── Resources/
 ```
+
+## Quick Comparison
+
+| Feature | Shell Script | Swift Version |
+|---------|--------------|---------------|
+| **Requirements** | FFmpeg only | Full Xcode + FFmpeg |
+| **Setup time** | Instant | ~10 min download |
+| **Output** | 1440p video + chapters | 1440p + animations + text |
+| **Terminal demos** | ❌ No | ✅ Asciinema playback |
+| **Code highlighting** | ❌ No | ✅ Syntax highlighted |
+| **Text overlays** | ❌ No | ✅ Dynamic text |
+| **Build time** | 1 minute | 5-10 minutes |
+| **Use case** | Quick test, CI/CD | Production video |
+
+## Usage Examples
 
 ## Recording Terminal Sessions
 
