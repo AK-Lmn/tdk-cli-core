@@ -1,26 +1,23 @@
 #!/usr/bin/env python3
 """
-TDK Video Generator (Python Fallback)
-Quickly generate tutorial videos using FFmpeg directly.
-Use this when full Xcode isn't available (only Command Line Tools).
+TDK Video Generator (Python Fallback - Simple Version)
+Generates a tutorial video using FFmpeg without text overlays.
 
-This generates a 20-minute 1440p tutorial video with chapter markers.
+For text overlays, FFmpeg needs to be compiled with --enable-libfreetype
+Install with: brew install ffmpeg --with-freetype
 """
 
 import argparse
-import json
 import os
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
-from typing import List, Dict, Any, Tuple
 
 
 def check_ffmpeg() -> bool:
     """Check if FFmpeg is installed."""
     try:
-        result = subprocess.run(
+        subprocess.run(
             ["ffmpeg", "-version"],
             capture_output=True,
             text=True,
@@ -31,29 +28,28 @@ def check_ffmpeg() -> bool:
         return False
 
 
-def get_font_path() -> str:
-    """Find a suitable font on macOS."""
-    font_paths = [
-        "/System/Library/Fonts/Helvetica.ttc",
-        "/System/Library/Fonts/HelveticaNeue.ttc",
-        "/Library/Fonts/Arial.ttf",
-        "/System/Library/Fonts/SFPro.ttf",
-    ]
-    for path in font_paths:
-        if os.path.exists(path):
-            return path
-    # Return first one and let FFmpeg fail gracefully if not found
-    return font_paths[0]
+def check_drawtext() -> bool:
+    """Check if FFmpeg has drawtext filter."""
+    try:
+        result = subprocess.run(
+            ["ffmpeg", "-filters"],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        return "drawtext" in result.stdout
+    except:
+        return False
 
 
-def generate_test_video(
+def generate_simple_video(
     output_path: Path,
     width: int = 2560,
     height: int = 1440,
     duration: int = 1200,  # 20 minutes
     fps: int = 30
 ) -> None:
-    """Generate a test video with color bars and text overlays."""
+    """Generate a simple video with color backgrounds for each chapter."""
     
     print(f"🎬 Generating TDK CLI Tutorial Video")
     print(f"   Resolution: {width}x{height}")
@@ -61,98 +57,102 @@ def generate_test_video(
     print(f"   Output: {output_path}")
     print()
     
-    font_path = get_font_path()
+    has_drawtext = check_drawtext()
+    if not has_drawtext:
+        print("⚠️  FFmpeg drawtext filter not available (no FreeType support)")
+        print("   Generating video with colored chapter backgrounds instead")
+        print()
     
-    # Chapter timing (in seconds)
-    chapters: List[Tuple[str, int, int]] = [
-        ("TDK CLI Tutorial", 0, 3),
-        ("Chapter 1: The Problem", 5, 8),
-        ("Why local microservices dev is broken...", 8, 90),
-        ("Chapter 2: Install & Verify", 95, 98),
-        ("One-line setup with curl | bash", 98, 270),
-        ("Chapter 3: Project Setup", 275, 278),
-        ("PSR model: Project > Stack > Resource", 278, 540),
-        ("Chapter 4: Create Resources", 545, 548),
-        ("tdk resource identity-api --type backend", 548, 900),
-        ("Chapter 5: The Magic", 905, 908),
-        ("tdk up identity - services come alive", 908, 1260),
-        ("Chapter 6: Ecosystem", 1265, 1268),
-        ("Auto-discovery, validation, IDE support", 1268, 1190),
-        ("github.com/tdk-landscape/tdk-cli", 1190, duration),
+    # Chapter colors (dark theme variations)
+    chapters = [
+        ("Intro: TDK CLI Tutorial", 0, 5, "0x0f0f1a"),         # Very dark blue
+        ("Chapter 1: The Problem", 5, 95, "0x1a1a2e"),        # Dark blue
+        ("Chapter 2: Install & Verify", 95, 275, "0x16213e"),  # Navy
+        ("Chapter 3: Project Setup", 275, 545, "0x0f3460"),      # Darker blue
+        ("Chapter 4: Create Resources", 545, 905, "0x1a1a2e"),    # Dark blue
+        ("Chapter 5: The Magic", 905, 1265, "0x16213e"),        # Navy
+        ("Chapter 6: Ecosystem", 1265, 1190, "0x0f3460"),       # Darker blue
+        ("Outro: github.com/tdk-landscape/tdk-cli", 1190, duration, "0x0f0f1a"),
     ]
     
-    # Build drawtext filters
-    filters = []
+    # Build FFmpeg command with concat demuxer for chapter transitions
+    # We'll generate segments and concatenate them
     
-    for text, start, end in chapters:
-        # Calculate duration
-        if end <= start:
-            enable_expr = f"gte(t,{start})"
-        else:
-            enable_expr = f"between(t\\,{start}\\,{end})"
-        
-        # Adjust font size based on content
-        if "Chapter" in text:
-            fontsize = 72
-            color = "0x4ade80"  # Green
-            y_pos = "(h-text_h)/2-100"
-        elif text.startswith("TDK CLI"):
-            fontsize = 96
-            color = "white"
-            y_pos = "(h-text_h)/2"
-        elif text.startswith("github.com"):
-            fontsize = 48
-            color = "0x666666"
-            y_pos = "h-150"
-        else:
-            fontsize = 48
-            color = "0xaaaaaa"
-            y_pos = "(h-text_h)/2+50"
-        
-        filter_str = (
-            f"drawtext=fontfile={font_path}:"
-            f"text='{text}':"
-            f"fontsize={fontsize}:"
-            f"fontcolor={color}:"
-            f"x=(w-text_w)/2:"
-            f"y={y_pos}:"
-            f"enable='{enable_expr}'"
-        )
-        filters.append(filter_str)
-    
-    # Combine all filters
-    vf_chain = ",".join(filters)
-    
-    # Build FFmpeg command
-    cmd = [
-        "ffmpeg",
-        "-y",  # Overwrite output
-        "-f", "lavfi",
-        "-i", f"color=c=0x0f0f1a:s={width}x{height}:d={duration}:r={fps}",
-        "-vf", vf_chain,
-        "-c:v", "libx264",
-        "-preset", "medium",
-        "-crf", "23",
-        "-pix_fmt", "yuv420p",
-        "-movflags", "+faststart",
-        "-metadata", "title=TDK CLI Tutorial - 20 Minute Developer Guide",
-        "-metadata", "author=TDK Landscape",
-        "-metadata", "description=Complete tutorial for TDK CLI microservices development",
-        str(output_path)
-    ]
-    
-    print("🎞️  Encoding with FFmpeg...")
-    print(f"   Duration: {duration}s at {fps}fps = {duration * fps} frames")
-    print()
+    temp_dir = Path("/tmp/tdk_video_segments")
+    temp_dir.mkdir(exist_ok=True)
     
     try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            check=True
-        )
+        segment_files = []
         
+        for i, (title, start, end, color) in enumerate(chapters):
+            segment_duration = end - start
+            if segment_duration <= 0:
+                continue
+                
+            segment_file = temp_dir / f"segment_{i:02d}.mp4"
+            segment_files.append(str(segment_file))
+            
+            cmd = [
+                "ffmpeg",
+                "-y",
+                "-f", "lavfi",
+                "-i", f"color=c={color}:s={width}x{height}:d={segment_duration}:r={fps}",
+                "-c:v", "libx264",
+                "-preset", "medium",
+                "-crf", "23",
+                "-pix_fmt", "yuv420p",
+                str(segment_file)
+            ]
+            
+            print(f"   Generating segment {i+1}/{len(chapters)}: {title[:30]}... ({segment_duration}s)")
+            subprocess.run(cmd, check=True, capture_output=True)
+        
+        # Create concat file list
+        concat_file = temp_dir / "concat_list.txt"
+        with open(concat_file, "w") as f:
+            for segment in segment_files:
+                f.write(f"file '{segment}'\n")
+        
+        # Concatenate segments with chapter metadata
+        print()
+        print("🎞️  Concatenating segments...")
+        
+        # Build chapter metadata
+        chapter_metadata = []
+        current_time = 0
+        for title, start, end, color in chapters[:-1]:  # Exclude outro from chapters
+            if end <= start:
+                continue
+            hours = current_time // 3600
+            minutes = (current_time % 3600) // 60
+            seconds = current_time % 60
+            chapter_metadata.append(f"CHAPTER{len(chapter_metadata):02d}={hours:02d}:{minutes:02d}:{seconds:02d}.000")
+            chapter_metadata.append(f"CHAPTER{len(chapter_metadata)-1:02d}NAME={title}")
+            current_time += (end - start)
+        
+        # Concatenate with metadata
+        cmd = [
+            "ffmpeg",
+            "-y",
+            "-f", "concat",
+            "-safe", "0",
+            "-i", str(concat_file),
+            "-c", "copy",
+            "-movflags", "+faststart",
+            "-metadata", "title=TDK CLI Tutorial - 20 Minute Developer Guide",
+            "-metadata", "author=TDK Landscape",
+            "-metadata", "description=Complete tutorial for TDK CLI microservices development",
+        ]
+        
+        # Add chapter metadata
+        for meta in chapter_metadata:
+            cmd.extend(["-metadata", meta])
+        
+        cmd.append(str(output_path))
+        
+        subprocess.run(cmd, check=True, capture_output=True)
+        
+        print()
         print("✅ Video generated successfully!")
         print()
         
@@ -162,29 +162,24 @@ def generate_test_video(
         print(f"📊 Size: {size / 1024 / 1024:.1f} MB")
         print(f"📐 Resolution: {width}x{height} ({'1440p' if height == 1440 else '1080p' if height == 1080 else '4K'})")
         print(f"⏱️  Duration: {duration // 60} minutes {duration % 60}s")
+        print(f"🎬 Chapters: {len(chapter_metadata) // 2}")
         print()
-        print("🎉 Ready to upload to YouTube or share!")
+        print("🎉 Ready to upload!")
         print()
-        print("Next steps:")
-        print("  1. Open the video and verify quality")
-        print("  2. Upload to YouTube with chapter timestamps")
-        print("  3. Link from TDK CLI README")
+        print("Note: This is a chapter-marked video with colored backgrounds.")
+        print("      For text overlays, install FFmpeg with FreeType support:")
+        print("      brew reinstall ffmpeg --with-freetype")
         
-    except subprocess.CalledProcessError as e:
-        print("❌ FFmpeg encoding failed!")
-        print()
-        print("Error output:")
-        print(e.stderr[:1000] if len(e.stderr) > 1000 else e.stderr)
-        print()
-        print("Common fixes:")
-        print("  - Install FFmpeg with: brew install ffmpeg")
-        print("  - Check font path exists:", font_path)
-        sys.exit(1)
+    finally:
+        # Cleanup temp files
+        import shutil
+        if temp_dir.exists():
+            shutil.rmtree(temp_dir)
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Generate TDK CLI tutorial video (Python fallback)",
+        description="Generate TDK CLI tutorial video using FFmpeg",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -218,8 +213,7 @@ Examples:
     
     args = parser.parse_args()
     
-    print("🎬 TDK Video Generator (Python Fallback)")
-    print("   Swift version requires full Xcode — using FFmpeg directly")
+    print("🎬 TDK Video Generator (Python + FFmpeg)")
     print()
     
     # Check FFmpeg
@@ -244,7 +238,7 @@ Examples:
     
     # Generate video
     output_path = Path(args.output).resolve()
-    generate_test_video(
+    generate_simple_video(
         output_path=output_path,
         width=width,
         height=height,
