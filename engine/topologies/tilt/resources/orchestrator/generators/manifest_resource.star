@@ -390,15 +390,15 @@ def _generate_all_configs_for_resource(
         # Prisma config
         db_name = _get_db_name_for_resource(resource_name, resource_config['name'])
         resource_display_name = _get_resource_display_name(resource_name, resource_config['name'])
-        TSConfig.prisma(resource_path=resource_path, resource_name=resource_display_name, db_name=db_name, write_file_if_changed=write_file)
+        TSConfig.prisma(resource_path=resource_path, resource_name=resource_display_name, db_name=db_name, write_fn=write_file)
     
     # ==========================================================================
     # 8. PACKAGE CONFIGS (npmrc, bunfig)
     # ==========================================================================
-    PackageConfig.npmrc(resource_path=resource_path, registry_url=global_config['verdaccio_url_docker'], is_docker=True, write_file_if_changed=write_file)
-    PackageConfig.bunfig(resource_path=resource_path, registry_url=global_config['verdaccio_url_docker'], is_docker=True, write_file_if_changed=write_file)
-    PackageConfig.npmrc(resource_path=resource_path, registry_url=global_config['verdaccio_url_local'], is_docker=False, write_file_if_changed=write_file)
-    PackageConfig.bunfig(resource_path=resource_path, registry_url=global_config['verdaccio_url_local'], is_docker=False, write_file_if_changed=write_file)
+    PackageConfig.npmrc(resource_path=resource_path, registry_url=global_config['verdaccio_url_docker'], is_docker=True, write_fn=write_file)
+    PackageConfig.bunfig(resource_path=resource_path, registry_url=global_config['verdaccio_url_docker'], is_docker=True, write_fn=write_file)
+    PackageConfig.npmrc(resource_path=resource_path, registry_url=global_config['verdaccio_url_local'], is_docker=False, write_fn=write_file)
+    PackageConfig.bunfig(resource_path=resource_path, registry_url=global_config['verdaccio_url_local'], is_docker=False, write_fn=write_file)
     
     # ==========================================================================
     # 9. YAML MANIFEST (for verification)
