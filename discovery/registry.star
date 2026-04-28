@@ -35,7 +35,7 @@ _DISCOVERY_CACHE = {
     "resource_dependencies": {},
     "resource_aliases": {},
     "resource_path_map": {},
-    "domain_configs": {},
+    "stack_configs": {},
 }
 
 # =============================================================================
@@ -44,13 +44,13 @@ _DISCOVERY_CACHE = {
 
 def add_resource_to_cache(resource_dict):
     """
-    Add a new service to the discovery cache without rebuilding everything.
+    Add a new resource to the discovery cache without rebuilding everything.
     
     Args:
-        resource_dict: Service dictionary with 'name', 'path', 'resources', etc.
+        resource_dict: Resource dictionary with 'name', 'path', 'resources', etc.
     
     Returns:
-        True if added successfully, False if service already exists
+        True if added successfully, False if resource already exists
     """
     resource_name = resource_dict["name"] if "name" in resource_dict else ""
     if not resource_name:
@@ -77,10 +77,10 @@ def add_resource_to_cache(resource_dict):
 
 def remove_resource_from_cache(resource_name):
     """
-    Remove a service from the discovery cache.
+    Remove a resource from the discovery cache.
     
     Args:
-        resource_name: Name of service to remove
+        resource_name: Name of resource to remove
     
     Returns:
         True if removed, False if not found
@@ -119,13 +119,13 @@ def remove_resource_from_cache(resource_name):
 
 def has_resource_in_cache(resource_name):
     """
-    Check if a service already exists in cache.
+    Check if a resource already exists in cache.
     
     Args:
         resource_name: Name to check
     
     Returns:
-        True if service exists
+        True if resource exists
     """
     for svc in _DISCOVERY_CACHE["app_resources"]:
         svc_name = svc["name"] if "name" in svc else ""
@@ -135,13 +135,13 @@ def has_resource_in_cache(resource_name):
 
 def get_resource_by_path_from_cache(resource_path):
     """
-    Look up service by its path.
+    Look up resource by its path.
     
     Args:
-        resource_path: Service directory path
+        resource_path: Resource directory path
     
     Returns:
-        Service dict or None
+        Resource dict or None
     """
     resource_name = None
     if resource_path in _DISCOVERY_CACHE["resource_path_map"]:
