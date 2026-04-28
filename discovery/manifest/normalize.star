@@ -75,11 +75,11 @@ def _load_and_normalize(manifest_path, warn_only=True):
     # Compute additional fields for registry compatibility
     app_name = normalized.get('appName', '')
     app_type = normalized.get('appType', 'backend')
-    domain = normalized.get('domain', '')
+    stack = normalized.get('stack', '')
     features = normalized.get('features', [])
     
-    # 🎯 AUTO-COMPUTE labels from domain
-    normalized['labels'] = ['app.' + domain]
+    # 🎯 AUTO-COMPUTE labels from stack
+    normalized['labels'] = ['app.' + stack]
     
     # 🎯 AUTO-DETECT has_migrator
     has_migrator = 'prisma' in features
@@ -172,7 +172,7 @@ def _get_database_url(manifest, host='localhost', port=5432):
     Returns:
         PostgreSQL connection string
     """
-    db_name = manifest.get('databaseName', PlatformDockerConstants.get_db_name(manifest.get('domain', 'app')))
+    db_name = manifest.get('databaseName', PlatformDockerConstants.get_db_name(manifest.get('stack', 'app')))
     return PlatformDockerConstants.get_tilt_database_url_template().format(
         host=host,
         port=port,
@@ -197,14 +197,14 @@ def _print_summary(manifests):
         app_name = m.get('appName', 'unknown')
         app_type = m.get('appType', 'unknown')
         port = m.get('port', 0)
-        domain = m.get('domain', 'unknown')
+        stack = m.get('stack', 'unknown')
         
-        print("   {status} {name} | {type} | Port: {port} | Domain: {domain}".format(
+        print("   {status} {name} | {type} | Port: {port} | Stack: {stack}".format(
             status=status,
             name=app_name,
             type=app_type,
             port=port,
-            domain=domain,
+            stack=stack,
         ))
     
     print("📋 ═══════════════════════════════════════════════════════════════")

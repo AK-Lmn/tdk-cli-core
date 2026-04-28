@@ -1,4 +1,4 @@
-load("../engine/topologies/tilt/manifest/parser.star", "extract_domain_from_path")
+load("../engine/topologies/tilt/manifest/parser.star", "extract_stack_from_path")
 load("../engine/topologies/tilt/manifest/loader.star", "ManifestLoader")
 load("./manifest/loading.star", "get_default_syncs_for_type")
 
@@ -76,13 +76,13 @@ def _normalize_manifest(manifest, service_path):
         # Extract fields from normalized manifest
         app_name = manifest.get("appName", service_path.split("/")[-1])
         app_type = manifest.get("appType", _determine_app_type(manifest, service_path))
-        stack = manifest.get("stack") or manifest.get("domain") or extract_domain_from_path(service_path)
+        stack = manifest.get("stack") or manifest.get("domain") or extract_stack_from_path(service_path)
         port = manifest.get("port", BASE_PORT_BACKEND if app_type == "backend" else BASE_PORT_FRONTEND)
     else:
         # Legacy path: compute fields
         app_name = manifest.get("appName", service_path.split("/")[-1])
         app_type = _determine_app_type(manifest, service_path)
-        stack = manifest.get("stack") or manifest.get("domain") or extract_domain_from_path(service_path)
+        stack = manifest.get("stack") or manifest.get("domain") or extract_stack_from_path(service_path)
         port = manifest.get("port", BASE_PORT_BACKEND if app_type == "backend" else BASE_PORT_FRONTEND)
     
     features = manifest.get("features", [])

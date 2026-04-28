@@ -235,7 +235,7 @@ def _test_cross_service_validation():
         {
             'appName': 'identity-backend',
             'appType': 'backend',
-            'domain': 'identity',
+            'stack': 'identity',
             'port': 4004,
         },
         {

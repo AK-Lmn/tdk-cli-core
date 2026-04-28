@@ -85,14 +85,7 @@ KNOWN_LIBRARY_REGISTRY = {
 # =============================================================================
 
 def discover_missing_dependencies(all_resources, library_roots):
-    """
-    Discovers dependencies that are referenced but don't exist.
-    
-    Analyzes all resource manifests and package.json files to find
-    @{npm_scope} dependencies that don't have corresponding libraries.
-    
-    Returns: list of missing dependencies with metadata
-    """
+    # Discovers dependencies that are referenced but don't exist
     missing = []
     found = []
     
@@ -154,15 +147,7 @@ def discover_missing_dependencies(all_resources, library_roots):
     )
 
 def generate_missing_dependency_manifests(missing_deps, library_roots, write_fn=None):
-    """
-    Generates manifest.json files for missing dependencies.
-    
-    Creates placeholder manifests that can be used to:
-      1. Create the missing library
-      2. Or stub out the dependency to prevent errors
-    
-    Returns: dict of {lib_name: manifest_content}
-    """
+    # Generates manifest.json files for missing dependencies
     manifests = {}
     
     for dep in missing_deps:
@@ -218,15 +203,7 @@ def generate_missing_dependency_manifests(missing_deps, library_roots, write_fn=
     return manifests
 
 def generate_dependency_topology_updates(missing_deps, write_fn=None):
-    """
-    Generates Starlark code to add missing libraries to topology.
-    
-    Creates the necessary updates to:
-      - config.star (PRODUCT_LIBS_EXPLICIT or PLATFORM_LIBS_EXPLICIT)
-      - libraries.star (library definitions)
-    
-    Returns: dict with code snippets
-    """
+    # Generates Starlark code to add missing libraries to topology
     product_libs = []
     platform_libs = []
     
@@ -252,21 +229,17 @@ def generate_dependency_topology_updates(missing_deps, write_fn=None):
             "platform_libs_additions": platform_libs,
         },
         "code_snippets": {
-            "config_star": '''
-# Add to PRODUCT_LIBS_EXPLICIT or PLATFORM_LIBS_EXPLICIT in discovery/config.star:
-
-# Auto-generated additions for missing dependencies
-PRODUCT_LIBS_EXPLICIT.extend([
-    {}
-])
-
-PLATFORM_LIBS_EXPLICIT.extend([
-    {}
-])
-'''.format(
-                ",\n    ".join(product_libs) if product_libs else "# None",
-                ",\n    ".join(platform_libs) if platform_libs else "# None"
-            ),
+            "config_star": "\n" + \
+"# Add to PRODUCT_LIBS_EXPLICIT or PLATFORM_LIBS_EXPLICIT in discovery/config.star:\n" + \
+"\n" + \
+"# Auto-generated additions for missing dependencies\n" + \
+"PRODUCT_LIBS_EXPLICIT.extend([\n" + \
+"    " + (",\n    ".join(product_libs) if product_libs else "# None") + "\n" + \
+"])\n" + \
+"\n" + \
+"PLATFORM_LIBS_EXPLICIT.extend([\n" + \
+"    " + (",\n    ".join(platform_libs) if platform_libs else "# None") + "\n" + \
+"])\n",
         }
     }
     
@@ -276,9 +249,7 @@ PLATFORM_LIBS_EXPLICIT.extend([
     return updates
 
 def generate_dependency_resolution_report(all_resources, library_roots, write_fn=None):
-    """
-    Generates a comprehensive dependency resolution report.
-    
+    # Generates a comprehensive dependency resolution report
     discovery = discover_missing_dependencies(all_resources, library_roots)
     
     if discovery.missing:
@@ -353,16 +324,7 @@ def generate_dependency_resolution_report(all_resources, library_roots, write_fn
 # =============================================================================
 
 def generate_library_stub(lib_name, lib_type, lib_path, write_fn=None):
-    """
-    Generates a minimal library stub to satisfy dependencies.
-    
-    Creates:
-      - package.json
-      - src/index.ts (placeholder)
-      - platform-computing-provisioner.manifest.json (if needed)
-    
-    This allows resources to build even if the library is not fully implemented.
-    """
+    # Generates a minimal library stub to satisfy dependencies
     internal_scope = "@" + PlatformDockerConstants.PROJECT_NAME + "/"
     full_name = "{}{}".format(internal_scope, lib_name)
     
@@ -390,20 +352,19 @@ def generate_library_stub(lib_name, lib_type, lib_path, write_fn=None):
     }
     
     # src/index.ts
-    index_ts = '''// Auto-generated stub for {}
-// This is a placeholder - replace with actual implementation
-
-export const STUB_MESSAGE = "{} is not yet implemented";
-
-export function stubFunction(): void {
-    console.warn(STUB_MESSAGE);
-}
-
-export default {
-    STUB_MESSAGE,
-    stubFunction,
-};
-'''.format(lib_name, lib_name)
+    index_ts = "// Auto-generated stub for " + lib_name + "\n" + \
+               "// This is a placeholder - replace with actual implementation\n" + \
+               "\n" + \
+               "export const STUB_MESSAGE = \"" + lib_name + " is not yet implemented\";\n" + \
+               "\n" + \
+               "export function stubFunction(): void {\n" + \
+               "    console.warn(STUB_MESSAGE);\n" + \
+               "}\n" + \
+               "\n" + \
+               "export default {\n" + \
+               "    STUB_MESSAGE,\n" + \
+               "    stubFunction,\n" + \
+               "};\n"
     
     # manifest.json (optional)
     manifest_json = {
@@ -430,9 +391,7 @@ export default {
     return files
 
 def generate_all_library_stubs(missing_deps, library_roots, write_fn=None):
-    """
-    Generates stub libraries for all missing dependencies.
-    """
+    # Generates stub libraries for all missing dependencies
     stubs = {}
     
     for dep in missing_deps:

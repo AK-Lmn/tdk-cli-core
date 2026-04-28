@@ -90,7 +90,7 @@ def _test_convert_to_resource():
     
     assert_equal('user-management-backend', resource['name'], "Should preserve name")
     assert_equal(4000, resource['port'], "Should preserve port")
-    assert_equal('user', resource['domain'], "Should preserve domain")
+    assert_equal('user', resource['stack'], "Should preserve stack")
     assert_true('frontend' not in resource or not resource['frontend'], "Should not mark as frontend")
     assert_equal('services/product/user/user-management-backend', resource['_service_path'], "Should preserve service path")
     
@@ -187,7 +187,7 @@ def _test_dependency_validation():
         {
             'appName': 'identity-backend',
             'appType': 'backend',
-            'domain': 'identity',
+            'stack': 'identity',
             'port': 4004,
         },
         {

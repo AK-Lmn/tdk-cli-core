@@ -212,12 +212,12 @@ def load_all(services_root, filters=None):
                 if manifest.get('appType') not in filter_app_types:
                     should_include = False
             
-            # Filter by domain
-            if 'domain' in filters and should_include:
-                filter_domains = filters['domain']
-                if type(filter_domains) == "string":
-                    filter_domains = [filter_domains]
-                if manifest.get('domain') not in filter_domains:
+            # Filter by stack
+            if 'stack' in filters and should_include:
+                filter_stacks = filters['stack']
+                if type(filter_stacks) == "string":
+                    filter_stacks = [filter_stacks]
+                if manifest.get('stack') not in filter_stacks:
                     should_include = False
             
             # Filter by features (must have at least one)

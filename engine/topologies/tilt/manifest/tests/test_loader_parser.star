@@ -126,7 +126,7 @@ def _test_parse_and_normalize():
     {
         "appName": "test-service",
         "appType": "backend",
-        "domain": "user",
+        "stack": "user",
         "port": 4001
     }
     '''
@@ -195,7 +195,7 @@ def _test_frontend_normalization():
     {
         "appName": "user-management-frontend",
         "appType": "frontend",
-        "domain": "user",
+        "stack": "user",
         "port": 3000,
         "backendName": "user-management-backend"
     }
@@ -212,7 +212,7 @@ def _test_frontend_normalization():
     {
         "appName": "test-frontend",
         "appType": "frontend",
-        "domain": "user",
+        "stack": "user",
         "port": 3001
     }
     '''
@@ -236,7 +236,7 @@ def _test_traefik_config():
     {
         "appName": "user-management-backend",
         "appType": "backend",
-        "domain": "user",
+        "stack": "user",
         "port": 4000,
         "traefik": {
             "pathPrefix": "/api/v1/users",
@@ -256,7 +256,7 @@ def _test_traefik_config():
     {
         "appName": "test-management-backend",
         "appType": "backend",
-        "domain": "user",
+        "stack": "user",
         "port": 4001
     }
     '''
@@ -318,7 +318,7 @@ def _test_get_normalized():
     {
         "appName": "test-service",
         "appType": "backend",
-        "domain": "user",
+        "stack": "user",
         "port": 4001
     }
     '''

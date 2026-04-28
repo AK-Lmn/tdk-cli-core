@@ -274,10 +274,10 @@ def _apply_manifest_defaults(manifest, service_path):
         result['hmrPort'] = result['port'] + 1000  # 3000 -> 4000
     
     # Extract domain from path if not set
-    if 'domain' not in result:
-        result['domain'] = _extract_domain_from_path(service_path, app_name)
+    if 'stack' not in result:
+        result['stack'] = _extract_domain_from_path(service_path, app_name)
     
-    domain = result['domain']
+    stack = result['stack']
     
     # 🎯 SMART DATABASE NAME with override detection
     computed_db_name = PlatformDockerConstants.get_db_name(domain)
@@ -295,7 +295,7 @@ def _apply_manifest_defaults(manifest, service_path):
         default_path_prefix = root_api_path if root_api_path else '/api/' + domain
         
         computed_traefik = {
-            'host': domain + '.backend.' + _PROJECT_NAME + '.local',
+            'host': domain + '.backend.' + PlatformDockerConstants.PROJECT_NAME + '.local',
             'pathPrefix': default_path_prefix,
             'healthCheck': HEALTH_CHECK_PATH,
         }

@@ -236,7 +236,7 @@ def _test_facade():
     assert_equal('platform-computing-provisioner.manifest.json', Manifest.filename, "Filename should be accessible")
     assert_not_none(Manifest.defaults, "Defaults should be accessible")
     assert_not_none(Manifest.app_types, "App types should be accessible")
-    assert_not_none(Manifest.domains, "Domains should be accessible")
+    assert_not_none(Manifest.stacks, "Stacks should be accessible")
     assert_not_none(Manifest.features, "Features should be accessible")
     
     # Test schema utilities accessible
