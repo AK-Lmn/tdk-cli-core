@@ -31,7 +31,8 @@ else:
 # =============================================================================
 # 📍 PROJECT CONFIGURATION
 # =============================================================================
-PROJECT_ROOT = config.main_dir
+# Tiltfile is in .tdk/.tdk-out/, project root is two levels up
+PROJECT_ROOT = config.main_dir + "/../.."
 os.environ['TDK_PROJECT_ROOT'] = PROJECT_ROOT
 
 # =============================================================================

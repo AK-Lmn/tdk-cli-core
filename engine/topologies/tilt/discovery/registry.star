@@ -682,12 +682,16 @@ def _generate_yaml_from_json_manifests():
     
     scan_roots = _get_discovery_scan_roots()
     generated_count = 0
+    
+    # Use project root for discovery, not Tiltfile directory
+    project_root = os.environ.get('TDK_PROJECT_ROOT', config.main_dir)
+    
     for root in scan_roots:
         # Find all JSON manifests (both legacy and new naming)
         json_files = []
         
         # Search for service.json manifests only (migration complete)
-        cmd = "cd " + config.main_dir + " && find " + root + " -type f -name '" + MANIFEST_FILENAME_NEW + "' 2>/dev/null"
+        cmd = "cd " + project_root + " && find " + root + " -type f -name '" + MANIFEST_FILENAME_NEW + "' 2>/dev/null"
         result = str(local(cmd, quiet=True, echo_off=True)).strip()
         if result:
             for f in result.split("\n"):
@@ -753,12 +757,15 @@ def load_yaml_manifests_as_resources():
     # Get effective scan roots (project-specific or defaults)
     scan_roots = _get_discovery_scan_roots()
     
+    # Use project root for discovery
+    project_root = os.environ.get('TDK_PROJECT_ROOT', config.main_dir)
+    
     # Find all YAML manifest files across all discovery roots (silent)
     # Check both legacy (platform-computing-provisioner.manifest.yaml) and new (service.yaml) naming
     yaml_files = []
     for root in scan_roots:
         # Search for legacy YAML manifests
-        cmd_legacy = "cd " + config.main_dir + " && find " + root + " -type f -name '" + MANIFEST_FILENAME_YAML + "' 2>/dev/null"
+        cmd_legacy = "cd " + project_root + " && find " + root + " -type f -name '" + MANIFEST_FILENAME_YAML + "' 2>/dev/null"
         result_legacy = str(local(cmd_legacy, quiet=True, echo_off=True)).strip()
         if result_legacy:
             for f in result_legacy.split("\n"):
@@ -767,7 +774,7 @@ def load_yaml_manifests_as_resources():
                     yaml_files.append(f)
         
         # Search for new service.yaml manifests
-        cmd_new = "cd " + config.main_dir + " && find " + root + " -type f -name '" + MANIFEST_FILENAME_NEW_YAML + "' 2>/dev/null"
+        cmd_new = "cd " + project_root + " && find " + root + " -type f -name '" + MANIFEST_FILENAME_NEW_YAML + "' 2>/dev/null"
         result_new = str(local(cmd_new, quiet=True, echo_off=True)).strip()
         if result_new:
             for f in result_new.split("\n"):
