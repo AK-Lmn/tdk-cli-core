@@ -215,29 +215,38 @@ def reinitialize_with_project_root():
     Call this after TDK_PROJECT_ROOT is set to pick up project-specific patterns.
     """
     project_root = os.environ.get('TDK_PROJECT_ROOT', '')
+    print("DEBUG reinitialize: project_root = " + project_root)
     if not project_root:
+        print("DEBUG reinitialize: no project root, returning cached")
         return _DISCOVERY_CACHE["app_resources"]  # No project root, return current
     
     # Check if we have project-specific discovery patterns
-    spec_master_path = project_root + '/.tdk/spec.master'
+    # spec.master is generated in .tdk/.tdk-out/ by tdk project
+    spec_master_path = project_root + '/.tdk/.tdk-out/spec.master'
+    print("DEBUG reinitialize: spec_master_path = " + spec_master_path)
     spec = None
     test_cmd = "test -f " + spec_master_path + " && echo yes || echo no"
     file_exists_result = local(test_cmd, quiet=True, echo_off=True)
     file_exists = str(file_exists_result).strip()
+    print("DEBUG reinitialize: file_exists = " + file_exists)
     
     if file_exists == "yes":
         spec = read_json(spec_master_path)
+        print("DEBUG reinitialize: spec loaded = " + str(spec != None))
     
     if spec and 'RESOURCE_PATTERNS' in spec and spec['RESOURCE_PATTERNS']:
         patterns = spec['RESOURCE_PATTERNS']
         print("🔄 Re-initializing discovery with project patterns: " + str(patterns))
         # Directly call discovery with project patterns
-        # Import _scan_services from discovery_orchestrator
         from_discovery = scan_services_with_patterns(patterns)
+        print("DEBUG reinitialize: from_discovery count = " + str(len(from_discovery)))
         if from_discovery:
             return from_discovery
+    else:
+        print("DEBUG reinitialize: no RESOURCE_PATTERNS in spec")
     
     # Fall back to cached resources
+    print("DEBUG reinitialize: falling back to cached")
     return _DISCOVERY_CACHE["app_resources"]
 
 
