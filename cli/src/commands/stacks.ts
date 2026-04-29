@@ -6,7 +6,7 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { discoverStacks, discoverServices, getAllStacks } from '../utils/services.js';
+import { discoverStacks, discoverResources, getAllStacks } from '../utils/services.js';
 
 export const stacksCommand = new Command('stacks')
   .description('List all stacks and their resources')
@@ -15,7 +15,7 @@ export const stacksCommand = new Command('stacks')
   .option('--services', 'Include list of services in each stack', false)
   .action(async (options) => {
     try {
-      const services = discoverServices();
+      const resources = discoverResources();
       const stackNames = getAllStacks(services);
 
       if (stackNames.length === 0) {

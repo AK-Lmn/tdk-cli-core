@@ -3,7 +3,6 @@ export { TabBar, TABS } from './TabBar.js';
 export type { TabId } from './TabBar.js';
 
 export { DetailPanel } from './DetailPanel.js';
-export type { StackMetadata, ResourceMetadata } from './DetailPanel.js';
 
 export { ResourceTable } from './ResourceTable.js';
 
@@ -11,8 +10,8 @@ export { FileTree } from './FileTree.js';
 export type { FileNode, FileType } from './FileTree.js';
 
 // Accessibility components
-export { 
-  AccessibleItem, 
+export {
+  AccessibleItem,
   AccessibleTab,
   AccessibleTooltip,
   FocusIndicator,
@@ -21,3 +20,6 @@ export {
 } from './Accessible.js';
 
 export { Tooltip, TOOLTIPS } from './Tooltip.js';
+
+// Re-export metadata types from central types module
+export type { StackMetadata, ResourceMetadata } from '../types/index.js';

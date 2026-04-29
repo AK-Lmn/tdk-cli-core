@@ -8,7 +8,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { execSync } from 'node:child_process';
-import { findProjectRoot, discoverServices } from '../utils/services.js';
+import { findProjectRoot, discoverResources } from '../utils/services.js';
 import { readProjectConfig } from '../generator/template-engine.js';
 
 interface ServiceUrl {
@@ -215,7 +215,7 @@ export const networksCommand = new Command('networks')
     }
     
     const baseDomain = getBaseDomain();
-    const services = discoverServices();
+    const services = discoverResources();
     
     const servicesWithUrls: ServiceUrl[] = services
       .filter(s => s.config?.basePath)

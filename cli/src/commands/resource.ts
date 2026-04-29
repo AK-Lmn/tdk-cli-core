@@ -490,7 +490,7 @@ export const resourceCommand = new Command('resource')
 
       // Generate service.json
       console.log(chalk.blue('📝 Generating service.json...'));
-      const serviceJson = createServiceJson(resourceName, resourceType as any, stackName, assignedPort);
+      const serviceJson = createServiceJson(resourceName, resourceType, stackName, assignedPort);
       writeFileSync(
         resolve(fullPath, 'service.json'),
         JSON.stringify(serviceJson, null, 2) + '\n',

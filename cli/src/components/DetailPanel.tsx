@@ -6,31 +6,13 @@
 
 import React from 'react';
 import { Box, Text } from 'ink';
-import type { DiscoveredStack, DiscoveredResource } from '../types/index.js';
+import type { DiscoveredStack, DiscoveredResource, StackMetadata, ResourceMetadata } from '../types/index.js';
 
 interface DetailPanelProps {
   stack: DiscoveredStack | null;
   service: DiscoveredResource | null;
   stackMetadata?: StackMetadata | null;
   visible: boolean;
-}
-
-export interface StackMetadata {
-  name: string;
-  resourceCount: number;
-  createdAt: string;
-  lastModified: string;
-  resources: ResourceMetadata[];
-  overallStatus: 'healthy' | 'degraded' | 'error' | 'unknown';
-}
-
-export interface ResourceMetadata {
-  name: string;
-  stack?: string;
-  type: 'frontend' | 'backend' | 'lib';
-  port?: number;
-  createdAt: string;
-  status: 'ready' | 'pending' | 'error' | 'unknown';
 }
 
 export const DetailPanel: React.FC<DetailPanelProps> = ({ 

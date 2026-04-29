@@ -257,5 +257,3 @@ export const configCommand = new Command('config')
         }
       })
   );
-
-export default configCommand;

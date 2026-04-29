@@ -8,7 +8,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { execSync } from 'node:child_process';
-import { getServicesForStack, stackExists, discoverServices, discoverStacks } from '../utils/services.js';
+import { getResourcesForStack, stackExists, discoverResources, discoverStacks } from '../utils/services.js';
 import { runTilt, buildTiltUpArgs, isTiltAvailable, findAvailablePort } from '../utils/tilt.js';
 
 export const upCommand = new Command('up')
@@ -27,7 +27,7 @@ export const upCommand = new Command('up')
         process.exit(1);
       }
 
-      let servicesToStart: Awaited<ReturnType<typeof discoverServices>>;
+      let servicesToStart: Awaited<ReturnType<typeof discoverResources>>;
       let stackDescription: string;
 
       if (stackName) {
@@ -41,12 +41,12 @@ export const upCommand = new Command('up')
           process.exit(1);
         }
 
-        // Get services that belong to this stack
-        servicesToStart = getServicesForStack(stackName);
+        // Get resources that belong to this stack
+        servicesToStart = getResourcesForStack(stackName);
         stackDescription = `stack "${stackName}"`;
       } else {
-        // No stack specified - get all services
-        servicesToStart = discoverServices();
+        // No stack specified - get all resources
+        servicesToStart = discoverResources();
         const allStacks = discoverStacks();
         stackDescription = `all stacks (${allStacks.length} stacks, ${servicesToStart.length} services)`;
       }

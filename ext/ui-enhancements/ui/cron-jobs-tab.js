@@ -227,25 +227,17 @@
     renderJobsTable();
   }
 
-  // Trigger job manually (via control file - would need backend support)
+  // Trigger job manually
   function triggerJob(jobName) {
     console.log(`Triggering job: ${jobName}`);
-    // This would need a backend endpoint to actually trigger the job
-    // For now, just log it
-    alert(
-      `Manual trigger for ${jobName} would be implemented here.\n\nIn production, this would write to ${CONFIG.controlDir}/${jobName}.trigger`,
-    );
+    alert(`Manual trigger not yet implemented. Would write to: ${CONFIG.controlDir}/${jobName}.trigger`);
   }
 
   // Toggle pause/resume
   function togglePause(jobName, currentStatus) {
     console.log(`Toggling pause for: ${jobName}, current: ${currentStatus}`);
-    // This would need a backend endpoint to actually pause/resume
-    // For now, just log it
     const action = currentStatus === 'paused' ? 'resume' : 'pause';
-    alert(
-      `${action} for ${jobName} would be implemented here.\n\nIn production, this would write/remove ${CONFIG.controlDir}/${jobName}.pause`,
-    );
+    alert(`${action} not yet implemented. Would modify: ${CONFIG.controlDir}/${jobName}.pause`);
   }
 
   // Fetch jobs data

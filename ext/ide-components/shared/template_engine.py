@@ -48,7 +48,7 @@ class TemplateEngine:
             return f"<!-- Template error: {e} -->"
     
     @staticmethod
-    def render_conditional(template: str, conditions: dict) -> str:
+    def render_conditional(template: str, conditions: dict[str, bool]) -> str:
         """
         Render template with conditional blocks
         
@@ -78,7 +78,7 @@ class TemplateEngine:
         return result
     
     @staticmethod
-    def render_loop(template: str, items: list, item_template: str) -> str:
+    def render_loop(template: str, items: list[dict[str, str]], item_template: str) -> str:
         """
         Render template with a loop
         

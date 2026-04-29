@@ -283,5 +283,3 @@ export const projectCommand = new Command('project')
       process.exit(1);
     }
   });
-
-export default projectCommand;

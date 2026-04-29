@@ -154,6 +154,3 @@ export const stackCommand = new Command('stack')
       process.exit(1);
     }
   });
-
-// Keep backward compatibility - export as initCommand too
-export const initCommand = stackCommand;

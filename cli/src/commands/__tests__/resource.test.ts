@@ -222,22 +222,19 @@ app.get('/health/ready', async (c) => {
       expect(indexContent).toContain('async (c)');
     });
 
-    it('should include example routes comment', () => {
-      const indexContent = `// Example routes - customize for your service
-app.get('/', (c) => {
+    it('should have root endpoint with service info', () => {
+      const name = 'test-service';
+      const indexContent = `app.get('/', (c) => {
   return c.json({
-    service: 'test-service',
+    service: '${name}',
     version: '1.0.0',
     endpoints: ['/health', '/health/live', '/health/ready']
   });
-});
+});`;
 
-// Add your custom routes below
-// app.get('/api/resource', (c) => { ... });
-// app.post('/api/resource', (c) => { ... });`;
-
-      expect(indexContent).toContain('// Example routes');
-      expect(indexContent).toContain('// Add your custom routes below');
+      expect(indexContent).toContain("app.get('/',");
+      expect(indexContent).toContain("service: '${name}'");
+      expect(indexContent).toContain('endpoints:');
     });
   });
 
@@ -254,15 +251,13 @@ app.get('/', (c) => {
       expect(workerContent).toContain('WORKER_BATCH_SIZE');
     });
 
-    it('should have processJob function placeholder', () => {
+    it('should have processJob function', () => {
       const workerContent = `async function processJob(job: unknown): Promise<void> {
   console.log('[Worker] Processing job:', job);
-  // TODO: Implement your job processing logic
   await new Promise(resolve => setTimeout(resolve, 1000));
 }`;
 
       expect(workerContent).toContain('async function processJob');
-      expect(workerContent).toContain('// TODO: Implement your job processing logic');
     });
 
     it('should have graceful shutdown handling', () => {

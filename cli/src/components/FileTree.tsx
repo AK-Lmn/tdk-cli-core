@@ -7,6 +7,7 @@
 
 import React, { useState } from 'react';
 import { Box, Text } from 'ink';
+import type { FileType } from '../types/index.js';
 
 export interface FileNode {
   name: string;
@@ -17,8 +18,6 @@ export interface FileNode {
   size?: number;
   lastModified?: string;
 }
-
-export type FileType = 'docker' | 'tilt' | 'config' | 'prisma' | 'generated' | 'unknown';
 
 interface FileTreeProps {
   nodes: FileNode[];
