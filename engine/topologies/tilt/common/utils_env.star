@@ -3,9 +3,12 @@
 # =============================================================================
 
 
-def load_dotenv():
+def load_dotenv(project_root=''):
     """Load .env file into os.environ."""
-    content = str(local("cat .env 2>/dev/null || true", quiet=True))
+    env_path = '.env'
+    if project_root:
+        env_path = project_root + '/.env'
+    content = str(local("cat '" + env_path + "' 2>/dev/null || true", quiet=True))
     if content:
         for line in content.split('\n'):
             line = line.strip()

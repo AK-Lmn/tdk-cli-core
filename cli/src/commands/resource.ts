@@ -160,15 +160,27 @@ app.get('/health/live', (c) => {
   return c.json({ status: 'alive', timestamp: Date.now() });
 });
 
-app.get('/health/ready', (c) => {
-  // TODO: Check database, cache, etc.
-  return c.json({ status: 'ready', dependencies: {} });
+app.get('/health/ready', async (c) => {
+  const dependencies: Record<string, string> = {};
+  let allReady = true;
+
+  // Add dependency checks here (database, cache, etc.)
+  // Mark allReady = false if any dependency is unhealthy
+
+  const status = allReady ? 'ready' : 'not_ready';
+  return c.json({ status, dependencies }, allReady ? 200 : 503);
 });
 
-// TODO: Add your routes here
 app.get('/', (c) => {
-  return c.json({ message: 'Hello from ${name}!' });
+  return c.json({
+    service: '${name}',
+    version: '1.0.0',
+    endpoints: ['/health', '/health/live', '/health/ready']
+  });
 });
+
+// Add routes here:
+// app.get('/api/resource', (c) => c.json({ data: [] }));
 
 const port = process.env.PORT || 3000;
 console.log('\n🚀 ${name} running on http://localhost:' + port);
@@ -228,16 +240,70 @@ export default App;
 function getWorkerIndexTemplate(name: string) {
   return `console.log('🚀 ${name} worker started');
 
-// TODO: Implement your worker logic here
-// Example: Process jobs from a queue, handle background tasks, etc.
+// Worker configuration
+const CONFIG = {
+  pollIntervalMs: parseInt(process.env.WORKER_POLL_INTERVAL || '5000'),
+  maxRetries: parseInt(process.env.WORKER_MAX_RETRIES || '3'),
+  batchSize: parseInt(process.env.WORKER_BATCH_SIZE || '10'),
+};
 
+async function processJob(job: unknown): Promise<void> {
+  console.log('[Worker] Processing job:', job);
+
+  // Add job processing logic here
+
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  console.log('[Worker] Job completed:', job);
+}
+
+async function fetchJobs(): Promise<unknown[]> {
+  // Connect to your queue (Redis, RabbitMQ, etc.) and fetch jobs
+  return [];
+}
+
+// Main worker loop
 async function main() {
+  console.log('[Worker] Configuration:', CONFIG);
+
   while (true) {
-    // Worker loop
-    console.log('Worker tick:', new Date().toISOString());
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    try {
+      // Fetch jobs from queue
+      const jobs = await fetchJobs();
+
+      if (jobs.length === 0) {
+        // No jobs - wait before polling again
+        await new Promise(resolve => setTimeout(resolve, CONFIG.pollIntervalMs));
+        continue;
+      }
+
+      console.log('[Worker] Fetched \${jobs.length} jobs');
+
+      // Process each job
+      for (const job of jobs) {
+        try {
+          await processJob(job);
+        } catch (error) {
+          console.error('[Worker] Job failed:', error);
+        }
+      }
+    } catch (error) {
+      console.error('[Worker] Error in main loop:', error);
+      // Wait before retrying to avoid tight error loops
+      await new Promise(resolve => setTimeout(resolve, CONFIG.pollIntervalMs));
+    }
   }
 }
+
+// Graceful shutdown handling
+process.on('SIGTERM', () => {
+  console.log('[Worker] SIGTERM received, shutting down gracefully...');
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('[Worker] SIGINT received, shutting down gracefully...');
+  process.exit(0);
+});
 
 main().catch(console.error);
 `;

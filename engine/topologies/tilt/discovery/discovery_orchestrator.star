@@ -585,4 +585,4 @@ def scan_services_with_patterns(patterns):
             validation_stats["valid_manifests"],
             total_skipped))
     
-    return resources
+    return services

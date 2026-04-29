@@ -6,12 +6,12 @@
  */
 
 import { Command } from 'commander';
-import { existsSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { execSync } from 'node:child_process';
 import chalk from 'chalk';
 import { findProjectRoot } from '../utils/services.js';
-import { generateMasterConfigs, verifyMasterConfigs, readProjectConfig } from '../generator/template-engine.js';
+import { generateMasterConfigs, verifyMasterConfigs, readProjectConfig, TemplateEngine } from '../generator/template-engine.js';
 
 export const configCommand = new Command('config')
   .description('Manage project configuration and regenerate master files')
@@ -28,13 +28,99 @@ export const configCommand = new Command('config')
           }
 
           if (options.dryRun) {
-            console.log(chalk.blue('🔍 Dry run - showing changes...\n'));
-            // TODO: Implement diff logic
-            console.log(chalk.gray('Would regenerate:'));
-            console.log(chalk.gray('  - tilt.config.json'));
-            console.log(chalk.gray('  - TILT_TECH_STACK.star'));
-            console.log(chalk.gray('  - TILT_RESOURCE_DEFAULTS.star'));
-            console.log(chalk.gray('  - spec.master'));
+            console.log(chalk.blue('🔍 Dry run - comparing current files with new configuration...\n'));
+
+            const projectConfig = readProjectConfig(projectRoot);
+            const engine = new TemplateEngine();
+            const newFiles = engine.generateAll(projectConfig);
+
+            const outputDir = join(projectRoot, '.tdk', '.tdk-out');
+            const filesToCheck = [
+              'tilt.config.json',
+              'TILT_TECH_STACK.star',
+              'TILT_RESOURCE_DEFAULTS.star',
+              'spec.master',
+            ];
+
+            let hasChanges = false;
+
+            for (const filename of filesToCheck) {
+              const newContent = newFiles[filename as keyof typeof newFiles];
+              const filePath = join(outputDir, filename);
+
+              if (!existsSync(filePath)) {
+                console.log(chalk.yellow(`📁 ${filename}`));
+                console.log(chalk.gray('   Status: NEW (file does not exist)\n'));
+                hasChanges = true;
+                continue;
+              }
+
+              const currentContent = readFileSync(filePath, 'utf-8');
+
+              if (currentContent === newContent) {
+                console.log(chalk.green(`✓ ${filename}`));
+                console.log(chalk.gray('   Status: No changes\n'));
+              } else {
+                console.log(chalk.yellow(`📝 ${filename}`));
+                console.log(chalk.gray('   Status: MODIFIED'));
+
+                // Show simple diff stats
+                const currentLines = currentContent.split('\n').length;
+                const newLines = newContent.split('\n').length;
+                const lineDiff = newLines - currentLines;
+
+                if (lineDiff > 0) {
+                  console.log(chalk.gray(`   Lines: ${currentLines} → ${newLines} (+${lineDiff})`));
+                } else if (lineDiff < 0) {
+                  console.log(chalk.gray(`   Lines: ${currentLines} → ${newLines} (${lineDiff})`));
+                } else {
+                  console.log(chalk.gray(`   Lines: ${currentLines} (content changed)`));
+                }
+
+                // Show first difference context (up to 3 lines)
+                const currentLinesArr = currentContent.split('\n');
+                const newLinesArr = newContent.split('\n');
+                let firstDiffLine = -1;
+
+                for (let i = 0; i < Math.max(currentLinesArr.length, newLinesArr.length); i++) {
+                  if (currentLinesArr[i] !== newLinesArr[i]) {
+                    firstDiffLine = i;
+                    break;
+                  }
+                }
+
+                if (firstDiffLine >= 0) {
+                  console.log(chalk.gray('   First change around line ' + (firstDiffLine + 1) + ':'));
+                  const contextStart = Math.max(0, firstDiffLine - 1);
+                  const contextEnd = Math.min(currentLinesArr.length, firstDiffLine + 2);
+
+                  for (let i = contextStart; i < contextEnd; i++) {
+                    const line = currentLinesArr[i];
+                    const newLine = newLinesArr[i];
+                    if (line !== newLine) {
+                      if (line !== undefined) {
+                        console.log(chalk.red(`     - ${line.substring(0, 60)}${line.length > 60 ? '...' : ''}`));
+                      }
+                      if (newLine !== undefined) {
+                        console.log(chalk.green(`     + ${newLine.substring(0, 60)}${newLine.length > 60 ? '...' : ''}`));
+                      }
+                    } else {
+                      console.log(chalk.gray(`       ${line.substring(0, 60)}${line.length > 60 ? '...' : ''}`));
+                    }
+                  }
+                }
+
+                console.log('');
+                hasChanges = true;
+              }
+            }
+
+            if (hasChanges) {
+              console.log(chalk.blue('💡 Run without --dry-run to apply these changes.\n'));
+            } else {
+              console.log(chalk.green('✅ All files are already up to date!\n'));
+            }
+
             return;
           }
 

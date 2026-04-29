@@ -93,7 +93,7 @@ def _generate_params_env(manifest, backend_manifest=None, write_fn=None):
     Returns:
         str: Generated environment file content
     """
-    resource_path = manifest.get('_servicePath', '')
+    resource_path = manifest.get('_resource_path', '')
     app_type = manifest.get('appType', 'backend')
     stack = manifest.get('stack', 'app')
     port = manifest.get('port', BASE_PORT_FRONTEND)
@@ -200,7 +200,7 @@ def _generate_secrets_env(manifest, write_fn=None):
     Returns:
         dict: Map of secret names to Infisical placeholder values
     """
-    resource_path = manifest.get('_servicePath', '')
+    resource_path = manifest.get('_resource_path', '')
     secrets_config = manifest.get('secrets', {})
     
     if not secrets_config:

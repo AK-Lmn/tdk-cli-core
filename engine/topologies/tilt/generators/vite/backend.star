@@ -39,7 +39,7 @@ def generate_backend(manifest, write_fn=None):
     if app_type not in ['backend', 'migrator']:
         fail("Vite.backend() requires a backend manifest, got: " + app_type)
     
-    resource_path = manifest.get('_servicePath', '')
+    resource_path = manifest.get('_resource_path', '')
     app_name = manifest.get('appName', 'unknown')
     port = manifest.get('port', BASE_PORT_BACKEND)
     

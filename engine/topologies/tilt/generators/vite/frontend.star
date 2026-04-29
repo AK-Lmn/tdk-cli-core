@@ -52,7 +52,7 @@ def generate_frontend(manifest, backend_manifest=None, write_fn=None):
     if manifest.get('appType') != 'frontend':
         fail("Vite.frontend() requires a frontend manifest, got: " + manifest.get('appType', 'unknown'))
     
-    resource_path = manifest.get('_resourcePath', '')
+    resource_path = manifest.get('_resource_path', '')
     stack = manifest.get('stack', 'app')
     port = manifest.get('port', BASE_PORT_FRONTEND)
     hmr_port = manifest.get('hmrPort', port + 1000)

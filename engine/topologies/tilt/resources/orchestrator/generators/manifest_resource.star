@@ -270,6 +270,9 @@ def _generate_all_configs_for_resource(
     
     print("DEBUG _generate_all_configs: resource_name='{}', resource_path='{}'".format(resource_name, resource_path))
     
+    # Add resource_path to manifest so generators can access it
+    manifest['_resource_path'] = resource_path
+    
     # ==========================================================================
     # NEW: PRE-FLIGHT VALIDATIONS (v2.0)
     # Run validations BEFORE generating configs to catch issues early

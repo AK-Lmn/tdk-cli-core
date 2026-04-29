@@ -354,8 +354,9 @@ def _apply_manifest_defaults(manifest, resource_path):
         elif result['basePath'] != computed_base_path:
             overrides.append("basePath: {} (auto: {})".format(result['basePath'], computed_base_path))
     
-    # 🎯 Always set _servicePath for all manifest types
+    # 🎯 Always set _servicePath and _resource_path for all manifest types
     result['_servicePath'] = resource_path
+    result['_resource_path'] = resource_path
     
     # 🎯 CENTRALIZED: Use Utils.get_internal_deps() for dependency extraction
     internal_deps = Utils.get_internal_deps(resource_path)

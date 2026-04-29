@@ -28,7 +28,7 @@ def generate_sdk(manifest, write_fn=None):
     3. Shared React/React-DOM as singletons
     4. Remote entry generation
     """
-    resource_path = manifest.get('_servicePath', '')
+    resource_path = manifest.get('_resource_path', '')
     app_name = manifest.get('appName', 'unknown')
     port = manifest.get('port', 3001)
     

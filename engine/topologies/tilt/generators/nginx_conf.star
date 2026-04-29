@@ -46,7 +46,7 @@ def generate_frontend_nginx(manifest, write_fn=None, referer_map_block=''):
     if manifest.get('appType') != 'frontend':
         return ''
 
-    resource_path = manifest.get('_servicePath', '')
+    resource_path = manifest.get('_resource_path', '')
     app_name = manifest.get('appName', 'unknown-frontend')
     backend_name = manifest.get('backendName', 'backend')
     header = Utils.get_template_header(
