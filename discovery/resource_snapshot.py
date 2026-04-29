@@ -11,9 +11,14 @@ import json
 import os
 import sys
 import hashlib
+import logging
 from pathlib import Path
 from typing import List, Dict, Set, Tuple, Optional
 from datetime import datetime, timezone
+
+# Configure logging
+logging.basicConfig(level=logging.WARNING, format='%(levelname)s: %(message)s')
+logger = logging.getLogger(__name__)
 
 SNAPSHOT_FILE = Path(".tdk/.tdk-out/snapshots/resource-snapshot.json")
 
@@ -32,7 +37,8 @@ def compute_resource_hash(resource_path: str) -> Optional[str]:
         with open(resource_path, 'rb') as f:
             content = f.read()
             return hashlib.md5(content).hexdigest()[:16]  # First 16 chars sufficient
-    except (IOError, OSError):
+    except (IOError, OSError) as e:
+        logger.warning(f"Could not compute hash for {resource_path}: {e}")
         return None
 
 
@@ -107,7 +113,15 @@ def load_snapshot() -> Dict:
     try:
         with open(SNAPSHOT_FILE, 'r') as f:
             return json.load(f)
-    except (json.JSONDecodeError, IOError):
+    except json.JSONDecodeError as e:
+        logger.warning(f"Corrupted snapshot file {SNAPSHOT_FILE}: {e}")
+        return {
+            "timestamp": None,
+            "services": [],
+            "count": 0
+        }
+    except IOError as e:
+        logger.warning(f"Could not read snapshot file {SNAPSHOT_FILE}: {e}")
         return {
             "timestamp": None,
             "services": [],
@@ -174,13 +188,15 @@ def get_current_services(scan_root: str = "services/product") -> List[str]:
             text=True,
             timeout=5
         )
-        
+
         if result.returncode == 0:
             services = [line.strip() for line in result.stdout.split('\n') if line.strip()]
             return sorted(services)
-    except (subprocess.TimeoutExpired, subprocess.SubprocessError):
-        pass
-    
+    except subprocess.TimeoutExpired:
+        logger.warning(f"Service scan timed out for {scan_root}")
+    except subprocess.SubprocessError as e:
+        logger.warning(f"Service scan failed for {scan_root}: {e}")
+
     return []
 
 

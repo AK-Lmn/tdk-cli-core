@@ -223,17 +223,16 @@ app.get('/health/ready', async (c) => {
     });
 
     it('should have root endpoint with service info', () => {
-      const name = 'test-service';
       const indexContent = `app.get('/', (c) => {
   return c.json({
-    service: '${name}',
+    service: 'test-service',
     version: '1.0.0',
     endpoints: ['/health', '/health/live', '/health/ready']
   });
 });`;
 
       expect(indexContent).toContain("app.get('/',");
-      expect(indexContent).toContain("service: '${name}'");
+      expect(indexContent).toContain("service: 'test-service'");
       expect(indexContent).toContain('endpoints:');
     });
   });

@@ -11,7 +11,7 @@ import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import { findProjectRoot, discoverServices } from '../utils/services.js';
+import { findProjectRoot, discoverResources } from '../utils/services.js';
 
 // Templates for different resource types
 const BACKEND_TEMPLATE = {
@@ -375,8 +375,8 @@ export const resourceCommand = new Command('resource')
       // Ask for stack
       let stackName = options.stack;
       if (stackName === 'default') {
-        const existingServices = discoverServices();
-        const existingStacks = [...new Set(existingServices.map(s => s.stack).filter(Boolean))];
+        const existingResources = discoverResources();
+        const existingStacks = [...new Set(existingResources.map(r => r.stack).filter(Boolean))];
         
         if (existingStacks.length > 0) {
           const { selectedStack } = await inquirer.prompt([{
@@ -442,8 +442,8 @@ export const resourceCommand = new Command('resource')
       }
 
       // Calculate next available port
-      const existingServices = discoverServices();
-      const existingPorts = existingServices.map(s => s.port || 0).filter(p => p > 0);
+      const existingResources = discoverResources();
+      const existingPorts = existingResources.map(r => r.port || 0).filter(p => p > 0);
       
       let assignedPort: number;
       const basePort = resourceType === 'frontend' ? 3000 : 4000;

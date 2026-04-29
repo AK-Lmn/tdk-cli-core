@@ -129,8 +129,8 @@ describe('error handling', () => {
         if (!m.appType) {
           warnings.push('Missing appType field');
         }
-        if (!m.domain) {
-          warnings.push('Missing domain field');
+        if (!m.stack) {
+          warnings.push('Missing stack field');
         }
 
         // In lenient mode, we allow with warnings
@@ -158,13 +158,13 @@ describe('error handling', () => {
       // Incomplete manifest (with warnings)
       const incompleteManifest = {
         appName: 'test-service',
-        // missing appType and domain
+        // missing appType and stack
       };
 
       const result = validateManifest(incompleteManifest);
       expect(result.valid).toBe(true);
       expect(result.warnings).toContain('Missing appType field');
-      expect(result.warnings).toContain('Missing domain field');
+      expect(result.warnings).toContain('Missing stack field');
     });
   });
 

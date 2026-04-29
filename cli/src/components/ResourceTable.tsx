@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { Box, Text } from 'ink';
-import type { ResourceMetadata } from './DetailPanel.js';
+import type { ResourceMetadata } from '../types/index.js';
 
 interface ResourceTableProps {
   resources: ResourceMetadata[];
@@ -129,5 +129,3 @@ function formatShortDate(timestamp: string): string {
     return '-';
   }
 }
-
-export default ResourceTable;

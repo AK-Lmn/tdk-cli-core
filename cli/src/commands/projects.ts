@@ -8,7 +8,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { findProjectRoot, discoverServices, getAllStacks } from '../utils/services.js';
+import { findProjectRoot, discoverResources, getAllStacks } from '../utils/services.js';
 
 export const projectsCommand = new Command('projects')
   .description('Show project information and configuration status')
@@ -53,14 +53,14 @@ export const projectsCommand = new Command('projects')
       console.log();
 
       // Discovery stats
-      const resources = discoverServices();
+      const resources = discoverResources();
       const stackNames = getAllStacks(resources);
 
       console.log(chalk.bold('Project Stats:'));
       console.log(chalk.gray(`  Resources: ${resources.length}`));
       console.log(chalk.gray(`  Stacks:    ${stackNames.length}`));
-      
-      const withoutStack = resources.filter(r => !r.stack).length;
+
+      const withoutStack = resources.filter((r: { stack?: string }) => !r.stack).length;
       if (withoutStack > 0) {
         console.log(chalk.yellow(`  ⚠ Unassigned: ${withoutStack} resource${withoutStack === 1 ? '' : 's'}`));
       }
@@ -70,7 +70,7 @@ export const projectsCommand = new Command('projects')
       if (stackNames.length > 0) {
         console.log(chalk.bold('Stacks:'));
         for (const name of stackNames.sort()) {
-          const count = resources.filter(r => r.stack === name).length;
+          const count = resources.filter((r: { stack?: string }) => r.stack === name).length;
           console.log(chalk.gray(`  ${name} (${count} resource${count === 1 ? '' : 's'})`));
         }
         console.log();

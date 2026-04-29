@@ -80,4 +80,3 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange, compact 
 };
 
 export { TABS };
-export default TabBar;

@@ -16,7 +16,7 @@ export const stacksCommand = new Command('stacks')
   .action(async (options) => {
     try {
       const resources = discoverResources();
-      const stackNames = getAllStacks(services);
+      const stackNames = getAllStacks(resources);
 
       if (stackNames.length === 0) {
         console.log(chalk.yellow('No stacks found.'));
@@ -38,9 +38,9 @@ export const stacksCommand = new Command('stacks')
           console.log(chalk.gray(`  ${stack.description}`));
 
           if (options.services) {
-            console.log(chalk.gray('  Services:'));
-            for (const service of stack.resources) {
-              console.log(chalk.gray(`    - ${service.name}`));
+            console.log(chalk.gray('  Resources:'));
+            for (const resource of stack.resources) {
+              console.log(chalk.gray(`    - ${resource.name}`));
             }
           }
 
@@ -51,12 +51,12 @@ export const stacksCommand = new Command('stacks')
         console.log(chalk.blue(`Found ${stackNames.length} stack${stackNames.length === 1 ? '' : 's'}:\n`));
 
         for (const name of stackNames) {
-          const stackServices = services.filter(s => s.stack === name);
+          const stackResources = resources.filter(r => r.stack === name);
           console.log(chalk.bold(`  ${name}`));
-          console.log(chalk.gray(`    ${stackServices.length} service${stackServices.length === 1 ? '' : 's'}`));
+          console.log(chalk.gray(`    ${stackResources.length} resource${stackResources.length === 1 ? '' : 's'}`));
         }
 
-        console.log(chalk.gray('\nRun with --verbose for more details, or --services to see all services in each stack.'));
+        console.log(chalk.gray('\nRun with --verbose for more details, or --services to see all resources in each stack.'));
       }
 
     } catch (err) {

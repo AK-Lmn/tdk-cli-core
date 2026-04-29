@@ -12,6 +12,7 @@ import sys
 import tempfile
 import shutil
 from pathlib import Path
+import pytest
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -24,43 +25,39 @@ from resource_snapshot import (
 )
 
 
+@pytest.fixture
+def temp_workspace(tmp_path):
+    """Provide a temporary workspace with automatic cleanup."""
+    original_dir = os.getcwd()
+    os.chdir(tmp_path)
+    yield tmp_path
+    os.chdir(original_dir)
+
+
 class TestSaveSnapshot:
     """Tests for save_snapshot function."""
     
-    def test_save_creates_file(self, tmp_path):
+    def test_save_creates_file(self, temp_workspace):
         """Test that save_snapshot creates the snapshot file."""
-        # Change to temp directory
-        original_dir = os.getcwd()
-        os.chdir(tmp_path)
+        services = ["services/a/service.json", "services/b/service.json"]
+        save_snapshot(services)
         
-        try:
-            services = ["services/a/service.json", "services/b/service.json"]
-            save_snapshot(services)
-            
-            snapshot_file = Path(".tilt/resource-snapshot.json")
-            assert snapshot_file.exists(), "Snapshot file should be created"
-            
-            # Verify content
-            with open(snapshot_file) as f:
-                data = json.load(f)
-                assert data["count"] == 2
-                assert data["services"] == services
-                assert "timestamp" in data
-        finally:
-            os.chdir(original_dir)
+        snapshot_file = Path(".tilk/.tdk-out/snapshots/resource-snapshot.json")
+        assert snapshot_file.exists(), "Snapshot file should be created"
+        
+        # Verify content
+        with open(snapshot_file) as f:
+            data = json.load(f)
+            assert data["count"] == 2
+            assert data["services"] == services
+            assert "timestamp" in data
     
-    def test_save_creates_directory(self, tmp_path):
-        """Test that save_snapshot creates the .tilt directory if needed."""
-        original_dir = os.getcwd()
-        os.chdir(tmp_path)
+    def test_save_creates_directory(self, temp_workspace):
+        """Test that save_snapshot creates the .tdk directory if needed."""
+        services = ["services/test/service.json"]
+        save_snapshot(services)
         
-        try:
-            services = ["services/test/service.json"]
-            save_snapshot(services)
-            
-            assert Path(".tilt").exists(), ".tilt directory should be created"
-        finally:
-            os.chdir(original_dir)
+        assert Path(".tdk/.tdk-out/snapshots").exists(), ".tdk/.tdk-out/snapshots directory should be created"
 
 
 class TestLoadSnapshot:

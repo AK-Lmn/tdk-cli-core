@@ -9,17 +9,15 @@ import { Command } from 'commander';
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { render, Box, Text, useInput, useApp, useStdout, useStdin } from 'ink';
 import SelectInput from 'ink-select-input';
-import { 
-  discoverStacks, 
-  discoverResources, 
+import {
+  discoverStacks,
+  discoverResources,
   findProjectRoot,
   getResourceMetadata,
   getStackMetadata,
   clearMetadataCache,
-  type ResourceMetadata,
-  type StackMetadata,
 } from '../utils/services.js';
-import type { DiscoveredResource, DiscoveredStack } from '../types/index.js';
+import type { DiscoveredResource, DiscoveredStack, ResourceMetadata, StackMetadata } from '../types/index.js';
 import { isTiltAvailable } from '../utils/tilt.js';
 import { 
   TabBar, type TabId, DetailPanel, ResourceTable, FileTree, type FileNode,

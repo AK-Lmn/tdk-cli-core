@@ -189,8 +189,7 @@ function formatDate(timestamp: string): string {
       minute: '2-digit',
     });
   } catch {
+    // Invalid date format - return raw timestamp
     return timestamp;
   }
 }
-
-export default DetailPanel;

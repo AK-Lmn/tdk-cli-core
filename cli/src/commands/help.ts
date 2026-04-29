@@ -136,16 +136,3 @@ export function showHelp(): void {
   console.log();
   console.log(chalk.green.bold('  Happy coding! 🚀\n'));
 }
-
-export const helpCommand = new Command('help')
-  .description('Show colorful help')
-  .argument('[command]', 'Command to show help for')
-  .action((commandName) => {
-    if (!commandName) {
-      showHelp();
-    } else {
-      // Delegate to specific command help
-      const program = new Command();
-      program.help();
-    }
-  });

@@ -34,10 +34,7 @@ export interface DiscoveredResource {
   type?: string;
 }
 
-/**
- * @deprecated Use DiscoveredResource instead
- */
-export type DiscoveredService = DiscoveredResource;
+
 
 /**
  * Partial service.json structure (only fields TDK cares about)
@@ -69,16 +66,7 @@ export interface ResourceConfig {
    */
   backendName?: string;
 
-  /**
-   * @deprecated Use stack instead
-   */
-  domain?: string;
 }
-
-/**
- * @deprecated Use ResourceConfig instead
- */
-export type ServiceConfig = ResourceConfig;
 
 /**
  * Represents a discovered stack (aggregated from resources)
@@ -97,17 +85,7 @@ export interface DiscoveredStack {
   resourceCount: number;
 }
 
-/**
- * @deprecated Use resources and resourceCount instead
- */
-export interface LegacyDiscoveredStack extends DiscoveredStack {
-  /** @deprecated Use resources instead */
-  services: DiscoveredResource[];
-  /** @deprecated Use resourceCount instead */
-  serviceCount: number;
-  /** @deprecated Not used anymore */
-  domains: string[];
-}
+
 
 /**
  * Options passed to CLI commands
@@ -196,16 +174,9 @@ export interface ResourceMetadata {
   /** Current runtime status */
   status: ResourceStatus;
 
-  /**
-   * @deprecated Use stack instead
-   */
-  domain?: string;
 }
 
-/**
- * @deprecated Use ResourceMetadata instead
- */
-export type ServiceMetadata = ResourceMetadata;
+
 
 /**
  * Overall health status of a stack
@@ -230,14 +201,6 @@ export interface StackMetadata {
   /** Overall health status */
   overallStatus: StackHealthStatus;
 
-  /**
-   * @deprecated Use resourceCount instead
-   */
-  serviceCount?: number;
-  /**
-   * @deprecated Use resources instead
-   */
-  services?: ResourceMetadata[];
 }
 
 /**
