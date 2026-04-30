@@ -22,7 +22,7 @@ export const configCommand = new Command('config')
       .description('Regenerate all 4 master config files from .tdk/project.json')
       .option('--dry-run', 'Show what would change without writing files')
       .action(async (options) => {
-        try {
+        await runCommand(async () => {
           const projectRoot = requireProjectRoot();
 
           if (options.dryRun) {
@@ -120,17 +120,14 @@ export const configCommand = new Command('config')
           console.log(chalk.blue('📋 Regenerating master configuration files...\n'));
           generateMasterConfigs(projectRoot);
           console.log(chalk.green('\n✅ Configuration regenerated!'));
-        } catch (err) {
-          console.error(chalk.red(`Error: ${err instanceof Error ? err.message : String(err)}`));
-          process.exit(1);
-        }
+        });
       })
   )
   .addCommand(
     new Command('verify')
       .description('Verify that generated files match .tdk/project.json')
       .action(async () => {
-        try {
+        await runCommand(async () => {
           const projectRoot = requireProjectRoot();
 
           console.log(chalk.blue('🔍 Verifying configuration...\n'));
@@ -138,7 +135,7 @@ export const configCommand = new Command('config')
 
           if (result.valid) {
             console.log(chalk.green('✅ All files are in sync!'));
-            process.exit(0);
+            return;
           } else {
             console.log(chalk.yellow('⚠️  Configuration issues found:'));
             for (const error of result.errors) {
@@ -147,10 +144,7 @@ export const configCommand = new Command('config')
             console.log(chalk.gray('\nRun `tdk config regenerate` to fix.'));
             process.exit(1);
           }
-        } catch (err) {
-          console.error(chalk.red(`Error: ${err instanceof Error ? err.message : String(err)}`));
-          process.exit(1);
-        }
+        });
       })
   )
   .addCommand(

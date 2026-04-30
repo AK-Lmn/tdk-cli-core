@@ -1,9 +1,4 @@
-/**
- * Shared formatting utilities for TDK CLI
- *
- * Consolidates formatting logic that was previously duplicated
- * across components and command files.
- */
+/** Shared formatting utilities for TDK CLI */
 
 /**
  * Pluralizes a word based on count

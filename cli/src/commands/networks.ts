@@ -10,6 +10,7 @@ import chalk from 'chalk';
 import { execSync, spawn } from 'node:child_process';
 import { findProjectRoot, discoverResources } from '../utils/services.js';
 import { readProjectConfig } from '../generator/template-engine.js';
+import { sanitizeForShell, isValidPort } from '../utils/validation.js';
 
 /**
  * Execute a shell command safely using spawn instead of execSync

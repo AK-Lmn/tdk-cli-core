@@ -1,9 +1,4 @@
-/**
- * TDK (Tilt Development Kit) Type Definitions
- *
- * Types for resource discovery and stack management.
- * Stacks are discovered dynamically from service.json files - no stack.master needed.
- */
+/** TDK Type Definitions */
 
 export interface DiscoveredResource {
   name: string;

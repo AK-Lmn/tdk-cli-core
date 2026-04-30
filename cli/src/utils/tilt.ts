@@ -1,8 +1,4 @@
-/**
- * Tilt command execution utilities
- * 
- * Handles running tilt CLI commands with proper output handling.
- */
+/** Tilt command execution utilities */
 
 import { spawn } from 'node:child_process';
 import { createConnection } from 'node:net';

@@ -1,6 +1,4 @@
-/**
- * Enhanced error messages with colors and suggestions
- */
+/** Enhanced error messages with colors and suggestions */
 
 import chalk from 'chalk';
 import { findProjectRoot } from './services.js';
