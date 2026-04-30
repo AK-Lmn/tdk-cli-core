@@ -12,11 +12,15 @@ export const MASTER_CONFIG_FILES = [
 
 /**
  * Valid resource types for the resource command
+ * Aligned with ResourceType type from types/index.ts
  */
 export const VALID_RESOURCE_TYPES = [
   'backend',
   'frontend',
+  'library',
+  'sdk',
   'worker',
+  'migrator',
 ] as const;
 
 /**

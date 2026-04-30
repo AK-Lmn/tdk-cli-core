@@ -66,7 +66,7 @@ export function createKebabCaseValidator(context: 'resource' | 'stack') {
  * @returns Validation result with optional error
  */
 export function validateOptionalInfraService(service: string): ValidationResult {
-  if (OPTIONAL_INFRA_SERVICES.includes(service as typeof OPTIONAL_INFRA_SERVICES[number])) {
+  if (includes(OPTIONAL_INFRA_SERVICES, service)) {
     return { valid: true };
   }
   return {
@@ -96,4 +96,19 @@ export function isValidPort(port: number): boolean {
  */
 export function sanitizeForShell(value: string, replacement: string = '_'): string {
   return value.replace(/[^a-zA-Z0-9-]/g, replacement).substring(0, 100);
+}
+
+/**
+ * Type-safe array membership check
+ * Uses const assertion types to ensure type safety
+ *
+ * @param array - The readonly array to check against
+ * @param value - The value to check for membership
+ * @returns True if value is in the array, with type narrowing
+ */
+export function includes<T extends readonly string[]>(
+  array: T,
+  value: string
+): value is T[number] {
+  return array.includes(value as T[number]);
 }

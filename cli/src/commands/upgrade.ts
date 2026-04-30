@@ -33,7 +33,9 @@ function detectInstallation(): InstallInfo {
         }
       }
     } catch {
-      // readlink failed, not a symlink
+      // readlink -f fails when the path is not a symlink (e.g., direct binary from npm/bun global install)
+      // This is expected behavior for non-git installations - safe to ignore
+      // Git detection will fall through to directory-based detection below
     }
     
     if (tdkPath.includes('node_modules') || tdkPath.includes('.npm') || tdkPath.includes('.bun')) {
@@ -122,9 +124,12 @@ async function upgradeViaBun(): Promise<boolean> {
     });
     spinner.succeed('Upgraded successfully via bun');
     return true;
-  } catch {
-    // Fall back to GitHub
-    spinner.text = 'npm registry failed, trying GitHub...';
+  } catch (err) {
+    // bun registry failed (package may not exist or network issue) - try GitHub fallback
+    spinner.text = 'bun registry failed, trying GitHub...';
+    if (process.env.TDK_VERBOSE) {
+      console.warn(chalk.gray(`bun registry error: ${err instanceof Error ? err.message : String(err)}`));
+    }
     try {
       execSync('bun install -g github:tdk-landscape/tdk-cli', {
         stdio: 'inherit',
@@ -183,8 +188,12 @@ async function upgradeViaGit(path: string): Promise<boolean> {
         stdio: 'pipe',
         timeout: 30000
       });
-    } catch {
-      // Link might fail if already linked, that's ok
+    } catch (err) {
+      // bun link --force may fail for various reasons (already linked, permission issues, etc.)
+      // Log warning for diagnostic purposes but don't fail - the upgrade may still work
+      console.warn(chalk.yellow('⚠️  Warning: bun link --force failed after git upgrade'));
+      console.warn(chalk.gray(`   Error: ${err instanceof Error ? err.message : String(err)}`));
+      console.warn(chalk.gray('   The upgrade may have partially succeeded. Verify with: tdk version'));
     }
     
     spinner.succeed('Upgraded successfully via git pull');
@@ -373,8 +382,11 @@ export const upgradeCommand = new Command('upgrade')
       console.log();
       console.log(chalk.green('Happy coding! 🎉'));
       
-    } catch {
+    } catch (err) {
       verifySpinner.warn('Could not verify new version');
+      if (process.env.TDK_VERBOSE) {
+        console.error(chalk.gray(`Verification error: ${err instanceof Error ? err.message : String(err)}`));
+      }
       console.log();
       console.log(chalk.green.bold('✨ Upgrade likely complete!'));
       console.log();

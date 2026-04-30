@@ -197,6 +197,66 @@ const ALL_GENERATED_FILES = [
   "Tiltfile",
 ] as const;
 
+/**
+ * Type guard to validate if a value is a valid ProjectConfig
+ */
+function isProjectConfig(value: unknown): value is ProjectConfig {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const config = value as Record<string, unknown>;
+
+  // Check required string fields
+  if (typeof config.version !== "string") {
+    return false;
+  }
+
+  // Check project object structure
+  if (!config.project || typeof config.project !== "object") {
+    return false;
+  }
+  const project = config.project as Record<string, unknown>;
+  if (typeof project.name !== "string" || typeof project.version !== "string") {
+    return false;
+  }
+
+  // Check stacks object structure
+  if (!config.stacks || typeof config.stacks !== "object") {
+    return false;
+  }
+  const stacks = config.stacks as Record<string, unknown>;
+  if (typeof stacks.pre_alpha !== "object" ||
+      typeof stacks.alpha !== "object" ||
+      typeof stacks.beta !== "object" ||
+      typeof stacks.out_of_scope !== "object") {
+    return false;
+  }
+
+  // Check optional_infra structure
+  if (!config.optional_infra || typeof config.optional_infra !== "object") {
+    return false;
+  }
+  const optionalInfra = config.optional_infra as Record<string, unknown>;
+  if (typeof optionalInfra.monitoring !== "boolean" ||
+      typeof optionalInfra.elk !== "boolean" ||
+      typeof optionalInfra.debezium !== "boolean" ||
+      typeof optionalInfra.golden_image !== "boolean") {
+    return false;
+  }
+
+  // Check discovery structure
+  if (!config.discovery || typeof config.discovery !== "object") {
+    return false;
+  }
+  const discovery = config.discovery as Record<string, unknown>;
+  if (!Array.isArray(discovery.paths)) {
+    return false;
+  }
+
+  return true;
+}
+
 export function readProjectConfig(projectRoot: string): ProjectConfig {
   const projectJsonPath = path.join(projectRoot, ".tdk", "project.json");
 
@@ -207,23 +267,17 @@ export function readProjectConfig(projectRoot: string): ProjectConfig {
   const jsonContent = fs.readFileSync(projectJsonPath, "utf-8");
   const parsed: unknown = JSON.parse(jsonContent);
 
-  if (!parsed || typeof parsed !== "object") {
-    throw new Error(`Invalid project.json: expected object, got ${typeof parsed}`);
+  if (!isProjectConfig(parsed)) {
+    throw new Error(
+      "Invalid project.json: missing or invalid required fields. " +
+      "Expected: version (string), project (object with name/version), " +
+      "stacks (object with pre_alpha/alpha/beta/out_of_scope), " +
+      "optional_infra (object with boolean flags), " +
+      "discovery (object with paths array)"
+    );
   }
 
-  const config = parsed as ProjectConfig;
-
-  if (!config.version || typeof config.version !== "string") {
-    throw new Error("Invalid project.json: missing or invalid 'version' field");
-  }
-  if (!config.project || typeof config.project !== "object") {
-    throw new Error("Invalid project.json: missing or invalid 'project' field");
-  }
-  if (!config.stacks || typeof config.stacks !== "object") {
-    throw new Error("Invalid project.json: missing or invalid 'stacks' field");
-  }
-
-  return config;
+  return parsed;
 }
 
 export function generateMasterConfigs(projectRoot: string): void {

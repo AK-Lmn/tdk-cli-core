@@ -291,11 +291,16 @@ export function getResourceMetadata(resource: DiscoveredResource): ResourceMetad
   const hasDockerCompose = existsSync(join(resourceDir, 'docker-compose.yml')) || 
                           existsSync(join(resourceDir, 'docker-compose.yaml'));
 
-  let type: ResourceType = 'backend';
-  if (resource.name.includes('frontend')) {
-    type = 'frontend';
-  } else if (resource.name.includes('sdk') || resource.name.includes('lib') || resource.name.includes('infra')) {
-    type = 'library';
+  // Use appType from config when available for accurate type classification
+  // Falls back to name-based heuristics only when config type is missing
+  let type: ResourceType = config.appType || 'backend';
+  if (!config.appType) {
+    // Fallback heuristics based on resource name
+    if (resource.name.includes('frontend')) {
+      type = 'frontend';
+    } else if (resource.name.includes('sdk') || resource.name.includes('lib') || resource.name.includes('infra')) {
+      type = 'library';
+    }
   }
 
   const metadata: ResourceMetadata = {
