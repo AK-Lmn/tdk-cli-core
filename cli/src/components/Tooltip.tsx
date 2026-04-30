@@ -1,25 +1,19 @@
 /**
  * Tooltip Component - Neon Edition
- * 
+ *
  * Contextual help that appears on hover/focus
  */
 
 import React from 'react';
 import { Box, Text } from 'ink';
-
-interface TooltipProps {
-  content: string;
-  shortcut?: string;
-  visible: boolean;
-  maxWidth?: number;
-}
+import type { TooltipProps } from '../types/index.js';
 
 // Tooltip component - currently unused internally
-const Tooltip: React.FC<TooltipProps> = ({ 
-  content, 
-  shortcut, 
+const Tooltip: React.FC<TooltipProps> = ({
+  content,
+  shortcut,
   visible,
-  maxWidth = 40 
+  maxWidth = 40
 }) => {
   if (!visible) return null;
 

@@ -218,3 +218,93 @@ export interface TiltResourceStatus {
   /** Whether the resource is available/registered in Tilt */
   available: boolean;
 }
+
+// ============================================================================
+// JSON Value Types
+// ============================================================================
+
+/**
+ * JSON-compatible value types for configuration overrides
+ * Used for project configuration and template generation
+ */
+export type JsonValue = string | number | boolean | null | JsonArray | JsonObject;
+
+/**
+ * JSON array type
+ */
+export interface JsonArray extends Array<JsonValue> {}
+
+/**
+ * JSON object type
+ */
+export interface JsonObject extends Record<string, JsonValue> {}
+
+// ============================================================================
+// Project Configuration Types
+// ============================================================================
+
+/**
+ * Stack definition within project configuration
+ */
+export interface ProjectStackDefinition {
+  name: string;
+  description: string;
+  services: string[];
+}
+
+/**
+ * Optional infrastructure configuration
+ */
+export interface ProjectOptionalInfra {
+  monitoring: boolean;
+  elk: boolean;
+  debezium: boolean;
+  golden_image: boolean;
+}
+
+/**
+ * Discovery configuration for project scanning
+ */
+export interface ProjectDiscovery {
+  paths: string[];
+}
+
+/**
+ * Project configuration structure (from .tdk/project.json)
+ * This is the canonical type - consolidated from template-engine.ts
+ */
+export interface ProjectConfig {
+  version: string;
+  project: {
+    name: string;
+    version: string;
+  };
+  stacks: {
+    pre_alpha: ProjectStackDefinition;
+    alpha: ProjectStackDefinition;
+    beta: ProjectStackDefinition;
+    out_of_scope: ProjectStackDefinition;
+  };
+  optional_infra: ProjectOptionalInfra;
+  discovery: ProjectDiscovery;
+  overrides?: Record<string, JsonValue>;
+}
+
+// ============================================================================
+// UI Component Types
+// ============================================================================
+
+/**
+ * Props for tooltip components
+ * Consolidated from Tooltip.tsx and Accessible.tsx
+ */
+export interface TooltipProps {
+  /** Tooltip content text */
+  content: string;
+  /** Optional keyboard shortcut to display */
+  shortcut?: string;
+  /** Whether the tooltip is currently visible */
+  visible: boolean;
+  /** Maximum width for tooltip content wrapping */
+  maxWidth?: number;
+}

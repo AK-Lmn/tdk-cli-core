@@ -90,7 +90,6 @@ export const upCommand = new Command('up')
       if (process.env.TILT_PORT) {
         port = parseInt(process.env.TILT_PORT, 10);
       } else {
-        // Auto-detect available port
         const availablePort = await findAvailablePort(basePort, 10);
         if (availablePort && availablePort !== basePort) {
           port = availablePort;

@@ -383,24 +383,6 @@ function doSomething(): Result<Resource, string> {
 
 ---
 
-## Migration Notes
-
-### Deprecated Patterns
-The following patterns are deprecated and should not be used:
-
-1. **Wild card exports** - Use explicit exports instead
-2. **`Errors` factory** - Use `errorFactories` (lowercase)
-3. **Boolean property `passed`** - Use `didPass` instead
-4. **Generic `Error` for CLI** - Use `TdkError` instead
-
-### Updating Existing Code
-When modifying existing code:
-1. Follow new conventions for new code
-2. Update surrounding code if it's a small change
-3. Don't refactor entire files unless specifically tasked
-
----
-
 ## Resources
 
 - Full assessment: `API_HARMONIZATION_ASSESSMENT.md`

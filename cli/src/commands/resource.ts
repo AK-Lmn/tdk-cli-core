@@ -335,8 +335,6 @@ export const resourceCommand = new Command('resource')
 
       console.log(chalk.blue('TDK Resource Creation\n'));
 
-      // OPTIMIZATION: Discover resources once and reuse
-      // This avoids redundant filesystem scans
       const allResources = discoverResources();
 
       // Validate or ask for resource name
@@ -373,12 +371,9 @@ export const resourceCommand = new Command('resource')
         resourceType = selectedType;
       }
 
-      // Ask for stack
       let stackName = options.stack;
       if (stackName === 'default') {
-        // OPTIMIZATION: Use already-discovered resources
         const existingResources = allResources;
-        // OPTIMIZATION: Single pass filter+map for better performance (O(n) instead of O(2n))
         const stackSet = new Set<string>();
         for (const r of existingResources) {
           if (r.stack) stackSet.add(r.stack);
@@ -455,9 +450,6 @@ export const resourceCommand = new Command('resource')
         process.exit(1);
       }
 
-      // Calculate next available port using shared constants
-      // OPTIMIZATION: Use already-discovered resources (avoids redundant filesystem scan)
-      // OPTIMIZATION: Single-pass port collection with Set for O(1) lookup instead of O(n) array.includes()
       const usedPorts = new Set<number>();
       for (const r of allResources) {
         if (r.port && r.port > 0) {

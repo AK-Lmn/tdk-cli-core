@@ -96,14 +96,14 @@ def get_port_config():
         },
     }
 
-def get_resource_port(resource_type, domain_index=0, resource_index=0):
+def get_resource_port(resource_type, stack_index=0, resource_index=0):
     """
     Calculate service port based on type and indices.
 
     Args:
     resource_type: "frontend" or "backend"
-    domain_index: Index of the domain (for port allocation)
-    resource_index: Index of the service within domain
+    stack_index: Index of the stack (for port allocation)
+    resource_index: Index of the service within stack
 
     Returns:
     Port number
@@ -115,13 +115,8 @@ def get_resource_port(resource_type, domain_index=0, resource_index=0):
     else:
         fail("Unknown service type: {}".format(resource_type))
 
-    # Allocate ports: base + (domain_index * 100) + resource_index
-    return base + (domain_index * 100) + resource_index
-
-# Alias for TDK engine compatibility
-def get_default_port(resource_type, domain_index=0, resource_index=0):
-    """Alias for get_resource_port for TDK engine compatibility."""
-    return get_resource_port(resource_type, domain_index, resource_index)
+    # Allocate ports: base + (stack_index * 100) + resource_index
+    return base + (stack_index * 100) + resource_index
 
 def get_health_check_config():
     """Returns health check endpoint configuration."""

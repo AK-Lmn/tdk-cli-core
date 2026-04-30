@@ -128,11 +128,49 @@ export function validatePort(
   if (allowZero && port === 0) {
     return { valid: true };
   }
-  if (port < 1024 || port > 65535) {
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
     return {
       valid: false,
-      error: `Invalid port: ${port}. Must be between 1024 and 65535`,
+      error: `Invalid port: ${port}. Must be between 1 and 65535`,
+    };
+  }
+  if (port < 1024) {
+    return {
+      valid: false,
+      error: `Invalid port: ${port}. Must be between 1024 and 65535 (ports below 1024 require root)`,
     };
   }
   return { valid: true };
+}
+
+/**
+ * Check if a port is a valid numeric port number (basic validation)
+ *
+ * @param port - The port to validate
+ * @returns True if valid port number
+ */
+export function isValidPort(port: number): boolean {
+  return Number.isInteger(port) && port > 0 && port <= 65535;
+}
+
+/**
+ * Sanitizes a name for safe use in shell commands
+ * Only allows alphanumeric characters, hyphens, and underscores
+ * Also limits length to prevent abuse
+ *
+ * @param name - The name to sanitize
+ * @param replacement - Character to replace invalid chars with (default: '_')
+ * @returns Sanitized name safe for shell use
+ */
+export function sanitizeForShell(
+  name: string,
+  replacement: string = '_'
+): string {
+  // Remove any characters that aren't alphanumeric, hyphen, or underscore
+  // Also limit length to prevent abuse
+  const sanitized = name
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]/g, replacement)
+    .substring(0, 100);
+  return sanitized;
 }

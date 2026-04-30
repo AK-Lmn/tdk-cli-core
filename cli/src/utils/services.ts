@@ -230,7 +230,7 @@ interface MetadataCache {
   lastUpdated: number;
 }
 
-const CACHE_TTL = 5000; // 5 seconds
+const CACHE_TTL = 5000;
 
 const metadataCache: MetadataCache = {
   resources: new Map(),
@@ -238,25 +238,16 @@ const metadataCache: MetadataCache = {
   lastUpdated: 0,
 };
 
-/**
- * Clear metadata cache (useful for forcing refresh)
- */
 export function clearMetadataCache(): void {
   metadataCache.resources.clear();
   metadataCache.stacks.clear();
   metadataCache.lastUpdated = 0;
 }
 
-/**
- * Check if cache is still valid
- */
 function isCacheValid(): boolean {
   return Date.now() - metadataCache.lastUpdated < CACHE_TTL;
 }
 
-/**
- * Detect file type based on filename and content
- */
 function detectFileType(filename: string, content?: string): FileType {
   if (filename === 'Dockerfile' || filename.startsWith('docker-compose')) {
     return 'docker';
@@ -279,9 +270,6 @@ function detectFileType(filename: string, content?: string): FileType {
   return 'unknown';
 }
 
-/**
- * Get resource metadata from filesystem
- */
 export function getResourceMetadata(resource: DiscoveredResource): ResourceMetadata {
   const cacheKey = resource.configPath;
   

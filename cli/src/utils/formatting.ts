@@ -45,18 +45,13 @@ export function formatCount(count: number, singular: string, plural?: string): s
  * @returns Formatted date string
  */
 export function formatDate(timestamp: string): string {
-  try {
-    const date = new Date(timestamp);
-    return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    // Invalid date format - return raw timestamp
-    return timestamp;
-  }
+  const date = new Date(timestamp);
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 /**
@@ -66,17 +61,13 @@ export function formatDate(timestamp: string): string {
  * @returns Formatted short date string
  */
 export function formatShortDate(timestamp: string): string {
-  try {
-    const date = new Date(timestamp);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return '-';
-  }
+  const date = new Date(timestamp);
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 /**
