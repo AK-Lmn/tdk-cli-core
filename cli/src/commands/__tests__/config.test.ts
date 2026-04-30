@@ -41,20 +41,17 @@ describe('config command', () => {
     it('should detect missing files', () => {
       const existingFiles: string[] = [];
       const requiredFiles = [
-        'tilt.config.json',
         'TILT_TECH_STACK.star',
         'TILT_RESOURCE_DEFAULTS.star',
         'spec.master',
       ];
 
       const missingFiles = requiredFiles.filter(f => !existingFiles.includes(f));
-      expect(missingFiles).toHaveLength(4);
-      expect(missingFiles).toContain('tilt.config.json');
+      expect(missingFiles).toHaveLength(3);
     });
 
     it('should detect when all files exist', () => {
       const existingFiles = [
-        'tilt.config.json',
         'TILT_TECH_STACK.star',
         'TILT_RESOURCE_DEFAULTS.star',
         'spec.master',
@@ -83,29 +80,16 @@ describe('config command', () => {
   describe('template generation', () => {
     it('should generate required output files', () => {
       const expectedFiles = [
-        'tilt.config.json',
         'TILT_TECH_STACK.star',
         'TILT_RESOURCE_DEFAULTS.star',
         'spec.master',
         'Tiltfile',
       ];
 
-      expect(expectedFiles).toContain('tilt.config.json');
       expect(expectedFiles).toContain('TILT_TECH_STACK.star');
       expect(expectedFiles).toContain('TILT_RESOURCE_DEFAULTS.star');
       expect(expectedFiles).toContain('spec.master');
-    });
-
-    it('should validate tilt.config.json structure', () => {
-      const tiltConfig = {
-        version: '2',
-        tech_stack: {},
-        resource_defaults: {},
-      };
-
-      expect(tiltConfig).toHaveProperty('version');
-      expect(tiltConfig).toHaveProperty('tech_stack');
-      expect(tiltConfig).toHaveProperty('resource_defaults');
+      expect(expectedFiles).toContain('Tiltfile');
     });
 
     it('should validate TILT_TECH_STACK.star content', () => {
@@ -136,10 +120,10 @@ HEALTH_CHECK_PATH = "/health"
   describe('diff functionality', () => {
     it('should identify new files', () => {
       const existingFiles: string[] = [];
-      const newFiles = ['tilt.config.json', 'spec.master'];
+      const newFiles = ['TILT_TECH_STACK.star', 'spec.master'];
 
       const addedFiles = newFiles.filter(f => !existingFiles.includes(f));
-      expect(addedFiles).toEqual(['tilt.config.json', 'spec.master']);
+      expect(addedFiles).toEqual(['TILT_TECH_STACK.star', 'spec.master']);
     });
 
     it('should calculate line count differences', () => {

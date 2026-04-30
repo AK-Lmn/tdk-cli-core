@@ -6,16 +6,14 @@ describe('project command', () => {
       'TILT_RESOURCE_DEFAULTS.star.hbs',
       'TILT_TECH_STACK.star.hbs',
       'Tiltfile.hbs',
-      'tilt.config.json.hbs',
       'spec.master.hbs',
     ];
 
     // All templates should be defined
-    expect(expectedTemplates.length).toBe(5);
+    expect(expectedTemplates.length).toBe(4);
     expect(expectedTemplates).toContain('TILT_RESOURCE_DEFAULTS.star.hbs');
     expect(expectedTemplates).toContain('TILT_TECH_STACK.star.hbs');
     expect(expectedTemplates).toContain('Tiltfile.hbs');
-    expect(expectedTemplates).toContain('tilt.config.json.hbs');
     expect(expectedTemplates).toContain('spec.master.hbs');
   });
 

@@ -4,7 +4,7 @@
 # =============================================================================
 #
 # ⚠️  DEVELOPER NOTICE: This is a SYSTEM CONFIG file.
-#    For human-friendly docs, see: TILT_CONFIG.md or tilt.config.json
+#    For human-friendly docs, see: TILT_CONFIG.md
 #
 # This file defines service discovery settings for the TDK Landscape platform.
 # Discovery automatically finds and registers services from the filesystem.
