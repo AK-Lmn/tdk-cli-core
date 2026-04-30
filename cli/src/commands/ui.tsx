@@ -120,16 +120,12 @@ const TUIApp: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false);
 
   const [terminalWidth, setTerminalWidth] = useState(stdout.columns || 120);
-  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
-  const [filePreview, setFilePreview] = useState<string | null>(null);
   const [mouseEnabled, setMouseEnabled] = useState(true);
-  const [mouseClickY, setMouseClickY] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState('Initializing...');
   const [error, setError] = useState<string | null>(null);
-  const [focusedTooltip, setFocusedTooltip] = useState<string | null>(null);
   const [showTooltips, setShowTooltips] = useState(true);
   const [showEnabledOnly, setShowEnabledOnly] = useState(true); // Default to enabled only for alpha
 
@@ -159,8 +155,11 @@ const TUIApp: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const stacks = discoverStacks();
-  const services = discoverResources();
+  // Memoize data fetching to prevent re-scanning on every render
+  const { stacks, services } = useMemo(() => ({
+    stacks: discoverStacks(),
+    services: discoverResources(),
+  }), [loading]); // Re-fetch only when loading refreshes
   
   useEffect(() => {
     try {
@@ -336,10 +335,10 @@ const TUIApp: React.FC = () => {
   // Handle mouse clicks
   useEffect(() => {
     if (!mouseEnabled) return;
-    
+
     const handleMouseData = (data: Buffer) => {
       const str = data.toString();
-      
+
       // Parse SGR 1006 mouse protocol: ESC[<btn;x;yM or ESC[<btn;x;ym
       const sgrMatch = str.match(/\x1b\[<(\d+);(\d+);(\d+)([Mm])/);
       if (sgrMatch) {
@@ -347,14 +346,14 @@ const TUIApp: React.FC = () => {
         const x = parseInt(sgrMatch[2], 10);
         const y = parseInt(sgrMatch[3], 10);
         const release = sgrMatch[4] === 'm';
-        
+
         // Check if it's a left click (btn & 0b11 == 0 means left button)
         const isLeftClick = (btn & 0b11) === 0;
-        
+
         if (isLeftClick && !release) {
           // Calculate row in the list (header takes ~6 lines)
           const listRow = y - 7; // Adjust for header, tabs, and borders
-          
+
           if (listRow >= 0 && listRow < items.length) {
             setHighlightedIndex(listRow);
             // Select the item
@@ -366,16 +365,16 @@ const TUIApp: React.FC = () => {
         }
         return;
       }
-      
+
       // Fallback: Try X10 protocol (older terminals)
       const x10Match = str.match(/\x1b\[M(.)(.)(.)/);
       if (x10Match) {
         const btn = x10Match[1].charCodeAt(0) - 32;
         const x = x10Match[2].charCodeAt(0) - 32;
         const y = x10Match[3].charCodeAt(0) - 32;
-        
+
         const isLeftClick = (btn & 0b11) === 0;
-        
+
         if (isLeftClick) {
           const listRow = y - 7;
           if (listRow >= 0 && listRow < items.length) {
@@ -388,24 +387,26 @@ const TUIApp: React.FC = () => {
         }
       }
     };
-    
+
     stdin.on('data', handleMouseData);
     return () => {
+      // OPTIMIZATION: Properly remove listener to prevent memory leak
       stdin.off('data', handleMouseData);
+      stdin.removeAllListeners('data');
     };
   }, [stdin, items, mouseEnabled, handleSelect, setHighlightedIndex]);
 
-  // Handle terminal resize
+  // Handle terminal resize - memoized callback prevents recreating function every render
+  const handleResize = useCallback(() => {
+    setTerminalWidth(stdout.columns || 120);
+  }, [stdout.columns, setTerminalWidth]);
+
   useEffect(() => {
-    const handleResize = () => {
-      setTerminalWidth(stdout.columns || 120);
-    };
-    
     stdout.on('resize', handleResize);
     return () => {
       stdout.off('resize', handleResize);
     };
-  }, [stdout]);
+  }, [stdout, handleResize]);
 
   // Keyboard handling
   useInput((input, key) => {
@@ -455,10 +456,6 @@ const TUIApp: React.FC = () => {
     }
     
     if (key.escape) {
-      if (filePreview) {
-        setFilePreview(null);
-        return;
-      }
       if (selectedFile) {
         setSelectedFile(null);
         return;
@@ -670,27 +667,8 @@ const TUIApp: React.FC = () => {
         </Box>
       )}
 
-      {/* File Preview */}
-      {filePreview && (
-        <Box 
-          borderStyle="single" 
-          borderColor="cyan"
-          paddingX={2}
-          paddingY={1}
-          flexDirection="column"
-          flexGrow={1}
-          width={terminalWidth - 4}
-        >
-          <Text bold color="cyan">File Preview</Text>
-          <Box marginY={1}>
-            <Text color="gray" wrap="wrap">{filePreview.slice(0, 2000)}...</Text>
-          </Box>
-          <Text color="gray" dimColor>Press [Esc] to close</Text>
-        </Box>
-      )}
-
       {/* Main Content */}
-      {!showHelp && !filePreview && (
+      {!showHelp && (
         <>
           {/* Tab Bar */}
           <Box marginTop={1}>

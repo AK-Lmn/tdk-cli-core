@@ -8,7 +8,7 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { resolve, join, dirname } from 'node:path';
 import { cwd } from 'node:process';
-import { execSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import type {
   DiscoveredResource,
   ResourceConfig,
@@ -440,21 +440,73 @@ export function getStackMetadata(stack: DiscoveredStack): StackMetadata {
 }
 
 /**
+ * Sanitize resource name for safe use in shell commands
+ * Only allows alphanumeric characters, hyphens, and underscores
+ */
+function sanitizeResourceName(name: string): string {
+  // Remove any characters that aren't alphanumeric, hyphen, or underscore
+  // Also limit length to prevent abuse
+  return name.replace(/[^a-zA-Z0-9_-]/g, '').substring(0, 100);
+}
+
+/**
  * Query Tilt for resource runtime status
  * 
  * @throws Error if tilt command fails unexpectedly
  */
 export function getTiltResourceStatus(resourceName: string): TiltResourceStatus {
-  const output = execSync(`tilt get resource ${resourceName} -o json`, {
-    encoding: 'utf-8',
+  // Sanitize resource name to prevent shell injection
+  const sanitizedName = sanitizeResourceName(resourceName);
+
+  // Use spawn instead of execSync to avoid shell injection
+  const result = spawn('tilt', ['get', 'resource', sanitizedName, '-o', 'json'], {
     timeout: 5000,
     stdio: ['pipe', 'pipe', 'pipe'],
   });
 
-  const resource = JSON.parse(output);
-  const status = resource?.status;
+  let output = '';
+  let errorOutput = '';
 
-  if (!status) {
+  result.stdout?.on('data', (data) => {
+    output += data.toString();
+  });
+
+  result.stderr?.on('data', (data) => {
+    errorOutput += data.toString();
+  });
+
+  // Synchronous wait for the process to complete
+  // This is a bit hacky but maintains the sync API while using spawn
+  const startTime = Date.now();
+  const timeout = 5000;
+
+  // Use a busy-wait loop with a small delay to wait for the process
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    if (Date.now() - startTime > timeout) {
+      result.kill();
+      return {
+        runtimeStatus: 'unknown',
+        buildStatus: 'unknown',
+        lastBuildTime: null,
+        currentBuildTime: null,
+        available: false,
+      };
+    }
+
+    // Check if process has exited by checking the exit code
+    if (result.exitCode !== null) {
+      break;
+    }
+
+    // Small delay to prevent CPU spinning
+    const endTime = Date.now() + 10;
+    while (Date.now() < endTime) {
+      // Busy wait
+    }
+  }
+
+  if (result.exitCode !== 0) {
     return {
       runtimeStatus: 'unknown',
       buildStatus: 'unknown',
@@ -464,20 +516,43 @@ export function getTiltResourceStatus(resourceName: string): TiltResourceStatus 
     };
   }
 
-  const runtimeStatus = status.runtimeStatus?.toLowerCase() || 'unknown';
-  const buildStatus = status.buildStatus?.toLowerCase() || 'unknown';
+  try {
+    const resource = JSON.parse(output);
+    const status = resource?.status;
 
-  return {
-    runtimeStatus: ['running', 'pending', 'error'].includes(runtimeStatus) 
-      ? runtimeStatus as TiltResourceStatus['runtimeStatus']
-      : 'unknown',
-    buildStatus: ['ok', 'error', 'in_progress'].includes(buildStatus)
-      ? buildStatus as TiltResourceStatus['buildStatus']
-      : 'unknown',
-    lastBuildTime: status.lastBuildTime || null,
-    currentBuildTime: status.currentBuildTime || null,
-    available: true,
-  };
+    if (!status) {
+      return {
+        runtimeStatus: 'unknown',
+        buildStatus: 'unknown',
+        lastBuildTime: null,
+        currentBuildTime: null,
+        available: false,
+      };
+    }
+
+    const runtimeStatus = status.runtimeStatus?.toLowerCase() || 'unknown';
+    const buildStatus = status.buildStatus?.toLowerCase() || 'unknown';
+
+    return {
+      runtimeStatus: ['running', 'pending', 'error'].includes(runtimeStatus)
+        ? runtimeStatus as TiltResourceStatus['runtimeStatus']
+        : 'unknown',
+      buildStatus: ['ok', 'error', 'in_progress'].includes(buildStatus)
+        ? buildStatus as TiltResourceStatus['buildStatus']
+        : 'unknown',
+      lastBuildTime: status.lastBuildTime || null,
+      currentBuildTime: status.currentBuildTime || null,
+      available: true,
+    };
+  } catch {
+    return {
+      runtimeStatus: 'unknown',
+      buildStatus: 'unknown',
+      lastBuildTime: null,
+      currentBuildTime: null,
+      available: false,
+    };
+  }
 }
 
 

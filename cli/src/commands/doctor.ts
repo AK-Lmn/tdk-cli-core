@@ -6,7 +6,7 @@ import { resolve } from "path";
 
 interface CheckResult {
   name: string;
-  passed: boolean;
+  didPass: boolean;
   message: string;
   fix?: string;
 }
@@ -17,13 +17,13 @@ function checkDocker(): CheckResult {
     execSync("docker ps", { stdio: "pipe" });
     return {
       name: "Docker",
-      passed: true,
+      didPass: true,
       message: "Docker daemon is running",
     };
   } catch {
     return {
       name: "Docker",
-      passed: false,
+      didPass: false,
       message: "Docker is not running",
       fix: "Start Docker Desktop or run: open -a Docker (macOS) or sudo systemctl start docker (Linux)",
     };
@@ -40,20 +40,20 @@ function checkBun(): CheckResult {
     if (major >= 1) {
       return {
         name: "Bun",
-        passed: true,
+        didPass: true,
         message: `Bun v${version} installed`,
       };
     }
     return {
       name: "Bun",
-      passed: false,
+      didPass: false,
       message: `Bun v${version} installed (need v1.0+)`,
       fix: "Upgrade Bun: bun upgrade",
     };
   } catch {
     return {
       name: "Bun",
-      passed: false,
+      didPass: false,
       message: "Bun runtime not found",
       fix: "Install Bun: curl -fsSL https://bun.sh/install | bash",
     };
@@ -77,7 +77,7 @@ function checkPorts(): CheckResult {
   if (inUse.length === 0) {
     return {
       name: "Ports",
-      passed: true,
+      didPass: true,
       message: `Critical ports available (${criticalPorts.join(", ")})`,
     };
   }
@@ -85,7 +85,7 @@ function checkPorts(): CheckResult {
   const portList = inUse.join(", ");
   return {
     name: "Ports",
-    passed: false,
+    didPass: false,
     message: `Port(s) ${portList} already in use`,
     fix: `Free the port(s): ${inUse.map(p => `lsof -ti:${p} | xargs kill -9`).join("; ")}`,
   };
@@ -98,14 +98,14 @@ function checkTiltfile(): CheckResult {
   if (existsSync(tiltfilePath)) {
     return {
       name: "Tiltfile",
-      passed: true,
+      didPass: true,
       message: "Tiltfile found in project root",
     };
   }
 
   return {
     name: "Tiltfile",
-    passed: false,
+    didPass: false,
     message: "Tiltfile not found",
     fix: "Run this command from the project root directory",
   };
@@ -117,13 +117,13 @@ function checkDockerCompose(): CheckResult {
     execSync("docker compose version", { stdio: "pipe" });
     return {
       name: "Docker Compose",
-      passed: true,
+      didPass: true,
       message: "Docker Compose plugin available",
     };
   } catch {
     return {
       name: "Docker Compose",
-      passed: false,
+      didPass: false,
       message: "Docker Compose plugin not found",
       fix: "Install Docker Compose: https://docs.docker.com/compose/install/",
     };
@@ -136,13 +136,13 @@ function checkTilt(): CheckResult {
     const output = execSync("tilt version", { stdio: "pipe", encoding: "utf8" }).trim();
     return {
       name: "Tilt CLI",
-      passed: true,
+      didPass: true,
       message: "Tilt CLI installed",
     };
   } catch {
     return {
       name: "Tilt CLI",
-      passed: false,
+      didPass: false,
       message: "Tilt CLI not found",
       fix: "Install Tilt: brew install tilt (macOS) or see https://docs.tilt.dev/install.html",
     };
@@ -160,7 +160,7 @@ function checkMasterConfigs(): CheckResult {
   if (defaultsExists && techStackExists) {
     return {
       name: "Master Configs",
-      passed: true,
+      didPass: true,
       message: "TILT_RESOURCE_DEFAULTS.star and TILT_TECH_STACK.star found",
     };
   }
@@ -171,7 +171,7 @@ function checkMasterConfigs(): CheckResult {
 
   return {
     name: "Master Configs",
-    passed: false,
+    didPass: false,
     message: `Master configs missing: ${missing.join(", ")}`,
     fix: "Run: tdk project",
   };
@@ -198,7 +198,7 @@ export const doctorCommand = new Command('doctor')
     for (const checkFn of checks) {
       const result = checkFn();
 
-      if (result.passed) {
+      if (result.didPass) {
         console.log(`${chalk.green('✓')} ${result.message}`);
       } else {
         console.log(`${chalk.red('✗')} ${result.message}`);

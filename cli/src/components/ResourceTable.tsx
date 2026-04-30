@@ -93,30 +93,3 @@ export const ResourceTable: React.FC<ResourceTableProps> = ({ resources, maxWidt
     </Box>
   );
 };
-
-function getStatusIcon(status: string): string {
-  switch (status) {
-    case 'ready': return '✓';
-    case 'pending': return '○';
-    case 'error': return '✗';
-    default: return '?';
-  }
-}
-
-function truncate(str: string, maxLength: number): string {
-  if (str.length <= maxLength) return str;
-  return str.slice(0, maxLength - 3) + '...';
-}
-
-function formatShortDate(timestamp: string): string {
-  const date = new Date(timestamp);
-  if (isNaN(date.getTime())) {
-    throw new Error(`Invalid timestamp: ${timestamp}`);
-  }
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}

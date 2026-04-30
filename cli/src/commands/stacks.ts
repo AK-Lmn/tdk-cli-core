@@ -52,10 +52,18 @@ export const stacksCommand = new Command('stacks')
         // Simple output
         console.log(chalk.blue(`Found ${formatCount(stackNames.length, 'stack')}:\n`));
 
+        // OPTIMIZATION: Pre-compute stack -> services Map for O(n) instead of O(n²)
+        const stackServiceMap = new Map<string, number>();
+        for (const s of services) {
+          if (s.stack) {
+            stackServiceMap.set(s.stack, (stackServiceMap.get(s.stack) || 0) + 1);
+          }
+        }
+
         for (const name of stackNames) {
-          const stackServices = services.filter((s: {stack?: string}) => s.stack === name);
+          const serviceCount = stackServiceMap.get(name) || 0;
           console.log(chalk.bold(`  ${name}`));
-          console.log(chalk.gray(`    ${formatCount(stackServices.length, 'service')}`));
+          console.log(chalk.gray(`    ${formatCount(serviceCount, 'service')}`));
         }
 
         console.log(chalk.gray('\nRun with --verbose for more details, or --services to see all services in each stack.'));

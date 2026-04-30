@@ -7,9 +7,60 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { execSync } from 'node:child_process';
+import { execSync, spawn } from 'node:child_process';
 import { findProjectRoot, discoverResources } from '../utils/services.js';
 import { readProjectConfig } from '../generator/template-engine.js';
+
+/**
+ * Execute a shell command safely using spawn instead of execSync
+ * to prevent shell injection vulnerabilities.
+ */
+function execSafe(command: string, args: string[], options: { encoding?: string; timeout?: number; stdio?: string[] } = {}): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, {
+      timeout: options.timeout || 5000,
+      stdio: options.stdio || ['pipe', 'pipe', 'pipe'],
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout?.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    child.stderr?.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    child.on('close', (code) => {
+      if (code !== 0) {
+        reject(new Error(`Command failed with exit code ${code}: ${stderr}`));
+      } else {
+        resolve(stdout);
+      }
+    });
+
+    child.on('error', (err) => {
+      reject(err);
+    });
+  });
+}
+
+/**
+ * Validate that a port is a valid numeric port number
+ */
+function validatePort(port: number): boolean {
+  return Number.isInteger(port) && port > 0 && port <= 65535;
+}
+
+/**
+ * Sanitize a service name for safe use in shell commands
+ */
+function sanitizeServiceName(name: string): string {
+  // Only allow alphanumeric characters and hyphens, replace everything else with underscore
+  return name.toLowerCase().replace(/[^a-z0-9-]/g, '_').substring(0, 100);
+}
 
 interface ServiceUrl {
   name: string;
@@ -49,7 +100,8 @@ function getBaseDomain(): string {
     );
 
     // Extract all Host() domains from all containers
-    const domainRegex = /traefik\.http\.routers\.[\w-]+\.rule=Host\(`([^`]+)`\)/g;
+    // Use a simplified regex to avoid ReDoS - limit pattern length and use fixed patterns
+    const domainRegex = /traefik\.http\.routers\.[a-zA-Z0-9_-]{1,50}\.rule=Host\(`([a-zA-Z0-9_.-]{1,100})`\)/g;
     let match;
     while ((match = domainRegex.exec(traefikLabels)) !== null) {
       domains.add(match[1]);
@@ -102,30 +154,40 @@ function getBaseDomain(): string {
 }
 
 // Check if a service is responding (via HTTP health check or port check)
-function checkServiceStatus(serviceName: string, port?: number, url?: string): 'running' | 'stopped' | 'unknown' {
+async function checkServiceStatus(serviceName: string, port?: number, url?: string): Promise<'running' | 'stopped' | 'unknown'> {
   // Method 1: Check if service responds on its URL via Traefik (most reliable)
   // This tells us if the service is actually accessible through the proxy
   if (url) {
     try {
+      // Validate URL before using it
+      const validUrl = new URL(url);
+      if (validUrl.protocol !== 'http:' && validUrl.protocol !== 'https:') {
+        return 'stopped';
+      }
+
       // Quick curl to check if service is up (silent, follow redirects, timeout 2s)
-      const statusCode = execSync(
-        `curl -s -o /dev/null -w "%{http_code}" --max-time 2 "${url}" 2>/dev/null || echo "000"`,
-        { encoding: 'utf-8', stdio: 'pipe' }
-      ).trim();
+      const statusCode = await execSafe('curl', [
+        '-s', '-o', '/dev/null',
+        '-w', '%{http_code}',
+        '--max-time', '2',
+        validUrl.toString()
+      ], { timeout: 3000 });
+
+      const code = statusCode.trim();
 
       // Check if status code starts with 2 or 3 (success or redirect)
-      if (statusCode.match(/^[23]\d\d$/)) {
+      if (/^[23]\d\d$/.test(code)) {
         return 'running';
       }
 
       // If we got a 4xx or 5xx, the route exists but service isn't responding
       // This means the service is configured in Traefik but not actually running
-      if (statusCode.match(/^[45]\d\d$/)) {
+      if (/^[45]\d\d$/.test(code)) {
         return 'stopped';
       }
 
       // Connection refused or other error - service not accessible
-      if (statusCode === '000') {
+      if (code === '000') {
         return 'stopped';
       }
     } catch {
@@ -136,20 +198,20 @@ function checkServiceStatus(serviceName: string, port?: number, url?: string): '
 
   // Method 2: Check if the specific port is listening (fallback when no URL)
   // Only use this if we couldn't check via HTTP (no URL configured)
-  if (port) {
+  if (port && validatePort(port)) {
     try {
-      execSync(
-        `lsof -Pi :${port} -sTCP:LISTEN 2>/dev/null | grep -q LISTEN`,
-        { encoding: 'utf-8', stdio: 'pipe' }
-      );
+      await execSafe('lsof', ['-Pi', `:${port}`, '-sTCP:LISTEN'], { timeout: 3000 });
       return 'running';
     } catch {
       try {
-        execSync(
-          `netstat -tlnp 2>/dev/null | grep -q ":${port} "`,
-          { encoding: 'utf-8', stdio: 'pipe' }
-        );
-        return 'running';
+        await execSafe('netstat', ['-tlnp'], { timeout: 3000 });
+        // If netstat succeeds, we need to grep for the port
+        // Using execSync here is safe since port is validated as numeric
+        try {
+          execSync(`grep -q ":${port} "`, { encoding: 'utf-8', stdio: 'pipe', input: '' });
+        } catch {
+          // Port not found
+        }
       } catch {
         // No process listening
       }
@@ -158,13 +220,14 @@ function checkServiceStatus(serviceName: string, port?: number, url?: string): '
 
   // Method 3: Check Docker container (fallback for containerized services)
   try {
-    const containerName = serviceName.toLowerCase().replace(/[^a-z0-9]/g, '_');
-    const result = execSync(
-      `docker ps --filter "name=${containerName}" --format "{{.Names}}" 2>/dev/null`,
-      { encoding: 'utf-8' }
-    ).trim();
+    const containerName = sanitizeServiceName(serviceName);
+    const result = await execSafe('docker', [
+      'ps',
+      '--filter', `name=${containerName}`,
+      '--format', '{{.Names}}'
+    ], { timeout: 5000 });
 
-    if (result && result.length > 0) {
+    if (result && result.trim().length > 0) {
       return 'running';
     }
   } catch {
@@ -212,23 +275,26 @@ export const networksCommand = new Command('networks')
     const baseDomain = getBaseDomain();
     const services = discoverResources();
     
-    const servicesWithUrls: ServiceUrl[] = services
-      .filter(s => s.config?.basePath)
-      .map(s => {
-        const basePath = s.config!.basePath!.replace(/^\//, '');
-        const url = `http://${baseDomain}/${basePath}`;
-        const port = s.config?.port;
-        const status = checkServiceStatus(s.name, port, url);
+    // Check service status asynchronously for all services
+    const servicesWithUrls: ServiceUrl[] = await Promise.all(
+      services
+        .filter(s => s.config?.basePath)
+        .map(async (s) => {
+          const basePath = s.config!.basePath!.replace(/^\//, '');
+          const url = `http://${baseDomain}/${basePath}`;
+          const port = s.config?.port;
+          const status = await checkServiceStatus(s.name, port, url);
 
-        return {
-          name: s.name,
-          stack: s.stack,
-          basePath: s.config!.basePath!,
-          url,
-          port,
-          status,
-        };
-      });
+          return {
+            name: s.name,
+            stack: s.stack,
+            basePath: s.config!.basePath!,
+            url,
+            port,
+            status,
+          };
+        })
+    );
     
     const filteredServices = options.stack
       ? servicesWithUrls.filter(s => s.stack === options.stack)

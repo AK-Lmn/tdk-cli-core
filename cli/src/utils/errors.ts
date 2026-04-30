@@ -40,7 +40,7 @@ class TdkError extends Error {
 }
 
 // Common error factories
-const Errors = {
+const errorFactories = {
   notInProject: () => new TdkError(
     'Not in a TDK project directory',
     [
@@ -217,11 +217,11 @@ async function withErrorHandling<T>(
     if (message.includes('eaddrinuse') || message.includes('port')) {
       const portMatch = err.message.match(/:(\d+)/);
       const port = portMatch ? parseInt(portMatch[1], 10) : undefined;
-      Errors.portInUse(port || 0).display();
+      errorFactories.portInUse(port || 0).display();
     } else if (message.includes('enoent') || message.includes('no such file')) {
-      Errors.notInProject().display();
+      errorFactories.notInProject().display();
     } else if (message.includes('eacces') || message.includes('permission denied')) {
-      Errors.permissionDenied(context?.resource || 'unknown').display();
+      errorFactories.permissionDenied(context?.resource || 'unknown').display();
     } else {
       console.error(chalk.red(`❌ ${err.message}`));
       if (context) {

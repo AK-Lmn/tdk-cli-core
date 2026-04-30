@@ -8,7 +8,7 @@
 
 import { Command } from 'commander';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
+import { resolve, dirname, relative, isAbsolute } from 'node:path';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { discoverResources } from '../utils/services.js';
@@ -335,6 +335,10 @@ export const resourceCommand = new Command('resource')
 
       console.log(chalk.blue('TDK Resource Creation\n'));
 
+      // OPTIMIZATION: Discover resources once and reuse
+      // This avoids redundant filesystem scans
+      const allResources = discoverResources();
+
       // Validate or ask for resource name
       let resourceName = name;
       if (!resourceName) {
@@ -372,9 +376,15 @@ export const resourceCommand = new Command('resource')
       // Ask for stack
       let stackName = options.stack;
       if (stackName === 'default') {
-        const existingResources = discoverResources();
-        const existingStacks = [...new Set(existingResources.map(r => r.stack).filter(Boolean))];
-        
+        // OPTIMIZATION: Use already-discovered resources
+        const existingResources = allResources;
+        // OPTIMIZATION: Single pass filter+map for better performance (O(n) instead of O(2n))
+        const stackSet = new Set<string>();
+        for (const r of existingResources) {
+          if (r.stack) stackSet.add(r.stack);
+        }
+        const existingStacks = Array.from(stackSet);
+
         if (existingStacks.length > 0) {
           const { selectedStack } = await inquirer.prompt([{
             type: 'list',
@@ -423,6 +433,22 @@ export const resourceCommand = new Command('resource')
 
       const fullPath = resolve(projectRoot, resourcePath);
 
+      // Security: Validate that the resolved path is within the project root
+      // This prevents path traversal attacks via --path option
+      const relativePath = relative(projectRoot, fullPath);
+      if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
+        console.error(chalk.red(`Error: Invalid path - must be within project directory`));
+        console.error(chalk.gray(`Resolved path: ${fullPath}`));
+        console.error(chalk.gray(`Project root: ${projectRoot}`));
+        process.exit(1);
+      }
+
+      // Additional validation: reject paths with null bytes or other suspicious patterns
+      if (resourcePath.includes('\0') || /[<>:"|?*]/.test(resourcePath)) {
+        console.error(chalk.red(`Error: Path contains invalid characters`));
+        process.exit(1);
+      }
+
       if (existsSync(fullPath)) {
         console.error(chalk.red(`Error: Directory already exists: ${fullPath}`));
         console.error(chalk.gray('Use --path to specify a different location'));
@@ -430,14 +456,20 @@ export const resourceCommand = new Command('resource')
       }
 
       // Calculate next available port using shared constants
-      const existingResources = discoverResources();
-      const existingPorts = existingResources.map(r => r.port || 0).filter(p => p > 0);
-      
+      // OPTIMIZATION: Use already-discovered resources (avoids redundant filesystem scan)
+      // OPTIMIZATION: Single-pass port collection with Set for O(1) lookup instead of O(n) array.includes()
+      const usedPorts = new Set<number>();
+      for (const r of allResources) {
+        if (r.port && r.port > 0) {
+          usedPorts.add(r.port);
+        }
+      }
+
       const portRange = PORT_RANGES[resourceType as keyof typeof PORT_RANGES];
       let assignedPort: number;
-      
+
       for (let port = portRange.base; port <= portRange.max; port++) {
-        if (!existingPorts.includes(port)) {
+        if (!usedPorts.has(port)) {
           assignedPort = port;
           break;
         }

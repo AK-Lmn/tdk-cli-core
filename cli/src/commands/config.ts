@@ -8,7 +8,7 @@
 import { Command } from 'commander';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { execSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import chalk from 'chalk';
 import { requireProjectRoot, runCommand } from '../utils/errors.js';
 import { generateMasterConfigs, verifyMasterConfigs, readProjectConfig, TemplateEngine } from '../generator/template-engine.js';
@@ -168,7 +168,22 @@ export const configCommand = new Command('config')
 
           const editor = process.env.EDITOR || 'vi';
           console.log(chalk.blue(`Opening ${projectJsonPath} in ${editor}...`));
-          execSync(`${editor} "${projectJsonPath}"`, { stdio: 'inherit' });
+
+          // Security: Split editor command and use spawn to avoid shell injection
+          // Handle common cases where EDITOR might contain spaces (e.g., 'code --wait')
+          const editorParts = editor.trim().split(/\s+/);
+          const editorCmd = editorParts[0];
+          const editorArgs = [...editorParts.slice(1), projectJsonPath];
+
+          // Validate editor command - only allow common editors
+          const allowedEditors = ['vi', 'vim', 'nano', 'emacs', 'code', 'subl', 'atom', 'mate', 'pico', 'micro', 'hx'];
+          const editorBase = editorCmd.replace(/.*\//, ''); // Remove path prefix for validation
+          if (!allowedEditors.includes(editorBase)) {
+            console.error(chalk.yellow(`Warning: Unknown editor "${editorCmd}". Using 'vi' instead.`));
+            spawnSync('vi', [projectJsonPath], { stdio: 'inherit' });
+          } else {
+            spawnSync(editorCmd, editorArgs, { stdio: 'inherit' });
+          }
 
           console.log(chalk.green('\n✅ Editor closed.'));
           console.log(chalk.gray('Run `tdk config regenerate` to apply changes.'));
