@@ -15,25 +15,24 @@ import { readProjectConfig } from '../generator/template-engine.js';
  * Execute a shell command safely using spawn instead of execSync
  * to prevent shell injection vulnerabilities.
  */
-function execSafe(command: string, args: string[], options: { encoding?: string; timeout?: number; stdio?: string[] } = {}): Promise<string> {
+function execSafe(command: string, args: string[], options: { encoding?: string; timeout?: number } = {}): Promise<string> {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       timeout: options.timeout || 5000,
-      stdio: options.stdio || ['pipe', 'pipe', 'pipe'],
     });
 
     let stdout = '';
     let stderr = '';
 
-    child.stdout?.on('data', (data) => {
+    child.stdout?.on('data', (data: Buffer) => {
       stdout += data.toString();
     });
 
-    child.stderr?.on('data', (data) => {
+    child.stderr?.on('data', (data: Buffer) => {
       stderr += data.toString();
     });
 
-    child.on('close', (code) => {
+    child.on('close', (code: number | null) => {
       if (code !== 0) {
         reject(new Error(`Command failed with exit code ${code}: ${stderr}`));
       } else {
@@ -41,7 +40,7 @@ function execSafe(command: string, args: string[], options: { encoding?: string;
       }
     });
 
-    child.on('error', (err) => {
+    child.on('error', (err: Error) => {
       reject(err);
     });
   });
