@@ -41,9 +41,7 @@ export function truncate(str: string, maxLength: number): string {
   return str.slice(0, maxLength - 3) + '...';
 }
 
-// ============================================================================
 // Box Drawing Utilities (migrated from networks.ts)
-// ============================================================================
 
 const DEFAULT_BOX_WIDTH = 62;
 

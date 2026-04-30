@@ -237,6 +237,15 @@ export default App;
 function getWorkerIndexTemplate(name: string) {
   return `console.log('🚀 ${name} worker started');
 
+// Job interface for type-safe job processing
+interface Job {
+  id: string;
+  type: string;
+  payload: Record<string, unknown>;
+  priority?: number;
+  timestamp?: string;
+}
+
 // Worker configuration
 const CONFIG = {
   pollIntervalMs: parseInt(process.env.WORKER_POLL_INTERVAL || '5000'),
@@ -244,16 +253,17 @@ const CONFIG = {
   batchSize: parseInt(process.env.WORKER_BATCH_SIZE || '10'),
 };
 
-async function processJob(job: unknown): Promise<void> {
-  console.log('[Worker] Processing job:', job);
+async function processJob(job: Job): Promise<void> {
+  console.log('[Worker] Processing job:', job.id, 'type:', job.type);
 
   // Add job processing logic here
+  // Access job.payload for job data
 
   await new Promise(resolve => setTimeout(resolve, 1000));
-  console.log('[Worker] Job completed:', job);
+  console.log('[Worker] Job completed:', job.id);
 }
 
-async function fetchJobs(): Promise<unknown[]> {
+async function fetchJobs(): Promise<Job[]> {
   // Connect to your queue (Redis, RabbitMQ, etc.) and fetch jobs
   return [];
 }
@@ -263,18 +273,15 @@ async function main() {
 
   while (true) {
     try {
-      // Fetch jobs from queue
       const jobs = await fetchJobs();
 
       if (jobs.length === 0) {
-        // No jobs - wait before polling again
         await new Promise(resolve => setTimeout(resolve, CONFIG.pollIntervalMs));
         continue;
       }
 
       console.log('[Worker] Fetched \${jobs.length} jobs');
 
-      // Process each job
       for (const job of jobs) {
         try {
           await processJob(job);

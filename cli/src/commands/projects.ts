@@ -10,6 +10,7 @@ import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { discoverResources, getAllStacks } from '../utils/services.js';
 import { runCommand, requireProjectRoot } from '../utils/errors.js';
+import { formatCount } from '../utils/formatting.js';
 
 export const projectsCommand = new Command('projects')
   .description('Show project information and configuration status')
@@ -54,7 +55,7 @@ export const projectsCommand = new Command('projects')
 
       const withoutStack = resources.filter(r => !r.stack).length;
       if (withoutStack > 0) {
-        console.log(chalk.yellow(`  ⚠ Unassigned: ${withoutStack} resource${withoutStack === 1 ? '' : 's'}`));
+        console.log(chalk.yellow(`  ⚠ Unassigned: ${formatCount(withoutStack, 'resource')}`));
       }
       console.log();
 
@@ -62,7 +63,7 @@ export const projectsCommand = new Command('projects')
         console.log(chalk.bold('Stacks:'));
         for (const name of stackNames.sort()) {
           const count = resources.filter(r => r.stack === name).length;
-          console.log(chalk.gray(`  ${name} (${count} resource${count === 1 ? '' : 's'})`));
+          console.log(chalk.gray(`  ${name} (${formatCount(count, 'resource')})`));
         }
         console.log();
       }

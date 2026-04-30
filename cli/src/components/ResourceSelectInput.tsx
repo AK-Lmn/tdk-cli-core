@@ -3,11 +3,7 @@
 import React from 'react';
 import { Text } from 'ink';
 import SelectInput from 'ink-select-input';
-
-interface SelectItem {
-  label: string;
-  value: string;
-}
+import type { SelectItem } from '../types/index.js';
 
 interface ResourceSelectInputProps {
   /** Items to display in the list */

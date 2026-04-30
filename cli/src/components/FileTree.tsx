@@ -4,10 +4,6 @@ import React, { useState } from 'react';
 import { Box, Text } from 'ink';
 import type { FileType, FileNode } from '../types/index.js';
 
-// Re-export FileNode for backward compatibility
-// The canonical definition is now in ../types/index.js
-export type { FileNode } from '../types/index.js';
-
 interface FileTreeProps {
   nodes: FileNode[];
   onSelect?: (node: FileNode) => void;

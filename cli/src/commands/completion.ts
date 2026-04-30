@@ -262,7 +262,6 @@ export const completionCommand = new Command('completion')
       switch (shell) {
         case 'bash':
           installPath = join(home, '.bash_completion.d', filename);
-          // Ensure directory exists
           const bashDir = join(home, '.bash_completion.d');
           if (!existsSync(bashDir)) {
             mkdirSync(bashDir, { recursive: true });
@@ -300,7 +299,6 @@ export const completionCommand = new Command('completion')
         process.exit(1);
       }
     } else if (options.output) {
-      // Write to specified file
       try {
         writeFileSync(options.output, completionScript, 'utf-8');
         console.log(chalk.green('✅ Written ' + shell + ' completion to:'));
@@ -310,7 +308,6 @@ export const completionCommand = new Command('completion')
         process.exit(1);
       }
     } else {
-      // Print to stdout
       console.log(completionScript);
     }
   });

@@ -103,8 +103,6 @@ export function showHelp(): void {
     
     console.log();
   }
-  
-  // Quick start section
   console.log(chalk.bold.yellow('  🚀 Quick Start:'));
   console.log(chalk.gray('  ' + '─'.repeat(50)));
   console.log(chalk.white(`
@@ -113,8 +111,6 @@ export function showHelp(): void {
   ${chalk.cyan('3.')} Assign to stack:           ${chalk.green('tdk stack my-stack')}
   ${chalk.cyan('4.')} Start development:         ${chalk.green('tdk up my-stack')}
   `));
-  
-  // Examples
   console.log(chalk.bold.yellow('  💡 Examples:'));
   console.log(chalk.gray('  ' + '─'.repeat(50)));
   console.log(chalk.white(`
@@ -126,8 +122,6 @@ export function showHelp(): void {
   ${chalk.cyan('$')} tdk doctor                           # Check environment
   ${chalk.cyan('$')} tdk upgrade                          # Self-update
   `));
-  
-  // Footer
   console.log(chalk.gray('  ' + '═'.repeat(50)));
   console.log(chalk.gray(`  For more help: ${chalk.cyan('tdk help [command]}')}`));
   console.log(chalk.gray(`  GitHub: ${chalk.cyan('https://github.com/tdk-landscape/tdk-cli')}`));

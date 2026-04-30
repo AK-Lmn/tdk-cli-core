@@ -13,6 +13,7 @@ import { readProjectConfig } from '../generator/template-engine.js';
 import { sanitizeForShell, isValidPort } from '../utils/validation.js';
 import { requireProjectRoot } from '../utils/errors.js';
 import { formatBoxLine, formatCentered, formatPadded } from '../utils/formatting.js';
+import { getStackEmoji } from '../utils/constants.js';
 import type { ServiceUrl } from '../types/index.js';
 
 /**
@@ -50,7 +51,7 @@ function execSafe(command: string, args: string[], options: { encoding?: string;
   });
 }
 
-// Box width for network display - maintained for backward compatibility
+// Standard box width for network display output
 const BOX_WIDTH = 62;
 
 function determineDefaultDomain(): string {
@@ -175,18 +176,22 @@ async function checkServiceStatus(serviceName: string, port?: number, url?: stri
     try {
       await execSafe('lsof', ['-Pi', `:${port}`, '-sTCP:LISTEN'], { timeout: 3000 });
       return 'running';
-    } catch {
+    } catch (lsofErr) {
+      // lsof failed - try netstat as fallback for Linux systems
+      if (process.env.TDK_VERBOSE) {
+        console.warn(chalk.gray(`lsof check failed for port ${port}: ${lsofErr instanceof Error ? lsofErr.message : String(lsofErr)}`));
+      }
       try {
-        await execSafe('netstat', ['-tlnp'], { timeout: 3000 });
-        // If netstat succeeds, we need to grep for the port
-        // Using execSync here is safe since port is validated as numeric
-        try {
-          execSync(`grep -q ":${port} "`, { encoding: 'utf-8', stdio: 'pipe', input: '' });
-        } catch {
-          // Port not found
+        const netstatOutput = await execSafe('netstat', ['-tlnp'], { timeout: 3000 });
+        // Check if the port is in the netstat output
+        if (netstatOutput.includes(`:${port}`)) {
+          return 'running';
         }
-      } catch {
-        // No process listening
+      } catch (netstatErr) {
+        // Neither lsof nor netstat available - cannot determine port status
+        if (process.env.TDK_VERBOSE) {
+          console.warn(chalk.gray(`Port check tools unavailable: ${netstatErr instanceof Error ? netstatErr.message : String(netstatErr)}`));
+        }
       }
     }
   }
@@ -212,24 +217,6 @@ async function checkServiceStatus(serviceName: string, port?: number, url?: stri
   return 'stopped';
 }
 
-function line(char: string, width: number = BOX_WIDTH): string {
-  return char.repeat(width);
-}
-
-function center(text: string, width: number = BOX_WIDTH - 2): string {
-  const padding = Math.max(0, width - text.length);
-  const left = Math.floor(padding / 2);
-  const right = padding - left;
-  return ' '.repeat(left) + text + ' '.repeat(right);
-}
-
-function pad(text: string, width: number): string {
-  if (text.length > width) {
-    return text.slice(0, width - 1) + '…';
-  }
-  return text.padEnd(width);
-}
-
 export const networksCommand = new Command('networks')
   .description('Show Traefik-routed URLs for all services')
   .alias('urls')
@@ -247,8 +234,6 @@ export const networksCommand = new Command('networks')
     
     const baseDomain = determineDefaultDomain();
     const services = discoverResources();
-    
-    // Check service status asynchronously for all services
     const servicesWithUrls: ServiceUrl[] = await Promise.all(
       services
         .filter(s => s.config?.basePath)
@@ -295,8 +280,6 @@ export const networksCommand = new Command('networks')
       }
       process.exit(0);
     }
-    
-    // Header
     console.log();
     console.log(chalk.cyan('╭' + formatBoxLine('─', BOX_WIDTH - 2) + '╮'));
     console.log(chalk.cyan('│') + chalk.bold.white(formatCentered('🌐  TRAEFIK NETWORKS', BOX_WIDTH - 2)) + chalk.cyan('│'));
@@ -313,8 +296,6 @@ export const networksCommand = new Command('networks')
       }
       stacks.get(stackName)!.push(service);
     }
-    
-    // Display by stack
     let isFirstStack = true;
     for (const [stackName, stackServices] of stacks) {
       if (!isFirstStack) {
@@ -348,8 +329,6 @@ export const networksCommand = new Command('networks')
         console.log(`  ${statusEmoji} ${chalk.white(namePart)}  ${urlPart}${statusLabel}`);
       }
     }
-    
-    // Footer
     console.log();
     console.log(chalk.gray(formatBoxLine('─', BOX_WIDTH - 2)));
     console.log(chalk.gray('🖱️  Click any URL above to open in browser'));
@@ -374,25 +353,4 @@ export const networksCommand = new Command('networks')
     console.log();
   });
 
-function getStackEmoji(stackName: string): string {
-  const emojiMap: Record<string, string> = {
-    'identity': '🔐',
-    'order': '📅',
-    'payment': '💳',
-    'staff': '👥',
-    'inventory': '📦',
-    'user': '💈',
-    'website': '🌐',
-    'treatment': '💆',
-    'gdpr': '🔒',
-    'orchestrator': '⚙️',
-  };
-  
-  for (const [key, emoji] of Object.entries(emojiMap)) {
-    if (stackName.toLowerCase().includes(key)) {
-      return emoji;
-    }
-  }
-  
-  return '📦';
-}
+

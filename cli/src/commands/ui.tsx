@@ -103,8 +103,6 @@ const TUIApp: React.FC = () => {
   const { exit } = useApp();
   const { stdout } = useStdout();
   const { stdin, setRawMode } = useStdin();
-  
-  // State
   const [activeTab, setActiveTab] = useState<TabId>('overview');
   const [selectedStack, setSelectedStack] = useState<string | null>(null);
   const [selectedService, setSelectedService] = useState<string | null>(null);

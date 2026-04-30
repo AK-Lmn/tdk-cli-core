@@ -1,102 +1,73 @@
 import { describe, it, expect } from 'vitest';
 
-describe('project command', () => {
-  it('should verify template files exist', () => {
-    const expectedTemplates = [
-      'TILT_RESOURCE_DEFAULTS.star.hbs',
-      'TILT_TECH_STACK.star.hbs',
-      'Tiltfile.hbs',
-      'spec.master.hbs',
-    ];
+// Shared template definitions - single source of truth for template tests
+const EXPECTED_TEMPLATES = [
+  'TILT_RESOURCE_DEFAULTS.star.hbs',
+  'TILT_TECH_STACK.star.hbs',
+  'Tiltfile.hbs',
+  'spec.master.hbs',
+] as const;
 
-    // All templates should be defined
-    expect(expectedTemplates.length).toBe(4);
-    expect(expectedTemplates).toContain('TILT_RESOURCE_DEFAULTS.star.hbs');
-    expect(expectedTemplates).toContain('TILT_TECH_STACK.star.hbs');
-    expect(expectedTemplates).toContain('Tiltfile.hbs');
-    expect(expectedTemplates).toContain('spec.master.hbs');
+const TEMPLATE_PATTERNS = {
+  'TILT_RESOURCE_DEFAULTS.star.hbs': [
+    'BASE_PORT_FRONTEND',
+    'BASE_PORT_BACKEND',
+    'HEALTH_CHECK_PATH',
+    'starlarkArray',
+  ],
+  'TILT_TECH_STACK.star.hbs': [
+    'BUNDLER',
+    'RUNTIME',
+    'ORM',
+    'assert_tech_stack',
+  ],
+  'Tiltfile.hbs': [
+    'TDK CLI',
+    '.tdk/.tdk-out',
+    'spec.master',
+  ],
+} as const;
+
+describe('project command', () => {
+  it('should verify all expected templates exist', () => {
+    expect(EXPECTED_TEMPLATES).toHaveLength(4);
+    for (const template of EXPECTED_TEMPLATES) {
+      expect(EXPECTED_TEMPLATES).toContain(template);
+    }
   });
 
-  it('should have templates with required content patterns', () => {
-    const templatePatterns = {
-      'TILT_RESOURCE_DEFAULTS.star.hbs': [
-        'BASE_PORT_FRONTEND',
-        'BASE_PORT_BACKEND',
-        'HEALTH_CHECK_PATH',
-        'starlarkArray',
-      ],
-      'TILT_TECH_STACK.star.hbs': [
-        'BUNDLER',
-        'RUNTIME',
-        'ORM',
-        'assert_tech_stack',
-      ],
-      'Tiltfile.hbs': [
-        'TDK CLI',
-        '.tdk/.tdk-out',
-        'spec.master',
-      ],
-    };
+  it('should have templates with all required content patterns', () => {
+    for (const templateName of Object.keys(TEMPLATE_PATTERNS)) {
+      expect(EXPECTED_TEMPLATES).toContain(templateName);
+    }
 
-    // Verify all expected patterns are defined
-    expect(Object.keys(templatePatterns)).toContain('TILT_RESOURCE_DEFAULTS.star.hbs');
-    expect(Object.keys(templatePatterns)).toContain('TILT_TECH_STACK.star.hbs');
-    expect(Object.keys(templatePatterns)).toContain('Tiltfile.hbs');
-
-    expect(templatePatterns['TILT_RESOURCE_DEFAULTS.star.hbs']).toContain('BASE_PORT_FRONTEND');
-    expect(templatePatterns['TILT_RESOURCE_DEFAULTS.star.hbs']).toContain('HEALTH_CHECK_PATH');
-    expect(templatePatterns['TILT_TECH_STACK.star.hbs']).toContain('BUNDLER');
-    expect(templatePatterns['TILT_TECH_STACK.star.hbs']).toContain('RUNTIME');
+    for (const [template, patterns] of Object.entries(TEMPLATE_PATTERNS)) {
+      for (const pattern of patterns) {
+        expect(TEMPLATE_PATTERNS[template as keyof typeof TEMPLATE_PATTERNS]).toContain(pattern);
+      }
+    }
   });
 });
 
 describe('project command templates', () => {
   it('should have valid Handlebars template patterns', () => {
-    // Define patterns that should exist in templates
-    const handlebarsPatterns = [
-      '{{',  // Opening tag
-      '}}',  // Closing tag
-    ];
+    const handlebarsPatterns = ['{{', '}}'];
 
-    // All patterns should be defined
     expect(handlebarsPatterns).toContain('{{');
     expect(handlebarsPatterns).toContain('}}');
   });
 
   it('should have templates with required content patterns defined', () => {
-    // Define expected content patterns
-    const expectedPatterns = {
-      resourceDefaults: [
-        'BASE_PORT_FRONTEND',
-        'BASE_PORT_BACKEND',
-        'HEALTH_CHECK_PATH',
-        'starlarkArray',
-      ],
-      techStack: [
-        'BUNDLER',
-        'RUNTIME',
-        'ORM',
-        'assert_tech_stack',
-      ],
-      tiltfile: [
-        'TDK CLI',
-        '.tdk/.tdk-out',
-        'spec.master',
-      ],
-    };
+    for (const pattern of ['BASE_PORT_FRONTEND', 'BASE_PORT_BACKEND', 'HEALTH_CHECK_PATH', 'starlarkArray']) {
+      expect(TEMPLATE_PATTERNS['TILT_RESOURCE_DEFAULTS.star.hbs']).toContain(pattern);
+    }
 
-    expect(expectedPatterns.resourceDefaults).toContain('BASE_PORT_FRONTEND');
-    expect(expectedPatterns.resourceDefaults).toContain('BASE_PORT_BACKEND');
-    expect(expectedPatterns.resourceDefaults).toContain('HEALTH_CHECK_PATH');
-    expect(expectedPatterns.resourceDefaults).toContain('starlarkArray');
+    for (const pattern of ['BUNDLER', 'RUNTIME', 'ORM', 'assert_tech_stack']) {
+      expect(TEMPLATE_PATTERNS['TILT_TECH_STACK.star.hbs']).toContain(pattern);
+    }
 
-    expect(expectedPatterns.techStack).toContain('BUNDLER');
-    expect(expectedPatterns.techStack).toContain('RUNTIME');
-    expect(expectedPatterns.techStack).toContain('ORM');
-    expect(expectedPatterns.techStack).toContain('assert_tech_stack');
-
-    expect(expectedPatterns.tiltfile).toContain('TDK CLI');
-    expect(expectedPatterns.tiltfile).toContain('.tdk/.tdk-out');
-    expect(expectedPatterns.tiltfile).toContain('spec.master');
+    for (const pattern of ['TDK CLI', '.tdk/.tdk-out', 'spec.master']) {
+      expect(TEMPLATE_PATTERNS['Tiltfile.hbs']).toContain(pattern);
+    }
   });
 });

@@ -72,10 +72,13 @@ export const upCommand = new Command('up')
           execSync('killall tilt 2>/dev/null || true', { shell: '/bin/sh', stdio: 'pipe' });
           // Give it a moment to fully shut down
           await new Promise(resolve => setTimeout(resolve, 2000));
-        } catch {
+        } catch (err) {
           // killall tilt fails when no tilt processes are running - this is expected
           // The shell command includes `|| true` to ensure exit code 0, but catch
           // handles edge cases. Safe to ignore as the goal (no tilt running) is achieved.
+          if (process.env.TDK_VERBOSE) {
+            console.warn(chalk.gray(`killall tilt output: ${err instanceof Error ? err.message : String(err)}`));
+          }
         }
       }
 

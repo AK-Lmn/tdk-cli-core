@@ -246,13 +246,19 @@ app.get('/health/ready', async (c) => {
       expect(workerContent).toContain('WORKER_BATCH_SIZE');
     });
 
-    it('should have processJob function', () => {
-      const workerContent = `async function processJob(job: unknown): Promise<void> {
-  console.log('[Worker] Processing job:', job);
-  await new Promise(resolve => setTimeout(resolve, 1000));
+    it('should have processJob function with Job interface', () => {
+      const workerContent = `interface Job {
+  id: string;
+  type: string;
+  payload: Record<string, unknown>;
+  priority?: number;
+  timestamp?: string;
 }`;
 
-      expect(workerContent).toContain('async function processJob');
+      expect(workerContent).toContain('interface Job');
+      expect(workerContent).toContain('id: string');
+      expect(workerContent).toContain('type: string');
+      expect(workerContent).toContain('payload: Record<string, unknown>');
     });
 
     it('should have graceful shutdown handling', () => {

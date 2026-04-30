@@ -32,17 +32,11 @@ export interface DiscoveredStack {
   resourceCount: number;
 }
 
-export interface CLIOptions {
-  verbose?: boolean;
-}
-
 export interface TiltCommandResult {
   exitCode: number;
   stdout: string;
   stderr: string;
 }
-
-// Metadata types
 
 export type FileType = 'docker' | 'tilt' | 'config' | 'prisma' | 'generated' | 'unknown';
 
@@ -159,9 +153,7 @@ export interface ProjectConfig {
   overrides?: Record<string, JsonValue>;
 }
 
-// ============================================================================
 // UI Component Types
-// ============================================================================
 
 /**
  * Props for tooltip components
@@ -210,9 +202,7 @@ export interface ValidationResult {
   error?: string;
 }
 
-// ============================================================================
 // Health Check Types
-// ============================================================================
 
 /**
  * Result of a health check performed by the doctor command
@@ -246,4 +236,19 @@ export interface ServiceUrl {
   port?: number;
   /** Current service status */
   status: 'running' | 'stopped' | 'unknown';
+}
+
+// ============================================================================
+// UI Component Shared Types
+// ============================================================================
+
+/**
+ * Standard select item for dropdown/select components
+ * Used by ResourceSelectInput and other selection UI components
+ */
+export interface SelectItem {
+  /** Display label for the item */
+  label: string;
+  /** Unique value/identifier */
+  value: string;
 }

@@ -32,10 +32,12 @@ function detectInstallation(): InstallInfo {
           return { method: 'git', path: possibleGitRoot };
         }
       }
-    } catch {
+    } catch (err) {
       // readlink -f fails when the path is not a symlink (e.g., direct binary from npm/bun global install)
       // This is expected behavior for non-git installations - safe to ignore
-      // Git detection will fall through to directory-based detection below
+      if (process.env.TDK_VERBOSE) {
+        console.warn(chalk.gray(`readlink -f failed (expected for non-symlinks): ${err instanceof Error ? err.message : String(err)}`));
+      }
     }
     
     if (tdkPath.includes('node_modules') || tdkPath.includes('.npm') || tdkPath.includes('.bun')) {
@@ -51,7 +53,10 @@ function detectInstallation(): InstallInfo {
     }
     
     return { method: 'unknown', path: tdkPath };
-  } catch {
+  } catch (err) {
+    if (process.env.TDK_VERBOSE) {
+      console.warn(chalk.gray(`Installation detection failed: ${err instanceof Error ? err.message : String(err)}`));
+    }
     return { method: 'unknown' };
   }
 }
@@ -61,7 +66,10 @@ function getCurrentVersion(): string {
     const packagePath = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', 'package.json');
     const pkg = JSON.parse(readFileSync(packagePath, 'utf-8'));
     return pkg.version || 'unknown';
-  } catch {
+  } catch (err) {
+    if (process.env.TDK_VERBOSE) {
+      console.warn(chalk.gray(`Could not read package.json: ${err instanceof Error ? err.message : String(err)}`));
+    }
     return 'unknown';
   }
 }
@@ -193,7 +201,7 @@ async function upgradeViaGit(path: string): Promise<boolean> {
       });
     } catch (err) {
       // bun link --force may fail for various reasons (already linked, permission issues, etc.)
-      // Log warning for diagnostic purposes but don't fail - the upgrade may still work
+      // The upgrade may still have succeeded via git pull - warn but don't fail
       console.warn(chalk.yellow('⚠️  Warning: bun link --force failed after git upgrade'));
       console.warn(chalk.gray(`   Error: ${err instanceof Error ? err.message : String(err)}`));
       console.warn(chalk.gray('   The upgrade may have partially succeeded. Verify with: tdk version'));

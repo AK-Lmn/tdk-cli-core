@@ -207,12 +207,10 @@ function isProjectConfig(value: unknown): value is ProjectConfig {
 
   const config = value as Record<string, unknown>;
 
-  // Check required string fields
   if (typeof config.version !== "string") {
     return false;
   }
 
-  // Check project object structure
   if (!config.project || typeof config.project !== "object") {
     return false;
   }
@@ -221,7 +219,6 @@ function isProjectConfig(value: unknown): value is ProjectConfig {
     return false;
   }
 
-  // Check stacks object structure
   if (!config.stacks || typeof config.stacks !== "object") {
     return false;
   }
@@ -233,7 +230,6 @@ function isProjectConfig(value: unknown): value is ProjectConfig {
     return false;
   }
 
-  // Check optional_infra structure
   if (!config.optional_infra || typeof config.optional_infra !== "object") {
     return false;
   }
@@ -245,7 +241,6 @@ function isProjectConfig(value: unknown): value is ProjectConfig {
     return false;
   }
 
-  // Check discovery structure
   if (!config.discovery || typeof config.discovery !== "object") {
     return false;
   }
