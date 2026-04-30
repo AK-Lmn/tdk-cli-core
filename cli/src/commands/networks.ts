@@ -288,11 +288,11 @@ export const networksCommand = new Command('networks')
     
     // Header
     console.log();
-    console.log(chalk.cyan('╭' + line('─', BOX_WIDTH - 2) + '╮'));
-    console.log(chalk.cyan('│') + chalk.bold.white(center('🌐  TRAEFIK NETWORKS')) + chalk.cyan('│'));
-    console.log(chalk.cyan('├' + line('─', BOX_WIDTH - 2) + '┤'));
-    console.log(chalk.cyan('│') + chalk.gray(center(`Domain: http://${baseDomain}`)) + chalk.cyan('│'));
-    console.log(chalk.cyan('╰' + line('─', BOX_WIDTH - 2) + '╯'));
+    console.log(chalk.cyan('╭' + formatBoxLine('─', BOX_WIDTH - 2) + '╮'));
+    console.log(chalk.cyan('│') + chalk.bold.white(formatCentered('🌐  TRAEFIK NETWORKS', BOX_WIDTH - 2)) + chalk.cyan('│'));
+    console.log(chalk.cyan('├' + formatBoxLine('─', BOX_WIDTH - 2) + '┤'));
+    console.log(chalk.cyan('│') + chalk.gray(formatCentered(`Domain: http://${baseDomain}`, BOX_WIDTH - 2)) + chalk.cyan('│'));
+    console.log(chalk.cyan('╰' + formatBoxLine('─', BOX_WIDTH - 2) + '╯'));
     
     // Group by stack
     const stacks = new Map<string, ServiceUrl[]>();
@@ -314,10 +314,10 @@ export const networksCommand = new Command('networks')
       
       const emoji = getStackEmoji(stackName);
       const stackTitle = `${emoji}  ${stackName.toUpperCase()} STACK`;
-      
+
       console.log();
       console.log(chalk.bold.white(stackTitle));
-      console.log(chalk.gray(line('━', BOX_WIDTH - 4)));
+      console.log(chalk.gray(formatBoxLine('━', BOX_WIDTH - 4)));
       
       for (const service of stackServices) {
         // Use both color AND symbol for clarity

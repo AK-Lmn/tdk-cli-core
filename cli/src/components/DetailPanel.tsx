@@ -60,8 +60,7 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
           </Box>
         </Box>
         
-        {/* Close hint */}
-        <Box marginTop={2}>
+  <Box marginTop={2}>
           <Text color="gray" dimColor>
             Press <Text color="cyan">[Esc]</Text> to close
           </Text>
@@ -70,7 +69,7 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
     );
   }
 
-  // Show stack details if stack is selected
+  if (stack && stackMetadata) {
   if (stack && stackMetadata) {
     const statusColor = getStatusColor(stackMetadata.overallStatus);
     const statusIcon = getStatusIcon(stackMetadata.overallStatus);
@@ -104,8 +103,7 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
           </Text>
         </Box>
         
-        {/* Details */}
-        <Box flexDirection="column" marginY={1}>
+  <Box flexDirection="column" marginY={1}>
           <Box>
             <Text color="gray">Created: </Text>
             <Text color="white">{formatDate(stackMetadata.createdAt)}</Text>
@@ -116,7 +114,6 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
           </Box>
         </Box>
 
-        {/* Resources List */}
         <Box marginTop={1} marginBottom={1}>
           <Text color="gray" underline>
             Resources
