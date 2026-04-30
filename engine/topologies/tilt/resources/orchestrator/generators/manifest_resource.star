@@ -268,6 +268,13 @@ def _generate_all_configs_for_resource(
     should_enable = ctx['should_enable']
     global_config = ctx['global_config']
     
+    # WORKAROUND: Prevent infinite recursion by checking recursion depth
+    recursion_depth = ctx.get('_recursion_depth', 0)
+    if recursion_depth > 5:
+        print("⚠️  Recursion depth exceeded for {}, skipping config generation".format(resource_name))
+        return
+    ctx['_recursion_depth'] = recursion_depth + 1
+    
     print("DEBUG _generate_all_configs: resource_name='{}', resource_path='{}'".format(resource_name, resource_path))
     
     # Add resource_path to manifest so generators can access it
