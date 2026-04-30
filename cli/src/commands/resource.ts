@@ -11,7 +11,8 @@ import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import { findProjectRoot, discoverResources } from '../utils/services.js';
+import { discoverResources } from '../utils/services.js';
+import { requireProjectRoot } from '../utils/errors.js';
 
 // Templates for different resource types
 const BACKEND_TEMPLATE = {
@@ -328,12 +329,7 @@ export const resourceCommand = new Command('resource')
   .option('-p, --path <path>', 'Custom path for resource directory')
   .action(async (name, options) => {
     try {
-      const projectRoot = findProjectRoot();
-      if (!projectRoot) {
-        console.error(chalk.red('Error: Could not find project root (no Tiltfile found).'));
-        console.error(chalk.gray('Run this from within a project that has a Tiltfile.'));
-        process.exit(1);
-      }
+      const projectRoot = requireProjectRoot();
 
       console.log(chalk.blue('TDK Resource Creation\n'));
 

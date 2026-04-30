@@ -37,7 +37,6 @@ program
     writeErr: (str) => process.stderr.write(str)
   });
 
-// Override default help with colorful custom help
 program.helpCommand('help [command]', 'Show colorful help').on('--help', () => {
   showHelp();
   process.exit(0);
@@ -45,24 +44,17 @@ program.helpCommand('help [command]', 'Show colorful help').on('--help', () => {
 
 program.addHelpText('before', '');
 
-// Public CLI commands
-// List commands
+// CLI commands
 program.addCommand(stacksCommand);
 program.addCommand(resourcesCommand);
 program.addCommand(projectsCommand);
-
-// Lifecycle commands
 program.addCommand(upCommand);
 program.addCommand(downCommand);
 program.addCommand(statusCommand);
-
-// Management commands
 program.addCommand(stackCommand);
 program.addCommand(resourceCommand);
 program.addCommand(projectCommand);
 program.addCommand(configCommand);
-
-// Utility commands
 program.addCommand(uiCommand);
 program.addCommand(versionCommand);
 program.addCommand(doctorCommand);
@@ -70,13 +62,12 @@ program.addCommand(completionCommand);
 program.addCommand(upgradeCommand);
 program.addCommand(networksCommand);
 
-// Show colorful help if no command provided
+// Default: show help if no command provided
 if (process.argv.length === 2) {
   showHelp();
   process.exit(0);
 }
 
-// Show colorful help for -h and --help
 if (process.argv.length === 3 && ['-h', '--help', 'help'].includes(process.argv[2])) {
   showHelp();
   process.exit(0);

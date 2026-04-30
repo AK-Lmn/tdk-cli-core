@@ -17,13 +17,11 @@ import type { TiltCommandResult } from '../types/index.js';
 export function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
     const server = createConnection({ port, host: '127.0.0.1' }, () => {
-      // Connection succeeded - port is in use
       server.destroy();
       resolve(false);
     });
-    
+
     server.on('error', () => {
-      // Connection failed - port is available
       resolve(true);
     });
   });
@@ -155,12 +153,8 @@ export function buildTiltUpArgs(
   } = {}
 ): string[] {
   const args: string[] = [];
-  
-  // Add Tiltfile path (generated in .tdk/.tdk-out/)
   const tiltfilePath = getTiltfilePath();
   args.push('-f', tiltfilePath);
-  
-  // Add service names as arguments
   args.push(...serviceNames);
   
   if (options.verbose) {
@@ -186,14 +180,12 @@ export function buildTiltDownArgs(
   } = {}
 ): string[] {
   const args: string[] = [];
-  
-  // Add Tiltfile path (generated in .tdk/.tdk-out/)
   const tiltfilePath = getTiltfilePath();
   args.push('-f', tiltfilePath);
-  
+
   if (options.force) {
     args.push('--force');
   }
-  
+
   return args;
 }

@@ -10,12 +10,12 @@
  * For project-specific configuration, see .tdk/project.yaml
  */
 
-export const PLATFORM_VERSION = "1.0.0";
+const PLATFORM_VERSION = "1.0.0";
 
 /**
  * Core technology stack - enforced across all services
  */
-export const TECH_STACK = {
+const TECH_STACK = {
   /** Runtime: Bun (not Node.js) */
   runtime: "bun",
 
@@ -47,7 +47,7 @@ export const TECH_STACK = {
 /**
  * Port allocation strategy - standard across all projects
  */
-export const PORTS = {
+const PORTS = {
   frontend: {
     base: 3000,
     range: "3000-3999" as const,
@@ -87,7 +87,7 @@ export const PORTS = {
 /**
  * Health check endpoints - standard across all services
  */
-export const HEALTH_CHECKS = {
+const HEALTH_CHECKS = {
   /** Main health endpoint */
   path: "/health",
   /** Liveness probe */
@@ -103,7 +103,7 @@ export const HEALTH_CHECKS = {
 /**
  * Service naming patterns - enforced across all services
  */
-export const NAMING = {
+const NAMING = {
   /** Frontend service suffix */
   frontend: "-frontend",
   /** Backend service suffix */
@@ -127,7 +127,7 @@ export const NAMING = {
 /**
  * Traefik configuration - standard for all projects
  */
-export const TRAEFIK = {
+const TRAEFIK = {
   entrypoint: "web",
   network: "traefik-public",
   defaultHost: "localhost",
@@ -145,7 +145,7 @@ export const TRAEFIK = {
 /**
  * File watch ignore patterns - prevents fsnotify buffer overflow
  */
-export const FILEWATCH_IGNORES = [
+const FILEWATCH_IGNORES = [
   "node_modules",
   "dist",
   "build",
@@ -163,7 +163,7 @@ export const FILEWATCH_IGNORES = [
 /**
  * Service type definitions - maps types to their configuration
  */
-export const RESOURCE_TYPES = {
+const RESOURCE_TYPES = {
   frontend: {
     suffix: "-frontend",
     portRange: "3000-3999",
@@ -193,7 +193,7 @@ export const RESOURCE_TYPES = {
 /**
  * Platform features - available to all projects
  */
-export const FEATURES = {
+const FEATURES = {
   prisma: "Database ORM with migrations",
   nats: "Event streaming via NATS",
   redis: "Caching layer",
@@ -210,7 +210,7 @@ export const FEATURES = {
 /**
  * Project paths - standard directory structure
  */
-export const PATHS = {
+const PATHS = {
   services: "services/product",
   sharedPlatform: "shared-platform-engineering",
   sharedProduct: "shared-product-engineering",
@@ -220,7 +220,7 @@ export const PATHS = {
 /**
  * Discovery settings - how TDK finds services
  */
-export const DISCOVERY = {
+const DISCOVERY = {
   /** Scan interval in seconds */
   scanIntervalSeconds: 5,
   /** Max manifests per root */
@@ -232,7 +232,7 @@ export const DISCOVERY = {
 /**
  * Docker build configuration defaults
  */
-export const DOCKER = {
+const DOCKER = {
   dockerfile: "Dockerfile",
   context: ".",
   platform: "linux/amd64",
@@ -241,7 +241,7 @@ export const DOCKER = {
 /**
  * Runtime command configuration
  */
-export const RUNTIME = {
+const RUNTIME = {
   backend: {
     command: "bun",
     args: ["run", "dev"],
@@ -273,5 +273,5 @@ export const PLATFORM_STANDARDS = {
   runtime: RUNTIME,
 } as const;
 
-/** Type for platform standards */
-export type PlatformStandards = typeof PLATFORM_STANDARDS;
+// Type is used internally via typeof PLATFORM_STANDARDS
+type PlatformStandards = typeof PLATFORM_STANDARDS;

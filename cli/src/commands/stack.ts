@@ -10,7 +10,8 @@ import { Command } from 'commander';
 import { writeFileSync, readFileSync } from 'node:fs';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import { discoverResources, getAllStacks, findProjectRoot } from '../utils/services.js';
+import { discoverResources, getAllStacks } from '../utils/services.js';
+import { requireProjectRoot } from '../utils/errors.js';
 
 export const stackCommand = new Command('stack')
   .description('Organize resources into stacks (groups)')
@@ -18,11 +19,7 @@ export const stackCommand = new Command('stack')
   .option('--list', 'List resources without a stack', false)
   .action(async (stackName, options) => {
     try {
-      const projectRoot = findProjectRoot();
-      if (!projectRoot) {
-        console.error(chalk.red('Error: Could not find project root (no Tiltfile found).'));
-        process.exit(1);
-      }
+      requireProjectRoot();
 
       console.log(chalk.blue('TDK Stack Management\n'));
 

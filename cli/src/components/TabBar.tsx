@@ -79,4 +79,4 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange, compact 
   );
 };
 
-export { TABS };
+// TABS is used internally only

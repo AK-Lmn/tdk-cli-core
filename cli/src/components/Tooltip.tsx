@@ -14,7 +14,8 @@ interface TooltipProps {
   maxWidth?: number;
 }
 
-export const Tooltip: React.FC<TooltipProps> = ({ 
+// Tooltip component - currently unused internally
+const Tooltip: React.FC<TooltipProps> = ({ 
   content, 
   shortcut, 
   visible,

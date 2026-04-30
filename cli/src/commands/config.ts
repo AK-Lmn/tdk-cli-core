@@ -10,7 +10,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { execSync } from 'node:child_process';
 import chalk from 'chalk';
-import { findProjectRoot } from '../utils/services.js';
+import { requireProjectRoot } from '../utils/errors.js';
 import { generateMasterConfigs, verifyMasterConfigs, readProjectConfig, TemplateEngine } from '../generator/template-engine.js';
 
 export const configCommand = new Command('config')
@@ -21,11 +21,7 @@ export const configCommand = new Command('config')
       .option('--dry-run', 'Show what would change without writing files')
       .action(async (options) => {
         try {
-          const projectRoot = findProjectRoot();
-          if (!projectRoot) {
-            console.error(chalk.red('Error: Not in a TDK project'));
-            process.exit(1);
-          }
+          const projectRoot = requireProjectRoot();
 
           if (options.dryRun) {
             console.log(chalk.blue('🔍 Dry run - comparing current files with new configuration...\n'));
@@ -138,11 +134,7 @@ export const configCommand = new Command('config')
       .description('Verify that generated files match .tdk/project.json')
       .action(async () => {
         try {
-          const projectRoot = findProjectRoot();
-          if (!projectRoot) {
-            console.error(chalk.red('Error: Not in a TDK project'));
-            process.exit(1);
-          }
+          const projectRoot = requireProjectRoot();
 
           console.log(chalk.blue('🔍 Verifying configuration...\n'));
           const result = verifyMasterConfigs(projectRoot);
@@ -169,11 +161,7 @@ export const configCommand = new Command('config')
       .description('Open .tdk/project.json in your $EDITOR')
       .action(async () => {
         try {
-          const projectRoot = findProjectRoot();
-          if (!projectRoot) {
-            console.error(chalk.red('Error: Not in a TDK project'));
-            process.exit(1);
-          }
+          const projectRoot = requireProjectRoot();
 
           const projectJsonPath = join(projectRoot, '.tdk', 'project.json');
           if (!existsSync(projectJsonPath)) {
@@ -199,11 +187,7 @@ export const configCommand = new Command('config')
       .argument('<service>', 'Service name (monitoring, elk, debezium, golden_image)')
       .action(async (service) => {
         try {
-          const projectRoot = findProjectRoot();
-          if (!projectRoot) {
-            console.error(chalk.red('Error: Not in a TDK project'));
-            process.exit(1);
-          }
+          const projectRoot = requireProjectRoot();
 
           const validServices = ['monitoring', 'elk', 'debezium', 'golden_image'];
           if (!validServices.includes(service)) {
@@ -231,11 +215,7 @@ export const configCommand = new Command('config')
       .argument('<service>', 'Service name (monitoring, elk, debezium, golden_image)')
       .action(async (service) => {
         try {
-          const projectRoot = findProjectRoot();
-          if (!projectRoot) {
-            console.error(chalk.red('Error: Not in a TDK project'));
-            process.exit(1);
-          }
+          const projectRoot = requireProjectRoot();
 
           const validServices = ['monitoring', 'elk', 'debezium', 'golden_image'];
           if (!validServices.includes(service)) {

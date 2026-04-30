@@ -9,7 +9,7 @@ import * as path from "node:path";
 import Handlebars from "handlebars";
 import { PLATFORM_STANDARDS } from "../config/platform-standards.js";
 
-export interface ProjectConfig {
+interface ProjectConfig {
   version: string;
   project: {
     name: string;
@@ -33,7 +33,7 @@ export interface ProjectConfig {
   overrides?: Record<string, unknown>;
 }
 
-export interface GeneratorContext {
+interface GeneratorContext {
   version: string;
   timestamp: string;
   tech: typeof PLATFORM_STANDARDS.tech;
@@ -48,7 +48,6 @@ export interface GeneratorContext {
   discovery: { scanIntervalSeconds: number; maxManifestsPerRoot: number; paths: string[] };
   docker: typeof PLATFORM_STANDARDS.docker;
   runtime: typeof PLATFORM_STANDARDS.runtime;
-  // Project-specific
   project: ProjectConfig["project"];
   stacks: ProjectConfig["stacks"];
   optionalInfra: ProjectConfig["optional_infra"];
@@ -89,11 +88,8 @@ export class TemplateEngine {
   private templatesDir: string;
 
   constructor(templatesDir?: string) {
-    // Handle both ESM and CommonJS contexts
     const currentDir = import.meta.dirname || path.dirname(new URL(import.meta.url).pathname);
     this.templatesDir = templatesDir || path.join(currentDir, "..", "..", "templates");
-
-    // Register Handlebars helpers for Starlark formatting
     this.registerHelpers();
   }
 
@@ -278,17 +274,14 @@ export function readProjectConfig(projectRoot: string): ProjectConfig {
 export function generateMasterConfigs(projectRoot: string): void {
   const projectConfig = readProjectConfig(projectRoot);
 
-  // Ensure .tdk/.tdk-out directory exists
   const outputDir = path.join(projectRoot, ".tdk", ".tdk-out");
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
-  // Generate files
   const engine = new TemplateEngine();
   const files = engine.generateAll(projectConfig);
 
-  // Write ALL generated files to .tdk/.tdk-out/ (including Tiltfile)
   const allGeneratedFiles = [
     "tilt.config.json",
     "TILT_TECH_STACK.star",
@@ -319,7 +312,6 @@ export function verifyMasterConfigs(projectRoot: string): { valid: boolean; erro
     const engine = new TemplateEngine();
     const expectedFiles = engine.generateAll(projectConfig);
 
-    // Verify all generated files in .tdk/.tdk-out/
     const outputDir = path.join(projectRoot, ".tdk", ".tdk-out");
     const allGeneratedFiles = [
       "tilt.config.json",
@@ -344,7 +336,6 @@ export function verifyMasterConfigs(projectRoot: string): { valid: boolean; erro
       }
     }
 
-    // Check for old Tiltfile in project root (should not exist anymore)
     const oldTiltfilePath = path.join(projectRoot, "Tiltfile");
     if (fs.existsSync(oldTiltfilePath)) {
       errors.push(`Deprecated: Tiltfile in project root (should be in .tdk/.tdk-out/, run 'tdk config regenerate')`);

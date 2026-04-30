@@ -6,7 +6,8 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { discoverResources, findProjectRoot } from '../utils/services.js';
+import { discoverResources } from '../utils/services.js';
+import { requireProjectRoot } from '../utils/errors.js';
 
 export const resourcesCommand = new Command('resources')
   .description('List all resources (services) in the project')
@@ -16,12 +17,7 @@ export const resourcesCommand = new Command('resources')
   .option('--ports', 'Show port assignments', false)
   .action(async (options) => {
     try {
-      const projectRoot = findProjectRoot();
-
-      if (!projectRoot) {
-        console.error(chalk.red('Error: Could not find project root (no Tiltfile found).'));
-        process.exit(1);
-      }
+      requireProjectRoot();
 
       const allResources = discoverResources();
 

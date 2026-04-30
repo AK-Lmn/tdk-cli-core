@@ -12,4 +12,4 @@ export type { FileNode } from './FileTree.js';
 // Accessibility components - only export what's used
 export { AccessibleTooltip } from './Accessible.js';
 
-export { Tooltip, TOOLTIPS } from './Tooltip.js';
+export { TOOLTIPS } from './Tooltip.js';
