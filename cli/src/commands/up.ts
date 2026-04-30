@@ -73,7 +73,9 @@ export const upCommand = new Command('up')
           // Give it a moment to fully shut down
           await new Promise(resolve => setTimeout(resolve, 2000));
         } catch {
-          // Ignore errors from killall (e.g., no processes to kill)
+          // killall tilt fails when no tilt processes are running - this is expected
+          // The shell command includes `|| true` to ensure exit code 0, but catch
+          // handles edge cases. Safe to ignore as the goal (no tilt running) is achieved.
         }
       }
 

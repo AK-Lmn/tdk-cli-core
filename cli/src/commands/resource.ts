@@ -351,7 +351,8 @@ export const resourceCommand = new Command('resource')
         }
       }
 
-      let resourceType = options.type;
+      type ValidResourceType = 'backend' | 'frontend' | 'worker';
+      let resourceType: ValidResourceType = options.type;
       if (!['backend', 'frontend', 'worker'].includes(resourceType)) {
         const { selectedType } = await inquirer.prompt([{
           type: 'list',

@@ -97,9 +97,12 @@ async function upgradeViaNpm(): Promise<boolean> {
     });
     spinner.succeed('Upgraded successfully via npm');
     return true;
-  } catch {
-    // Fall back to GitHub
+  } catch (err) {
+    // npm registry failed (package may not exist or network issue) - try GitHub fallback
     spinner.text = 'npm registry failed, trying GitHub...';
+    if (process.env.TDK_VERBOSE) {
+      console.warn(chalk.gray(`npm registry error: ${err instanceof Error ? err.message : String(err)}`));
+    }
     try {
       execSync('npm install -g github:tdk-landscape/tdk-cli', {
         stdio: 'inherit',

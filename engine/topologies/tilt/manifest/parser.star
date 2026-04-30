@@ -65,13 +65,6 @@ def parse(content, path=""):
             warnings=warnings,
         )
     
-    # Check for deprecated fields
-    deprecated_fields = ['apiBasePath', 'proxyRoutes', 'hmrPort']
-    for field in deprecated_fields:
-        if field in manifest:
-            warning = "Field '{}' is deprecated and will be removed".format(field)
-            warnings.append(warning)
-    
     # Check for legacy 'dependencies' field (should use 'internalDependencies')
     if 'dependencies' in manifest and 'internalDependencies' not in manifest:
         warnings.append(

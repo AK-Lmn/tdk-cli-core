@@ -8,24 +8,32 @@ export function formatCount(count: number, singular: string, plural?: string): s
   return `${count} ${pluralize(count, singular, plural)}`;
 }
 
+// Shared date formatting options
+const DATE_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
+  month: 'short',
+  day: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+};
+
+/**
+ * Format a timestamp as a full locale string (date + time)
+ * @param timestamp - ISO timestamp string
+ * @returns Formatted date string (e.g., "Jan 15, 02:30 PM")
+ */
 export function formatDate(timestamp: string): string {
   const date = new Date(timestamp);
-  return date.toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  return date.toLocaleString('en-US', DATE_FORMAT_OPTIONS);
 }
 
+/**
+ * Format a timestamp as a short locale date string
+ * Alias for formatDate - both now use the same underlying format
+ * @param timestamp - ISO timestamp string
+ * @returns Formatted date string
+ */
 export function formatShortDate(timestamp: string): string {
-  const date = new Date(timestamp);
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  return formatDate(timestamp);
 }
 
 export function truncate(str: string, maxLength: number): string {

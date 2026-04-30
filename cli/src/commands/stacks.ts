@@ -49,7 +49,6 @@ export const stacksCommand = new Command('stacks')
           console.log(); // Empty line between stacks
         }
       } else {
-        // Simple output
         console.log(chalk.blue(`Found ${formatCount(stackNames.length, 'stack')}:\n`));
 
         const stackServiceMap = new Map<string, number>();

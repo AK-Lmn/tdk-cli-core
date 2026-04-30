@@ -1,268 +1,225 @@
 # Circular Dependency Assessment Report
 
+**Project:** TDK CLI (Tilt Development Kit)  
+**Assessment Date:** 2025-04-30  
+**Tool Used:** madge@8.0.0  
+
 ## Executive Summary
 
-After conducting a thorough analysis using `madge` with circular dependency detection, **no circular dependencies were found** in the TDK CLI codebase. The project exhibits a clean, well-structured dependency graph with proper architectural layering.
+✅ **Good News:** No circular dependencies detected in the TDK CLI codebase.
 
-## Research Methodology
-
-### Tools Used
-- **madge v8.0.0**: Circular dependency detection and graph visualization
-- **TypeScript Compiler**: Type checking and build verification
-- **Vitest**: Test execution to verify no regressions
-
-### Analysis Scope
-- CLI package: `cli/src/` (39 TypeScript/TSX files)
-- Discovery module: `discovery/` (Python and Starlark files)
-- Engine module: `engine/` (Starlark files)
-- Video generator: `video-generator/`
-- OpenSpec: `openspec/`
-
-### Commands Executed
-```bash
-# Primary circular dependency detection
-npx madge --circular cli/src --extensions ts,tsx
-npx madge --circular . --extensions ts,js
-npx madge --circular discovery --extensions ts,js,py
-npx madge --circular engine --extensions ts,js,py
-
-# Dependency graph analysis
-npx madge cli/src --extensions ts,tsx --json
-npx madge cli/src/index.ts --extensions ts,tsx
-```
-
-## Dependency Graph Analysis
-
-### Architecture Overview
-
-The TDK CLI dependency graph follows a clean layered architecture:
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        cli.ts                               │
-│                    (Entry Point)                            │
-└──────────────────┬──────────────────────────────────────────┘
-                   │
-         ┌─────────┴──────────┐
-         ▼                    ▼
-┌─────────────────┐   ┌─────────────────┐
-│    Commands     │   │   Components    │
-│   (18 modules)  │   │   (6 modules)   │
-└────────┬────────┘   └────────┬────────┘
-         │                       │
-         └───────────┬───────────┘
-                     ▼
-         ┌─────────────────────┐
-         │       Utils         │
-         │  services, tilt,    │
-         │ errors, formatting, │
-         │ validation, const   │
-         └──────────┬──────────┘
-                    │
-                    ▼
-         ┌─────────────────────┐
-         │       Types         │
-         │    (Leaf Layer)     │
-         └─────────────────────┘
-```
-
-### Key Dependency Flows
-
-1. **Entry Point (index.ts)**
-   - Exports: `types/index.ts`, `utils/services.ts`, `utils/tilt.ts`
-   - Clean aggregation of public API
-
-2. **CLI (cli.ts)**
-   - Imports: All 18 command modules
-   - No cycles: Commands don't import back to cli.ts
-
-3. **Commands**
-   - Import from: `utils/*`, `generator/*`, `components/*`
-   - No inter-command dependencies (no commands importing other commands)
-
-4. **Utils Layer**
-   - `services.ts` → `types/index.ts`, `utils/constants.ts`
-   - `tilt.ts` → `types/index.ts`, `utils/services.ts`
-   - `errors.ts` → `utils/services.ts`
-   - `validation.ts` → `utils/constants.ts`
-   - `formatting.ts` → (leaf node, no imports)
-   - `constants.ts` → (leaf node, no imports)
-
-5. **Components Layer**
-   - `index.ts` barrel file aggregates 6 components
-   - Components import: `types/index.ts`, `utils/formatting.ts`
-   - No component-to-component cycles
-
-6. **Generator**
-   - `template-engine.ts` → `config/platform-standards.ts`, `utils/constants.ts`
-
-7. **Types (types/index.ts)**
-   - Leaf layer - no imports
-   - Imported by: services, tilt, ui.tsx, components
-
-### Critical Non-Cycles Verified
-
-Several patterns that commonly cause circular dependencies were verified to be clean:
-
-| Pattern | Status | Notes |
-|---------|--------|-------|
-| Barrel files | ✅ Clean | `components/index.ts` only imports, doesn't export back |
-| Utils ↔ Types | ✅ Clean | `types/index.ts` is a leaf layer (no imports) |
-| Services ↔ Errors | ✅ One-way | `errors.ts` imports `services.ts`, not vice versa |
-| Commands ↔ Utils | ✅ One-way | Commands import utils, utils don't import commands |
-| Parent ↔ Child | ✅ Clean | No parent modules re-exporting to children |
-
-## Detailed Module Dependencies
-
-### Full Dependency List (39 files)
-
-```json
-{
-  "cli.ts": ["commands/* (18 modules)"],
-  "commands/config.ts": ["generator/template-engine.ts", "utils/constants.ts", "utils/errors.ts", "utils/validation.ts"],
-  "commands/down.ts": ["utils/errors.ts", "utils/tilt.ts"],
-  "commands/networks.ts": ["generator/template-engine.ts", "utils/services.ts"],
-  "commands/project.ts": ["generator/template-engine.ts", "utils/constants.ts", "utils/errors.ts", "utils/services.ts"],
-  "commands/projects.ts": ["utils/services.ts"],
-  "commands/resource.ts": ["utils/constants.ts", "utils/errors.ts", "utils/formatting.ts", "utils/services.ts", "utils/validation.ts"],
-  "commands/resources.ts": ["utils/errors.ts", "utils/formatting.ts", "utils/services.ts"],
-  "commands/stack.ts": ["utils/errors.ts", "utils/formatting.ts", "utils/services.ts", "utils/validation.ts"],
-  "commands/stacks.ts": ["utils/errors.ts", "utils/formatting.ts", "utils/services.ts"],
-  "commands/status.ts": ["utils/errors.ts", "utils/formatting.ts", "utils/services.ts", "utils/tilt.ts"],
-  "commands/ui.tsx": ["components/index.ts", "types/index.ts", "utils/services.ts", "utils/tilt.ts"],
-  "commands/up.ts": ["utils/errors.ts", "utils/formatting.ts", "utils/services.ts", "utils/tilt.ts"],
-  "commands/completion.ts": [],
-  "commands/doctor.ts": [],
-  "commands/help.ts": [],
-  "commands/upgrade.ts": [],
-  "commands/version.ts": [],
-  "components/index.ts": ["components/*.tsx (6 components)"],
-  "components/DetailPanel.tsx": ["types/index.ts", "utils/formatting.ts"],
-  "components/FileTree.tsx": ["types/index.ts"],
-  "components/ResourceTable.tsx": ["types/index.ts", "utils/formatting.ts"],
-  "components/Accessible.tsx": [],
-  "components/TabBar.tsx": [],
-  "components/Tooltip.tsx": [],
-  "generator/template-engine.ts": ["config/platform-standards.ts", "utils/constants.ts"],
-  "config/platform-standards.ts": [],
-  "index.ts": ["types/index.ts", "utils/services.ts", "utils/tilt.ts"],
-  "types/index.ts": [],
-  "utils/services.ts": ["types/index.ts", "utils/constants.ts"],
-  "utils/tilt.ts": ["types/index.ts", "utils/services.ts"],
-  "utils/errors.ts": ["utils/services.ts"],
-  "utils/formatting.ts": [],
-  "utils/validation.ts": ["utils/constants.ts"],
-  "utils/constants.ts": [],
-  "test files": []
-}
-```
-
-## Verification Results
-
-### Type Checking
-```
-> @tdk/cli@1.1.0 typecheck
-> tsc --noEmit
-✅ Passed - No type errors
-```
-
-### Build Verification
-```
-> @tdk/cli@1.1.0 build
-> tsc
-✅ Passed - Clean compilation
-```
-
-### Test Results
-```
-> @tdk/cli@1.1.0 test
-> vitest run
-
-✓ src/commands/__tests__/config.test.ts (12 tests)
-✓ src/commands/__tests__/error-handling.test.ts (5 tests)
-✓ src/commands/__tests__/project.test.ts (4 tests)
-✓ src/commands/__tests__/resource.test.ts (13 tests)
-
-Test Files: 4 passed (4)
-Tests: 34 passed (34)
-Duration: 2.98s
-```
-
-## Critical Assessment Conclusions
-
-### What Was Checked
-1. ✅ Direct circular imports (A → B → A)
-2. ✅ Indirect circular chains (A → B → C → A)
-3. ✅ Barrel file cycles (index.ts re-exporting to consumers)
-4. ✅ Type-only import cycles
-5. ✅ Cross-layer violations (utils importing commands)
-
-### Findings Summary
-| Metric | Value | Status |
-|--------|-------|--------|
-| Total files scanned | 39 | - |
-| Circular dependencies found | 0 | ✅ Excellent |
-| Warning files skipped | 2 (ink, ink-select-input) | ✅ External deps |
-| Type check | Passed | ✅ |
-| Build | Passed | ✅ |
-| Tests | 34/34 passed | ✅ |
-
-### Architecture Quality Assessment
-
-**Strengths:**
-1. **Clean layering**: Types → Utils → Commands/Components → CLI
-2. **No bidirectional dependencies**: All imports flow downward in the hierarchy
-3. **Proper barrel file usage**: `components/index.ts` is import-only
-4. **Type isolation**: `types/index.ts` has no imports (leaf layer)
-5. **Utility separation**: Formatting, validation, constants are leaf utilities
-
-**Risk Areas (Potential for Future Cycles):**
-1. `utils/errors.ts` → `utils/services.ts`: Currently safe, but watch for reverse import
-2. `utils/tilt.ts` → `utils/services.ts`: Monitor for bidirectional coupling
-3. Generator pattern: `template-engine.ts` uses platform standards - keep unidirectional
-
-## Recommendations
-
-### Immediate Actions
-- **None required**: No circular dependencies to break
-
-### Preventive Measures
-1. **Add CI check** for circular dependencies:
-   ```bash
-   npx madge --circular cli/src --extensions ts,tsx --exit-code
-   ```
-
-2. **Document architecture** in AGENTS.md to maintain layering discipline
-
-3. **Watch patterns** in code review:
-   - No importing commands from utils
-   - No bidirectional service dependencies
-   - Keep types as leaf layer
-
-### Monitoring
-- Run madge monthly as part of technical debt assessment
-- Watch for barrel file anti-patterns in new components
-
-## Final Report
-
-| Item | Status |
-|------|--------|
-| Circular dependencies detected | 0 |
-| High-confidence recommendations | 0 (none needed) |
-| Cycles broken | N/A |
-| Cycles not broken (with rationale) | N/A |
-| Test regressions | 0 |
-| Madge verification | ✅ Confirmed clean |
-
-### Conclusion
-
-The TDK CLI codebase demonstrates **excellent dependency hygiene** with zero circular dependencies. The architecture follows clean layering principles with unidirectional data flow. No breaking changes are required.
-
-**Recommended action**: Add madge to CI pipeline to prevent future circular dependencies.
+The codebase demonstrates a well-architected dependency structure with clear layering and proper separation of concerns. The dependency graph analysis reveals a clean unidirectional flow from high-level modules (CLI/commands) down to low-level utilities and types.
 
 ---
 
-**Report generated**: 2025-01-30  
-**Analyzed by**: Agent via madge v8.0.0  
-**Files scanned**: 39 TypeScript/TSX files  
-**Circular dependencies found**: 0
+## Dependency Graph Analysis
+
+### Layer Architecture
+
+The codebase follows a strict layered architecture:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Layer 4: CLI Entry (cli.ts)                                 │
+│ - Imports all command modules                               │
+│ - No other modules import this                              │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Layer 3: Commands (commands/*.ts, components/*.tsx)         │
+│ - Import from utils/* and types/*                         │
+│ - ui.tsx imports from components/index.ts (barrel)        │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Layer 2: Utilities (utils/*.ts)                           │
+│ - services.ts: Business logic (imports types, constants)    │
+│ - tilt.ts: Tilt CLI integration (imports types, services)   │
+│ - errors.ts: Error handling (imports services for root)   │
+│ - validation.ts: Input validation (imports types, constants)│
+│ - formatting.ts: Output formatting (leaf - no deps)         │
+│ - constants.ts: Constants (leaf - no deps)                  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Layer 1: Types & Config (types/index.ts, config/*)          │
+│ - Leaf modules with NO outbound dependencies                  │
+│ - All shared type definitions centralized                   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Key Dependency Chains
+
+#### Command Dependencies (Healthy)
+```
+commands/*.ts → utils/errors.ts → utils/services.ts → types/index.ts
+commands/*.ts → utils/services.ts → types/index.ts
+commands/*.ts → utils/tilt.ts → types/index.ts
+commands/*.ts → types/index.ts (direct type imports)
+commands/ui.tsx → components/index.ts → components/*.tsx → types/index.ts
+```
+
+#### Utility Dependencies (Healthy)
+```
+utils/errors.ts → utils/services.ts → utils/validation.ts → types/index.ts
+utils/services.ts → utils/constants.ts (leaf)
+utils/tilt.ts → utils/services.ts (re-exports findProjectRoot)
+utils/validation.ts → utils/constants.ts (leaf)
+```
+
+#### Generator Dependencies (Healthy)
+```
+generator/template-engine.ts → config/platform-standards.ts (leaf)
+generator/template-engine.ts → types/index.ts
+```
+
+---
+
+## Module Dependency Counts
+
+| Module | Dependents | Risk Level |
+|--------|------------|------------|
+| cli.ts | 17 | Low (entry point) |
+| types/index.ts | 16 | Low (leaf type module) |
+| components/index.ts | 6 | Low (barrel, controlled usage) |
+| utils/services.ts | 11 | Medium (core business logic) |
+| utils/errors.ts | 11 | Medium (depends on services) |
+| utils/tilt.ts | 7 | Low |
+| utils/validation.ts | 4 | Low |
+
+---
+
+## Barrel File Analysis
+
+### components/index.ts
+**Status:** ✅ Safe
+
+- **Exports:** 7 components + 2 types
+- **Imported by:** Only `commands/ui.tsx`
+- **Risk:** Low - single consumer, well-contained
+
+### types/index.ts
+**Status:** ✅ Safe (not a barrel, shared type module)
+
+- **Exports:** All shared type definitions
+- **Imported by:** 16 modules
+- **Risk:** None - this is a legitimate shared types module with no outbound dependencies
+
+---
+
+## Potential Risk Areas (Future Cycles)
+
+### 1. utils/errors.ts → utils/services.ts
+**Current Risk:** LOW  
+**Description:** The error module imports `findProjectRoot()` from services for the `requireProjectRoot()` helper.
+
+**Why it's safe now:**
+- `services.ts` never imports from `errors.ts`
+- Error handling happens at command layer, services throw native `Error` objects
+
+**Future risk:**
+- If `services.ts` starts importing error factories for consistent error handling, a cycle would form
+
+**Recommendation:**
+- Keep error factories at command layer
+- Services should continue throwing native errors
+- Consider moving `requireProjectRoot()` to a separate utility if needed
+
+### 2. commands/ui.tsx → components/index.ts
+**Current Risk:** LOW  
+**Description:** UI command imports components through barrel file.
+
+**Why it's safe now:**
+- Components only import from `types/index.ts` and `utils/formatting.ts`
+- No component imports from commands
+
+**Future risk:**
+- If components need to trigger commands or use command logic
+
+**Recommendation:**
+- Use callback props for component → command communication
+- Keep components presentational
+
+---
+
+## Leaf Modules (No Outbound Dependencies)
+
+These modules are safe anchors in the dependency graph:
+
+1. **types/index.ts** - All shared types
+2. **utils/constants.ts** - Constants and configuration
+3. **utils/formatting.ts** - Formatting utilities
+4. **config/platform-standards.ts** - Platform configuration
+5. **commands/completion.ts** - Shell completion
+6. **commands/help.ts** - Help display
+7. **commands/upgrade.ts** - Upgrade command
+8. **commands/version.ts** - Version display
+
+---
+
+## Architectural Recommendations
+
+### High Confidence (Implement Now)
+
+None required - codebase is already well-structured.
+
+### Medium Confidence (Consider for Future)
+
+1. **Add dependency linting to CI**
+   ```bash
+   npx madge --circular --extensions ts src/
+   ```
+   This will catch any accidental circular dependencies in PRs.
+
+2. **Document the dependency direction**
+   Add a note to AGENTS.md about the layered architecture to help future contributors maintain the pattern.
+
+### Low Confidence (Monitor Only)
+
+1. **Consider flattening components barrel**
+   If `ui.tsx` grows or more consumers are added, consider importing components directly instead of through the barrel.
+
+---
+
+## Summary
+
+| Metric | Value |
+|--------|-------|
+| Circular dependencies found | **0** |
+| Total modules analyzed | 39 |
+| Risky patterns detected | 0 |
+| Barrel files | 1 (safe) |
+| Leaf modules | 8 |
+
+### Conclusion
+
+The TDK CLI codebase demonstrates excellent dependency management practices:
+
+- ✅ Clear layered architecture
+- ✅ Unidirectional dependency flow
+- ✅ Proper use of barrel files (minimal, controlled)
+- ✅ Type-only imports where appropriate
+- ✅ Shared types centralized in leaf module
+- ✅ Utilities properly stratified
+
+**No immediate action required.** Continue monitoring with madge in CI to prevent future regressions.
+
+---
+
+## Appendix: Madge Output
+
+```bash
+$ npx madge --circular --extensions ts src/
+✔ No circular dependency found!
+
+$ npx madge --summary --extensions ts src/
+17 cli.ts
+6 components/index.ts
+5 commands/networks.ts
+...
+0 utils/constants.ts
+0 types/index.ts
+```
