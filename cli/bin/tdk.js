@@ -6,10 +6,8 @@ import { dirname, join } from 'node:path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Resolve the CLI entry point (source, no build needed with Bun)
 const cliPath = join(__dirname, '..', 'src', 'cli.ts');
 
-// Run the CLI
 import(cliPath).catch((err) => {
   console.error('Failed to start TDK:', err);
   process.exit(1);

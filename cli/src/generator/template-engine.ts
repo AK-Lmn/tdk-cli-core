@@ -128,7 +128,6 @@ export class TemplateEngine {
       return new Handlebars.SafeString(formatValue(value));
     });
 
-    // Helper to format arrays as Starlark lists
     Handlebars.registerHelper("starlarkArray", function(value: JsonValue[]): Handlebars.SafeString {
       if (!Array.isArray(value)) return new Handlebars.SafeString("[]");
       const starlarkHelper = Handlebars.helpers.starlark as (v: JsonValue) => Handlebars.SafeString;
@@ -176,9 +175,6 @@ export class TemplateEngine {
     };
   }
 
-  /**
-   * Load and compile a Handlebars template
-   */
   private loadTemplate(templateName: string): HandlebarsTemplateDelegate {
     const templatePath = path.join(this.templatesDir, `${templateName}.hbs`);
     if (!fs.existsSync(templatePath)) {
@@ -188,49 +184,31 @@ export class TemplateEngine {
     return Handlebars.compile(templateSource);
   }
 
-  /**
-   * Generate tilt.config.json
-   */
   generateTiltConfig(context: GeneratorContext): string {
     const template = this.loadTemplate("tilt.config.json");
     return template(context);
   }
 
-  /**
-   * Generate TILT_TECH_STACK.star
-   */
   generateTechStack(context: GeneratorContext): string {
     const template = this.loadTemplate("TILT_TECH_STACK.star");
     return template(context);
   }
 
-  /**
-   * Generate TILT_RESOURCE_DEFAULTS.star
-   */
   generateServiceDefaults(context: GeneratorContext): string {
     const template = this.loadTemplate("TILT_RESOURCE_DEFAULTS.star");
     return template(context);
   }
 
-  /**
-   * Generate spec.master
-   */
   generateSpecMaster(context: GeneratorContext): string {
     const template = this.loadTemplate("spec.master");
     return template(context);
   }
 
-  /**
-   * Generate Tiltfile (project root entrypoint)
-   */
   generateTiltfile(context: GeneratorContext): string {
     const template = this.loadTemplate("Tiltfile");
     return template(context);
   }
 
-  /**
-   * Generate all 5 files (4 in .tdk/.tdk-out/ + Tiltfile in root)
-   */
   generateAll(projectConfig: ProjectConfig): {
     "tilt.config.json": string;
     "TILT_TECH_STACK.star": string;
@@ -250,9 +228,6 @@ export class TemplateEngine {
   }
 }
 
-/**
- * Read and parse project.json
- */
 export function readProjectConfig(projectRoot: string): ProjectConfig {
   const projectJsonPath = path.join(projectRoot, ".tdk", "project.json");
 
@@ -284,9 +259,6 @@ export function readProjectConfig(projectRoot: string): ProjectConfig {
   return config;
 }
 
-/**
- * Generate master config files for a project
- */
 export function generateMasterConfigs(projectRoot: string): void {
   const projectConfig = readProjectConfig(projectRoot);
 
@@ -317,9 +289,6 @@ export function generateMasterConfigs(projectRoot: string): void {
   console.log("💡 To start Tilt: tdk up");
 }
 
-/**
- * Verify that generated files match expected output
- */
 export function verifyMasterConfigs(projectRoot: string): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 

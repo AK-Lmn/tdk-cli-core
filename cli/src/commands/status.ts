@@ -8,6 +8,8 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { discoverStacks, discoverResources } from '../utils/services.js';
 import { isTiltAvailable, runTilt, getTiltfilePath } from '../utils/tilt.js';
+import { runCommand } from '../utils/errors.js';
+import { formatCount } from '../utils/formatting.js';
 
 export const statusCommand = new Command('status')
   .description('Show status of resources and stacks')
@@ -16,7 +18,7 @@ export const statusCommand = new Command('status')
   .option('--resources', 'Show all discovered resources', false)
   .option('--tilt', 'Show tilt resource status', false)
   .action(async (options) => {
-    try {
+    await runCommand(async () => {
       // Check tilt availability
       const tiltAvailable = await isTiltAvailable();
 
@@ -42,7 +44,7 @@ export const statusCommand = new Command('status')
       if (stacks.length > 0) {
         for (const stack of stacks) {
           const resourcesInStack = stack.resources.length;
-          console.log(chalk.gray(`  - ${stack.name}: ${resourcesInStack} resource${resourcesInStack === 1 ? '' : 's'}`));
+          console.log(chalk.gray(`  - ${stack.name}: ${formatCount(resourcesInStack, 'resource')}`));
 
           if (options.verbose) {
             for (const resource of stack.resources) {
@@ -56,7 +58,7 @@ export const statusCommand = new Command('status')
       const resourcesWithoutStack = resources.filter(r => !r.stack);
       if (resourcesWithoutStack.length > 0) {
         console.log();
-        console.log(chalk.yellow(`${resourcesWithoutStack.length} resource${resourcesWithoutStack.length === 1 ? '' : 's'} not in any stack:`));
+        console.log(chalk.yellow(`${formatCount(resourcesWithoutStack.length, 'resource')} not in any stack:`));
 
         if (options.verbose) {
           for (const resource of resourcesWithoutStack) {
@@ -83,9 +85,5 @@ export const statusCommand = new Command('status')
       console.log();
       console.log(chalk.gray('Run "tdk list-stacks" to see all stacks.'));
       console.log(chalk.gray('Run "tdk up <stack-name>" to start a stack.'));
-
-    } catch (err) {
-      console.error(chalk.red(`Error: ${err}`));
-      process.exit(1);
-    }
+    });
   });

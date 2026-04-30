@@ -10,8 +10,10 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { execSync } from 'node:child_process';
 import chalk from 'chalk';
-import { requireProjectRoot } from '../utils/errors.js';
+import { requireProjectRoot, runCommand } from '../utils/errors.js';
 import { generateMasterConfigs, verifyMasterConfigs, readProjectConfig, TemplateEngine } from '../generator/template-engine.js';
+import { MASTER_CONFIG_FILES } from '../utils/constants.js';
+import { validateOptionalInfraService } from '../utils/validation.js';
 
 export const configCommand = new Command('config')
   .description('Manage project configuration and regenerate master files')
@@ -31,12 +33,7 @@ export const configCommand = new Command('config')
             const newFiles = engine.generateAll(projectConfig);
 
             const outputDir = join(projectRoot, '.tdk', '.tdk-out');
-            const filesToCheck = [
-              'tilt.config.json',
-              'TILT_TECH_STACK.star',
-              'TILT_RESOURCE_DEFAULTS.star',
-              'spec.master',
-            ];
+            const filesToCheck = MASTER_CONFIG_FILES;
 
             let hasChanges = false;
 
@@ -186,12 +183,12 @@ export const configCommand = new Command('config')
       .description('Enable optional infrastructure service')
       .argument('<service>', 'Service name (monitoring, elk, debezium, golden_image)')
       .action(async (service) => {
-        try {
+        await runCommand(async () => {
           const projectRoot = requireProjectRoot();
 
-          const validServices = ['monitoring', 'elk', 'debezium', 'golden_image'];
-          if (!validServices.includes(service)) {
-            console.error(chalk.red(`Error: Invalid service. Must be one of: ${validServices.join(', ')}`));
+          const validation = validateOptionalInfraService(service);
+          if (!validation.valid) {
+            console.error(chalk.red(`Error: ${validation.error}`));
             process.exit(1);
           }
 
@@ -203,10 +200,7 @@ export const configCommand = new Command('config')
 
           console.log(chalk.green(`✓ Enabled: ${service}`));
           console.log(chalk.gray('Run `tdk config regenerate` to apply.'));
-        } catch (err) {
-          console.error(chalk.red(`Error: ${err instanceof Error ? err.message : String(err)}`));
-          process.exit(1);
-        }
+        });
       })
   )
   .addCommand(
@@ -214,12 +208,12 @@ export const configCommand = new Command('config')
       .description('Disable optional infrastructure service')
       .argument('<service>', 'Service name (monitoring, elk, debezium, golden_image)')
       .action(async (service) => {
-        try {
+        await runCommand(async () => {
           const projectRoot = requireProjectRoot();
 
-          const validServices = ['monitoring', 'elk', 'debezium', 'golden_image'];
-          if (!validServices.includes(service)) {
-            console.error(chalk.red(`Error: Invalid service. Must be one of: ${validServices.join(', ')}`));
+          const validation = validateOptionalInfraService(service);
+          if (!validation.valid) {
+            console.error(chalk.red(`Error: ${validation.error}`));
             process.exit(1);
           }
 
@@ -231,9 +225,6 @@ export const configCommand = new Command('config')
 
           console.log(chalk.green(`✓ Disabled: ${service}`));
           console.log(chalk.gray('Run `tdk config regenerate` to apply.'));
-        } catch (err) {
-          console.error(chalk.red(`Error: ${err instanceof Error ? err.message : String(err)}`));
-          process.exit(1);
-        }
+        });
       })
   );

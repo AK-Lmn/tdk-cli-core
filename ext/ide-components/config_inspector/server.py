@@ -280,7 +280,6 @@ class ConfigInspectorHandler(BaseHTTPRequestHandler):
         """
         masters = []
         
-        # Get sequential parameters
         for i in range(1, 4):
             param_name = f'master{i}'
             if param_name in query and query[param_name][0]:
@@ -780,7 +779,6 @@ class ConfigInspectorHandler(BaseHTTPRequestHandler):
             if (saveBtn) saveBtn.classList.remove('hidden');
         }
         
-        // Setup sync scroll
         function setupSyncScroll() {
             if (!window.SYNC_SCROLL) return;
             
@@ -855,24 +853,14 @@ class ConfigInspectorHandler(BaseHTTPRequestHandler):
             });
         }
         
-        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            // Setup change tracking for textareas
             document.querySelectorAll('textarea.config-editor').forEach(textarea => {
                 const paneIndex = parseInt(textarea.dataset.pane);
                 textarea.addEventListener('input', () => onContentChange(paneIndex));
             });
-            
-            // Setup sync scroll
             setupSyncScroll();
-            
-            // Setup keyboard shortcuts
             setupKeyboardShortcuts();
-            
-            // Setup before unload warning
             setupBeforeUnload();
-            
-            // Update UI based on edit mode
             updateSaveAllButton();
         });
     </script>
@@ -951,7 +939,6 @@ class ConfigInspectorHandler(BaseHTTPRequestHandler):
             selected_paths, error_msg = self.parse_multi_master_params(query)
             
             if error_msg:
-                # Show error page
                 sidebar = self.render_config_tree(master_configs)
                 error_html = f'<div class="empty-state"><div class="empty-state-icon">❌</div><p>{self.escape_html(error_msg)}</p></div>'
                 csrf_token = self.generate_csrf_token()

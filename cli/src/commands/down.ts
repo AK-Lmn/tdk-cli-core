@@ -7,6 +7,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { runTilt, buildTiltDownArgs, isTiltAvailable } from '../utils/tilt.js';
+import { runCommand } from '../utils/errors.js';
 
 export const downCommand = new Command('down')
   .description('Stop all tilt resources')
@@ -14,7 +15,7 @@ export const downCommand = new Command('down')
   .option('-f, --force', 'Skip confirmation', false)
   .option('--dry-run', 'Show what would be stopped without stopping', false)
   .action(async (options) => {
-    try {
+    await runCommand(async () => {
       // Check tilt is available
       if (!await isTiltAvailable()) {
         console.error(chalk.red('Error: tilt CLI not found. Make sure Tilt is installed.'));
@@ -48,9 +49,5 @@ export const downCommand = new Command('down')
         console.error(chalk.red(`\ntilt down failed with exit code ${result.exitCode}`));
         process.exit(result.exitCode);
       }
-
-    } catch (err) {
-      console.error(chalk.red(`Error: ${err}`));
-      process.exit(1);
-    }
+    });
   });

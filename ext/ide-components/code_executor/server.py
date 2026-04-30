@@ -155,9 +155,7 @@ class CodeExecutorHandler(BaseHTTPRequestHandler):
                 self.send_error(404)
             return
         
-        # Main terminal page
         if path in ('/', '/terminal'):
-            # Get working directory from query
             cwd = query.get('cwd', [str(PROJECT_ROOT)])[0]
             cwd_display = self.escape_html(cwd.replace(str(PROJECT_ROOT), '~'))
             

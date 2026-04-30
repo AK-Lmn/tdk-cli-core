@@ -7,6 +7,7 @@
 import React from 'react';
 import { Box, Text } from 'ink';
 import type { DiscoveredStack, DiscoveredResource, StackMetadata, ResourceMetadata } from '../types/index.js';
+import { formatDate } from '../utils/formatting.js';
 
 interface DetailPanelProps {
   stack: DiscoveredStack | null;
@@ -179,11 +180,7 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
   );
 };
 
-function formatDate(timestamp: string): string {
-  const date = new Date(timestamp);
-  if (isNaN(date.getTime())) {
-    throw new Error(`Invalid timestamp: ${timestamp}`);
-  }
+
   return date.toLocaleString('en-US', {
     month: 'short',
     day: 'numeric',

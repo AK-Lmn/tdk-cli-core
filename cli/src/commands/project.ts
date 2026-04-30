@@ -80,7 +80,7 @@ export const projectCommand = new Command('project')
       const projectJsonPath = join(tdkDir, 'project.json');
 
     if (options.check) {
-        const allFilesExist = ['tilt.config.json', 'TILT_TECH_STACK.star', 'TILT_RESOURCE_DEFAULTS.star', 'spec.master']
+        const allFilesExist = MASTER_CONFIG_FILES
           .every(f => existsSync(join(projectRoot, '.tdk', '.tdk-out', f)));
         const projectJsonExists = existsSync(projectJsonPath);
 
@@ -102,7 +102,7 @@ export const projectCommand = new Command('project')
           console.log(chalk.yellow('⚠️  Project configuration incomplete:'));
           if (!projectJsonExists) console.log(chalk.gray('   - .tdk/project.json (not found)'));
           if (!allFilesExist) {
-            ['tilt.config.json', 'TILT_TECH_STACK.star', 'TILT_RESOURCE_DEFAULTS.star', 'spec.master']
+            MASTER_CONFIG_FILES
               .filter(f => !existsSync(join(projectRoot, '.tdk/.tdk-out', f)))
               .forEach(f => console.log(chalk.gray(`   - .tdk/.tdk-out/${f} (not found)`)));
           }
@@ -129,10 +129,9 @@ export const projectCommand = new Command('project')
           generateMasterConfigs(projectRoot);
       console.log(chalk.green('\n✅ Project configuration regenerated!'));
       console.log(chalk.gray('\nGenerated in .tdk/.tdk-out/:'));
-      console.log(chalk.gray('  - tilt.config.json (Tilt UI settings)'));
-      console.log(chalk.gray('  - TILT_TECH_STACK.star (tech stack constants)'));
-      console.log(chalk.gray('  - TILT_RESOURCE_DEFAULTS.star (service defaults)'));
-      console.log(chalk.gray('  - spec.master (stack definitions)'));
+      for (const file of MASTER_CONFIG_FILES) {
+        console.log(chalk.gray(`  - ${file}`));
+      }
           return;
         } catch (err) {
           console.error(chalk.red(`\n❌ Error generating files: ${err instanceof Error ? err.message : String(err)}`));
@@ -257,19 +256,14 @@ export const projectCommand = new Command('project')
 
       console.log(chalk.green('\n✅ Project configuration complete!'));
       console.log(chalk.gray('\nGenerated files in .tdk/.tdk-out/:'));
-      console.log(chalk.gray('  - tilt.config.json (Tilt UI settings)'));
-      console.log(chalk.gray('  - TILT_TECH_STACK.star (tech stack constants)'));
-      console.log(chalk.gray('  - TILT_RESOURCE_DEFAULTS.star (service defaults)'));
-      console.log(chalk.gray('  - spec.master (stack definitions)'));
+      for (const file of MASTER_CONFIG_FILES) {
+        console.log(chalk.gray(`  - ${file}`));
+      }
       console.log(chalk.gray('\nSource file:'));
       console.log(chalk.gray('  - .tdk/project.json (edit this to change project structure)'));
       console.log(chalk.gray('\nNext steps:'));
       console.log(chalk.gray('  1. Run `tdk config regenerate` after editing .tdk/project.json'));
       console.log(chalk.gray('  2. Run `tdk stack` to manage services in stacks'));
       console.log(chalk.gray('  3. Run `tdk up` to start development'));
-
-    } catch (err) {
-      console.error(chalk.red(`Error: ${err instanceof Error ? err.message : String(err)}`));
-      process.exit(1);
-    }
+    });
   });

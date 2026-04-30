@@ -22,13 +22,11 @@ interface ServiceUrl {
 
 const BOX_WIDTH = 62;
 
-// Get base domain from environment or auto-detect
 function getBaseDomain(): string {
   if (process.env.TDK_PUBLIC_HOST) {
     return process.env.TDK_PUBLIC_HOST;
   }
 
-  // Try to read from project config first (most reliable)
   try {
     const projectRoot = findProjectRoot();
     if (projectRoot) {
@@ -140,14 +138,12 @@ function checkServiceStatus(serviceName: string, port?: number, url?: string): '
   // Only use this if we couldn't check via HTTP (no URL configured)
   if (port) {
     try {
-      // Check if anything is listening on the port using lsof
       execSync(
         `lsof -Pi :${port} -sTCP:LISTEN 2>/dev/null | grep -q LISTEN`,
         { encoding: 'utf-8', stdio: 'pipe' }
       );
       return 'running';
     } catch {
-      // Try netstat as fallback
       try {
         execSync(
           `netstat -tlnp 2>/dev/null | grep -q ":${port} "`,
@@ -155,7 +151,7 @@ function checkServiceStatus(serviceName: string, port?: number, url?: string): '
         );
         return 'running';
       } catch {
-        // Port check failed
+        // No process listening
       }
     }
   }
@@ -178,7 +174,6 @@ function checkServiceStatus(serviceName: string, port?: number, url?: string): '
   return 'stopped';
 }
 
-// Helper to create a line of box characters
 function line(char: string, width: number = BOX_WIDTH): string {
   return char.repeat(width);
 }

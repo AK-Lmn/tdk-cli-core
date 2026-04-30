@@ -25,14 +25,3 @@ export const VALID_RESOURCE_TYPES = [
   'worker',
 ] as const;
 
-/**
- * Port range configuration by resource type
- * Centralized from resource.ts and platform-standards.ts
- */
-export const PORT_RANGES = {
-  frontend: { base: 3000, min: 3000, max: 3999 },
-  backend: { base: 4000, min: 4000, max: 4999 },
-  worker: { base: 6000, min: 6000, max: 6999 },
-} as const;
-
-

@@ -270,12 +270,10 @@ class VideoGenerator:
             # Title with animation
             title_y = int(300 + (1-anim) * 50)
             
-            # Chapter label
             if frame_in_scene > 10:
                 draw.text((100, 60), scene.content[0] if scene.content else "", 
                          fill=accent, font=self.fonts['body'])
             
-            # Main title
             bbox = draw.textbbox((0, 0), scene.title, font=self.fonts['display'])
             title_x = (self.width - (bbox[2]-bbox[0])) // 2
             draw.text((title_x, title_y), scene.title, fill=(255, 255, 255), 

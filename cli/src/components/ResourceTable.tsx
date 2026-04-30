@@ -8,6 +8,7 @@
 import React from 'react';
 import { Box, Text } from 'ink';
 import type { ResourceMetadata } from '../types/index.js';
+import { truncate, formatShortDate, getStatusColor, getStatusIcon } from '../utils/formatting.js';
 
 interface ResourceTableProps {
   resources: ResourceMetadata[];
@@ -93,13 +94,7 @@ export const ResourceTable: React.FC<ResourceTableProps> = ({ resources, maxWidt
   );
 };
 
-function getStatusColor(status: string): string {
-  switch (status) {
-    case 'ready': return 'green';
-    case 'pending': return 'yellow';
-    case 'error': return 'red';
-    default: return 'gray';
-  }
+
 }
 
 function getStatusIcon(status: string): string {
