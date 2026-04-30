@@ -263,7 +263,12 @@ def _apply_manifest_defaults(manifest, resource_path):
     # Validate custom dockerfile exists if specified
     if 'dockerfile' in result:
         custom_dockerfile = result['dockerfile']
-        dockerfile_path = resource_path + '/' + custom_dockerfile
+        # Prepend project root to resource path for correct file resolution
+        project_root = os.environ.get('TDK_PROJECT_ROOT', '')
+        if project_root:
+            dockerfile_path = project_root + '/' + resource_path + '/' + custom_dockerfile
+        else:
+            dockerfile_path = resource_path + '/' + custom_dockerfile
         dockerfile_exists = local("test -f '{path}' && echo 'yes' || echo 'no'".format(path=dockerfile_path), quiet=True, echo_off=True)
         if str(dockerfile_exists).strip() != 'yes':
             fail("""
