@@ -74,7 +74,7 @@ function checkMasterConfigs(): CheckResult {
     };
   }
 
-  const missing = [];
+  const missing: string[] = [];
   if (!defaultsExists) missing.push("TILT_RESOURCE_DEFAULTS.star");
   if (!techStackExists) missing.push("TILT_TECH_STACK.star");
 

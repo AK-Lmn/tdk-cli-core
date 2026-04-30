@@ -1,7 +1,7 @@
 /** Enhanced error messages with colors and suggestions */
 
 import chalk from 'chalk';
-import { findProjectRoot } from './services.js';
+import { findProjectRoot } from './paths.js';
 
 class TdkError extends Error {
   public suggestions: string[];

@@ -172,11 +172,17 @@ export class TemplateEngine {
     return template(context);
   }
 
+  generateTiltIgnore(context: GeneratorContext): string {
+    const template = this.loadTemplate(".tiltignore");
+    return template(context);
+  }
+
   generateAll(projectConfig: ProjectConfig): {
     "TILT_TECH_STACK.star": string;
     "TILT_RESOURCE_DEFAULTS.star": string;
     "spec.master": string;
     "Tiltfile": string;
+    ".tiltignore": string;
   } {
     const context = this.buildContext(projectConfig);
 
@@ -185,6 +191,7 @@ export class TemplateEngine {
       "TILT_RESOURCE_DEFAULTS.star": this.generateServiceDefaults(context),
       "spec.master": this.generateSpecMaster(context),
       "Tiltfile": this.generateTiltfile(context),
+      ".tiltignore": this.generateTiltIgnore(context),
     };
   }
 }
@@ -195,6 +202,7 @@ const ALL_GENERATED_FILES = [
   "TILT_RESOURCE_DEFAULTS.star",
   "spec.master",
   "Tiltfile",
+  ".tiltignore",
 ] as const;
 
 /**
@@ -291,6 +299,14 @@ export function generateMasterConfigs(projectRoot: string): void {
     const filePath = path.join(outputDir, filename);
     fs.writeFileSync(filePath, content, "utf-8");
     console.log(`✓ Generated: .tdk/.tdk-out/${filename}`);
+  }
+
+  // Copy .tiltignore to project root so Tilt uses it
+  const tiltignoreSource = path.join(outputDir, ".tiltignore");
+  const tiltignoreTarget = path.join(projectRoot, ".tiltignore");
+  if (fs.existsSync(tiltignoreSource)) {
+    fs.copyFileSync(tiltignoreSource, tiltignoreTarget);
+    console.log(`✓ Copied: .tiltignore → project root`);
   }
 
   console.log("");

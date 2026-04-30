@@ -87,11 +87,11 @@ export async function isTiltAvailable(): Promise<boolean> {
   return result.exitCode === 0;
 }
 
-import { findProjectRoot as servicesFindProjectRoot } from './services.js';
+import { findProjectRoot } from './paths.js';
 import { join } from 'node:path';
 
 export function getTiltfilePath(): string {
-  const projectRoot = servicesFindProjectRoot();
+  const projectRoot = findProjectRoot();
   if (!projectRoot) {
     throw new Error('Not in a TDK project (no .tdk/project.json found)');
   }
