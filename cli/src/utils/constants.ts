@@ -25,10 +25,19 @@ export const ALL_GENERATED_FILES = [
 ] as const;
 
 /**
+ * Valid resource types for the resource command
+ */
+export const VALID_RESOURCE_TYPES = [
+  'backend',
+  'frontend',
+  'worker',
+] as const;
+
+/**
  * Optional infrastructure services
  * Used in config.ts enable-infra/disable-infra subcommands
  */
-const OPTIONAL_INFRA_SERVICES = [
+export const OPTIONAL_INFRA_SERVICES = [
   'monitoring',
   'elk',
   'debezium',
@@ -36,19 +45,10 @@ const OPTIONAL_INFRA_SERVICES = [
 ] as const;
 
 /**
- * Valid resource types for the resource command
- */
-const VALID_RESOURCE_TYPES = [
-  'backend',
-  'frontend',
-  'worker',
-] as const;
-
-/**
  * Port range configuration by resource type
  * Centralized from resource.ts and platform-standards.ts
  */
-const PORT_RANGES = {
+export const PORT_RANGES = {
   frontend: { base: 3000, min: 3000, max: 3999 },
   backend: { base: 4000, min: 4000, max: 4999 },
   worker: { base: 6000, min: 6000, max: 6999 },
