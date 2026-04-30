@@ -354,8 +354,8 @@ def _scan_resources():
                 break
         
         # Use configured pattern or default to parent folder
-        pattern = SCAN_ROOT_PATTERNS.get(matching_root, {"stack_depth": -2})
-        depth = pattern["stack_depth"]
+        pattern = SCAN_ROOT_PATTERNS.get(matching_root, {"domain_depth": -2})
+        depth = pattern["domain_depth"]
         
         # Extract domain based on configured depth
         if abs(depth) <= len(path_parts):
