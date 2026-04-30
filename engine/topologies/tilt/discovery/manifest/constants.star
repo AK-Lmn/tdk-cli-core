@@ -3,8 +3,9 @@
 # =============================================================================
 # Path: .tilt/topologies/tilt/discovery/manifest/constants.star
 # Purpose: DEPRECATED - Re-export from new location for backward compatibility
-# 
-# ⚠️  WARNING: This file is deprecated and will be removed in Phase 5
+#
+# ⚠️  WARNING: This file is deprecated and unreachable.
+#    The USE_TDK_DISCOVERY env var is never checked, making this code unused.
 #    Use: load("../../manifest/__init__.star", "Manifest")
 #    Instead of: load("./manifest/constants.star", "...")
 # =============================================================================

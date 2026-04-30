@@ -6,7 +6,6 @@ import { describe, it, expect } from 'vitest';
 
 describe('project command', () => {
   it('should verify template files exist', () => {
-    // Check that template file paths are correctly defined
     const expectedTemplates = [
       'TILT_RESOURCE_DEFAULTS.star.hbs',
       'TILT_TECH_STACK.star.hbs',
@@ -25,7 +24,6 @@ describe('project command', () => {
   });
 
   it('should have templates with required content patterns', () => {
-    // Define expected content patterns for each template
     const templatePatterns = {
       'TILT_RESOURCE_DEFAULTS.star.hbs': [
         'BASE_PORT_FRONTEND',
@@ -51,7 +49,6 @@ describe('project command', () => {
     expect(Object.keys(templatePatterns)).toContain('TILT_TECH_STACK.star.hbs');
     expect(Object.keys(templatePatterns)).toContain('Tiltfile.hbs');
 
-    // Check specific patterns
     expect(templatePatterns['TILT_RESOURCE_DEFAULTS.star.hbs']).toContain('BASE_PORT_FRONTEND');
     expect(templatePatterns['TILT_RESOURCE_DEFAULTS.star.hbs']).toContain('HEALTH_CHECK_PATH');
     expect(templatePatterns['TILT_TECH_STACK.star.hbs']).toContain('BUNDLER');

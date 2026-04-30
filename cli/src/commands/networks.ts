@@ -341,7 +341,7 @@ export const networksCommand = new Command('networks')
     
     // Footer
     console.log();
-    console.log(chalk.gray(line('─', BOX_WIDTH - 2)));
+    console.log(chalk.gray(formatBoxLine('─', BOX_WIDTH - 2)));
     console.log(chalk.gray('🖱️  Click any URL above to open in browser'));
     console.log(chalk.gray('📊 Status: ') + chalk.green('✓ Running') + ' | ' + chalk.red('✗ Stopped') + ' | ' + chalk.gray('? Unknown'));
     
