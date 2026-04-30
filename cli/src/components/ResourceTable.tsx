@@ -117,15 +117,14 @@ function truncate(str: string, maxLength: number): string {
 }
 
 function formatShortDate(timestamp: string): string {
-  try {
-    const date = new Date(timestamp);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return '-';
+  const date = new Date(timestamp);
+  if (isNaN(date.getTime())) {
+    throw new Error(`Invalid timestamp: ${timestamp}`);
   }
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }

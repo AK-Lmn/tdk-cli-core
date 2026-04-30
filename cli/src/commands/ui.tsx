@@ -61,7 +61,6 @@ const HelpPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => (
   </Box>
 );
 
-// Loading Screen Component
 const LoadingScreen: React.FC<{ progress: number; message: string }> = ({ progress, message }) => (
   <Box flexDirection="column" padding={2}>
     <Text bold color="cyan">▓▒░ TDK NEON EDITION ░▒▓</Text>
@@ -76,7 +75,6 @@ const LoadingScreen: React.FC<{ progress: number; message: string }> = ({ progre
   </Box>
 );
 
-// Error Screen Component
 const ErrorScreen: React.FC<{ error: string; onRetry: () => void }> = ({ error, onRetry }) => (
   <Box flexDirection="column" padding={2} alignItems="center">
     <Text bold color="red">Connection Error</Text>
@@ -92,7 +90,6 @@ const ErrorScreen: React.FC<{ error: string; onRetry: () => void }> = ({ error, 
   </Box>
 );
 
-// Empty State Component
 const EmptyState: React.FC = () => (
   <Box flexDirection="column" padding={2} alignItems="center">
     <Text bold color="yellow">No Services Found</Text>
@@ -107,7 +104,6 @@ const EmptyState: React.FC = () => (
   </Box>
 );
 
-// Main UI Component
 const TUIApp: React.FC = () => {
   const { exit } = useApp();
   const { stdout } = useStdout();
@@ -137,10 +133,8 @@ const TUIApp: React.FC = () => {
   const [showTooltips, setShowTooltips] = useState(true);
   const [showEnabledOnly, setShowEnabledOnly] = useState(true); // Default to enabled only for alpha
 
-  // Data
   const projectRoot = findProjectRoot() || 'unknown';
   
-  // Loading effect
   useEffect(() => {
     const loadSteps = [
       { msg: 'Discovering services...', progress: 20 },
@@ -168,7 +162,6 @@ const TUIApp: React.FC = () => {
   const stacks = discoverStacks();
   const services = discoverResources();
   
-  // Handle errors
   useEffect(() => {
     try {
       if (services.length === 0) {
@@ -181,7 +174,6 @@ const TUIApp: React.FC = () => {
     }
   }, [services.length]);
   
-  // Get metadata for selected stack
   const selectedStackData = useMemo(() => {
     if (!selectedStack) return null;
     const stack = stacks.find(s => s.name === selectedStack);
@@ -192,7 +184,6 @@ const TUIApp: React.FC = () => {
     };
   }, [selectedStack, stacks]);
 
-  // Get metadata for selected service
   const selectedServiceData = useMemo(() => {
     if (!selectedService) return null;
     const service = services.find((s: DiscoveredResource) => s.name === selectedService);
@@ -203,7 +194,6 @@ const TUIApp: React.FC = () => {
     };
   }, [selectedService, services]);
 
-  // Filtered items based on search
   const filteredStacks = useMemo(() => {
     if (!searchQuery) return stacks;
     return stacks.filter(s => 
@@ -214,11 +204,9 @@ const TUIApp: React.FC = () => {
 
   const filteredServices = useMemo(() => {
     let filtered = services;
-    // Filter by enabled status if showEnabledOnly is true
     if (showEnabledOnly) {
       filtered = filtered.filter((s: DiscoveredResource) => s.config?.enabled !== false);
     }
-    // Filter by search query
     if (searchQuery) {
       filtered = filtered.filter((s: DiscoveredResource) => 
         s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -228,7 +216,6 @@ const TUIApp: React.FC = () => {
     return filtered;
   }, [services, searchQuery, showEnabledOnly]);
 
-  // Build menu items for current tab
   const getItems = useCallback(() => {
     if (activeTab === 'overview') {
       return filteredStacks.map(stack => ({

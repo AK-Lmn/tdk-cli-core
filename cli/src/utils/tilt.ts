@@ -110,14 +110,11 @@ export function runTilt(
  * Check if tilt CLI is available
  * 
  * @returns Promise resolving to boolean
+ * @throws Error if tilt command fails unexpectedly (other than not found)
  */
 export async function isTiltAvailable(): Promise<boolean> {
-  try {
-    const result = await runTilt('version', [], { inheritStdio: false });
-    return result.exitCode === 0;
-  } catch {
-    return false;
-  }
+  const result = await runTilt('version', [], { inheritStdio: false });
+  return result.exitCode === 0;
 }
 
 import { findProjectRoot as servicesFindProjectRoot } from './services.js';

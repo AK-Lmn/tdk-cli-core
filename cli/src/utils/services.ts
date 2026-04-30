@@ -22,8 +22,6 @@ import type {
 
 const RESOURCE_JSON_FILENAME = 'service.json';
 
-
-
 /**
  * Find the project root by looking for .tdk/project.json
  */
@@ -108,31 +106,26 @@ function shouldSkipDirectory(name: string): boolean {
 
 /**
  * Parse a service.json file into DiscoveredResource
+ * 
+ * @throws Error if file cannot be read or contains invalid JSON
  */
-function parseResource(serviceJsonPath: string): DiscoveredResource | null {
-  try {
-    const content = readFileSync(serviceJsonPath, 'utf-8');
-    const config = JSON.parse(content) as ResourceConfig;
+function parseResource(serviceJsonPath: string): DiscoveredResource {
+  const content = readFileSync(serviceJsonPath, 'utf-8');
+  const config = JSON.parse(content) as ResourceConfig;
 
-    if (!config.appName) {
-      console.warn(`Warning: Invalid service.json at ${serviceJsonPath}: missing appName field`);
-      return null;
-    }
-
-    const resourceDir = dirname(serviceJsonPath);
-
-    return {
-      name: config.appName,
-      path: resourceDir,
-      configPath: serviceJsonPath,
-      config,
-      stack: config.stack,
-    };
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
-    console.warn(`Warning: Failed to parse service.json at ${serviceJsonPath}: ${errorMessage}`);
-    return null;
+  if (!config.appName) {
+    throw new Error(`Invalid service.json at ${serviceJsonPath}: missing appName field`);
   }
+
+  const resourceDir = dirname(serviceJsonPath);
+
+  return {
+    name: config.appName,
+    path: resourceDir,
+    configPath: serviceJsonPath,
+    config,
+    stack: config.stack,
+  };
 }
 
 /**
@@ -151,9 +144,16 @@ export function discoverResources(): DiscoveredResource[] {
   }
 
   const serviceJsonPaths = findServiceJsonFiles(projectRoot);
-  const resources = serviceJsonPaths
-    .map(path => parseResource(path))
-    .filter((r): r is DiscoveredResource => r !== null);
+  const resources: DiscoveredResource[] = [];
+
+  for (const path of serviceJsonPaths) {
+    try {
+      resources.push(parseResource(path));
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.warn(`Warning: Failed to parse service.json at ${path}: ${errorMessage}`);
+    }
+  }
 
   return resources;
 }
@@ -455,47 +455,43 @@ export function getStackMetadata(stack: DiscoveredStack): StackMetadata {
 
 /**
  * Query Tilt for resource runtime status
+ * 
+ * @throws Error if tilt command fails unexpectedly
  */
 export function getTiltResourceStatus(resourceName: string): TiltResourceStatus {
-  const defaultStatus: TiltResourceStatus = {
-    runtimeStatus: 'unknown',
-    buildStatus: 'unknown',
-    lastBuildTime: null,
-    currentBuildTime: null,
-    available: false,
-  };
+  const output = execSync(`tilt get resource ${resourceName} -o json`, {
+    encoding: 'utf-8',
+    timeout: 5000,
+    stdio: ['pipe', 'pipe', 'pipe'],
+  });
 
-  try {
-    const output = execSync(`tilt get resource ${resourceName} -o json`, {
-      encoding: 'utf-8',
-      timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
+  const resource = JSON.parse(output);
+  const status = resource?.status;
 
-    const resource = JSON.parse(output);
-    const status = resource?.status;
-
-    if (!status) {
-      return defaultStatus;
-    }
-
-    const runtimeStatus = status.runtimeStatus?.toLowerCase() || 'unknown';
-    const buildStatus = status.buildStatus?.toLowerCase() || 'unknown';
-
+  if (!status) {
     return {
-      runtimeStatus: ['running', 'pending', 'error'].includes(runtimeStatus) 
-        ? runtimeStatus as TiltResourceStatus['runtimeStatus']
-        : 'unknown',
-      buildStatus: ['ok', 'error', 'in_progress'].includes(buildStatus)
-        ? buildStatus as TiltResourceStatus['buildStatus']
-        : 'unknown',
-      lastBuildTime: status.lastBuildTime || null,
-      currentBuildTime: status.currentBuildTime || null,
-      available: true,
+      runtimeStatus: 'unknown',
+      buildStatus: 'unknown',
+      lastBuildTime: null,
+      currentBuildTime: null,
+      available: false,
     };
-  } catch {
-    return defaultStatus;
   }
+
+  const runtimeStatus = status.runtimeStatus?.toLowerCase() || 'unknown';
+  const buildStatus = status.buildStatus?.toLowerCase() || 'unknown';
+
+  return {
+    runtimeStatus: ['running', 'pending', 'error'].includes(runtimeStatus) 
+      ? runtimeStatus as TiltResourceStatus['runtimeStatus']
+      : 'unknown',
+    buildStatus: ['ok', 'error', 'in_progress'].includes(buildStatus)
+      ? buildStatus as TiltResourceStatus['buildStatus']
+      : 'unknown',
+    lastBuildTime: status.lastBuildTime || null,
+    currentBuildTime: status.currentBuildTime || null,
+    available: true,
+  };
 }
 
 

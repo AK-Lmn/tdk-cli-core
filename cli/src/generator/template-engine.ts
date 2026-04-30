@@ -30,8 +30,13 @@ interface ProjectConfig {
   discovery: {
     paths: string[];
   };
-  overrides?: Record<string, unknown>;
+  overrides?: Record<string, JsonValue>;
 }
+
+/** JSON-compatible value types for configuration overrides */
+type JsonValue = string | number | boolean | null | JsonArray | JsonObject;
+interface JsonArray extends Array<JsonValue> {}
+interface JsonObject extends Record<string, JsonValue> {}
 
 interface GeneratorContext {
   version: string;
@@ -98,8 +103,8 @@ export class TemplateEngine {
    */
   private registerHelpers(): void {
     // Helper to format values for Starlark (arrays, objects, primitives)
-    Handlebars.registerHelper("starlark", function(value: unknown): Handlebars.SafeString {
-      const formatValue = (val: unknown): string => {
+    Handlebars.registerHelper("starlark", function(value: JsonValue): Handlebars.SafeString {
+      const formatValue = (val: JsonValue): string => {
         if (val === null || val === undefined) {
           return "None";
         }
@@ -117,7 +122,7 @@ export class TemplateEngine {
           return `[${items.join(", ")}]`;
         }
         if (typeof val === "object") {
-          const entries = Object.entries(val as Record<string, unknown>).map(([key, v]) => {
+          const entries = Object.entries(val).map(([key, v]) => {
             return `"${key}": ${formatValue(v)}`;
           });
           return `{${entries.join(", ")}}`;
@@ -128,15 +133,15 @@ export class TemplateEngine {
     });
 
     // Helper to format arrays as Starlark lists
-    Handlebars.registerHelper("starlarkArray", function(value: unknown[]): Handlebars.SafeString {
+    Handlebars.registerHelper("starlarkArray", function(value: JsonValue[]): Handlebars.SafeString {
       if (!Array.isArray(value)) return new Handlebars.SafeString("[]");
-      const starlarkHelper = Handlebars.helpers.starlark as (v: unknown) => Handlebars.SafeString;
+      const starlarkHelper = Handlebars.helpers.starlark as (v: JsonValue) => Handlebars.SafeString;
       const items = value.map((item) => starlarkHelper(item).toString());
       return new Handlebars.SafeString(`[${items.join(", ")}]`);
     });
 
     // Helper for JSON-compatible output (for JSON files)
-    Handlebars.registerHelper("json", function(value: unknown): string {
+    Handlebars.registerHelper("json", function(value: JsonValue): string {
       return JSON.stringify(value);
     });
   }
@@ -336,10 +341,7 @@ export function verifyMasterConfigs(projectRoot: string): { valid: boolean; erro
       }
     }
 
-    const oldTiltfilePath = path.join(projectRoot, "Tiltfile");
-    if (fs.existsSync(oldTiltfilePath)) {
-      errors.push(`Deprecated: Tiltfile in project root (should be in .tdk/.tdk-out/, run 'tdk config regenerate')`);
-    }
+
   } catch (error) {
     errors.push(`Verification error: ${error instanceof Error ? error.message : String(error)}`);
   }

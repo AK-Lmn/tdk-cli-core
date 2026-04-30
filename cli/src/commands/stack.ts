@@ -11,14 +11,16 @@ import { writeFileSync, readFileSync } from 'node:fs';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { discoverResources, getAllStacks } from '../utils/services.js';
-import { requireProjectRoot } from '../utils/errors.js';
+import { requireProjectRoot, runCommand } from '../utils/errors.js';
+import { createKebabCaseValidator } from '../utils/validation.js';
+import { formatCount } from '../utils/formatting.js';
 
 export const stackCommand = new Command('stack')
   .description('Organize resources into stacks (groups)')
   .argument('[stack-name]', 'Stack name to assign to resources')
   .option('--list', 'List resources without a stack', false)
   .action(async (stackName, options) => {
-    try {
+    await runCommand(async () => {
       requireProjectRoot();
 
       console.log(chalk.blue('TDK Stack Management\n'));
@@ -31,7 +33,7 @@ export const stackCommand = new Command('stack')
         return;
       }
 
-      console.log(chalk.gray(`Found ${allResources.length} resources\n`));
+      console.log(chalk.gray(`Found ${formatCount(allResources.length, 'resource')}\n`));
 
       // Show existing stacks
       const existingStacks = getAllStacks(allResources);
@@ -39,7 +41,7 @@ export const stackCommand = new Command('stack')
         console.log(chalk.bold('Existing stacks:'));
         existingStacks.forEach(name => {
           const count = allResources.filter(r => r.stack === name).length;
-          console.log(chalk.gray(`  - ${name} (${count} resource${count === 1 ? '' : 's'})`));
+          console.log(chalk.gray(`  - ${name} (${formatCount(count, 'resource')})`));
         });
         console.log();
       }
@@ -69,11 +71,7 @@ export const stackCommand = new Command('stack')
           type: 'input',
           name: 'name',
           message: 'Stack name (kebab-case recommended):',
-          validate: (input: string) => {
-            if (!input.trim()) return 'Stack name is required';
-            if (!/^[a-z0-9-]+$/.test(input)) return 'Use lowercase letters, numbers, and hyphens only';
-            return true;
-          }
+          validate: createKebabCaseValidator('stack')
         }]);
         targetStack = name;
       }
@@ -107,7 +105,7 @@ export const stackCommand = new Command('stack')
       }
 
       // Confirm
-      console.log(chalk.gray(`\nWill add "stack": "${targetStack}" to ${selectedResources.length} resource${selectedResources.length === 1 ? '' : 's'}.`));
+      console.log(chalk.gray(`\nWill add "stack": "${targetStack}" to ${formatCount(selectedResources.length, 'resource')}.`));
 
       const { confirm } = await inquirer.prompt([{
         type: 'confirm',
@@ -143,11 +141,7 @@ export const stackCommand = new Command('stack')
       }
 
       console.log();
-      console.log(chalk.green(`Updated ${updated} resource${updated === 1 ? '' : 's'}.`));
+      console.log(chalk.green(`Updated ${formatCount(updated, 'resource')}.`));
       console.log(chalk.gray(`\nYou can now run: tdk up ${targetStack}`));
-
-    } catch (err) {
-      console.error(chalk.red(`Error: ${err}`));
-      process.exit(1);
-    }
+    });
   });

@@ -180,16 +180,14 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
 };
 
 function formatDate(timestamp: string): string {
-  try {
-    const date = new Date(timestamp);
-    return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    // Invalid date format - return raw timestamp
-    return timestamp;
+  const date = new Date(timestamp);
+  if (isNaN(date.getTime())) {
+    throw new Error(`Invalid timestamp: ${timestamp}`);
   }
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
