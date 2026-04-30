@@ -7,7 +7,7 @@ export interface DiscoveredResource {
   config?: ResourceConfig;
   stack?: string;
   port?: number;
-  type?: string;
+  type?: ResourceType;
 }
 
 export interface ResourceConfig {

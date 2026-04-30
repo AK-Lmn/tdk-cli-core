@@ -3,6 +3,31 @@
 import chalk from 'chalk';
 import { findProjectRoot } from './paths.js';
 
+/**
+ * Extract a human-readable error message from an unknown error value.
+ * Handles Error objects, strings, and any other type safely.
+ *
+ * @param err - The error value (unknown type from catch blocks)
+ * @returns A string representation of the error
+ */
+export function getErrorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
+/**
+ * Log a verbose message if TDK_VERBOSE environment variable is set.
+ * Automatically extracts error messages from Error objects.
+ *
+ * @param message - The base message to log
+ * @param err - Optional error to append to the message
+ */
+export function logVerbose(message: string, err?: unknown): void {
+  if (process.env.TDK_VERBOSE) {
+    const errMsg = err !== undefined ? `: ${getErrorMessage(err)}` : '';
+    console.warn(chalk.gray(`${message}${errMsg}`));
+  }
+}
+
 class TdkError extends Error {
   public suggestions: string[];
   public exitCode: number;
