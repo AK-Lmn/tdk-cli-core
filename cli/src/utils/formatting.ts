@@ -26,6 +26,91 @@ export function formatDate(timestamp: string): string {
   return date.toLocaleString('en-US', DATE_FORMAT_OPTIONS);
 }
 
+/**
+ * Format a timestamp as a short date string (e.g., "Jan 15")
+ * @param timestamp - ISO timestamp string
+ * @returns Formatted short date
+ */
+export function formatShortDate(timestamp: string): string {
+  const date = new Date(timestamp);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+type StatusValue = string | undefined;
+
+/**
+ * Get color name for a status string (for use with Ink Text component)
+ * @param status - Status value
+ * @returns Color name string
+ */
+export function getStatusColor(status: StatusValue): string {
+  if (!status) return 'gray';
+  const lowerStatus = status.toLowerCase();
+  if (lowerStatus === 'ready' || lowerStatus === 'healthy' || lowerStatus === 'active') {
+    return 'green';
+  }
+  if (lowerStatus === 'error' || lowerStatus === 'failed' || lowerStatus === 'critical') {
+    return 'red';
+  }
+  if (lowerStatus === 'pending' || lowerStatus === 'starting' || lowerStatus === 'building') {
+    return 'yellow';
+  }
+  return 'gray';
+}
+
+/**
+ * Get icon for a status string
+ * @param status - Status value
+ * @returns Status icon
+ */
+export function getStatusIcon(status: StatusValue): string {
+  if (!status) return '○';
+  const lowerStatus = status.toLowerCase();
+  if (lowerStatus === 'ready' || lowerStatus === 'healthy') {
+    return '●';
+  }
+  if (lowerStatus === 'error' || lowerStatus === 'failed') {
+    return '✗';
+  }
+  if (lowerStatus === 'pending' || lowerStatus === 'starting') {
+    return '◐';
+  }
+  return '○';
+}
+
+/**
+ * Truncate a string to a maximum length
+ * @param str - String to truncate
+ * @param maxLength - Maximum length
+ * @returns Truncated string with ellipsis if needed
+ */
+export function truncate(str: string, maxLength: number): string {
+  if (str.length <= maxLength) return str;
+  return str.slice(0, maxLength - 3) + '...';
+}
+
+export function formatCount(count: number, singular: string, plural?: string): string {
+  return `${count} ${pluralize(count, singular, plural)}`;
+}
+
+// Shared date formatting options
+const DATE_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
+  month: 'short',
+  day: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+};
+
+/**
+ * Format a timestamp as a full locale string (date + time)
+ * @param timestamp - ISO timestamp string
+ * @returns Formatted date string (e.g., "Jan 15, 02:30 PM")
+ */
+export function formatDate(timestamp: string): string {
+  const date = new Date(timestamp);
+  return date.toLocaleString('en-US', DATE_FORMAT_OPTIONS);
+}
+
 // Box Drawing Utilities (migrated from networks.ts)
 
 const DEFAULT_BOX_WIDTH = 62;
@@ -118,4 +203,110 @@ export function showEmptyState(
     console.log(chalk.gray('\nOr create a new resource with a stack:'));
     console.log(chalk.gray('  tdk resource <name> --stack <stack-name>'));
   }
+}
+
+/**
+ * Get icon for a status string
+ * @param status - Status value
+ * @returns Status icon character
+ */
+export function getStatusIcon(status: StatusValue): string {
+  if (!status) return '?';
+  const lowerStatus = status.toLowerCase();
+  if (lowerStatus === 'ready' || lowerStatus === 'healthy' || lowerStatus === 'running') {
+    return '✓';
+  }
+  if (lowerStatus === 'error' || lowerStatus === 'failed' || lowerStatus === 'stopped') {
+    return '✗';
+  }
+  if (lowerStatus === 'pending') {
+    return '○';
+  }
+  return '?';
+}
+
+/**
+ * Truncate a string to a maximum length
+ * @param str - String to truncate
+ * @param maxLength - Maximum length
+ * @returns Truncated string with ellipsis if needed
+ */
+export function truncate(str: string, maxLength: number): string {
+  if (str.length <= maxLength) return str;
+  return str.slice(0, maxLength - 3) + '...';
+}
+
+/**
+ * Format a timestamp as a short date string
+ * @param timestamp - ISO timestamp string
+ * @returns Formatted short date (e.g., "Jan 15")
+ */
+export function formatShortDate(timestamp: string): string {
+  const date = new Date(timestamp);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+// Status formatting utilities for UI components
+
+type StatusValue = string | undefined;
+
+/**
+ * Get color name for a status string
+ * @param status - Status value
+ * @returns Color name for use with ink Text component
+ */
+export function getStatusColor(status: StatusValue): string {
+  if (!status) return 'gray';
+  const lowerStatus = status.toLowerCase();
+  if (lowerStatus === 'ready' || lowerStatus === 'healthy' || lowerStatus === 'active') {
+    return 'green';
+  }
+  if (lowerStatus === 'error' || lowerStatus === 'failed' || lowerStatus === 'critical') {
+    return 'red';
+  }
+  if (lowerStatus === 'pending' || lowerStatus === 'starting' || lowerStatus === 'building') {
+    return 'yellow';
+  }
+  return 'gray';
+}
+
+/**
+ * Get icon for a status string
+ * @param status - Status value
+ * @returns Status icon
+ */
+export function getStatusIcon(status: StatusValue): string {
+  if (!status) return '○';
+  const lowerStatus = status.toLowerCase();
+  if (lowerStatus === 'ready' || lowerStatus === 'healthy') {
+    return '●';
+  }
+  if (lowerStatus === 'error' || lowerStatus === 'failed') {
+    return '✗';
+  }
+  if (lowerStatus === 'pending' || lowerStatus === 'starting') {
+    return '◐';
+  }
+  return '○';
+}
+
+/**
+ * Truncate a string to a maximum length
+ * @param str - String to truncate
+ * @param maxLength - Maximum length
+ * @returns Truncated string with ellipsis if needed
+ */
+export function truncate(str: string, maxLength: number): string {
+  if (str.length <= maxLength) return str;
+  return str.slice(0, maxLength - 3) + '...';
+}
+
+/**
+ * Format a timestamp as a short date string (e.g., "Jan 15")
+ * @param timestamp - ISO timestamp string
+ * @returns Formatted short date
+ */
+export function formatShortDate(timestamp: string): string {
+  const date = new Date(timestamp);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
