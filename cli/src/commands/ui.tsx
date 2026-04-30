@@ -3,7 +3,6 @@
 import { Command } from 'commander';
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { render, Box, Text, useInput, useApp, useStdout, useStdin } from 'ink';
-import SelectInput from 'ink-select-input';
 import {
   discoverStacks,
   discoverResources,
@@ -681,7 +680,6 @@ const TUIApp: React.FC = () => {
                       items={items}
                       onSelect={handleSelect}
                       highlightedIndex={highlightedIndex}
-                      onHighlight={setHighlightedIndex}
                     />
                   </Box>
                 </>
@@ -707,20 +705,10 @@ const TUIApp: React.FC = () => {
                     <>
                       <Text color="gray">Select a stack to view resources</Text>
                       <Box marginTop={1}>
-                        <SelectInput 
-                          items={items} 
+                        <ResourceSelectInput
+                          items={items}
                           onSelect={handleSelect}
-                          initialIndex={highlightedIndex}
-                          indicatorComponent={({ isSelected }) => (
-                            <Text color={isSelected ? 'cyan' : undefined}>
-                              {isSelected ? '▓▒░ ' : '    '}
-                            </Text>
-                          )}
-                          itemComponent={({ isSelected, label }) => (
-                            <Text color={isSelected ? 'cyan' : 'white'} bold={isSelected}>
-                              {label}
-                            </Text>
-                          )}
+                          highlightedIndex={highlightedIndex}
                         />
                       </Box>
                     </>
@@ -763,20 +751,10 @@ const TUIApp: React.FC = () => {
                     <>
                       <Text color="gray">Select a service to view files</Text>
                       <Box marginTop={1}>
-                        <SelectInput 
-                          items={items} 
+                        <ResourceSelectInput
+                          items={items}
                           onSelect={handleSelect}
-                          initialIndex={highlightedIndex}
-                          indicatorComponent={({ isSelected }) => (
-                            <Text color={isSelected ? 'cyan' : undefined}>
-                              {isSelected ? '▓▒░ ' : '    '}
-                            </Text>
-                          )}
-                          itemComponent={({ isSelected, label }) => (
-                            <Text color={isSelected ? 'cyan' : 'white'} bold={isSelected}>
-                              {label}
-                            </Text>
-                          )}
+                          highlightedIndex={highlightedIndex}
                         />
                       </Box>
                     </>
@@ -803,20 +781,10 @@ const TUIApp: React.FC = () => {
                     <>
                       <Text color="gray">Select a service to view configuration</Text>
                       <Box marginTop={1}>
-                        <SelectInput 
-                          items={items} 
+                        <ResourceSelectInput
+                          items={items}
                           onSelect={handleSelect}
-                          initialIndex={highlightedIndex}
-                          indicatorComponent={({ isSelected }) => (
-                            <Text color={isSelected ? 'cyan' : undefined}>
-                              {isSelected ? '▓▒░ ' : '    '}
-                            </Text>
-                          )}
-                          itemComponent={({ isSelected, label }) => (
-                            <Text color={isSelected ? 'cyan' : 'white'} bold={isSelected}>
-                              {label}
-                            </Text>
-                          )}
+                          highlightedIndex={highlightedIndex}
                         />
                       </Box>
                     </>

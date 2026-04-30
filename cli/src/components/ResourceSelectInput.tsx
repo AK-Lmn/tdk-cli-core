@@ -16,8 +16,6 @@ interface ResourceSelectInputProps {
   onSelect: (item: SelectItem) => void;
   /** Currently highlighted index */
   highlightedIndex: number;
-  /** Optional callback when highlight changes */
-  onHighlight?: (index: number) => void;
 }
 
 /**
@@ -29,14 +27,12 @@ export const ResourceSelectInput: React.FC<ResourceSelectInputProps> = ({
   items,
   onSelect,
   highlightedIndex,
-  onHighlight,
 }) => {
   return (
     <SelectInput
       items={items}
       onSelect={onSelect}
       initialIndex={highlightedIndex}
-      onHighlight={onHighlight}
       indicatorComponent={({ isSelected }) => (
         <Text color={isSelected ? 'cyan' : undefined}>
           {isSelected ? '▓▒░ ' : '    '}

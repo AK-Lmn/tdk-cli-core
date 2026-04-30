@@ -236,7 +236,7 @@ export const networksCommand = new Command('networks')
       process.exit(1);
     }
     
-    const baseDomain = getBaseDomain();
+    const baseDomain = determineDefaultDomain();
     const services = discoverResources();
     
     // Check service status asynchronously for all services
