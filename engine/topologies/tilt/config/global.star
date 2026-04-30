@@ -4,7 +4,7 @@
 
 load("./profiles.star", "Focus")
 load(
-    "../discovery/registry.star",
+    "../discovery/resource_registry.star",
     "GLOBAL_CONFIG_EXPORT",
     "APP_RESOURCES",
     "INFRA_RESOURCES_EXPORT",

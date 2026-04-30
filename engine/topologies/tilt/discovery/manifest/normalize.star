@@ -26,7 +26,7 @@ def _load_and_normalize(manifest_path, warn_only=True):
     """
     🎯 MAIN ENTRY POINT: Load manifest and normalize to full resource config.
     
-    This function is the bridge between the discovery system (registry.star)
+    This function is the bridge between the discovery system (resource_registry.star)
     and the manifest loading system. It:
     
     1. Reads the JSON file

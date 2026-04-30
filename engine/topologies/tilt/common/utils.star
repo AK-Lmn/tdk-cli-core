@@ -226,11 +226,15 @@ def detect_circular_deps(resource_paths, max_depth=10):
     return circular
 
 
-def encode_json(obj):
+def encode_json(obj, _depth=0):
     """
     Simple JSON encoder for Starlark.
     Supports: dict, list, string, int, bool, None
     """
+    # Prevent stack overflow from circular references or deeply nested data
+    if _depth > 50:
+        return '"<max-depth-exceeded>"'
+    
     if obj == None:
         return 'null'
     t = type(obj)
@@ -241,12 +245,12 @@ def encode_json(obj):
     if t == 'bool':
         return 'true' if obj else 'false'
     if t == 'list':
-        return '[' + ', '.join([encode_json(i) for i in obj]) + ']'
+        return '[' + ', '.join([encode_json(i, _depth + 1) for i in obj]) + ']'
     if t == 'dict':
         parts = []
         sorted_keys = sorted(obj.keys())
         for k in sorted_keys:
-            parts.append(encode_json(k) + ': ' + encode_json(obj[k]))
+            parts.append(encode_json(k, _depth + 1) + ': ' + encode_json(obj[k], _depth + 1))
         return '{' + ', '.join(parts) + '}'
     return '"' + str(obj) + '"'
 

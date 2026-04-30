@@ -5,7 +5,7 @@
 # =============================================================================
 
 load("./resource_snapshot.star", "ResourceSnapshot")
-load("./registry.star", "CacheOps")
+load("./resource_registry.star", "CacheOps")
 load("../manifest/loader.star", "ManifestLoader")
 # Discovery config - inlined for unified repo
 def get_discovery_config():

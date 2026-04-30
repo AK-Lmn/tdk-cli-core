@@ -17,7 +17,7 @@ print("🚀 Loading TDK CLI (unified)")
 load('./engine/topologies/tilt/common/utils.star', _Utils='Utils')
 load('./engine/topologies/tilt/discovery/loading.star', _Manifest='Manifest')
 load('./engine/topologies/tilt/config/global.star', _Config='Config')
-load('./engine/topologies/tilt/discovery/registry.star',
+load('./engine/topologies/tilt/discovery/resource_registry.star',
     _GLOBAL_CONFIG_EXPORT='GLOBAL_CONFIG_EXPORT',
     _APP_RESOURCES='APP_RESOURCES',
     _INFRA_RESOURCES_EXPORT='INFRA_RESOURCES_EXPORT',

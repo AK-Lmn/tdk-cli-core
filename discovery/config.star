@@ -6,11 +6,11 @@
 load("./constants.star", "RESOURCES_ROOT")
 load("../../platform/docker/constants.star", "PlatformDockerConstants")
 
-# NOTE: DEFAULTS and focus lists are now loaded dynamically in registry.star
+# NOTE: DEFAULTS and focus lists are now loaded dynamically in resource_registry.star
 # from the project's spec.master (using TDK_PROJECT_ROOT environment variable).
 # This allows per-project resource configuration.
 
-# Default empty values - will be populated by _load_project_defaults() in registry.star
+# Default empty values - will be populated by _load_project_defaults() in resource_registry.star
 DEFAULTS = {}
 FOCUS_PRE_ALPHA = []
 FOCUS_ALPHA = []
@@ -20,7 +20,7 @@ FOCUS_BETA = []
 def load_project_defaults(project_root):
     """
     Load DEFAULTS and focus lists from project spec.master.
-    Called by registry.star during initialization.
+    Called by resource_registry.star during initialization.
     
     Returns struct with loaded values or None if spec.master not found.
     """
@@ -271,7 +271,7 @@ PRODUCT_LIBS_EXPLICIT = [
 ]
 
 # Export DEFAULTS and focus filters for use by other modules via Config struct
-# Note: These will be populated by load_project_defaults() in registry.star
+# Note: These will be populated by load_project_defaults() in resource_registry.star
 Config = struct(
     load_project_defaults = load_project_defaults,
     DEFAULTS = DEFAULTS,

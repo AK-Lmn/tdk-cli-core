@@ -180,7 +180,7 @@
 #     📁 platform (Docker stuff)
 #     📁 tilt (Tilt stuff)
 #       📁 discovery 🔍 (find services)
-#         📄 registry.star (the list of all services)
+#         📄 resource_registry.star (the list of all services)
 #       📁 generators 🏭 (make configs)
 #         📄 vite_config.star (makes vite configs)
 #         📄 tsconfig.star (makes tsconfig)
@@ -352,7 +352,7 @@ SPEC = struct(
     # Discovery paths - EXPLICIT registry locations
     DISCOVERY = struct(
         MANIFEST = PROJECT_ROOT + "/engine/topologies/tilt/discovery/manifest",
-        REGISTRY = PROJECT_ROOT + "/engine/topologies/tilt/discovery/registry.star",
+        REGISTRY = PROJECT_ROOT + "/engine/topologies/tilt/discovery/resource_registry.star",
         LOADING = PROJECT_ROOT + "/engine/topologies/tilt/discovery/loading.star",
         LIBRARIES = PROJECT_ROOT + "/engine/topologies/tilt/discovery/libraries.star",
     ),
@@ -682,13 +682,13 @@ This spec file makes EVERYTHING explicit:
 COMPARISON:
 
 ❌ BEFORE (Implicit):
-    load("./discovery/registry.star", "get_app_resources")
+    load("./discovery/resource_registry.star", "get_app_resources")
     # Where does this file live? Magic.
     # What does it return? Runtime mystery.
 
 ✅ AFTER (Explicit):
     load(SPEC.DISCOVERY.REGISTRY, "get_app_resources")
-    # Path is: {PROJECT_ROOT}/.tilt/topologies/tilt/discovery/registry.star
+    # Path is: {PROJECT_ROOT}/.tilt/topologies/tilt/discovery/resource_registry.star
     # Behavior defined in this spec file.
 
 USAGE:

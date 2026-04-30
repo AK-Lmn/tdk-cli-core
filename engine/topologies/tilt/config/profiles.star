@@ -4,7 +4,7 @@
 
 load("../../../topologies/tilt/common/utils.star", "Utils")
 load(
-    "../discovery/registry.star",
+    "../discovery/resource_registry.star",
     "APP_RESOURCES",
     "CORE_INFRA_EXPORT",
     "INFRA_STACK_MAP_EXPORT",

@@ -269,11 +269,15 @@ def _generate_all_configs_for_resource(
     global_config = ctx['global_config']
     
     # WORKAROUND: Prevent infinite recursion by checking recursion depth
-    recursion_depth = ctx.get('_recursion_depth', 0)
+    # Use a unique key per resource to track depth, avoiding interference between different resources
+    recursion_key = '_recursion_depth_' + resource_name
+    recursion_depth = ctx.get(recursion_key, 0)
     if recursion_depth > 5:
         print("⚠️  Recursion depth exceeded for {}, skipping config generation".format(resource_name))
         return
-    ctx['_recursion_depth'] = recursion_depth + 1
+    # Create a new context copy to avoid mutating shared state for other resources
+    ctx = dict(ctx)
+    ctx[recursion_key] = recursion_depth + 1
     
     print("DEBUG _generate_all_configs: resource_name='{}', resource_path='{}'".format(resource_name, resource_path))
     
