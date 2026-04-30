@@ -677,24 +677,11 @@ const TUIApp: React.FC = () => {
                     <Text bold color="gray">┌─ Stacks ─</Text>
                   </Box>
                   <Box marginTop={1} flexGrow={1}>
-                    <SelectInput 
-                      items={items} 
+                    <ResourceSelectInput
+                      items={items}
                       onSelect={handleSelect}
-                      initialIndex={highlightedIndex}
-                      indicatorComponent={({ isSelected }) => (
-                        <Text color={isSelected ? 'cyan' : undefined}>
-                          {isSelected ? '▓▒░ ' : '    '}
-                        </Text>
-                      )}
-                      itemComponent={({ isSelected, label }) => (
-                        <Text 
-                          color={isSelected ? 'cyan' : 'white'} 
-                          bold={isSelected}
-                          backgroundColor={isSelected ? 'black' : undefined}
-                        >
-                          {label}
-                        </Text>
-                      )}
+                      highlightedIndex={highlightedIndex}
+                      onHighlight={setHighlightedIndex}
                     />
                   </Box>
                 </>

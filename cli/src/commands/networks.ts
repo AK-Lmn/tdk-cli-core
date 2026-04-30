@@ -53,6 +53,7 @@ function execSafe(command: string, args: string[], options: { encoding?: string;
 // Box width for network display - maintained for backward compatibility
 const BOX_WIDTH = 62;
 
+function determineDefaultDomain(): string {
   try {
     const projectRoot = findProjectRoot();
     if (projectRoot) {
