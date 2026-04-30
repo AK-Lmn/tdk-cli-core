@@ -14,6 +14,7 @@ import {
 } from '../utils/services.js';
 import type { DiscoveredResource, DiscoveredStack, ResourceMetadata, StackMetadata } from '../types/index.js';
 import { isTiltAvailable } from '../utils/tilt.js';
+import { errorFactories, requireProjectRoot } from '../utils/errors.js';
 import { 
   TabBar, type TabId, DetailPanel, ResourceTable, FileTree, type FileNode,
   AccessibleTooltip, TOOLTIPS
@@ -899,16 +900,11 @@ export const uiCommand = new Command('ui')
     try {
       const tiltAvailable = await isTiltAvailable();
       if (!tiltAvailable) {
-        console.error('Error: tilt CLI not found. Make sure Tilt is installed.');
+        errorFactories.tiltNotInstalled().display();
         process.exit(1);
       }
 
-      const projectRoot = findProjectRoot();
-      if (!projectRoot) {
-        console.error('Error: Could not find project root (no Tiltfile found).');
-        process.exit(1);
-      }
-
+      requireProjectRoot();
       render(<TUIApp />);
 
     } catch (err) {

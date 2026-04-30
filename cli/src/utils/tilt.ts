@@ -32,6 +32,7 @@ export function runTilt(
   args: string[] = [],
   options: {
     verbose?: boolean;
+    quiet?: boolean;
     inheritStdio?: boolean;
   } = {}
 ): Promise<TiltCommandResult> {
@@ -102,6 +103,7 @@ export function buildTiltUpArgs(
   serviceNames: string[],
   options: {
     verbose?: boolean;
+    quiet?: boolean;
     force?: boolean;
     watch?: boolean;
   } = {}
@@ -111,7 +113,7 @@ export function buildTiltUpArgs(
   args.push('-f', tiltfilePath);
   args.push(...serviceNames);
   
-  if (options.verbose) {
+  if (options.verbose && !options.quiet) {
     args.push('--verbose');
   }
   
@@ -119,6 +121,7 @@ export function buildTiltUpArgs(
     args.push('--watch');
   }
   
+  // Note: Tilt doesn't have a native --quiet flag, but we suppress output via stdio
   return args;
 }
 

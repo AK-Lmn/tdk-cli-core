@@ -13,6 +13,7 @@ export const upCommand = new Command('up')
   .alias('deploy')
   .argument('[stack-name]', 'Name of the stack to start (optional - runs all if omitted)')
   .option('-v, --verbose', 'Enable verbose output', false)
+  .option('-q, --quiet', 'Suppress non-essential output', false)
   .option('--dry-run', 'Show what would be started without starting', false)
   .option('-f, --force', 'Kill existing Tilt process before starting', false)
   .action(async (stackName, options) => {
@@ -30,10 +31,12 @@ export const upCommand = new Command('up')
         // Check if the stack exists
         if (!stackExists(stackName)) {
           console.error(chalk.red(`Error: Stack "${stackName}" not found.`));
-          console.error(chalk.gray('\nTo see available stacks, run:'));
-          console.error(chalk.gray('  tdk list'));
-          console.error(chalk.gray('\nTo add services to this stack, edit their service.json and add:'));
-          console.error(chalk.gray(`  "stack": "${stackName}"`));
+          if (!options.quiet) {
+            console.error(chalk.gray('\nTo see available stacks, run:'));
+            console.error(chalk.gray('  tdk list'));
+            console.error(chalk.gray('\nTo add services to this stack, edit their service.json and add:'));
+            console.error(chalk.gray(`  "stack": "${stackName}"`));
+          }
           process.exit(1);
         }
 
@@ -47,16 +50,18 @@ export const upCommand = new Command('up')
         stackDescription = `all stacks (${formatCount(allStacks.length, 'stack')}, ${formatCount(servicesToStart.length, 'service')})`;
       }
 
-      if (options.verbose) {
+      if (options.verbose && !options.quiet) {
         console.log(chalk.gray(`Found ${formatCount(servicesToStart.length, 'service')} in ${stackDescription}`));
       }
 
       const serviceNames = servicesToStart.map(s => s.name);
 
-      console.log(chalk.blue(`Starting ${formatCount(serviceNames.length, 'service')} from ${stackDescription}...`));
-      serviceNames.forEach(name => {
-        console.log(chalk.gray(`  - ${name}`));
-      });
+      if (!options.quiet) {
+        console.log(chalk.blue(`Starting ${formatCount(serviceNames.length, 'service')} from ${stackDescription}...`));
+        serviceNames.forEach(name => {
+          console.log(chalk.gray(`  - ${name}`));
+        });
+      }
 
       if (options.dryRun) {
         console.log(chalk.gray('\nDry run - not starting services.'));
@@ -65,7 +70,7 @@ export const upCommand = new Command('up')
       }
 
       // Handle force flag - kill existing Tilt if running
-      if (options.force) {
+      if (options.force && !options.quiet) {
         try {
           console.log(chalk.yellow('Force flag set - killing any existing Tilt processes...'));
           execSync('killall tilt 2>/dev/null || true', { shell: '/bin/sh', stdio: 'pipe' });
@@ -87,8 +92,10 @@ export const upCommand = new Command('up')
         const availablePort = await findAvailablePort(basePort, 10);
         if (availablePort && availablePort !== basePort) {
           port = availablePort;
-          console.log(chalk.yellow(`⚠️  Port ${basePort} is already in use`));
-          console.log(chalk.blue(`🔄 Auto-switching to port ${port}\n`));
+          if (!options.quiet) {
+            console.log(chalk.yellow(`⚠️  Port ${basePort} is already in use`));
+            console.log(chalk.blue(`🔄 Auto-switching to port ${port}\n`));
+          }
         }
       }
       
@@ -98,16 +105,20 @@ export const upCommand = new Command('up')
       // Build tilt up arguments (includes Tiltfile path)
       const tiltArgs = buildTiltUpArgs(serviceNames, {
         verbose: options.verbose,
+        quiet: options.quiet,
         force: options.force
       });
 
       // Run tilt up
-      console.log(chalk.gray('\nRunning tilt up...'));
-      console.log(chalk.gray(`Using Tiltfile: .tdk/.tdk-out/Tiltfile`));
-      console.log(chalk.gray(`Tilt UI: http://localhost:${port}/\n`));
+      if (!options.quiet) {
+        console.log(chalk.gray('\nRunning tilt up...'));
+        console.log(chalk.gray(`Using Tiltfile: .tdk/.tdk-out/Tiltfile`));
+        console.log(chalk.gray(`Tilt UI: http://localhost:${port}/\n`));
+      }
       const result = await runTilt('up', tiltArgs, {
         verbose: options.verbose,
-        inheritStdio: true  // Pass through tilt's output
+        quiet: options.quiet,
+        inheritStdio: !options.quiet  // Suppress tilt output in quiet mode
       });
 
       if (result.exitCode !== 0) {
