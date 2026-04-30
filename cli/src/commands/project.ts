@@ -11,7 +11,7 @@ import { resolve, join } from 'node:path';
 import { cwd } from 'node:process';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import { findProjectRoot } from '../utils/services.js';
+import { findProjectRoot } from '../utils/paths.js';
 import { generateMasterConfigs, readProjectConfig } from '../generator/template-engine.js';
 import { runCommand } from '../utils/errors.js';
 import { MASTER_CONFIG_FILES } from '../utils/constants.js';

@@ -6,11 +6,11 @@ import { render, Box, Text, useInput, useApp, useStdout, useStdin } from 'ink';
 import {
   discoverStacks,
   discoverResources,
-  findProjectRoot,
   getResourceMetadata,
   getStackMetadata,
   clearMetadataCache,
 } from '../utils/services.js';
+import { findProjectRoot } from '../utils/paths.js';
 import type { DiscoveredResource, DiscoveredStack, ResourceMetadata, StackMetadata } from '../types/index.js';
 import { isTiltAvailable } from '../utils/tilt.js';
 import { errorFactories, requireProjectRoot } from '../utils/errors.js';

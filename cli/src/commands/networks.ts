@@ -8,7 +8,8 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { execSync, spawn } from 'node:child_process';
-import { findProjectRoot, discoverResources } from '../utils/services.js';
+import { discoverResources } from '../utils/services.js';
+import { findProjectRoot } from '../utils/paths.js';
 import { readProjectConfig } from '../generator/template-engine.js';
 import { sanitizeForShell, isValidPort } from '../utils/validation.js';
 import { requireProjectRoot } from '../utils/errors.js';

@@ -1,5 +1,3 @@
-/** tdk up command */
-
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { execSync } from 'node:child_process';

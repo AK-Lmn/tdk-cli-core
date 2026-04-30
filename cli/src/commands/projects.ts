@@ -1,9 +1,3 @@
-/**
- * tdk projects command
- *
- * Shows project-level information and configuration status.
- */
-
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { existsSync } from 'node:fs';

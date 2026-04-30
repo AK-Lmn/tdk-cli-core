@@ -1,5 +1,3 @@
-/** TDK Type Definitions */
-
 export interface DiscoveredResource {
   name: string;
   path: string;
@@ -155,100 +153,45 @@ export interface ProjectConfig {
 
 // UI Component Types
 
-/**
- * Props for tooltip components
- * Consolidated from Tooltip.tsx and Accessible.tsx
- */
 export interface TooltipProps {
-  /** Tooltip content text */
   content: string;
-  /** Optional keyboard shortcut to display */
   shortcut?: string;
-  /** Whether the tooltip is currently visible */
   visible: boolean;
-  /** Maximum width for tooltip content wrapping */
   maxWidth?: number;
 }
 
-/**
- * Represents a node in a file tree structure
- * Used by FileTree component and file discovery utilities
- */
 export interface FileNode {
-  /** Display name of the file or directory */
   name: string;
-  /** Absolute path to the file or directory */
   path: string;
-  /** Whether this is a directory or file */
   type: 'directory' | 'file';
-  /** Classification of file type for icons/styling */
   fileType?: FileType;
-  /** Child nodes if this is a directory */
   children?: FileNode[];
-  /** File size in bytes (undefined for directories) */
   size?: number;
-  /** Last modified timestamp ISO string */
   lastModified?: string;
 }
 
-/**
- * Standard validation result pattern used across the CLI
- * Used by resource name validation, stack name validation, etc.
- */
 export interface ValidationResult {
-  /** Whether validation passed */
   valid: boolean;
-  /** Error message if validation failed */
   error?: string;
 }
 
-// Health Check Types
-
-/**
- * Result of a health check performed by the doctor command
- * Consolidated from doctor.ts for use across health check utilities
- */
 export interface CheckResult {
-  /** Name of the check (e.g., "Docker", "Bun") */
   name: string;
-  /** Whether the check passed */
   didPass: boolean;
-  /** Human-readable status message */
   message: string;
-  /** Optional fix instructions if check failed */
   fix?: string;
 }
 
-/**
- * Represents a service URL in Traefik-routed networks
- * Used by the networks command for displaying service endpoints
- */
 export interface ServiceUrl {
-  /** Service/resource name */
   name: string;
-  /** Stack the service belongs to (if any) */
   stack?: string;
-  /** Base path for routing (e.g., "/api") */
   basePath: string;
-  /** Full URL to access the service */
   url: string;
-  /** Port the service listens on (if known) */
   port?: number;
-  /** Current service status */
   status: 'running' | 'stopped' | 'unknown';
 }
 
-// ============================================================================
-// UI Component Shared Types
-// ============================================================================
-
-/**
- * Standard select item for dropdown/select components
- * Used by ResourceSelectInput and other selection UI components
- */
 export interface SelectItem {
-  /** Display label for the item */
   label: string;
-  /** Unique value/identifier */
   value: string;
 }

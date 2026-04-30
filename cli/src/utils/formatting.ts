@@ -1,4 +1,4 @@
-/** Shared formatting utilities for TDK CLI */
+import chalk from 'chalk';
 
 function pluralize(count: number, singular: string, plural?: string): string {
   return count === 1 ? singular : (plural || `${singular}s`);
@@ -24,21 +24,6 @@ const DATE_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
 export function formatDate(timestamp: string): string {
   const date = new Date(timestamp);
   return date.toLocaleString('en-US', DATE_FORMAT_OPTIONS);
-}
-
-/**
- * Format a timestamp as a short locale date string
- * Alias for formatDate - both now use the same underlying format
- * @param timestamp - ISO timestamp string
- * @returns Formatted date string
- */
-export function formatShortDate(timestamp: string): string {
-  return formatDate(timestamp);
-}
-
-export function truncate(str: string, maxLength: number): string {
-  if (str.length <= maxLength) return str;
-  return str.slice(0, maxLength - 3) + '...';
 }
 
 // Box Drawing Utilities (migrated from networks.ts)
@@ -81,35 +66,56 @@ export function formatPadded(text: string, width: number): string {
   return text.padEnd(width);
 }
 
-export function getStatusColor(status: string): string {
-  switch (status) {
-    case 'ready':
-    case 'running':
-    case 'healthy':
-      return 'green';
-    case 'pending':
-    case 'degraded':
-      return 'yellow';
-    case 'error':
-    case 'stopped':
-      return 'red';
-    default:
-      return 'gray';
-  }
-}
+/**
+ * Configuration for empty state messages by item type
+ */
+const EMPTY_STATE_CONFIG: Record<string, { singular: string; command: string; context?: string }> = {
+  resources: {
+    singular: 'resource',
+    command: 'tdk resource <name>',
+    context: '\nTo create a resource:',
+  },
+  stacks: {
+    singular: 'stack',
+    command: 'tdk stack <stack-name>',
+    context: '\nTo create a stack, use:',
+  },
+  services: {
+    singular: 'service',
+    command: 'tdk resource <name>',
+    context: '\nTo create a service:',
+  },
+  'stack-services': {
+    singular: 'service',
+    command: 'tdk resource <name> --stack <stack-name>',
+    context: '\nTo add services to this stack:',
+  },
+};
 
-export function getStatusIcon(status: string): string {
-  switch (status) {
-    case 'ready':
-    case 'running':
-    case 'healthy':
-      return '✓';
-    case 'pending':
-      return '○';
-    case 'error':
-    case 'stopped':
-      return '✗';
-    default:
-      return '?';
+/**
+ * Display an empty state message with helpful next steps
+ *
+ * @param itemType - Type of item that was not found
+ * @param filterContext - Optional context about what was being filtered (e.g., stack name)
+ */
+export function showEmptyState(
+  itemType: 'resources' | 'stacks' | 'services' | 'stack-services',
+  filterContext?: string
+): void {
+  const config = EMPTY_STATE_CONFIG[itemType];
+
+  if (filterContext) {
+    console.log(chalk.yellow(`No ${config.singular}s found${filterContext}.`));
+  } else {
+    console.log(chalk.yellow(`No ${config.singular}s found.`));
+  }
+
+  console.log(chalk.gray(config.context));
+  console.log(chalk.gray(`  ${config.command}`));
+
+  // Additional context for stack-related empty states
+  if (itemType === 'stacks') {
+    console.log(chalk.gray('\nOr create a new resource with a stack:'));
+    console.log(chalk.gray('  tdk resource <name> --stack <stack-name>'));
   }
 }

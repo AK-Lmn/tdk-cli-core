@@ -1,5 +1,3 @@
-/** Tilt command execution utilities */
-
 import { spawn } from 'node:child_process';
 import { createConnection } from 'node:net';
 import type { TiltCommandResult } from '../types/index.js';

@@ -1,9 +1,3 @@
-/**
- * tdk resources command
- *
- * Lists all resources (services) discovered from service.json files.
- */
-
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { discoverResources } from '../utils/services.js';

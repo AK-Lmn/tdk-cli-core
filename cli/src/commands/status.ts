@@ -1,5 +1,3 @@
-/** tdk status command */
-
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { discoverStacks, discoverResources } from '../utils/services.js';

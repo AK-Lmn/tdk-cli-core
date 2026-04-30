@@ -1,5 +1,3 @@
-/** tdk down command */
-
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { runTilt, buildTiltDownArgs, isTiltAvailable } from '../utils/tilt.js';

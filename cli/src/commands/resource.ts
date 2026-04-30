@@ -1,8 +1,3 @@
-/**
- * tdk resource command
- * Create a new resource (service) from scratch.
- */
-
 import { Command } from 'commander';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, dirname, relative, isAbsolute } from 'node:path';
@@ -14,7 +9,6 @@ import { validateResourceName, createKebabCaseValidator } from '../utils/validat
 import { formatCount } from '../utils/formatting.js';
 import { PORT_RANGES } from '../utils/constants.js';
 
-// Templates for different resource types
 const BACKEND_TEMPLATE = {
   type: 'backend',
   port: 0, // Will be assigned
@@ -142,7 +136,6 @@ EXPOSE 3000
 CMD ["bun", "run", "start"]
 `;
 
-// Backend index.ts template function
 function getBackendIndexTemplate(name: string) {
   return `import { Hono } from 'hono';
 
@@ -190,7 +183,6 @@ export default {
 `;
 }
 
-// Frontend index.html template function
 function getFrontendIndexTemplate(name: string) {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -219,7 +211,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 );
 `;
 
-// Frontend App.tsx template function
 function getFrontendAppTemplate(name: string) {
   return `function App() {
   return (
@@ -233,11 +224,9 @@ function getFrontendAppTemplate(name: string) {
 export default App;
 `;}
 
-// Worker index.ts template function
 function getWorkerIndexTemplate(name: string) {
   return `console.log('🚀 ${name} worker started');
 
-// Job interface for type-safe job processing
 interface Job {
   id: string;
   type: string;
@@ -246,7 +235,6 @@ interface Job {
   timestamp?: string;
 }
 
-// Worker configuration
 const CONFIG = {
   pollIntervalMs: parseInt(process.env.WORKER_POLL_INTERVAL || '5000'),
   maxRetries: parseInt(process.env.WORKER_MAX_RETRIES || '3'),
@@ -297,8 +285,7 @@ async function main() {
   }
 }
 
-// Graceful shutdown handling
-process.on('SIGTERM', () => {
+      process.on('SIGTERM', () => {
   console.log('[Worker] SIGTERM received, shutting down gracefully...');
   process.exit(0);
 });
@@ -544,7 +531,6 @@ export const resourceCommand = new Command('resource')
         'utf-8'
       );
 
-      // Success message
       console.log(chalk.green('\n✅ Resource created successfully!'));
       console.log(chalk.gray(`\nLocation: ${fullPath}`));
       console.log(chalk.gray(`\nNext steps:`));

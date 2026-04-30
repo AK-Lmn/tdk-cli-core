@@ -1,29 +1,12 @@
-/** Shared validation utilities for TDK CLI */
-
 import { OPTIONAL_INFRA_SERVICES, VALID_RESOURCE_TYPES } from './constants.js';
 import type { ValidationResult } from '../types/index.js';
 
-/**
- * Regex pattern for kebab-case validation (lowercase letters, numbers, hyphens)
- */
 const KEBAB_CASE_REGEX = /^[a-z0-9-]+$/;
 
-/**
- * Validates that a string is in kebab-case format
- *
- * @param value - The string to validate
- * @returns True if valid kebab-case, false otherwise
- */
 function isKebabCase(value: string): boolean {
   return KEBAB_CASE_REGEX.test(value);
 }
 
-/**
- * Validates a resource name and returns a detailed result
- *
- * @param name - The resource name to validate
- * @returns Validation result with optional error
- */
 export function validateResourceName(name: string): ValidationResult {
   if (!name.trim()) {
     return { valid: false, error: 'Resource name is required' };
@@ -37,12 +20,6 @@ export function validateResourceName(name: string): ValidationResult {
   return { valid: true };
 }
 
-/**
- * Creates an inquirer validation function for kebab-case input
- *
- * @param context - What is being validated ('resource' or 'stack')
- * @returns Validation function for inquirer prompts
- */
 export function createKebabCaseValidator(context: 'resource' | 'stack') {
   return (input: string): true | string => {
     if (!input.trim()) {
@@ -59,12 +36,6 @@ export function createKebabCaseValidator(context: 'resource' | 'stack') {
   };
 }
 
-/**
- * Validates an optional infrastructure service name
- *
- * @param service - The service name to validate
- * @returns Validation result with optional error
- */
 export function validateOptionalInfraService(service: string): ValidationResult {
   if (includes(OPTIONAL_INFRA_SERVICES, service)) {
     return { valid: true };
@@ -75,37 +46,14 @@ export function validateOptionalInfraService(service: string): ValidationResult 
   };
 }
 
-/**
- * Check if a port is a valid numeric port number (basic validation)
- *
- * @param port - The port to validate
- * @returns True if valid port number
- */
 export function isValidPort(port: number): boolean {
   return Number.isInteger(port) && port > 0 && port <= 65535;
 }
 
-/**
- * Sanitizes a value for safe use in shell commands
- * Only allows alphanumeric characters and hyphens
- * Also limits length to prevent abuse
- *
- * @param value - The value to sanitize
- * @param replacement - Character to replace invalid chars with (default: '_')
- * @returns Sanitized value safe for shell use
- */
 export function sanitizeForShell(value: string, replacement: string = '_'): string {
   return value.replace(/[^a-zA-Z0-9-]/g, replacement).substring(0, 100);
 }
 
-/**
- * Type-safe array membership check
- * Uses const assertion types to ensure type safety
- *
- * @param array - The readonly array to check against
- * @param value - The value to check for membership
- * @returns True if value is in the array, with type narrowing
- */
 export function includes<T extends readonly string[]>(
   array: T,
   value: string

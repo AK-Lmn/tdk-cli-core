@@ -1,5 +1,3 @@
-/** Custom colorful help command for TDK CLI */
-
 import { Command } from 'commander';
 import chalk from 'chalk';
 

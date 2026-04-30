@@ -1,5 +1,3 @@
-/** Enhanced error messages with colors and suggestions */
-
 import chalk from 'chalk';
 import { findProjectRoot } from './paths.js';
 
@@ -78,8 +76,7 @@ export function requireProjectRoot(): string {
 }
 
 function handleCommandError(err: unknown): never {
-  const message = err instanceof Error ? err.message : String(err);
-  console.error(chalk.red(`Error: ${message}`));
+  console.error(chalk.red(`Error: ${getErrorMessage(err)}`));
   process.exit(1);
 }
 

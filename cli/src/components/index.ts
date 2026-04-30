@@ -1,5 +1,3 @@
-/** Component exports for TDK CLI UI */
-
 export { TabBar } from './TabBar.js';
 export { DetailPanel } from './DetailPanel.js';
 export { ResourceTable } from './ResourceTable.js';

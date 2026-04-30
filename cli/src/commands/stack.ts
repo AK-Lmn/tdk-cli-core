@@ -1,8 +1,3 @@
-/**
- * tdk stack command
- * Organize resources into logical stacks that can be started together.
- */
-
 import { Command } from 'commander';
 import { writeFileSync, readFileSync } from 'node:fs';
 import chalk from 'chalk';

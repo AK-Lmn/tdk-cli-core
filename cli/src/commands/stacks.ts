@@ -1,9 +1,3 @@
-/**
- * tdk stacks command
- *
- * Lists all unique stacks discovered from service.json files across the project.
- */
-
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { discoverStacks, discoverResources, getAllStacks } from '../utils/services.js';
