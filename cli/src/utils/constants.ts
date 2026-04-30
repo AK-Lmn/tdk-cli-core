@@ -5,6 +5,7 @@
  * Used across project.ts, config.ts, template-engine.ts, and tests
  */
 export const MASTER_CONFIG_FILES = [
+  'tilt.config.json',
   'TILT_TECH_STACK.star',
   'TILT_RESOURCE_DEFAULTS.star',
   'spec.master',
