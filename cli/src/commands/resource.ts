@@ -58,7 +58,6 @@ const WORKER_TEMPLATE = {
   },
 };
 
-// Basic service.json template
 function createServiceJson(name: string, type: 'backend' | 'frontend' | 'worker', stack: string, port: number) {
   const base = type === 'backend' ? BACKEND_TEMPLATE :
                type === 'frontend' ? FRONTEND_TEMPLATE : WORKER_TEMPLATE;
@@ -72,7 +71,6 @@ function createServiceJson(name: string, type: 'backend' | 'frontend' | 'worker'
   };
 }
 
-// Basic package.json template
 function createPackageJson(name: string, type: string) {
   const isFrontend = type === 'frontend';
   
@@ -100,7 +98,6 @@ function createPackageJson(name: string, type: string) {
   };
 }
 
-// Basic tsconfig.json template
 const TSCONFIG_TEMPLATE = {
   compilerOptions: {
     target: 'ES2022',
@@ -120,7 +117,6 @@ const TSCONFIG_TEMPLATE = {
   exclude: ['node_modules', 'dist'],
 };
 
-// Basic Dockerfile template
 const DOCKERFILE_TEMPLATE = `FROM oven/bun:1.2
 
 WORKDIR /app
@@ -309,7 +305,6 @@ main().catch(console.error);
 `;
 }
 
-// Test template function
 function getTestTemplate(name: string) {
   return `import { describe, it, expect } from 'vitest';
 
@@ -414,12 +409,12 @@ export const resourceCommand = new Command('resource')
       let resourcePath = options.path;
       if (!resourcePath) {
         // Default paths based on project structure
-        const defaultPaths: Record<string, string> = {
+        const defaultPaths: Record<ValidResourceType, string> = {
           backend: `services/${stackName}/${resourceName}`,
           frontend: `apps/${resourceName}`,
           worker: `workers/${resourceName}`,
         };
-        resourcePath = defaultPaths[resourceType] || `services/${resourceName}`;
+        resourcePath = defaultPaths[resourceType];
       }
 
       const fullPath = resolve(projectRoot, resourcePath);
@@ -453,7 +448,7 @@ export const resourceCommand = new Command('resource')
         }
       }
 
-      const portRange = PORT_RANGES[resourceType as keyof typeof PORT_RANGES];
+      const portRange = PORT_RANGES[resourceType];
       let assignedPort: number;
 
       for (let port = portRange.base; port <= portRange.max; port++) {

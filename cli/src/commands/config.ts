@@ -193,7 +193,9 @@ export const configCommand = new Command('config')
           }
 
           const config = readProjectConfig(projectRoot);
-          config.optional_infra[service as keyof typeof config.optional_infra] = true;
+          // After validation, service is guaranteed to be a key of optional_infra
+          type OptionalInfraKey = keyof typeof config.optional_infra;
+          config.optional_infra[service as OptionalInfraKey] = true;
 
           const projectJsonPath = join(projectRoot, '.tdk', 'project.json');
           writeFileSync(projectJsonPath, JSON.stringify(config, null, 2), 'utf-8');
@@ -218,7 +220,9 @@ export const configCommand = new Command('config')
           }
 
           const config = readProjectConfig(projectRoot);
-          config.optional_infra[service as keyof typeof config.optional_infra] = false;
+          // After validation, service is guaranteed to be a key of optional_infra
+          type OptionalInfraKey = keyof typeof config.optional_infra;
+          config.optional_infra[service as OptionalInfraKey] = false;
 
           const projectJsonPath = join(projectRoot, '.tdk', 'project.json');
           writeFileSync(projectJsonPath, JSON.stringify(config, null, 2), 'utf-8');

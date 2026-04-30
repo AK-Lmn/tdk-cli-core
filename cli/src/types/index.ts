@@ -96,10 +96,6 @@ export interface TiltResourceStatus {
   available: boolean;
 }
 
-// ============================================================================
-// JSON Value Types
-// ============================================================================
-
 /**
  * JSON-compatible value types for configuration overrides
  * Used for project configuration and template generation
@@ -115,10 +111,6 @@ interface JsonArray extends Array<JsonValue> {}
  * JSON object type (internal use only)
  */
 interface JsonObject extends Record<string, JsonValue> {}
-
-// ============================================================================
-// Project Configuration Types
-// ============================================================================
 
 /**
  * Stack definition within project configuration

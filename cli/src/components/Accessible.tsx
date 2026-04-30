@@ -1,34 +1,25 @@
 /** Accessible Components */
 
 import React from 'react';
-import { Box, Text } from 'ink';
+import { BaseTooltip } from './BaseTooltip.js';
 import type { TooltipProps } from '../types/index.js';
 
+/**
+ * AccessibleTooltip - Tooltip variant with info icon prefix
+ * Uses BaseTooltip for consistent styling
+ */
 export const AccessibleTooltip: React.FC<TooltipProps> = ({
   content,
   shortcut,
   visible
 }) => {
-  if (!visible) return null;
-
   return (
-    <Box
-      flexDirection="column"
-      borderStyle="single"
-      borderColor="yellow"
-      paddingX={1}
-      paddingY={1}
-      backgroundColor="black"
+    <BaseTooltip
+      content={content}
+      shortcut={shortcut}
+      visible={visible}
+      prefix="ℹ "
       marginTop={1}
-    >
-      <Text color="yellow">ℹ {content}</Text>
-      {shortcut && (
-        <Box marginTop={1}>
-          <Text color="gray">Press </Text>
-          <Text color="cyan" bold>[{shortcut}]</Text>
-          <Text color="gray"> to use</Text>
-        </Box>
-      )}
-    </Box>
+    />
   );
 };

@@ -1,55 +1,27 @@
 /** Tooltip Component */
 
 import React from 'react';
-import { Box, Text } from 'ink';
+import { BaseTooltip } from './BaseTooltip.js';
 import type { TooltipProps } from '../types/index.js';
 
+/**
+ * Tooltip component for displaying contextual help
+ * Uses BaseTooltip for consistent styling with text wrapping support
+ */
 const Tooltip: React.FC<TooltipProps> = ({
   content,
   shortcut,
   visible,
   maxWidth = 40
 }) => {
-  if (!visible) return null;
-
-  // Wrap text to maxWidth
-  const words = content.split(' ');
-  const lines: string[] = [];
-  let currentLine = '';
-  
-  for (const word of words) {
-    if ((currentLine + word).length > maxWidth - 2) {
-      lines.push(currentLine.trim());
-      currentLine = word + ' ';
-    } else {
-      currentLine += word + ' ';
-    }
-  }
-  if (currentLine) {
-    lines.push(currentLine.trim());
-  }
-
   return (
-    <Box 
-      flexDirection="column"
-      borderStyle="single"
-      borderColor="yellow"
-      paddingX={1}
-      paddingY={1}
-      backgroundColor="black"
-      position="absolute"
-    >
-      {lines.map((line, i) => (
-        <Text key={i} color="yellow">{line}</Text>
-      ))}
-      {shortcut && (
-        <Box marginTop={1}>
-          <Text color="gray">Press </Text>
-          <Text color="cyan" bold>{shortcut}</Text>
-          <Text color="gray"> to use</Text>
-        </Box>
-      )}
-    </Box>
+    <BaseTooltip
+      content={content}
+      shortcut={shortcut}
+      visible={visible}
+      maxWidth={maxWidth}
+      wrapText={true}
+    />
   );
 };
 
