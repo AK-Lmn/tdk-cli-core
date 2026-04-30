@@ -7,7 +7,6 @@ import { describe, it, expect } from 'vitest';
 describe('config command', () => {
   describe('project config structure', () => {
     it('should have required project.json fields', () => {
-      // Define expected structure without file I/O
       const expectedConfig = {
         version: '2',
         project: {
@@ -44,7 +43,6 @@ describe('config command', () => {
 
   describe('config verification logic', () => {
     it('should detect missing files', () => {
-      // Simulate verification logic
       const existingFiles: string[] = [];
       const requiredFiles = [
         'tilt.config.json',

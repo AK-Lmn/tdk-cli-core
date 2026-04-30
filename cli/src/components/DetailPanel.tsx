@@ -70,7 +70,6 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
   }
 
   if (stack && stackMetadata) {
-  if (stack && stackMetadata) {
     const statusColor = getStatusColor(stackMetadata.overallStatus);
     const statusIcon = getStatusIcon(stackMetadata.overallStatus);
 
@@ -83,8 +82,7 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
         paddingX={1}
         paddingY={1}
       >
-        {/* Title */}
-        <Box marginBottom={1} justifyContent="center">
+  <Box marginBottom={1} justifyContent="center">
           <Text color="cyan" bold>
             ┌─ {stack.name.toUpperCase()} ─┐
           </Text>

@@ -324,12 +324,7 @@ export const networksCommand = new Command('networks')
         const statusSymbol = service.status === 'running' ? '✓' :
                             service.status === 'stopped' ? '✗' : '?';
         const statusEmoji = service.status === 'running' ? chalk.green(statusSymbol) :
-                           service.status === 'stopped' ? chalk.red(statusSymbol) : chalk.gray(statusSymbol);
-
-        const namePart = pad(service.name, 22);
-        const urlPart = service.status === 'running'
-          ? chalk.cyan.underline(service.url)
-          : chalk.gray(service.url);  // Gray out URL if stopped
+                            service.status === 'stopped' ? chalk.red(statusSymbol) : chalk.gray(statusSymbol);
 
         const namePart = formatPadded(service.name, 22);
         const urlPart = service.status === 'running'

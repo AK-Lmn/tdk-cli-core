@@ -1,7 +1,8 @@
 # =============================================================================
 # ⚠️  DEPRECATION NOTICE (2026-04-21):
 # This legacy discovery orchestrator in .tilt-engine/ is deprecated.
-# It is kept only as a fallback when USE_TDK_DISCOVERY=false.
+# It was kept as a fallback when USE_TDK_DISCOVERY=false, but this env var
+# is never checked. The code is unreachable and should be removed.
 # New development should use the TDK Landscape discovery system.
 # =============================================================================
 
