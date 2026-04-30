@@ -193,20 +193,12 @@ async function upgradeViaGit(path: string): Promise<boolean> {
     }
     
     spinner.text = 'Re-linking CLI...';
-    try {
-      execSync('bun link --force', {
-        cwd: join(path, 'cli'),
-        stdio: 'pipe',
-        timeout: 30000
-      });
-    } catch (err) {
-      // bun link --force may fail for various reasons (already linked, permission issues, etc.)
-      // The upgrade may still have succeeded via git pull - warn but don't fail
-      console.warn(chalk.yellow('⚠️  Warning: bun link --force failed after git upgrade'));
-      console.warn(chalk.gray(`   Error: ${err instanceof Error ? err.message : String(err)}`));
-      console.warn(chalk.gray('   The upgrade may have partially succeeded. Verify with: tdk version'));
-    }
-    
+    execSync('bun link --force', {
+      cwd: join(path, 'cli'),
+      stdio: 'pipe',
+      timeout: 30000
+    });
+
     spinner.succeed('Upgraded successfully via git pull');
     return true;
   } catch (err) {
@@ -395,15 +387,13 @@ export const upgradeCommand = new Command('upgrade')
       
     } catch (err) {
       verifySpinner.warn('Could not verify new version');
-      if (process.env.TDK_VERBOSE) {
-        console.error(chalk.gray(`Verification error: ${err instanceof Error ? err.message : String(err)}`));
-      }
+      console.error(chalk.red(`Verification error: ${err instanceof Error ? err.message : String(err)}`));
       console.log();
-      console.log(chalk.green.bold('✨ Upgrade likely complete!'));
+      console.log(chalk.yellow('⚠️  Upgrade status unknown - verification failed'));
       console.log();
-      console.log(chalk.yellow('💡 Next steps:'));
+      console.log(chalk.yellow('💡 Verify manually:'));
       console.log(chalk.white('   1. Restart your terminal'));
-      console.log(chalk.white('   2. Run: tdk -v'));
-      console.log(chalk.white('   3. Run: tdk --help'));
+      console.log(chalk.white('   2. Run: tdk version'));
+      console.log(chalk.white('   3. Compare with: git -C ' + (installInfo.path || '/path/to/tdk-cli') + ' rev-parse HEAD'));
     }
   });
