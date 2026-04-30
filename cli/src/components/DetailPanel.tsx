@@ -91,9 +91,8 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
           </Text>
         </Box>
         
-        {/* Status - only colored element */}
-        <Box 
-          borderStyle="single" 
+  <Box
+          borderStyle="single"
           borderColor={statusColor}
           paddingX={1}
           paddingY={1}
