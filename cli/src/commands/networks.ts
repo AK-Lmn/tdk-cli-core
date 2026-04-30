@@ -54,17 +54,20 @@ function execSafe(command: string, args: string[], options: { encoding?: string;
 const BOX_WIDTH = 62;
 
 function determineDefaultDomain(): string {
-  try {
-    const projectRoot = findProjectRoot();
-    if (projectRoot) {
+  const projectRoot = findProjectRoot();
+  if (projectRoot) {
+    try {
       const projectConfig = readProjectConfig(projectRoot);
       const projectName = projectConfig.project?.name;
       if (projectName && projectName !== 'tdk-project') {
         return `${projectName}.localhost`;
       }
+    } catch (err) {
+      // Config doesn't exist or is invalid - fall through to docker domain detection
+      if (process.env.TDK_VERBOSE) {
+        console.warn(chalk.gray(`Config read failed: ${err instanceof Error ? err.message : String(err)}`));
+      }
     }
-  } catch {
-    // Ignore - config might not exist or be readable
   }
 
   // Collect all unique domains from Traefik containers
@@ -82,8 +85,11 @@ function determineDefaultDomain(): string {
     while ((match = domainRegex.exec(traefikLabels)) !== null) {
       domains.add(match[1]);
     }
-  } catch {
-    // Ignore - docker might not be running
+  } catch (err) {
+    // Docker not running or no Traefik containers - domains set remains empty
+    if (process.env.TDK_VERBOSE) {
+      console.warn(chalk.gray(`Docker/Traefik check failed: ${err instanceof Error ? err.message : String(err)}`));
+    }
   }
 
   // Filter out service-specific domains (ones that look like individual services)
@@ -196,8 +202,11 @@ async function checkServiceStatus(serviceName: string, port?: number, url?: stri
     if (result && result.trim().length > 0) {
       return 'running';
     }
-  } catch {
-    // Docker check failed
+  } catch (err) {
+    // Docker not available or container not found - service is stopped
+    if (process.env.TDK_VERBOSE) {
+      console.warn(chalk.gray(`Docker check failed for ${serviceName}: ${err instanceof Error ? err.message : String(err)}`));
+    }
   }
 
   return 'stopped';
@@ -353,9 +362,12 @@ export const networksCommand = new Command('networks')
         const projectName = projectConfig.project.name;
         console.log(chalk.yellow('💡 Tip: Set custom domain with:'));
         console.log(chalk.cyan(`   export TDK_PUBLIC_HOST=${projectName}.localhost`));
-      } catch {
+      } catch (err) {
         console.log(chalk.yellow('💡 Tip: Set custom domain with:'));
         console.log(chalk.cyan('   export TDK_PUBLIC_HOST=localhost'));
+        if (process.env.TDK_VERBOSE) {
+          console.warn(chalk.gray(`Could not read project config: ${err instanceof Error ? err.message : String(err)}`));
+        }
       }
     }
     

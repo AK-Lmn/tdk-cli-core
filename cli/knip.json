@@ -1,21 +1,13 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
-    "src/cli.ts",
-    "bin/*.js"
+    "src/cli.ts"
   ],
   "project": [
-    "src/**/*.ts",
-    "src/**/*.tsx"
+    "src/**/*.{ts,tsx}"
   ],
   "ignore": [
-    "src/**/__tests__/**",
-    "dist/**",
-    "**/coverage_html/**"
-  ],
-  "include": [
-    "exports",
-    "dependencies",
-    "unlisted"
+    "src/**/*.test.ts",
+    "src/**/__tests__/**"
   ]
 }
