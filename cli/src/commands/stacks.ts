@@ -15,8 +15,8 @@ export const stacksCommand = new Command('stacks')
   .option('--services', 'Include list of services in each stack', false)
   .action(async (options) => {
     try {
-      const resources = discoverResources();
-      const stackNames = getAllStacks(resources);
+      const services = discoverResources();
+      const stackNames = getAllStacks(services);
 
       if (stackNames.length === 0) {
         console.log(chalk.yellow('No stacks found.'));
@@ -38,9 +38,9 @@ export const stacksCommand = new Command('stacks')
           console.log(chalk.gray(`  ${stack.description}`));
 
           if (options.services) {
-            console.log(chalk.gray('  Resources:'));
-            for (const resource of stack.resources) {
-              console.log(chalk.gray(`    - ${resource.name}`));
+            console.log(chalk.gray('  Services:'));
+            for (const service of stack.resources) {
+              console.log(chalk.gray(`    - ${service.name}`));
             }
           }
 
@@ -51,14 +51,13 @@ export const stacksCommand = new Command('stacks')
         console.log(chalk.blue(`Found ${stackNames.length} stack${stackNames.length === 1 ? '' : 's'}:\n`));
 
         for (const name of stackNames) {
-          const stackResources = resources.filter(r => r.stack === name);
+          const stackServices = services.filter((s: {stack?: string}) => s.stack === name);
           console.log(chalk.bold(`  ${name}`));
-          console.log(chalk.gray(`    ${stackResources.length} resource${stackResources.length === 1 ? '' : 's'}`));
+          console.log(chalk.gray(`    ${stackServices.length} service${stackServices.length === 1 ? '' : 's'}`));
         }
 
-        console.log(chalk.gray('\nRun with --verbose for more details, or --services to see all resources in each stack.'));
+        console.log(chalk.gray('\nRun with --verbose for more details, or --services to see all services in each stack.'));
       }
-
     } catch (err) {
       console.error(chalk.red(`Error: ${err}`));
       process.exit(1);

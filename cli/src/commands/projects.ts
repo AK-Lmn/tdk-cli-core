@@ -17,7 +17,7 @@ export const projectsCommand = new Command('projects')
   .action(async (options) => {
     try {
       const projectRoot = findProjectRoot();
-      
+
       if (!projectRoot) {
         console.error(chalk.red('Error: Could not find project root (no Tiltfile found).'));
         console.error(chalk.gray('Run this from within a project that has a Tiltfile.'));
@@ -25,7 +25,7 @@ export const projectsCommand = new Command('projects')
       }
 
       console.log(chalk.blue('Project Information\n'));
-      
+
       // Basic project info
       console.log(chalk.bold('Project Root:'));
       console.log(chalk.gray(`  ${projectRoot}`));
@@ -34,7 +34,7 @@ export const projectsCommand = new Command('projects')
       // Check master configs
       const defaultsPath = resolve(projectRoot, 'TILT_RESOURCE_DEFAULTS.star');
       const techStackPath = resolve(projectRoot, 'TILT_TECH_STACK.star');
-      
+
       const defaultsExists = existsSync(defaultsPath);
       const techStackExists = existsSync(techStackPath);
 
@@ -44,7 +44,7 @@ export const projectsCommand = new Command('projects')
       } else {
         console.log(chalk.red(`  ✗ TILT_RESOURCE_DEFAULTS.star (missing)`));
       }
-      
+
       if (techStackExists) {
         console.log(chalk.green(`  ✓ TILT_TECH_STACK.star`));
       } else {
@@ -60,7 +60,7 @@ export const projectsCommand = new Command('projects')
       console.log(chalk.gray(`  Resources: ${resources.length}`));
       console.log(chalk.gray(`  Stacks:    ${stackNames.length}`));
 
-      const withoutStack = resources.filter((r: { stack?: string }) => !r.stack).length;
+      const withoutStack = resources.filter(r => !r.stack).length;
       if (withoutStack > 0) {
         console.log(chalk.yellow(`  ⚠ Unassigned: ${withoutStack} resource${withoutStack === 1 ? '' : 's'}`));
       }
@@ -70,7 +70,7 @@ export const projectsCommand = new Command('projects')
       if (stackNames.length > 0) {
         console.log(chalk.bold('Stacks:'));
         for (const name of stackNames.sort()) {
-          const count = resources.filter((r: { stack?: string }) => r.stack === name).length;
+          const count = resources.filter(r => r.stack === name).length;
           console.log(chalk.gray(`  ${name} (${count} resource${count === 1 ? '' : 's'})`));
         }
         console.log();
@@ -92,7 +92,6 @@ export const projectsCommand = new Command('projects')
         const isConfigured = defaultsExists && techStackExists;
         process.exit(isConfigured ? 0 : 1);
       }
-
     } catch (err) {
       console.error(chalk.red(`Error: ${err}`));
       process.exit(1);

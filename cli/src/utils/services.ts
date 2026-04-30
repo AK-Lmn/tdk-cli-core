@@ -535,3 +535,17 @@ export function getTiltResourceStatus(resourceName: string): TiltResourceStatus 
     return defaultStatus;
   }
 }
+
+/**
+ * Require project root or exit with error
+ * Consolidates the common pattern of checking for project root across all commands
+ */
+export function requireProjectRoot(): string {
+  const projectRoot = findProjectRoot();
+  if (!projectRoot) {
+    console.error('Error: Could not find project root (no Tiltfile found).');
+    console.error('Run this from within a project that has a Tiltfile.');
+    process.exit(1);
+  }
+  return projectRoot;
+}

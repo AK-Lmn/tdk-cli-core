@@ -42,7 +42,7 @@ class TestSaveSnapshot:
         services = ["services/a/service.json", "services/b/service.json"]
         save_snapshot(services)
         
-        snapshot_file = Path(".tilk/.tdk-out/snapshots/resource-snapshot.json")
+        snapshot_file = Path(".tdk/.tdk-out/snapshots/resource-snapshot.json")
         assert snapshot_file.exists(), "Snapshot file should be created"
         
         # Verify content
@@ -63,57 +63,39 @@ class TestSaveSnapshot:
 class TestLoadSnapshot:
     """Tests for load_snapshot function."""
     
-    def test_load_existing(self, tmp_path):
+    def test_load_existing(self, temp_workspace):
         """Test loading an existing snapshot."""
-        original_dir = os.getcwd()
-        os.chdir(tmp_path)
+        # Create a snapshot first
+        services = ["services/a/service.json"]
+        save_snapshot(services)
         
-        try:
-            # Create a snapshot first
-            services = ["services/a/service.json"]
-            save_snapshot(services)
-            
-            # Load it
-            snapshot = load_snapshot()
-            
-            assert snapshot["count"] == 1
-            assert snapshot["services"] == services
-            assert "timestamp" in snapshot
-        finally:
-            os.chdir(original_dir)
+        # Load it
+        snapshot = load_snapshot()
+        
+        assert snapshot["count"] == 1
+        assert snapshot["services"] == services
+        assert "timestamp" in snapshot
     
-    def test_load_nonexistent(self, tmp_path):
+    def test_load_nonexistent(self, temp_workspace):
         """Test loading when snapshot doesn't exist."""
-        original_dir = os.getcwd()
-        os.chdir(tmp_path)
+        snapshot = load_snapshot()
         
-        try:
-            snapshot = load_snapshot()
-            
-            assert snapshot["count"] == 0
-            assert snapshot["services"] == []
-            assert snapshot["timestamp"] is None
-        finally:
-            os.chdir(original_dir)
+        assert snapshot["count"] == 0
+        assert snapshot["services"] == []
+        assert snapshot["timestamp"] is None
     
-    def test_load_invalid_json(self, tmp_path):
+    def test_load_invalid_json(self, temp_workspace):
         """Test loading when snapshot has invalid JSON."""
-        original_dir = os.getcwd()
-        os.chdir(tmp_path)
+        # Create invalid snapshot
+        Path(".tdk/.tdk-out/snapshots").mkdir(parents=True, exist_ok=True)
+        with open(".tdk/.tdk-out/snapshots/resource-snapshot.json", "w") as f:
+            f.write("not valid json")
         
-        try:
-            # Create invalid snapshot
-            Path(".tilt").mkdir(parents=True, exist_ok=True)
-            with open(".tilt/resource-snapshot.json", "w") as f:
-                f.write("not valid json")
-            
-            snapshot = load_snapshot()
-            
-            # Should return empty snapshot on error
-            assert snapshot["count"] == 0
-            assert snapshot["services"] == []
-        finally:
-            os.chdir(original_dir)
+        snapshot = load_snapshot()
+        
+        # Should return empty snapshot on error
+        assert snapshot["count"] == 0
+        assert snapshot["services"] == []
 
 
 class TestDiffSnapshots:
@@ -124,101 +106,88 @@ class TestDiffSnapshots:
         old = {"services": ["a/service.json", "b/service.json"]}
         new = ["a/service.json", "b/service.json", "c/service.json"]
         
-        added, removed = diff_snapshots(old, new)
+        added, removed, modified = diff_snapshots(old, new)
         
         assert added == {"c/service.json"}
         assert removed == set()
+        assert modified == set()
     
     def test_detect_removed(self):
         """Test detecting removed services."""
         old = {"services": ["a/service.json", "b/service.json", "c/service.json"]}
         new = ["a/service.json", "b/service.json"]
         
-        added, removed = diff_snapshots(old, new)
+        added, removed, modified = diff_snapshots(old, new)
         
         assert added == set()
         assert removed == {"c/service.json"}
+        assert modified == set()
     
     def test_detect_both(self):
         """Test detecting both added and removed."""
         old = {"services": ["a/service.json", "b/service.json"]}
         new = ["b/service.json", "c/service.json"]
         
-        added, removed = diff_snapshots(old, new)
+        added, removed, modified = diff_snapshots(old, new)
         
         assert added == {"c/service.json"}
         assert removed == {"a/service.json"}
+        assert modified == set()
     
     def test_no_changes(self):
         """Test when nothing changed."""
         old = {"services": ["a/service.json", "b/service.json"]}
         new = ["a/service.json", "b/service.json"]
         
-        added, removed = diff_snapshots(old, new)
+        added, removed, modified = diff_snapshots(old, new)
         
         assert added == set()
         assert removed == set()
+        assert modified == set()
     
     def test_empty_old(self):
         """Test when old snapshot is empty."""
         old = {"services": []}
         new = ["a/service.json", "b/service.json"]
         
-        added, removed = diff_snapshots(old, new)
+        added, removed, modified = diff_snapshots(old, new)
         
         assert added == {"a/service.json", "b/service.json"}
         assert removed == set()
+        assert modified == set()
 
 
 class TestGetCurrentServices:
     """Tests for get_current_services function."""
     
-    def test_finds_services(self, tmp_path):
+    def test_finds_services(self, temp_workspace):
         """Test finding service.json files."""
-        original_dir = os.getcwd()
-        os.chdir(tmp_path)
+        # Create test directory structure
+        (Path("services/product/a") / "a-backend").mkdir(parents=True)
+        (Path("services/product/a") / "a-backend" / "service.json").touch()
         
-        try:
-            # Create test directory structure
-            (Path("services/product/a") / "a-backend").mkdir(parents=True)
-            (Path("services/product/a") / "a-backend" / "service.json").touch()
-            
-            (Path("services/product/b") / "b-backend").mkdir(parents=True)
-            (Path("services/product/b") / "b-backend" / "service.json").touch()
-            
-            services = get_current_services("services/product")
-            
-            assert len(services) == 2
-            assert all("service.json" in s for s in services)
-        finally:
-            os.chdir(original_dir)
+        (Path("services/product/b") / "b-backend").mkdir(parents=True)
+        (Path("services/product/b") / "b-backend" / "service.json").touch()
+        
+        services = get_current_services("services/product")
+        
+        assert len(services) == 2
+        assert all("service.json" in s for s in services)
     
-    def test_empty_result(self, tmp_path):
+    def test_empty_result(self, temp_workspace):
         """Test when no services exist."""
-        original_dir = os.getcwd()
-        os.chdir(tmp_path)
+        # Create empty directory
+        Path("services/product").mkdir(parents=True)
         
-        try:
-            # Create empty directory
-            Path("services/product").mkdir(parents=True)
-            
-            services = get_current_services("services/product")
-            
-            assert services == []
-        finally:
-            os.chdir(original_dir)
+        services = get_current_services("services/product")
+        
+        assert services == []
     
-    def test_nonexistent_root(self, tmp_path):
+    def test_nonexistent_root(self, temp_workspace):
         """Test when scan root doesn't exist."""
-        original_dir = os.getcwd()
-        os.chdir(tmp_path)
+        services = get_current_services("nonexistent/path")
         
-        try:
-            services = get_current_services("nonexistent/path")
-            
-            assert services == []
-        finally:
-            os.chdir(original_dir)
+        assert services == []
 
 
 def run_tests():

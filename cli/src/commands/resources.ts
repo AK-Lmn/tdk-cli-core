@@ -7,8 +7,6 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { discoverResources, findProjectRoot } from '../utils/services.js';
-import { existsSync } from 'node:fs';
-import { resolve } from 'node:path';
 
 export const resourcesCommand = new Command('resources')
   .description('List all resources (services) in the project')
@@ -19,6 +17,7 @@ export const resourcesCommand = new Command('resources')
   .action(async (options) => {
     try {
       const projectRoot = findProjectRoot();
+
       if (!projectRoot) {
         console.error(chalk.red('Error: Could not find project root (no Tiltfile found).'));
         process.exit(1);
@@ -88,12 +87,11 @@ export const resourcesCommand = new Command('resources')
       }
 
       // Summary
-      const withoutStack = resources.filter(r => !r.stack).length;
+      const withoutStack = resources.filter((r: {stack?: string}) => !r.stack).length;
       if (withoutStack > 0 && !options.noStack) {
         console.log(chalk.yellow(`\n${withoutStack} resource${withoutStack === 1 ? '' : 's'} not assigned to any stack.`));
         console.log(chalk.gray('Run "tdk resources --no-stack" to see them, or "tdk stack" to assign them.'));
       }
-
     } catch (err) {
       console.error(chalk.red(`Error: ${err}`));
       process.exit(1);
