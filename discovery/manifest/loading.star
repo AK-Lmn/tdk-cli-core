@@ -270,11 +270,7 @@ def _apply_manifest_defaults(manifest, resource_path):
     result['usePrisma'] = 'prisma' in features
     result['useNats'] = 'nats' in features
     result['useTraefik'] = 'traefik' in features or app_type in ['backend', 'sdk']
-    
-    # Compute HMR port if not set (only for frontend)
-    if result.get('hmrPort') == None and app_type == 'frontend':
-        result['hmrPort'] = result['port'] + 1000  # 3000 -> 4000
-    
+
     # Extract stack from path if not set
     if 'stack' not in result:
         result['stack'] = _extract_stack_from_path(resource_path, app_name)

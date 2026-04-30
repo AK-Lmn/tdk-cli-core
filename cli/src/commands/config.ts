@@ -38,7 +38,9 @@ export const configCommand = new Command('config')
             let hasChanges = false;
 
             for (const filename of filesToCheck) {
-              const newContent = newFiles[filename as keyof typeof newFiles];
+              // Type-safe access to generated files using const assertion type
+              type GeneratedFileName = keyof typeof newFiles;
+              const newContent = newFiles[filename as GeneratedFileName];
               const filePath = join(outputDir, filename);
 
               if (!existsSync(filePath)) {

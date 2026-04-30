@@ -178,10 +178,6 @@ export interface TooltipProps {
   maxWidth?: number;
 }
 
-// ============================================================================
-// File Tree Types
-// ============================================================================
-
 /**
  * Represents a node in a file tree structure
  * Used by FileTree component and file discovery utilities
@@ -202,10 +198,6 @@ export interface FileNode {
   /** Last modified timestamp ISO string */
   lastModified?: string;
 }
-
-// ============================================================================
-// Validation Types
-// ============================================================================
 
 /**
  * Standard validation result pattern used across the CLI
@@ -236,10 +228,6 @@ export interface CheckResult {
   /** Optional fix instructions if check failed */
   fix?: string;
 }
-
-// ============================================================================
-// Network Types
-// ============================================================================
 
 /**
  * Represents a service URL in Traefik-routed networks

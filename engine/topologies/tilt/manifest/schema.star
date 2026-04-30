@@ -263,28 +263,6 @@ MANIFEST_SCHEMA = {
         },
         'description': 'Traefik reverse proxy configuration',
     },
-    
-    # Legacy/Deprecated Fields
-    'hmrPort': {
-        'type': 'integer',
-        'required': False,
-        'deprecated': True,
-        'description': 'Hot module replacement port (legacy)',
-    },
-    'proxyRoutes': {
-        'type': 'list',
-        'required': False,
-        'deprecated': True,
-        'description': 'Legacy proxy routes configuration',
-        'default': [],
-    },
-    'apiBasePath': {
-        'type': 'string',
-        'required': False,
-        'deprecated': True,
-        'description': 'API base path (use traefik.pathPrefix instead)',
-        'default': '/api',
-    },
 }
 
 # Cross-field validation constraints

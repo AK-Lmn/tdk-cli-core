@@ -41,6 +41,48 @@ export function truncate(str: string, maxLength: number): string {
   return str.slice(0, maxLength - 3) + '...';
 }
 
+// ============================================================================
+// Box Drawing Utilities (migrated from networks.ts)
+// ============================================================================
+
+const DEFAULT_BOX_WIDTH = 62;
+
+/**
+ * Create a horizontal line for box drawing
+ * @param char - Character to repeat (default: '─')
+ * @param width - Line width (default: 62)
+ * @returns Repeated character string
+ */
+export function formatBoxLine(char: string = '─', width: number = DEFAULT_BOX_WIDTH): string {
+  return char.repeat(width);
+}
+
+/**
+ * Center text within a given width
+ * @param text - Text to center
+ * @param width - Total width (default: 60)
+ * @returns Centered text with padding
+ */
+export function formatCentered(text: string, width: number = DEFAULT_BOX_WIDTH - 2): string {
+  const padding = Math.max(0, width - text.length);
+  const left = Math.floor(padding / 2);
+  const right = padding - left;
+  return ' '.repeat(left) + text + ' '.repeat(right);
+}
+
+/**
+ * Pad or truncate text to fit within width
+ * @param text - Text to pad
+ * @param width - Target width
+ * @returns Padded or truncated string
+ */
+export function formatPadded(text: string, width: number): string {
+  if (text.length > width) {
+    return text.slice(0, width - 1) + '…';
+  }
+  return text.padEnd(width);
+}
+
 export function getStatusColor(status: string): string {
   switch (status) {
     case 'ready':

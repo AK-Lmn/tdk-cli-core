@@ -12,6 +12,7 @@ import { findProjectRoot, discoverResources } from '../utils/services.js';
 import { readProjectConfig } from '../generator/template-engine.js';
 import { sanitizeForShell, isValidPort } from '../utils/validation.js';
 import { requireProjectRoot } from '../utils/errors.js';
+import { formatBoxLine, formatCentered, formatPadded } from '../utils/formatting.js';
 import type { ServiceUrl } from '../types/index.js';
 
 /**
@@ -49,12 +50,8 @@ function execSafe(command: string, args: string[], options: { encoding?: string;
   });
 }
 
+// Box width for network display - maintained for backward compatibility
 const BOX_WIDTH = 62;
-
-function getBaseDomain(): string {
-  if (process.env.TDK_PUBLIC_HOST) {
-    return process.env.TDK_PUBLIC_HOST;
-  }
 
   try {
     const projectRoot = findProjectRoot();

@@ -497,16 +497,25 @@ export function getTiltResourceStatus(resourceName: string): TiltResourceStatus 
     };
   }
 
-  const runtimeStatus = status.runtimeStatus?.toLowerCase() || 'unknown';
-  const buildStatus = status.buildStatus?.toLowerCase() || 'unknown';
+  const runtimeStatusRaw = status.runtimeStatus?.toLowerCase() || 'unknown';
+  const buildStatusRaw = status.buildStatus?.toLowerCase() || 'unknown';
+
+  // Type-safe status validation using const arrays
+  const VALID_RUNTIME_STATUSES = ['running', 'pending', 'error'] as const;
+  const VALID_BUILD_STATUSES = ['ok', 'error', 'in_progress'] as const;
+
+  type ValidRuntimeStatus = typeof VALID_RUNTIME_STATUSES[number];
+  type ValidBuildStatus = typeof VALID_BUILD_STATUSES[number];
+
+  const runtimeStatus: TiltResourceStatus['runtimeStatus'] =
+    includes(VALID_RUNTIME_STATUSES, runtimeStatusRaw) ? runtimeStatusRaw : 'unknown';
+
+  const buildStatus: TiltResourceStatus['buildStatus'] =
+    includes(VALID_BUILD_STATUSES, buildStatusRaw) ? buildStatusRaw : 'unknown';
 
   return {
-    runtimeStatus: ['running', 'pending', 'error'].includes(runtimeStatus)
-      ? runtimeStatus as TiltResourceStatus['runtimeStatus']
-      : 'unknown',
-    buildStatus: ['ok', 'error', 'in_progress'].includes(buildStatus)
-      ? buildStatus as TiltResourceStatus['buildStatus']
-      : 'unknown',
+    runtimeStatus,
+    buildStatus,
     lastBuildTime: status.lastBuildTime || null,
     currentBuildTime: status.currentBuildTime || null,
     available: true,

@@ -3,7 +3,7 @@
 import React from 'react';
 import { Box, Text } from 'ink';
 import type { DiscoveredStack, DiscoveredResource, StackMetadata, ResourceMetadata } from '../types/index.js';
-import { formatDate } from '../utils/formatting.js';
+import { formatDate, getStatusColor, getStatusIcon } from '../utils/formatting.js';
 
 interface DetailPanelProps {
   stack: DiscoveredStack | null;
@@ -33,14 +33,12 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
         paddingX={1}
         paddingY={1}
       >
-        {/* Title */}
-        <Box marginBottom={1} justifyContent="center">
+  <Box marginBottom={1} justifyContent="center">
           <Text color="cyan" bold>
             ┌─ {service.name.toUpperCase()} ─┐
           </Text>
         </Box>
         
-        {/* Details */}
         <Box flexDirection="column" marginY={1}>
           <Box>
             <Text color="gray">Name: </Text>
@@ -74,13 +72,8 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
 
   // Show stack details if stack is selected
   if (stack && stackMetadata) {
-    const statusColor = 
-      stackMetadata.overallStatus === 'healthy' ? 'green' :
-      stackMetadata.overallStatus === 'degraded' ? 'yellow' : 'red';
-    
-    const statusIcon = 
-      stackMetadata.overallStatus === 'healthy' ? '✓' :
-      stackMetadata.overallStatus === 'degraded' ? '◐' : '✗';
+    const statusColor = getStatusColor(stackMetadata.overallStatus);
+    const statusIcon = getStatusIcon(stackMetadata.overallStatus);
 
     return (
       <Box 

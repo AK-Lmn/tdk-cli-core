@@ -105,12 +105,6 @@ def generate_frontend_env_ts(manifest, write_fn=None):
  * Uses VITE_API_URL env var with fallback to local dev URL
  */
 export const API_URL = import.meta.env.VITE_API_URL || 'http://{local_domain}{api_path}';
-
-/**
- * Default export for convenience
- * @deprecated Use named export API_URL instead
- */
-export default API_URL;
 '''.format(
         stack=stack,
         api_path=api_path,
@@ -138,8 +132,8 @@ def generate_frontend_api_index(manifest, write_fn=None):
 // Source: .tilt/topologies/tilt/resources/orchestrator/generators/frontend.star
 // Purpose: Clean barrel exports for API client
 
-export { apiClient, default } from './api-client';
-export { API_URL, default as API_URL_DEFAULT } from './env';
+export { apiClient } from './api-client';
+export { API_URL } from './env';
 '''
     
     if write_fn:
