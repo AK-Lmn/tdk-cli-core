@@ -66,9 +66,9 @@ export const projectCommand = new Command('project')
   .option('--yes', 'Non-interactive mode (use defaults)')
   .option('--config-file <path>', 'Load project config from existing JSON file')
   .action(async (options) => {
-    try {
+    await runCommand(async () => {
       let projectRoot = findProjectRoot();
-      
+
       // If no project found, auto-initialize in current directory
       if (!projectRoot) {
         projectRoot = cwd();
@@ -266,4 +266,5 @@ export const projectCommand = new Command('project')
       console.log(chalk.gray('  2. Run `tdk stack` to manage services in stacks'));
       console.log(chalk.gray('  3. Run `tdk up` to start development'));
     });
+  });
   });

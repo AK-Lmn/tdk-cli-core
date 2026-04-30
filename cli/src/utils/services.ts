@@ -254,45 +254,6 @@ function isCacheValid(): boolean {
 }
 
 /**
- * Type guard to validate if a value is a valid ResourceConfig
- */
-function isValidResourceConfig(value: unknown): value is ResourceConfig {
-  if (!value || typeof value !== 'object') return false;
-  const config = value as Record<string, unknown>;
-  return typeof config.appName === 'string' && typeof config.runtime === 'string';
-}
-
-/**
- * Parse a service.json file into DiscoveredResource
- */
-function parseResource(serviceJsonPath: string): DiscoveredResource | null {
-  try {
-    const content = readFileSync(serviceJsonPath, 'utf-8');
-    const parsed: unknown = JSON.parse(content);
-
-    if (!isValidResourceConfig(parsed)) {
-      console.warn(`Warning: Invalid service.json at ${serviceJsonPath}: missing required fields (appName, runtime)`);
-      return null;
-    }
-
-    const config: ResourceConfig = parsed;
-    const resourceDir = dirname(serviceJsonPath);
-
-    return {
-      name: config.appName,
-      path: resourceDir,
-      configPath: serviceJsonPath,
-      config,
-      stack: config.stack,
-    };
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
-    console.warn(`Warning: Failed to parse service.json at ${serviceJsonPath}: ${errorMessage}`);
-    return null;
-  }
-}
-
-/**
  * Detect file type based on filename and content
  */
 function detectFileType(filename: string, content?: string): FileType {

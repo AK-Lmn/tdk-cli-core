@@ -29,7 +29,6 @@ export const resourcesCommand = new Command('resources')
         return;
       }
 
-      // Filter resources if requested
       let resources = allResources;
 
       if (options.stack) {

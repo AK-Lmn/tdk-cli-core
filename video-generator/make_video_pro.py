@@ -279,13 +279,11 @@ class VideoGenerator:
             draw.text((title_x, title_y), scene.title, fill=(255, 255, 255), 
                      font=self.fonts['display'])
             
-            # Subtitle
             sub_bbox = draw.textbbox((0, 0), scene.subtitle, font=self.fonts['subtitle'])
             sub_x = (self.width - (sub_bbox[2]-sub_bbox[0])) // 2
             draw.text((sub_x, title_y + 140), scene.subtitle, fill=(180, 180, 180), 
                      font=self.fonts['subtitle'])
             
-            # Decorative line
             line_width = int(400 * anim)
             line_x = (self.width - line_width) // 2
             draw.line([(line_x, title_y + 220), (line_x + line_width, title_y + 220)], 

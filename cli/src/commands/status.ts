@@ -19,12 +19,9 @@ export const statusCommand = new Command('status')
   .option('--tilt', 'Show tilt resource status', false)
   .action(async (options) => {
     await runCommand(async () => {
-      // Check tilt availability
       const tiltAvailable = await isTiltAvailable();
 
       console.log(chalk.blue('TDK Status\n'));
-
-      // Show tilt status
       console.log(chalk.bold('Tilt:'), tiltAvailable ? chalk.green('available') : chalk.red('not found'));
 
       if (!tiltAvailable) {

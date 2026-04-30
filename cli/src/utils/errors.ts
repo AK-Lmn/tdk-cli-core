@@ -12,7 +12,7 @@ interface ErrorContext {
   port?: number;
 }
 
-export class TdkError extends Error {
+class TdkError extends Error {
   public suggestions: string[];
   public exitCode: number;
 
@@ -40,7 +40,7 @@ export class TdkError extends Error {
 }
 
 // Common error factories
-export const Errors = {
+const Errors = {
   notInProject: () => new TdkError(
     'Not in a TDK project directory',
     [

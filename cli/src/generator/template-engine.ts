@@ -135,7 +135,7 @@ export class TemplateEngine {
       return new Handlebars.SafeString(`[${items.join(", ")}]`);
     });
 
-    Handlebars.registerHelper("json", function(value: unknown): string {
+    Handlebars.registerHelper("json", function(value: JsonValue): string {
       return JSON.stringify(value);
     });
   }

@@ -16,7 +16,6 @@ export const downCommand = new Command('down')
   .option('--dry-run', 'Show what would be stopped without stopping', false)
   .action(async (options) => {
     await runCommand(async () => {
-      // Check tilt is available
       if (!await isTiltAvailable()) {
         console.error(chalk.red('Error: tilt CLI not found. Make sure Tilt is installed.'));
         process.exit(1);
@@ -28,12 +27,10 @@ export const downCommand = new Command('down')
         return;
       }
 
-      // Build tilt down arguments (includes Tiltfile path)
       const tiltArgs = buildTiltDownArgs({
         force: options.force
       });
 
-      // Run tilt down
       console.log(chalk.blue('Stopping all tilt resources...'));
 
       if (options.verbose) {

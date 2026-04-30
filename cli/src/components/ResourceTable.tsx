@@ -94,9 +94,6 @@ export const ResourceTable: React.FC<ResourceTableProps> = ({ resources, maxWidt
   );
 };
 
-
-}
-
 function getStatusIcon(status: string): string {
   switch (status) {
     case 'ready': return '✓';

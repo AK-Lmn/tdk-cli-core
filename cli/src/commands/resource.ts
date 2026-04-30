@@ -13,6 +13,7 @@ import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { discoverResources } from '../utils/services.js';
 import { requireProjectRoot, runCommand } from '../utils/errors.js';
+import { validateResourceName } from '../utils/validation.js';
 import { formatCount } from '../utils/formatting.js';
 
 // Templates for different resource types
@@ -421,7 +422,6 @@ export const resourceCommand = new Command('resource')
 
       const fullPath = resolve(projectRoot, resourcePath);
 
-      // Check if directory already exists
       if (existsSync(fullPath)) {
         console.error(chalk.red(`Error: Directory already exists: ${fullPath}`));
         console.error(chalk.gray('Use --path to specify a different location'));
