@@ -1,7 +1,3 @@
-/**
- * Tests for tdk config command
- */
-
 import { describe, it, expect } from 'vitest';
 
 describe('config command', () => {

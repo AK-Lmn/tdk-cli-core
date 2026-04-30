@@ -1,7 +1,3 @@
-/**
- * Tests for tdk project command
- */
-
 import { describe, it, expect } from 'vitest';
 
 describe('project command', () => {

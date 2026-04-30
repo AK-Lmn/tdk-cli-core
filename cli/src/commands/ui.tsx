@@ -15,9 +15,9 @@ import {
 import type { DiscoveredResource, DiscoveredStack, ResourceMetadata, StackMetadata } from '../types/index.js';
 import { isTiltAvailable } from '../utils/tilt.js';
 import { errorFactories, requireProjectRoot } from '../utils/errors.js';
-import { 
+import {
   TabBar, type TabId, DetailPanel, ResourceTable, FileTree, type FileNode,
-  AccessibleTooltip, TOOLTIPS
+  AccessibleTooltip, TOOLTIPS, ResourceSelectInput
 } from '../components/index.js';
 
 // Help Panel Component

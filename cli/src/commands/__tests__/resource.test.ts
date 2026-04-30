@@ -1,7 +1,3 @@
-/**
- * Tests for tdk resource command
- */
-
 import { describe, it, expect } from 'vitest';
 
 describe('resource command', () => {
