@@ -162,13 +162,18 @@ def should_enable(resource_name):
 # =============================================================================
 print("🚀 Initializing TDK...")
 
-# Re-initialize registry with project root to pick up project-specific patterns
-# This ensures discovery uses the correct patterns from spec.master
-_app_resources_list = Registry.reinitialize()
+# Use pre-loaded APP_RESOURCES from TDK registry (already initialized with all services)
+# Registry.reinitialize() is only needed if we want to force a fresh discovery
+_app_resources_list = APP_RESOURCES
+
+# If empty (shouldn't happen), fall back to reinitialize
+if len(_app_resources_list) == 0:
+    print(" ⚠️ APP_RESOURCES empty, reinitializing registry...")
+    _app_resources_list = Registry.reinitialize()
 
 # If still empty, fall back to direct manifest loading
 if len(_app_resources_list) == 0:
-    print(" ⚠️ Registry empty after reinitialize, loading via Manifest...")
+    print(" ⚠️ Registry empty, loading via Manifest...")
     _app_resources_list = Manifest.load_all(PROJECT_ROOT)
 
 print("📦 Loaded {} services".format(len(_app_resources_list)))

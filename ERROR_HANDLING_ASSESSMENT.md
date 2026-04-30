@@ -166,12 +166,12 @@ try {
 
 ### Non-Try-Catch Error Handling
 
-#### 1. `resource.ts:308` - Script pattern in module file
+#### 1. `resource.ts:308` - ~~Script pattern in module file~~ (FALSE POSITIVE)
 ```typescript
 main().catch(console.error);
 ```
-**Assessment:** This appears to be a leftover script pattern. The file exports `resourceCommand`, so `main()` shouldn't exist or be called.
-**Action:** Verify if this is dead code and remove if so.
+**Assessment:** This is actually **template code** inside the `WORKER_TEMPLATE` string constant (for generated worker services). It's not executable code in the CLI - it's the template string that gets written to new worker resource files. This is intentional and correct.
+**Action:** No action required - this is expected template content.
 
 #### 2. `bin/tdk.js:11` - Entry point error handling
 ```typescript
@@ -210,6 +210,60 @@ import(cliPath).catch((err) => {
 | upgrade.ts | 63-70 | Returns 'unknown' on catch | LOW (rare failure case) | LOW |
 | networks.ts | 67-78 | Silent ignore | LOW (exploratory read) | LOW |
 | networks.ts | 82-97 | Silent ignore | LOW (exploratory read) | LOW |
+
+---
+
+## Implementation Results
+
+### Completed Changes
+
+#### ✅ REMOVED: Redundant try-catch in `ui.tsx` (HIGH CONFIDENCE)
+**File:** `cli/src/commands/ui.tsx`  
+**Lines:** 900-913 (original), now simplified  
+**Change:** Removed outer try-catch block around the `uiCommand` action handler
+
+**Before:**
+```typescript
+.action(async () => {
+  try {
+    const tiltAvailable = await isTiltAvailable();
+    if (!tiltAvailable) {
+      errorFactories.tiltNotInstalled().display();
+      process.exit(1);
+    }
+
+    requireProjectRoot();
+    render(<TUIApp />);
+
+  } catch (err) {
+    console.error(`Error: ${err}`);
+    process.exit(1);
+  }
+});
+```
+
+**After:**
+```typescript
+.action(async () => {
+  const tiltAvailable = await isTiltAvailable();
+  if (!tiltAvailable) {
+    errorFactories.tiltNotInstalled().display();
+    process.exit(1);
+  }
+
+  requireProjectRoot();
+  render(<TUIApp />);
+});
+```
+
+**Rationale:**
+- The command action is already wrapped by `runCommand()` which provides consistent error handling
+- The removed catch block used basic `console.error()` with no formatting, while `runCommand()` uses `handleCommandError()` with proper chalk colors and optional verbose stack traces
+- Errors now propagate naturally to the centralized handler
+
+**Verification:**
+- ✅ TypeScript compilation: `bun run build` - PASSED
+- ✅ All tests: `bun test` - 34 pass, 0 fail
 
 ---
 

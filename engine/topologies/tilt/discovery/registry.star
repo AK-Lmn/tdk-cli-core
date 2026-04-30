@@ -231,7 +231,8 @@ def reinitialize_with_project_root():
     if file_exists == "yes":
         # Read spec.master as text and extract RESOURCE_PATTERNS
         # Format in spec.master: RESOURCE_PATTERNS = ["identity-*"]
-        read_cmd = "grep '^RESOURCE_PATTERNS' " + spec_master_path + " || echo 'NOT_FOUND'"
+        # Use -m1 to only get the first match (top-level alias, not struct member)
+        read_cmd = "grep -m1 '^RESOURCE_PATTERNS' " + spec_master_path + " || echo 'NOT_FOUND'"
         patterns_line_result = local(read_cmd, quiet=True, echo_off=True)
         patterns_line = str(patterns_line_result).strip()
         
