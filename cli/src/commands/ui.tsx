@@ -390,7 +390,6 @@ const TUIApp: React.FC = () => {
 
     stdin.on('data', handleMouseData);
     return () => {
-      // OPTIMIZATION: Properly remove listener to prevent memory leak
       stdin.off('data', handleMouseData);
       stdin.removeAllListeners('data');
     };

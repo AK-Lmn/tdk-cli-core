@@ -16,6 +16,9 @@ export { AccessibleTooltip } from './Accessible.js';
 // Utility constants
 export { TOOLTIPS } from './Tooltip.js';
 
-// Component type definitions
+// Component type definitions (from component files)
 export type { TabId } from './TabBar.js';
 export type { FileNode } from './FileTree.js';
+
+// Shared UI types (from types/index.ts)
+export type { TooltipProps } from '../types/index.js';

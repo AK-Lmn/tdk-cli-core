@@ -28,6 +28,17 @@ export type {
   TiltCommandResult,
   // CLI types
   CLIOptions,
+  // Project configuration types (consolidated from template-engine.ts)
+  ProjectConfig,
+  ProjectStackDefinition,
+  ProjectOptionalInfra,
+  ProjectDiscovery,
+  // JSON value types (consolidated from template-engine.ts)
+  JsonValue,
+  JsonArray,
+  JsonObject,
+  // UI component types (consolidated from Tooltip.tsx + Accessible.tsx)
+  TooltipProps,
 } from './types/index.js';
 
 // Service utilities

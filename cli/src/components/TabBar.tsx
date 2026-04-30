@@ -45,7 +45,6 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange, compact 
           return (
             <Box key={tab.id}>
               {isActive ? (
-                // Active tab: neon cyan with border
                 <Box 
                   borderStyle="single" 
                   borderColor="cyan"
@@ -59,7 +58,6 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange, compact 
                   </Text>
                 </Box>
               ) : (
-                // Inactive tab: plain gray
                 <Box paddingX={1}>
                   <Text color="gray" dimColor>
                     [{tab.shortcut}] {compact ? tab.label.slice(0, 4) : tab.label}
@@ -79,4 +77,4 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange, compact 
   );
 };
 
-// TABS is used internally only
+

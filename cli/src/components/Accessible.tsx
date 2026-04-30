@@ -6,15 +6,11 @@
 
 import React from 'react';
 import { Box, Text } from 'ink';
+import type { TooltipProps } from '../types/index.js';
 
-// Tooltip/hint that shows on hover/focus
-interface AccessibleTooltipProps {
-  content: string;
-  shortcut?: string;
-  visible: boolean;
-}
-
-export const AccessibleTooltip: React.FC<AccessibleTooltipProps> = ({
+// AccessibleTooltip uses the shared TooltipProps type
+// This consolidates TooltipProps + AccessibleTooltipProps into a single definition
+export const AccessibleTooltip: React.FC<TooltipProps> = ({
   content,
   shortcut,
   visible

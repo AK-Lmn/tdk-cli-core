@@ -17,14 +17,6 @@ export const MASTER_CONFIG_FILES = [
 ] as const;
 
 /**
- * All generated files including the Tiltfile
- */
-export const ALL_GENERATED_FILES = [
-  ...MASTER_CONFIG_FILES,
-  'Tiltfile',
-] as const;
-
-/**
  * Valid resource types for the resource command
  */
 export const VALID_RESOURCE_TYPES = [

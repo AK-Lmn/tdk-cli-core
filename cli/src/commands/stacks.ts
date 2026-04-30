@@ -52,7 +52,6 @@ export const stacksCommand = new Command('stacks')
         // Simple output
         console.log(chalk.blue(`Found ${formatCount(stackNames.length, 'stack')}:\n`));
 
-        // OPTIMIZATION: Pre-compute stack -> services Map for O(n) instead of O(n²)
         const stackServiceMap = new Map<string, number>();
         for (const s of services) {
           if (s.stack) {
