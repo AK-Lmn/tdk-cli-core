@@ -334,7 +334,6 @@ export const resourceCommand = new Command('resource')
 
       const allResources = discoverResources();
 
-      // Validate or ask for resource name
       let resourceName = name;
       if (!resourceName) {
         const { inputName } = await inquirer.prompt([{
@@ -352,7 +351,6 @@ export const resourceCommand = new Command('resource')
         }
       }
 
-      // Validate or ask for type
       let resourceType = options.type;
       if (!['backend', 'frontend', 'worker'].includes(resourceType)) {
         const { selectedType } = await inquirer.prompt([{
@@ -470,7 +468,6 @@ export const resourceCommand = new Command('resource')
         process.exit(1);
       }
 
-      // Confirm creation
       console.log(chalk.gray('\nResource details:'));
       console.log(chalk.gray(`  Name:  ${resourceName}`));
       console.log(chalk.gray(`  Type:  ${resourceType}`));
@@ -490,13 +487,11 @@ export const resourceCommand = new Command('resource')
         return;
       }
 
-      // Create directory structure
       console.log(chalk.blue('\n📁 Creating directory structure...'));
       mkdirSync(fullPath, { recursive: true });
       mkdirSync(resolve(fullPath, 'src'), { recursive: true });
       mkdirSync(resolve(fullPath, 'tests'), { recursive: true });
 
-      // Generate service.json
       console.log(chalk.blue('📝 Generating service.json...'));
       const serviceJson = createServiceJson(resourceName, resourceType, stackName, assignedPort);
       writeFileSync(
@@ -505,7 +500,6 @@ export const resourceCommand = new Command('resource')
         'utf-8'
       );
 
-      // Generate package.json
       console.log(chalk.blue('📦 Generating package.json...'));
       const packageJson = createPackageJson(resourceName, resourceType);
       writeFileSync(
@@ -514,7 +508,6 @@ export const resourceCommand = new Command('resource')
         'utf-8'
       );
 
-      // Generate tsconfig.json
       console.log(chalk.blue('⚙️  Generating tsconfig.json...'));
       writeFileSync(
         resolve(fullPath, 'tsconfig.json'),
@@ -522,7 +515,6 @@ export const resourceCommand = new Command('resource')
         'utf-8'
       );
 
-      // Generate Dockerfile
       console.log(chalk.blue('🐳 Generating Dockerfile...'));
       writeFileSync(
         resolve(fullPath, 'Dockerfile'),
@@ -530,7 +522,6 @@ export const resourceCommand = new Command('resource')
         'utf-8'
       );
 
-      // Generate source files based on type
       console.log(chalk.blue('💻 Generating source files...'));
       
       if (resourceType === 'backend') {
@@ -543,7 +534,6 @@ export const resourceCommand = new Command('resource')
         writeFileSync(resolve(fullPath, 'src', 'index.ts'), getWorkerIndexTemplate(resourceName), 'utf-8');
       }
 
-      // Generate test file
       console.log(chalk.blue('🧪 Generating test file...'));
       writeFileSync(
         resolve(fullPath, 'tests', `${resourceName}.test.ts`),

@@ -18,7 +18,6 @@ export const upCommand = new Command('up')
   .option('-f, --force', 'Kill existing Tilt process before starting', false)
   .action(async (stackName, options) => {
     await runCommand(async () => {
-      // Check tilt is available
       if (!await isTiltAvailable()) {
         errorFactories.tiltNotInstalled().display();
         process.exit(1);
@@ -28,7 +27,6 @@ export const upCommand = new Command('up')
       let stackDescription: string;
 
       if (stackName) {
-        // Check if the stack exists
         if (!stackExists(stackName)) {
           console.error(chalk.red(`Error: Stack "${stackName}" not found.`));
           if (!options.quiet) {
@@ -40,7 +38,6 @@ export const upCommand = new Command('up')
           process.exit(1);
         }
 
-        // Get resources that belong to this stack
         servicesToStart = getResourcesForStack(stackName);
         stackDescription = `stack "${stackName}"`;
       } else {
@@ -69,7 +66,6 @@ export const upCommand = new Command('up')
         return;
       }
 
-      // Handle force flag - kill existing Tilt if running
       if (options.force && !options.quiet) {
         try {
           console.log(chalk.yellow('Force flag set - killing any existing Tilt processes...'));
@@ -81,7 +77,6 @@ export const upCommand = new Command('up')
         }
       }
 
-      // Check if default port 10350 is available, auto-find next available if not
       const basePort = 10350;
       let port = basePort;
       
@@ -99,10 +94,8 @@ export const upCommand = new Command('up')
         }
       }
       
-      // Set TILT_PORT for this execution
       process.env.TILT_PORT = port.toString();
 
-      // Build tilt up arguments (includes Tiltfile path)
       const tiltArgs = buildTiltUpArgs(serviceNames, {
         verbose: options.verbose,
         quiet: options.quiet,

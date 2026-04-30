@@ -26,11 +26,9 @@ export const statusCommand = new Command('status')
 
       console.log();
 
-      // Discover resources
       const resources = discoverResources();
       console.log(chalk.bold('Resources:'), `${resources.length} discovered`);
 
-      // Show stacks
       const stacks = discoverStacks();
       console.log(chalk.bold('Stacks:'), `${stacks.length} defined`);
 
@@ -47,7 +45,6 @@ export const statusCommand = new Command('status')
         }
       }
 
-      // Show resources without stacks
       const resourcesWithoutStack = resources.filter(r => !r.stack);
       if (resourcesWithoutStack.length > 0) {
         console.log();
@@ -60,7 +57,6 @@ export const statusCommand = new Command('status')
         }
       }
 
-      // Show tilt resource status if requested
       if (options.tilt && tiltAvailable) {
         console.log();
         console.log(chalk.blue('Tilt Resources:'));

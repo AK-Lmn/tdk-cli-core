@@ -1,6 +1,7 @@
 /** Shared validation utilities for TDK CLI */
 
 import { OPTIONAL_INFRA_SERVICES, VALID_RESOURCE_TYPES } from './constants.js';
+import type { ValidationResult } from '../types/index.js';
 
 /**
  * Regex pattern for kebab-case validation (lowercase letters, numbers, hyphens)
@@ -23,7 +24,7 @@ function isKebabCase(value: string): boolean {
  * @param name - The resource name to validate
  * @returns Validation result with optional error
  */
-export function validateResourceName(name: string): { valid: boolean; error?: string } {
+export function validateResourceName(name: string): ValidationResult {
   if (!name.trim()) {
     return { valid: false, error: 'Resource name is required' };
   }
@@ -64,7 +65,7 @@ export function createKebabCaseValidator(context: 'resource' | 'stack') {
  * @param service - The service name to validate
  * @returns Validation result with optional error
  */
-export function validateOptionalInfraService(service: string): { valid: boolean; error?: string } {
+export function validateOptionalInfraService(service: string): ValidationResult {
   if (OPTIONAL_INFRA_SERVICES.includes(service as typeof OPTIONAL_INFRA_SERVICES[number])) {
     return { valid: true };
   }

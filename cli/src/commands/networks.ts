@@ -12,6 +12,7 @@ import { findProjectRoot, discoverResources } from '../utils/services.js';
 import { readProjectConfig } from '../generator/template-engine.js';
 import { sanitizeForShell, isValidPort } from '../utils/validation.js';
 import { requireProjectRoot } from '../utils/errors.js';
+import type { ServiceUrl } from '../types/index.js';
 
 /**
  * Execute a shell command safely using spawn instead of execSync
@@ -46,15 +47,6 @@ function execSafe(command: string, args: string[], options: { encoding?: string;
       reject(err);
     });
   });
-}
-
-interface ServiceUrl {
-  name: string;
-  stack?: string;
-  basePath: string;
-  url: string;
-  port?: number;
-  status: 'running' | 'stopped' | 'unknown';
 }
 
 const BOX_WIDTH = 62;
@@ -139,13 +131,9 @@ function getBaseDomain(): string {
   return 'localhost';
 }
 
-// Check if a service is responding (via HTTP health check or port check)
 async function checkServiceStatus(serviceName: string, port?: number, url?: string): Promise<'running' | 'stopped' | 'unknown'> {
-  // Method 1: Check if service responds on its URL via Traefik (most reliable)
-  // This tells us if the service is actually accessible through the proxy
   if (url) {
     try {
-      // Validate URL before using it
       const validUrl = new URL(url);
       if (validUrl.protocol !== 'http:' && validUrl.protocol !== 'https:') {
         return 'stopped';
@@ -161,13 +149,10 @@ async function checkServiceStatus(serviceName: string, port?: number, url?: stri
 
       const code = statusCode.trim();
 
-      // Check if status code starts with 2 or 3 (success or redirect)
       if (/^[23]\d\d$/.test(code)) {
         return 'running';
       }
 
-      // If we got a 4xx or 5xx, the route exists but service isn't responding
-      // This means the service is configured in Traefik but not actually running
       if (/^[45]\d\d$/.test(code)) {
         return 'stopped';
       }
@@ -182,8 +167,6 @@ async function checkServiceStatus(serviceName: string, port?: number, url?: stri
     }
   }
 
-  // Method 2: Check if the specific port is listening (fallback when no URL)
-  // Only use this if we couldn't check via HTTP (no URL configured)
   if (port && isValidPort(port)) {
     try {
       await execSafe('lsof', ['-Pi', `:${port}`, '-sTCP:LISTEN'], { timeout: 3000 });
@@ -204,7 +187,6 @@ async function checkServiceStatus(serviceName: string, port?: number, url?: stri
     }
   }
 
-  // Method 3: Check Docker container (fallback for containerized services)
   try {
     const containerName = sanitizeForShell(serviceName);
     const result = await execSafe('docker', [
@@ -227,7 +209,6 @@ function line(char: string, width: number = BOX_WIDTH): string {
   return char.repeat(width);
 }
 
-// Center text in a box
 function center(text: string, width: number = BOX_WIDTH - 2): string {
   const padding = Math.max(0, width - text.length);
   const left = Math.floor(padding / 2);
@@ -235,7 +216,6 @@ function center(text: string, width: number = BOX_WIDTH - 2): string {
   return ' '.repeat(left) + text + ' '.repeat(right);
 }
 
-// Pad text to exact width
 function pad(text: string, width: number): string {
   if (text.length > width) {
     return text.slice(0, width - 1) + '…';

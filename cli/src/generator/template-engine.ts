@@ -16,9 +16,6 @@ import type {
   ProjectDiscovery,
 } from "../types/index.js";
 
-// Re-export types for backward compatibility
-export type { ProjectConfig, JsonValue } from "../types/index.js";
-
 interface GeneratorContext {
   version: string;
   timestamp: string;
@@ -228,14 +225,12 @@ export function readProjectConfig(projectRoot: string): ProjectConfig {
   const jsonContent = fs.readFileSync(projectJsonPath, "utf-8");
   const parsed: unknown = JSON.parse(jsonContent);
 
-  // Validate that parsed content is a non-null object with required fields
   if (!parsed || typeof parsed !== "object") {
     throw new Error(`Invalid project.json: expected object, got ${typeof parsed}`);
   }
 
   const config = parsed as ProjectConfig;
 
-  // Validate required top-level fields exist
   if (!config.version || typeof config.version !== "string") {
     throw new Error("Invalid project.json: missing or invalid 'version' field");
   }

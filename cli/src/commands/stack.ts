@@ -22,7 +22,6 @@ export const stackCommand = new Command('stack')
 
       console.log(chalk.blue('TDK Stack Management\n'));
 
-      // Discover all resources
       const allResources = discoverResources();
 
       if (allResources.length === 0) {
@@ -32,7 +31,6 @@ export const stackCommand = new Command('stack')
 
       console.log(chalk.gray(`Found ${formatCount(allResources.length, 'resource')}\n`));
 
-      // Show existing stacks
       const existingStacks = getAllStacks(allResources);
       if (existingStacks.length > 0) {
         console.log(chalk.bold('Existing stacks:'));
@@ -46,7 +44,6 @@ export const stackCommand = new Command('stack')
       const resourcesWithoutStack = allResources.filter(r => !r.stack);
 
       if (options.list) {
-        // Just list resources without stacks
         if (resourcesWithoutStack.length === 0) {
           console.log(chalk.green('All resources are already assigned to a stack!'));
           return;
@@ -60,7 +57,6 @@ export const stackCommand = new Command('stack')
         return;
       }
 
-      // If no stack name provided, ask for it
       let targetStack = stackName;
       if (!targetStack) {
         const { name } = await inquirer.prompt([{
@@ -79,7 +75,6 @@ export const stackCommand = new Command('stack')
         return;
       }
 
-      // Let user select which resources to add
       const { selectedResources } = await inquirer.prompt([{
         type: 'checkbox',
         name: 'selectedResources',
@@ -100,7 +95,6 @@ export const stackCommand = new Command('stack')
         return;
       }
 
-      // Confirm
       console.log(chalk.gray(`\nWill add "stack": "${targetStack}" to ${formatCount(selectedResources.length, 'resource')}.`));
 
       const { confirm } = await inquirer.prompt([{

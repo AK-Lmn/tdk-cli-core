@@ -3,13 +3,6 @@
 import chalk from 'chalk';
 import { findProjectRoot } from './services.js';
 
-interface ErrorContext {
-  command?: string;
-  resource?: string;
-  stack?: string;
-  port?: number;
-}
-
 class TdkError extends Error {
   public suggestions: string[];
   public exitCode: number;
@@ -195,46 +188,6 @@ export const errorFactories = {
   ),
 };
 
-// Helper to wrap async functions with error handling
-async function withErrorHandling<T>(
-  fn: () => Promise<T>,
-  context?: ErrorContext
-): Promise<T> {
-  try {
-    return await fn();
-  } catch (error) {
-    if (error instanceof TdkError) {
-      error.display();
-      process.exit(error.exitCode);
-    }
-
-    // Handle specific error types
-    const err = error instanceof Error ? error : new Error(String(error));
-    const message = err.message.toLowerCase();
-
-    if (message.includes('eaddrinuse') || message.includes('port')) {
-      const portMatch = err.message.match(/:(\d+)/);
-      const port = portMatch ? parseInt(portMatch[1], 10) : undefined;
-      errorFactories.portInUse(port || 0).display();
-    } else if (message.includes('enoent') || message.includes('no such file')) {
-      errorFactories.notInProject().display();
-    } else if (message.includes('eacces') || message.includes('permission denied')) {
-      errorFactories.permissionDenied(context?.resource || 'unknown').display();
-    } else {
-      console.error(chalk.red(`❌ ${err.message}`));
-      if (context) {
-        console.error(chalk.gray(`   Context: ${JSON.stringify(context)}`));
-      }
-    }
-
-    process.exit(1);
-  }
-}
-
-/**
- * Require project root or exit with error
- * Consolidates the common pattern of checking for project root across all commands
- */
 export function requireProjectRoot(): string {
   const projectRoot = findProjectRoot();
   if (!projectRoot) {
@@ -245,20 +198,12 @@ export function requireProjectRoot(): string {
   return projectRoot;
 }
 
-/**
- * Handle command errors with consistent formatting
- * Use this in command catch blocks instead of duplicating error handling
- */
 function handleCommandError(err: unknown): never {
   const message = err instanceof Error ? err.message : String(err);
   console.error(chalk.red(`Error: ${message}`));
   process.exit(1);
 }
 
-/**
- * Execute a command action with standard error handling wrapper
- * This eliminates the need for try-catch blocks in every command
- */
 export async function runCommand<T>(
   action: () => Promise<T>,
   options?: { verbose?: boolean }

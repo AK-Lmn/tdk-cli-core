@@ -47,11 +47,9 @@ export const resourcesCommand = new Command('resources')
         }
       }
 
-      // Display resources
       console.log(chalk.blue(`Found ${formatCount(resources.length, 'resource')}:\n`));
 
       if (options.verbose || options.ports) {
-        // Detailed table-like output
         for (const resource of resources) {
           console.log(chalk.bold(`${resource.name}`));
 
@@ -70,10 +68,9 @@ export const resourcesCommand = new Command('resources')
             console.log(chalk.gray(`  Path: ${resource.configPath}`));
           }
 
-          console.log(); // Empty line
+          console.log();
         }
       } else {
-        // Simple list output
         for (const resource of resources) {
           const stackInfo = resource.stack ? chalk.gray(` [${resource.stack}]`) : chalk.yellow(' [no stack]');
           console.log(`  ${resource.name}${stackInfo}`);
@@ -82,7 +79,6 @@ export const resourcesCommand = new Command('resources')
         console.log(chalk.gray('\nRun with --verbose for more details or --ports to see port assignments.'));
       }
 
-      // Summary
       const withoutStack = resources.filter((r: {stack?: string}) => !r.stack).length;
       if (withoutStack > 0 && !options.noStack) {
         console.log(chalk.yellow(`\n${formatCount(withoutStack, 'resource')} not assigned to any stack.`));

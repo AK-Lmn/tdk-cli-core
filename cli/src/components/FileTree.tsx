@@ -2,17 +2,11 @@
 
 import React, { useState } from 'react';
 import { Box, Text } from 'ink';
-import type { FileType } from '../types/index.js';
+import type { FileType, FileNode } from '../types/index.js';
 
-export interface FileNode {
-  name: string;
-  path: string;
-  type: 'directory' | 'file';
-  fileType?: FileType;
-  children?: FileNode[];
-  size?: number;
-  lastModified?: string;
-}
+// Re-export FileNode for backward compatibility
+// The canonical definition is now in ../types/index.js
+export type { FileNode } from '../types/index.js';
 
 interface FileTreeProps {
   nodes: FileNode[];

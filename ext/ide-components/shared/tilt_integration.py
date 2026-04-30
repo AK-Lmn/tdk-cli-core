@@ -5,10 +5,8 @@ Tilt integration utilities for IDE components
 
 import subprocess
 import json
-from pathlib import Path
 
-# Project root
-PROJECT_ROOT = Path(__file__).parent.parent.parent.parent.parent
+from file_utils import PROJECT_ROOT
 
 
 class TiltIntegration:

@@ -275,7 +275,6 @@ const TUIApp: React.FC = () => {
     }
   }, [highlightedIndex, items.length, setHighlightedIndex]);
 
-  // Handle selection
   const handleSelect = useCallback((item: { label: string; value: string }) => {
     if (activeTab === 'overview') {
       setSelectedStack(item.value);
@@ -308,17 +307,14 @@ const TUIApp: React.FC = () => {
     }
   }, [activeTab, selectedStack, selectedService, setSelectedStack, setSelectedService, setSelectedFile, setMessage]);
 
-  // Enable raw mode and mouse support
   useEffect(() => {
     setRawMode(true);
     
-    // Enable mouse reporting (SGR 1006 mode - supports large terminals)
-    stdout.write('\x1b[?1000h'); // Basic mouse tracking
-    stdout.write('\x1b[?1006h'); // SGR extended coordinates
+    stdout.write('\x1b[?1000h');
+    stdout.write('\x1b[?1006h');
     
     return () => {
       setRawMode(false);
-      // Disable mouse reporting
       stdout.write('\x1b[?1000l');
       stdout.write('\x1b[?1006l');
     };
@@ -387,7 +383,6 @@ const TUIApp: React.FC = () => {
     };
   }, [stdin, items, mouseEnabled, handleSelect, setHighlightedIndex]);
 
-  // Handle terminal resize - memoized callback prevents recreating function every render
   const handleResize = useCallback(() => {
     setTerminalWidth(stdout.columns || 120);
   }, [stdout.columns, setTerminalWidth]);
@@ -897,18 +892,12 @@ export const uiCommand = new Command('ui')
   .option('--no-animations', 'Disable animations')
   .option('--high-contrast', 'Enable high contrast mode')
   .action(async () => {
-    try {
-      const tiltAvailable = await isTiltAvailable();
-      if (!tiltAvailable) {
-        errorFactories.tiltNotInstalled().display();
-        process.exit(1);
-      }
-
-      requireProjectRoot();
-      render(<TUIApp />);
-
-    } catch (err) {
-      console.error(`Error: ${err}`);
+    const tiltAvailable = await isTiltAvailable();
+    if (!tiltAvailable) {
+      errorFactories.tiltNotInstalled().display();
       process.exit(1);
     }
+
+    requireProjectRoot();
+    render(<TUIApp />);
   });

@@ -40,12 +40,8 @@ interface CheckResult {
   isCritical: boolean;
 }
 
-// ❌ Avoid
-interface CheckResult {
-  passed: boolean;  // Not clear if it's a verb or property
-  fix: boolean;     // Sounds like the fix itself
-  critical: boolean; // Could be a category
-}
+// ❌ Avoid - These naming patterns create ambiguity
+//    Use the patterns shown in the "Good" example above
 ```
 
 ---

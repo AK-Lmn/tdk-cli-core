@@ -3,15 +3,8 @@ import chalk from 'chalk';
 import { execSync } from "child_process";
 import { existsSync } from "fs";
 import { resolve } from "path";
+import type { CheckResult } from '../types/index.js';
 
-interface CheckResult {
-  name: string;
-  didPass: boolean;
-  message: string;
-  fix?: string;
-}
-
-// Check 1: Docker daemon running
 function checkDocker(): CheckResult {
   try {
     execSync("docker ps", { stdio: "pipe" });
@@ -30,88 +23,6 @@ function checkDocker(): CheckResult {
   }
 }
 
-// Check 2: Bun installed and version
-function checkBun(): CheckResult {
-  try {
-    const output = execSync("bun --version", { stdio: "pipe", encoding: "utf8" }).trim();
-    const version = output.replace(/^v/, "");
-    const [major] = version.split(".").map(Number);
-
-    if (major >= 1) {
-      return {
-        name: "Bun",
-        didPass: true,
-        message: `Bun v${version} installed`,
-      };
-    }
-    return {
-      name: "Bun",
-      didPass: false,
-      message: `Bun v${version} installed (need v1.0+)`,
-      fix: "Upgrade Bun: bun upgrade",
-    };
-  } catch {
-    return {
-      name: "Bun",
-      didPass: false,
-      message: "Bun runtime not found",
-      fix: "Install Bun: curl -fsSL https://bun.sh/install | bash",
-    };
-  }
-}
-
-// Check 3: Required ports available
-function checkPorts(): CheckResult {
-  const criticalPorts = [10350, 4317, 8080];
-  const inUse: number[] = [];
-
-  for (const port of criticalPorts) {
-    try {
-      execSync(`lsof -ti:${port}`, { stdio: "pipe" });
-      inUse.push(port);
-    } catch {
-      // Port is free
-    }
-  }
-
-  if (inUse.length === 0) {
-    return {
-      name: "Ports",
-      didPass: true,
-      message: `Critical ports available (${criticalPorts.join(", ")})`,
-    };
-  }
-
-  const portList = inUse.join(", ");
-  return {
-    name: "Ports",
-    didPass: false,
-    message: `Port(s) ${portList} already in use`,
-    fix: `Free the port(s): ${inUse.map(p => `lsof -ti:${p} | xargs kill -9`).join("; ")}`,
-  };
-}
-
-// Check 4: Tiltfile exists
-function checkTiltfile(): CheckResult {
-  const tiltfilePath = resolve(process.cwd(), "Tiltfile");
-
-  if (existsSync(tiltfilePath)) {
-    return {
-      name: "Tiltfile",
-      didPass: true,
-      message: "Tiltfile found in project root",
-    };
-  }
-
-  return {
-    name: "Tiltfile",
-    didPass: false,
-    message: "Tiltfile not found",
-    fix: "Run this command from the project root directory",
-  };
-}
-
-// Check 5: Docker Compose available
 function checkDockerCompose(): CheckResult {
   try {
     execSync("docker compose version", { stdio: "pipe" });
@@ -130,7 +41,6 @@ function checkDockerCompose(): CheckResult {
   }
 }
 
-// Check 6: Tilt CLI installed
 function checkTilt(): CheckResult {
   try {
     const output = execSync("tilt version", { stdio: "pipe", encoding: "utf8" }).trim();
@@ -149,7 +59,6 @@ function checkTilt(): CheckResult {
   }
 }
 
-// Check 7: Master configuration files exist
 function checkMasterConfigs(): CheckResult {
   const defaultsPath = resolve(process.cwd(), "TILT_RESOURCE_DEFAULTS.star");
   const techStackPath = resolve(process.cwd(), "TILT_TECH_STACK.star");
@@ -185,10 +94,7 @@ export const doctorCommand = new Command('doctor')
 
     const checks = [
       checkDocker,
-      checkBun,
       checkTilt,
-      checkPorts,
-      checkTiltfile,
       checkDockerCompose,
       checkMasterConfigs,
     ];

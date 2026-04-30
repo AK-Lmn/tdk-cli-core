@@ -57,7 +57,6 @@ export const configCommand = new Command('config')
                 console.log(chalk.yellow(`📝 ${filename}`));
                 console.log(chalk.gray('   Status: MODIFIED'));
 
-                // Show simple diff stats
                 const currentLines = currentContent.split('\n').length;
                 const newLines = newContent.split('\n').length;
                 const lineDiff = newLines - currentLines;
@@ -70,7 +69,6 @@ export const configCommand = new Command('config')
                   console.log(chalk.gray(`   Lines: ${currentLines} (content changed)`));
                 }
 
-                // Show first difference context (up to 3 lines)
                 const currentLinesArr = currentContent.split('\n');
                 const newLinesArr = newContent.split('\n');
                 let firstDiffLine = -1;
@@ -162,13 +160,10 @@ export const configCommand = new Command('config')
           const editor = process.env.EDITOR || 'vi';
           console.log(chalk.blue(`Opening ${projectJsonPath} in ${editor}...`));
 
-          // Security: Split editor command and use spawn to avoid shell injection
-          // Handle common cases where EDITOR might contain spaces (e.g., 'code --wait')
           const editorParts = editor.trim().split(/\s+/);
           const editorCmd = editorParts[0];
           const editorArgs = [...editorParts.slice(1), projectJsonPath];
 
-          // Validate editor command - only allow common editors
           const allowedEditors = ['vi', 'vim', 'nano', 'emacs', 'code', 'subl', 'atom', 'mate', 'pico', 'micro', 'hx'];
           const editorBase = editorCmd.replace(/.*\//, ''); // Remove path prefix for validation
           if (!allowedEditors.includes(editorBase)) {

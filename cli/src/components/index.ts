@@ -8,6 +8,3 @@ export { AccessibleTooltip } from './Accessible.js';
 export { TOOLTIPS } from './Tooltip.js';
 export type { TabId } from './TabBar.js';
 export type { FileNode } from './FileTree.js';
-
-// Shared UI types (from types/index.ts)
-export type { TooltipProps } from '../types/index.js';

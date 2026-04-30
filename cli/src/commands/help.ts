@@ -71,7 +71,7 @@ const COMMAND_GROUPS = [
   },
 ];
 
-function formatCommand(name: string, desc: string, alias: string, color: Function): string {
+function formatCommand(name: string, desc: string, alias: string, color: (text: string) => string): string {
   const nameFormatted = color(name.padEnd(20));
   const descFormatted = chalk.white(desc);
   const aliasFormatted = alias ? chalk.gray(` ${alias}`) : '';

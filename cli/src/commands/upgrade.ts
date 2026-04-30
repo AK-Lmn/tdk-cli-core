@@ -19,12 +19,10 @@ interface InstallInfo {
   version?: string;
 }
 
-// Detect how tdk was installed
 function detectInstallation(): InstallInfo {
   try {
     const tdkPath = execSync('which tdk', { encoding: 'utf-8' }).trim();
     
-    // Check if it's a symlink to a local git repo (bun link / npm link)
     try {
       const realPath = execSync('readlink -f ' + tdkPath, { encoding: 'utf-8' }).trim();
       // If the real path contains tdk-cli and has .git, it's a linked git install
@@ -38,16 +36,13 @@ function detectInstallation(): InstallInfo {
       // readlink failed, not a symlink
     }
     
-    // Check if it's in a global npm/bun directory (actual install, not link)
     if (tdkPath.includes('node_modules') || tdkPath.includes('.npm') || tdkPath.includes('.bun')) {
-      // Check if bun was used
       if (tdkPath.includes('.bun')) {
         return { method: 'bun', path: tdkPath };
       }
       return { method: 'npm', path: tdkPath };
     }
     
-    // Check if current file is in a git repo (development)
     const cliRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
     if (existsSync(join(cliRoot, '.git'))) {
       return { method: 'git', path: cliRoot };
@@ -69,7 +64,6 @@ function getCurrentVersion(): string {
   }
 }
 
-// Check for latest version from npm or git
 async function getLatestVersion(): Promise<string | null> {
   const spinner = ora('Checking for latest version...').start();
   
@@ -91,7 +85,6 @@ async function getLatestVersion(): Promise<string | null> {
   }
 }
 
-// Upgrade via npm (GitHub fallback)
 async function upgradeViaNpm(): Promise<boolean> {
   const spinner = ora('Upgrading via npm...').start();
   
@@ -119,7 +112,6 @@ async function upgradeViaNpm(): Promise<boolean> {
   }
 }
 
-// Upgrade via bun (GitHub fallback)
 async function upgradeViaBun(): Promise<boolean> {
   const spinner = ora('Upgrading via bun...').start();
   
@@ -147,18 +139,15 @@ async function upgradeViaBun(): Promise<boolean> {
   }
 }
 
-// Upgrade via git pull
 async function upgradeViaGit(path: string): Promise<boolean> {
   const spinner = ora('Pulling latest changes from git...').start();
   
   try {
-    // Check if we're in a git repo
     execSync('git rev-parse --git-dir', { 
       cwd: path,
       stdio: 'pipe'
     });
     
-    // Fetch latest
     spinner.text = 'Fetching from origin...';
     execSync('git fetch origin', { 
       cwd: path,
@@ -171,7 +160,6 @@ async function upgradeViaGit(path: string): Promise<boolean> {
       encoding: 'utf-8' 
     }).trim();
     
-    // Pull latest
     spinner.text = `Pulling latest on ${branch}...`;
     execSync(`git pull origin ${branch}`, { 
       cwd: path,
@@ -179,7 +167,6 @@ async function upgradeViaGit(path: string): Promise<boolean> {
       timeout: 30000
     });
     
-    // Rebuild if needed
     if (existsSync(join(path, 'cli', 'package.json'))) {
       spinner.text = 'Rebuilding CLI...';
       execSync('bun install && bun run build', {
@@ -189,7 +176,6 @@ async function upgradeViaGit(path: string): Promise<boolean> {
       });
     }
     
-    // Re-link to ensure tdk command is available
     spinner.text = 'Re-linking CLI...';
     try {
       execSync('bun link --force', {
@@ -220,7 +206,6 @@ export const upgradeCommand = new Command('upgrade')
     const currentVersion = getCurrentVersion();
     console.log(chalk.gray(`Current version: ${currentVersion}`));
     
-    // Detect installation method
     const installInfo = detectInstallation();
     console.log(chalk.gray(`Installation method: ${installInfo.method}`));
     console.log();
@@ -241,7 +226,6 @@ export const upgradeCommand = new Command('upgrade')
       console.log(chalk.blue('📦 Git installation detected - will pull latest from origin'));
       
       try {
-        // Check if there are updates
         execSync('git fetch origin', { cwd: installInfo.path, stdio: 'pipe' });
         const localHash = execSync('git rev-parse HEAD', { cwd: installInfo.path, encoding: 'utf-8' }).trim();
         const remoteHash = execSync('git rev-parse origin/main', { cwd: installInfo.path, encoding: 'utf-8' }).trim();
@@ -289,7 +273,6 @@ export const upgradeCommand = new Command('upgrade')
       }
     }
     
-    // Dry run mode
     if (options.dryRun) {
       console.log(chalk.blue('\n📋 Dry run mode - would perform:'));
       console.log(chalk.gray(`   Method: ${installInfo.method}`));
@@ -305,7 +288,6 @@ export const upgradeCommand = new Command('upgrade')
       process.exit(0);
     }
     
-    // Confirm upgrade (unless --yes flag)
     if (!options.yes) {
       console.log();
       const { confirm } = await import('inquirer').then(m => m.default.prompt([{
@@ -325,7 +307,6 @@ export const upgradeCommand = new Command('upgrade')
     
     console.log();
     
-    // Perform upgrade
     let success = false;
     
     switch (installInfo.method) {
@@ -355,12 +336,10 @@ export const upgradeCommand = new Command('upgrade')
       process.exit(1);
     }
     
-    // Verify new version
     console.log();
     const verifySpinner = ora('Verifying upgrade...').start();
     
     try {
-      // Small delay to ensure filesystem reflects changes
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       const newVersion = execSync('tdk version', { encoding: 'utf-8' }).trim();
@@ -370,7 +349,6 @@ export const upgradeCommand = new Command('upgrade')
       console.log(chalk.green.bold('✨ Upgrade complete!'));
       console.log(chalk.gray(`   Version: ${currentVersion} → ${newVersion}`));
       
-      // Show installation details
       console.log();
       console.log(chalk.cyan.bold('📍 Installation Details:'));
       if (installInfo.method === 'git' && installInfo.path) {
@@ -381,7 +359,6 @@ export const upgradeCommand = new Command('upgrade')
       }
       console.log(chalk.gray(`   Binary:   ${execSync('which tdk', { encoding: 'utf-8' }).trim()}`));
       
-      // Next steps
       console.log();
       console.log(chalk.cyan.bold('🚀 Quick Start:'));
       console.log(chalk.white(`   tdk --help         Show all commands`));
