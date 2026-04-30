@@ -1,9 +1,4 @@
-/**
- * tdk ui command - Interactive Terminal UI using Ink
- *
- * AWS CloudFormation/CDK-style tabbed interface with restrained neon design.
- * Only selected/active elements get neon treatment.
- */
+/** tdk ui command - Interactive Terminal UI using Ink */
 
 import { Command } from 'commander';
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
@@ -162,14 +157,10 @@ const TUIApp: React.FC = () => {
   }), [loading]); // Re-fetch only when loading refreshes
   
   useEffect(() => {
-    try {
-      if (services.length === 0) {
-        setError('No services found. Run "tdk init" to get started.');
-      } else {
-        setError(null);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+    if (services.length === 0) {
+      setError('No services found. Run "tdk init" to get started.');
+    } else {
+      setError(null);
     }
   }, [services.length]);
   

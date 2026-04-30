@@ -1,13 +1,9 @@
-/**
- * tdk down command
- *
- * Stops all tilt resources (equivalent to tilt down).
- */
+/** tdk down command */
 
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { runTilt, buildTiltDownArgs, isTiltAvailable } from '../utils/tilt.js';
-import { runCommand } from '../utils/errors.js';
+import { runCommand, errorFactories } from '../utils/errors.js';
 
 export const downCommand = new Command('down')
   .description('Stop all tilt resources')
@@ -17,7 +13,7 @@ export const downCommand = new Command('down')
   .action(async (options) => {
     await runCommand(async () => {
       if (!await isTiltAvailable()) {
-        console.error(chalk.red('Error: tilt CLI not found. Make sure Tilt is installed.'));
+        errorFactories.tiltNotInstalled().display();
         process.exit(1);
       }
 

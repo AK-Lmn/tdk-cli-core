@@ -151,13 +151,12 @@ export const configCommand = new Command('config')
     new Command('edit')
       .description('Open .tdk/project.json in your $EDITOR')
       .action(async () => {
-        try {
+        await runCommand(async () => {
           const projectRoot = requireProjectRoot();
 
           const projectJsonPath = join(projectRoot, '.tdk', 'project.json');
           if (!existsSync(projectJsonPath)) {
-            console.error(chalk.red('Error: .tdk/project.json not found'));
-            process.exit(1);
+            throw new Error('.tdk/project.json not found');
           }
 
           const editor = process.env.EDITOR || 'vi';
@@ -181,10 +180,7 @@ export const configCommand = new Command('config')
 
           console.log(chalk.green('\n✅ Editor closed.'));
           console.log(chalk.gray('Run `tdk config regenerate` to apply changes.'));
-        } catch (err) {
-          console.error(chalk.red(`Error: ${err instanceof Error ? err.message : String(err)}`));
-          process.exit(1);
-        }
+        });
       })
   )
   .addCommand(

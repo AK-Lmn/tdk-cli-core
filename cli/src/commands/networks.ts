@@ -11,6 +11,7 @@ import { execSync, spawn } from 'node:child_process';
 import { findProjectRoot, discoverResources } from '../utils/services.js';
 import { readProjectConfig } from '../generator/template-engine.js';
 import { sanitizeForShell, isValidPort } from '../utils/validation.js';
+import { requireProjectRoot } from '../utils/errors.js';
 
 /**
  * Execute a shell command safely using spawn instead of execSync
@@ -45,21 +46,6 @@ function execSafe(command: string, args: string[], options: { encoding?: string;
       reject(err);
     });
   });
-}
-
-/**
- * Validate that a port is a valid numeric port number
- */
-function validatePort(port: number): boolean {
-  return Number.isInteger(port) && port > 0 && port <= 65535;
-}
-
-/**
- * Sanitize a service name for safe use in shell commands
- */
-function sanitizeServiceName(name: string): string {
-  // Only allow alphanumeric characters and hyphens, replace everything else with underscore
-  return name.toLowerCase().replace(/[^a-z0-9-]/g, '_').substring(0, 100);
 }
 
 interface ServiceUrl {
@@ -198,7 +184,7 @@ async function checkServiceStatus(serviceName: string, port?: number, url?: stri
 
   // Method 2: Check if the specific port is listening (fallback when no URL)
   // Only use this if we couldn't check via HTTP (no URL configured)
-  if (port && validatePort(port)) {
+  if (port && isValidPort(port)) {
     try {
       await execSafe('lsof', ['-Pi', `:${port}`, '-sTCP:LISTEN'], { timeout: 3000 });
       return 'running';
@@ -220,7 +206,7 @@ async function checkServiceStatus(serviceName: string, port?: number, url?: stri
 
   // Method 3: Check Docker container (fallback for containerized services)
   try {
-    const containerName = sanitizeServiceName(serviceName);
+    const containerName = sanitizeForShell(serviceName);
     const result = await execSafe('docker', [
       'ps',
       '--filter', `name=${containerName}`,

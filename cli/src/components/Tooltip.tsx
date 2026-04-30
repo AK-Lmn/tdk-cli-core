@@ -1,14 +1,9 @@
-/**
- * Tooltip Component - Neon Edition
- *
- * Contextual help that appears on hover/focus
- */
+/** Tooltip Component */
 
 import React from 'react';
 import { Box, Text } from 'ink';
 import type { TooltipProps } from '../types/index.js';
 
-// Tooltip component - currently unused internally
 const Tooltip: React.FC<TooltipProps> = ({
   content,
   shortcut,
@@ -58,7 +53,6 @@ const Tooltip: React.FC<TooltipProps> = ({
   );
 };
 
-// Tooltip definitions for different UI elements
 export const TOOLTIPS = {
   overviewTab: 'View all stacks and their resources',
   resourcesTab: 'Detailed resource list with metadata',

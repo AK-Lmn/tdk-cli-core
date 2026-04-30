@@ -1,15 +1,9 @@
-/**
- * Accessible Components - Neon Edition
- *
- * Components with screen reader support and accessibility features
- */
+/** Accessible Components */
 
 import React from 'react';
 import { Box, Text } from 'ink';
 import type { TooltipProps } from '../types/index.js';
 
-// AccessibleTooltip uses the shared TooltipProps type
-// This consolidates TooltipProps + AccessibleTooltipProps into a single definition
 export const AccessibleTooltip: React.FC<TooltipProps> = ({
   content,
   shortcut,

@@ -1,8 +1,4 @@
-/**
- * DetailPanel Component - Neon Edition (Restrained)
- * 
- * Simple borders, only status gets color
- */
+/** DetailPanel Component */
 
 import React from 'react';
 import { Box, Text } from 'ink';

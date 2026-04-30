@@ -1,9 +1,6 @@
 /**
  * tdk stack command
- *
- * Organize resources (services) into logical stacks.
- * Stacks are groups of resources that can be started together with `tdk up <stack>`.
- * This modifies existing resource.json files to add a "stack" field.
+ * Organize resources into logical stacks that can be started together.
  */
 
 import { Command } from 'commander';

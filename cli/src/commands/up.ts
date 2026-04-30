@@ -1,16 +1,11 @@
-/**
- * tdk up command
- *
- * Starts all services that belong to a specific stack, or all services
- * if no stack is specified.
- */
+/** tdk up command */
 
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { execSync } from 'node:child_process';
 import { getResourcesForStack, stackExists, discoverResources, discoverStacks } from '../utils/services.js';
 import { runTilt, buildTiltUpArgs, isTiltAvailable, findAvailablePort } from '../utils/tilt.js';
-import { runCommand } from '../utils/errors.js';
+import { runCommand, errorFactories } from '../utils/errors.js';
 import { formatCount } from '../utils/formatting.js';
 
 export const upCommand = new Command('up')
@@ -24,8 +19,7 @@ export const upCommand = new Command('up')
     await runCommand(async () => {
       // Check tilt is available
       if (!await isTiltAvailable()) {
-        console.error(chalk.red('Error: tilt CLI not found. Make sure Tilt is installed.'));
-        console.error(chalk.gray('See: https://docs.tilt.dev/install.html'));
+        errorFactories.tiltNotInstalled().display();
         process.exit(1);
       }
 

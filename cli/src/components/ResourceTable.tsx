@@ -1,9 +1,4 @@
-/**
- * ResourceTable Component - Table for displaying Resources tab content
- * 
- * AWS CloudFormation-style resource table with columns:
- * - Logical ID, Physical ID, Type, Status, Created Time
- */
+/** ResourceTable Component - Table for displaying Resources tab content */
 
 import React from 'react';
 import { Box, Text } from 'ink';

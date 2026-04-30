@@ -1,8 +1,4 @@
-/**
- * TabBar Component - Neon Edition (Restrained)
- * 
- * Only the active tab gets neon treatment
- */
+/** TabBar Component */
 
 import React from 'react';
 import { Box, Text } from 'ink';

@@ -9,13 +9,14 @@ import chalk from 'chalk';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { findProjectRoot, discoverResources, getAllStacks } from '../utils/services.js';
+import { runCommand } from '../utils/errors.js';
 
 export const projectsCommand = new Command('projects')
   .description('Show project information and configuration status')
   .alias('info')
   .option('--check', 'Check if project is properly configured', false)
   .action(async (options) => {
-    try {
+    await runCommand(async () => {
       const projectRoot = findProjectRoot();
 
       if (!projectRoot) {
@@ -92,8 +93,5 @@ export const projectsCommand = new Command('projects')
         const isConfigured = defaultsExists && techStackExists;
         process.exit(isConfigured ? 0 : 1);
       }
-    } catch (err) {
-      console.error(chalk.red(`Error: ${err}`));
-      process.exit(1);
-    }
+    });
   });

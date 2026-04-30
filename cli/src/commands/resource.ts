@@ -1,9 +1,6 @@
 /**
  * tdk resource command
- *
  * Create a new resource (service) from scratch.
- * Generates service.json, folder structure, and starter templates.
- * Assigns next available port from master config ranges.
  */
 
 import { Command } from 'commander';

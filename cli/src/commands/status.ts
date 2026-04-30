@@ -1,8 +1,4 @@
-/**
- * tdk status command
- *
- * Shows the current status of resources and stacks.
- */
+/** tdk status command */
 
 import { Command } from 'commander';
 import chalk from 'chalk';

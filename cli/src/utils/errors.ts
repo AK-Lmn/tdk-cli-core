@@ -38,7 +38,7 @@ class TdkError extends Error {
 }
 
 // Common error factories
-const errorFactories = {
+export const errorFactories = {
   notInProject: () => new TdkError(
     'Not in a TDK project directory',
     [

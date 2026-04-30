@@ -75,17 +75,24 @@ export function validateOptionalInfraService(service: string): { valid: boolean;
 }
 
 /**
- * Validates a resource type
+ * Check if a port is a valid numeric port number (basic validation)
  *
- * @param type - The resource type to validate
- * @returns Validation result with optional error
+ * @param port - The port to validate
+ * @returns True if valid port number
  */
-export function validateResourceType(type: string): { valid: boolean; error?: string } {
-  if (VALID_RESOURCE_TYPES.includes(type as typeof VALID_RESOURCE_TYPES[number])) {
-    return { valid: true };
-  }
-  return {
-    valid: false,
-    error: `Invalid resource type: ${type}. Must be one of: ${VALID_RESOURCE_TYPES.join(', ')}`,
-  };
+export function isValidPort(port: number): boolean {
+  return Number.isInteger(port) && port > 0 && port <= 65535;
+}
+
+/**
+ * Sanitizes a value for safe use in shell commands
+ * Only allows alphanumeric characters and hyphens
+ * Also limits length to prevent abuse
+ *
+ * @param value - The value to sanitize
+ * @param replacement - Character to replace invalid chars with (default: '_')
+ * @returns Sanitized value safe for shell use
+ */
+export function sanitizeForShell(value: string, replacement: string = '_'): string {
+  return value.replace(/[^a-zA-Z0-9-]/g, replacement).substring(0, 100);
 }

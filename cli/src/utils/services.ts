@@ -1,9 +1,4 @@
-/**
- * Resource discovery utilities
- *
- * Discovers resources by scanning the filesystem for service.json files.
- * Stacks are discovered dynamically - no stack.master files needed.
- */
+/** Resource discovery utilities */
 
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { resolve, join, dirname } from 'node:path';
@@ -25,9 +20,6 @@ import { sanitizeForShell } from './validation.js';
 
 const RESOURCE_JSON_FILENAME = 'service.json';
 
-/**
- * Find the project root by looking for .tdk/project.json
- */
 export function findProjectRoot(startDir: string = cwd()): string | null {
   let currentDir = resolve(startDir);
   const root = resolve('/');
@@ -47,9 +39,6 @@ export function findProjectRoot(startDir: string = cwd()): string | null {
   return null;
 }
 
-/**
- * Recursively scan directory for service.json files
- */
 function findServiceJsonFiles(dir: string, maxDepth: number = 5, currentDepth: number = 0): string[] {
   const results: string[] = [];
 
@@ -80,9 +69,6 @@ function findServiceJsonFiles(dir: string, maxDepth: number = 5, currentDepth: n
   return results;
 }
 
-/**
- * Check if a directory should be skipped during scanning
- */
 function shouldSkipDirectory(name: string): boolean {
   return SKIP_DIRECTORIES.includes(name as typeof SKIP_DIRECTORIES[number]) || name.startsWith('.');
 }
