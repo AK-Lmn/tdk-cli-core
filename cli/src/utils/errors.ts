@@ -198,7 +198,7 @@ export const Errors = {
 };
 
 // Helper to wrap async functions with error handling
-export async function withErrorHandling<T>(
+async function withErrorHandling<T>(
   fn: () => Promise<T>,
   context?: ErrorContext
 ): Promise<T> {
@@ -251,7 +251,7 @@ export function requireProjectRoot(): string {
  * Handle command errors with consistent formatting
  * Use this in command catch blocks instead of duplicating error handling
  */
-export function handleCommandError(err: unknown): never {
+function handleCommandError(err: unknown): never {
   const message = err instanceof Error ? err.message : String(err);
   console.error(chalk.red(`Error: ${message}`));
   process.exit(1);

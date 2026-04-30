@@ -98,11 +98,7 @@ export class TemplateEngine {
     this.registerHelpers();
   }
 
-  /**
-   * Register Handlebars helpers for Starlark-compatible output
-   */
   private registerHelpers(): void {
-    // Helper to format values for Starlark (arrays, objects, primitives)
     Handlebars.registerHelper("starlark", function(value: JsonValue): Handlebars.SafeString {
       const formatValue = (val: JsonValue): string => {
         if (val === null || val === undefined) {
@@ -140,17 +136,12 @@ export class TemplateEngine {
       return new Handlebars.SafeString(`[${items.join(", ")}]`);
     });
 
-    // Helper for JSON-compatible output (for JSON files)
-    Handlebars.registerHelper("json", function(value: JsonValue): string {
+    Handlebars.registerHelper("json", function(value: unknown): string {
       return JSON.stringify(value);
     });
   }
 
-  /**
-   * Build the generator context from platform standards + project config
-   */
   buildContext(projectConfig: ProjectConfig): GeneratorContext {
-    // Collect all services from all stacks
     const allServices = [
       ...projectConfig.stacks.pre_alpha.services,
       ...projectConfig.stacks.alpha.services,

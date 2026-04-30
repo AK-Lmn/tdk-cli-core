@@ -331,7 +331,7 @@ export const resourceCommand = new Command('resource')
   .option('-s, --stack <stack>', 'Stack to assign resource to', 'default')
   .option('-p, --path <path>', 'Custom path for resource directory')
   .action(async (name, options) => {
-    try {
+    await runCommand(async () => {
       const projectRoot = requireProjectRoot();
 
       console.log(chalk.blue('TDK Resource Creation\n'));
@@ -343,16 +343,15 @@ export const resourceCommand = new Command('resource')
           type: 'input',
           name: 'inputName',
           message: 'Resource name (kebab-case):',
-          validate: (input: string) => {
-            if (!input.trim()) return 'Resource name is required';
-            if (!/^[a-z0-9-]+$/.test(input)) return 'Use lowercase letters, numbers, and hyphens only';
-            return true;
-          }
+          validate: createKebabCaseValidator('resource')
         }]);
         resourceName = inputName;
-      } else if (!/^[a-z0-9-]+$/.test(resourceName)) {
-        console.error(chalk.red('Error: Resource name must be kebab-case (lowercase, numbers, hyphens only)'));
-        process.exit(1);
+      } else {
+        const validation = validateResourceName(resourceName);
+        if (!validation.valid) {
+          console.error(chalk.red(`Error: ${validation.error}`));
+          process.exit(1);
+        }
       }
 
       // Validate or ask for type
@@ -393,11 +392,7 @@ export const resourceCommand = new Command('resource')
               type: 'input',
               name: 'newStack',
               message: 'New stack name:',
-              validate: (input: string) => {
-                if (!input.trim()) return 'Stack name is required';
-                if (!/^[a-z0-9-]+$/.test(input)) return 'Use kebab-case';
-                return true;
-              }
+              validate: createKebabCaseValidator('stack')
             }]);
             stackName = newStack;
           } else {
@@ -409,11 +404,7 @@ export const resourceCommand = new Command('resource')
             name: 'newStack',
             message: 'Stack name (first resource):',
             default: 'main',
-            validate: (input: string) => {
-              if (!input.trim()) return 'Stack name is required';
-              if (!/^[a-z0-9-]+$/.test(input)) return 'Use kebab-case';
-              return true;
-            }
+            validate: createKebabCaseValidator('stack')
           }]);
           stackName = newStack;
         }
@@ -440,15 +431,14 @@ export const resourceCommand = new Command('resource')
         process.exit(1);
       }
 
-      // Calculate next available port
+      // Calculate next available port using shared constants
       const existingResources = discoverResources();
       const existingPorts = existingResources.map(r => r.port || 0).filter(p => p > 0);
       
+      const portRange = PORT_RANGES[resourceType as keyof typeof PORT_RANGES];
       let assignedPort: number;
-      const basePort = resourceType === 'frontend' ? 3000 : 4000;
-      const maxPort = resourceType === 'frontend' ? 3999 : 4999;
       
-      for (let port = basePort; port <= maxPort; port++) {
+      for (let port = portRange.base; port <= portRange.max; port++) {
         if (!existingPorts.includes(port)) {
           assignedPort = port;
           break;
@@ -456,7 +446,7 @@ export const resourceCommand = new Command('resource')
       }
       
       if (!assignedPort!) {
-        console.error(chalk.red(`Error: No available ports in range ${basePort}-${maxPort}`));
+        console.error(chalk.red(`Error: No available ports in range ${portRange.base}-${portRange.max}`));
         console.error(chalk.gray('Check TILT_RESOURCE_DEFAULTS.star for port configuration'));
         process.exit(1);
       }
@@ -549,9 +539,5 @@ export const resourceCommand = new Command('resource')
       console.log(chalk.gray(`  cd ${resourcePath}`));
       console.log(chalk.gray(`  bun install`));
       console.log(chalk.gray(`  tdk up ${stackName}`));
-
-    } catch (err) {
-      console.error(chalk.red(`Error: ${err}`));
-      process.exit(1);
-    }
+    });
   });
