@@ -1,7 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
-    "src/index.ts",
     "src/cli.ts",
     "bin/*.js"
   ],
@@ -11,7 +10,8 @@
   ],
   "ignore": [
     "src/**/__tests__/**",
-    "dist/**"
+    "dist/**",
+    "**/coverage_html/**"
   ],
   "include": [
     "exports",

@@ -331,6 +331,11 @@ export const networksCommand = new Command('networks')
           ? chalk.cyan.underline(service.url)
           : chalk.gray(service.url);  // Gray out URL if stopped
 
+        const namePart = formatPadded(service.name, 22);
+        const urlPart = service.status === 'running'
+          ? chalk.cyan.underline(service.url)
+          : chalk.gray(service.url);  // Gray out URL if stopped
+
         const statusLabel = service.status !== 'running'
           ? chalk.gray(` [${service.status}]`)
           : '';
