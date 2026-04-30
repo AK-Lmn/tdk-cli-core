@@ -7,7 +7,8 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { discoverResources } from '../utils/services.js';
-import { requireProjectRoot } from '../utils/errors.js';
+import { requireProjectRoot, runCommand } from '../utils/errors.js';
+import { formatCount } from '../utils/formatting.js';
 
 export const resourcesCommand = new Command('resources')
   .description('List all resources (services) in the project')
@@ -16,7 +17,7 @@ export const resourcesCommand = new Command('resources')
   .option('--no-stack', 'Show only resources without a stack')
   .option('--ports', 'Show port assignments', false)
   .action(async (options) => {
-    try {
+    await runCommand(async () => {
       requireProjectRoot();
 
       const allResources = discoverResources();
@@ -48,7 +49,7 @@ export const resourcesCommand = new Command('resources')
       }
 
       // Display resources
-      console.log(chalk.blue(`Found ${resources.length} resource${resources.length === 1 ? '' : 's'}:\n`));
+      console.log(chalk.blue(`Found ${formatCount(resources.length, 'resource')}:\n`));
 
       if (options.verbose || options.ports) {
         // Detailed table-like output
@@ -85,11 +86,8 @@ export const resourcesCommand = new Command('resources')
       // Summary
       const withoutStack = resources.filter((r: {stack?: string}) => !r.stack).length;
       if (withoutStack > 0 && !options.noStack) {
-        console.log(chalk.yellow(`\n${withoutStack} resource${withoutStack === 1 ? '' : 's'} not assigned to any stack.`));
+        console.log(chalk.yellow(`\n${formatCount(withoutStack, 'resource')} not assigned to any stack.`));
         console.log(chalk.gray('Run "tdk resources --no-stack" to see them, or "tdk stack" to assign them.'));
       }
-    } catch (err) {
-      console.error(chalk.red(`Error: ${err}`));
-      process.exit(1);
-    }
+    });
   });

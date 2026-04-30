@@ -22,7 +22,6 @@ interface InstallInfo {
 // Detect how tdk was installed
 function detectInstallation(): InstallInfo {
   try {
-    // Get the path to the current tdk binary
     const tdkPath = execSync('which tdk', { encoding: 'utf-8' }).trim();
     
     // Check if it's a symlink to a local git repo (bun link / npm link)
@@ -60,7 +59,6 @@ function detectInstallation(): InstallInfo {
   }
 }
 
-// Get current version
 function getCurrentVersion(): string {
   try {
     const packagePath = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', 'package.json');
@@ -75,7 +73,6 @@ function getCurrentVersion(): string {
 async function getLatestVersion(): Promise<string | null> {
   const spinner = ora('Checking for latest version...').start();
   
-    // Try npm registry first
   try {
     const result = execSync('npm view @tdk/cli version', { 
       encoding: 'utf-8',
@@ -99,7 +96,6 @@ async function upgradeViaNpm(): Promise<boolean> {
   const spinner = ora('Upgrading via npm...').start();
   
   try {
-    // Try npm registry first
     execSync('npm install -g @tdk/cli@latest', {
       stdio: 'inherit',
       timeout: 120000,
@@ -128,7 +124,6 @@ async function upgradeViaBun(): Promise<boolean> {
   const spinner = ora('Upgrading via bun...').start();
   
   try {
-    // Try npm registry first
     execSync('bun install -g @tdk/cli@latest', {
       stdio: 'inherit',
       timeout: 120000,
@@ -171,7 +166,6 @@ async function upgradeViaGit(path: string): Promise<boolean> {
       timeout: 30000
     });
     
-    // Get current branch
     const branch = execSync('git rev-parse --abbrev-ref HEAD', { 
       cwd: path,
       encoding: 'utf-8' 

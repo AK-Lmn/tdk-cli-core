@@ -120,6 +120,13 @@ describe('error handling', () => {
           };
         }
 
+        if (typeof manifest !== 'object') {
+          return {
+            valid: false,
+            error: `Manifest must be an object, got ${typeof manifest}`,
+          };
+        }
+
         const warnings: string[] = [];
         const m = manifest as Record<string, unknown>;
 

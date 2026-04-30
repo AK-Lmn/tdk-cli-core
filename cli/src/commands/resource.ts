@@ -12,7 +12,10 @@ import { resolve, dirname } from 'node:path';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { discoverResources } from '../utils/services.js';
-import { requireProjectRoot } from '../utils/errors.js';
+import { requireProjectRoot, runCommand } from '../utils/errors.js';
+import { validateResourceName, createKebabCaseValidator } from '../utils/validation.js';
+import { formatCount } from '../utils/formatting.js';
+import { PORT_RANGES } from '../utils/constants.js';
 
 // Templates for different resource types
 const BACKEND_TEMPLATE = {

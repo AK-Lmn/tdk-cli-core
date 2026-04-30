@@ -7,6 +7,8 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { discoverStacks, discoverResources, getAllStacks } from '../utils/services.js';
+import { runCommand } from '../utils/errors.js';
+import { formatCount } from '../utils/formatting.js';
 
 export const stacksCommand = new Command('stacks')
   .description('List all stacks and their resources')
@@ -14,7 +16,7 @@ export const stacksCommand = new Command('stacks')
   .option('-v, --verbose', 'Show detailed information about each stack', false)
   .option('--services', 'Include list of services in each stack', false)
   .action(async (options) => {
-    try {
+    await runCommand(async () => {
       const services = discoverResources();
       const stackNames = getAllStacks(services);
 
@@ -31,7 +33,7 @@ export const stacksCommand = new Command('stacks')
         // Detailed output
         const stacks = discoverStacks();
 
-        console.log(chalk.blue(`Found ${stacks.length} stack${stacks.length === 1 ? '' : 's'}:\n`));
+        console.log(chalk.blue(`Found ${formatCount(stacks.length, 'stack')}:\n`));
 
         for (const stack of stacks) {
           console.log(chalk.bold(`${stack.name}`));
@@ -48,18 +50,15 @@ export const stacksCommand = new Command('stacks')
         }
       } else {
         // Simple output
-        console.log(chalk.blue(`Found ${stackNames.length} stack${stackNames.length === 1 ? '' : 's'}:\n`));
+        console.log(chalk.blue(`Found ${formatCount(stackNames.length, 'stack')}:\n`));
 
         for (const name of stackNames) {
           const stackServices = services.filter((s: {stack?: string}) => s.stack === name);
           console.log(chalk.bold(`  ${name}`));
-          console.log(chalk.gray(`    ${stackServices.length} service${stackServices.length === 1 ? '' : 's'}`));
+          console.log(chalk.gray(`    ${formatCount(stackServices.length, 'service')}`));
         }
 
         console.log(chalk.gray('\nRun with --verbose for more details, or --services to see all services in each stack.'));
       }
-    } catch (err) {
-      console.error(chalk.red(`Error: ${err}`));
-      process.exit(1);
-    }
+    });
   });

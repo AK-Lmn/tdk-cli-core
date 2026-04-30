@@ -270,7 +270,27 @@ export function readProjectConfig(projectRoot: string): ProjectConfig {
   }
 
   const jsonContent = fs.readFileSync(projectJsonPath, "utf-8");
-  return JSON.parse(jsonContent) as ProjectConfig;
+  const parsed: unknown = JSON.parse(jsonContent);
+
+  // Validate that parsed content is a non-null object with required fields
+  if (!parsed || typeof parsed !== "object") {
+    throw new Error(`Invalid project.json: expected object, got ${typeof parsed}`);
+  }
+
+  const config = parsed as ProjectConfig;
+
+  // Validate required top-level fields exist
+  if (!config.version || typeof config.version !== "string") {
+    throw new Error("Invalid project.json: missing or invalid 'version' field");
+  }
+  if (!config.project || typeof config.project !== "object") {
+    throw new Error("Invalid project.json: missing or invalid 'project' field");
+  }
+  if (!config.stacks || typeof config.stacks !== "object") {
+    throw new Error("Invalid project.json: missing or invalid 'stacks' field");
+  }
+
+  return config;
 }
 
 /**

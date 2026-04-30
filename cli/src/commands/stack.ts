@@ -46,7 +46,6 @@ export const stackCommand = new Command('stack')
         console.log();
       }
 
-      // Find resources without a stack
       const resourcesWithoutStack = allResources.filter(r => !r.stack);
 
       if (options.list) {
@@ -119,17 +118,12 @@ export const stackCommand = new Command('stack')
         return;
       }
 
-      // Update the selected service.json files
       let updated = 0;
       for (const configPath of selectedResources) {
         try {
           const content = readFileSync(configPath, 'utf-8');
           const config = JSON.parse(content);
-
-          // Add or update stack field
           config.stack = targetStack;
-
-          // Write back with proper formatting
           const updatedContent = JSON.stringify(config, null, 2) + '\n';
           writeFileSync(configPath, updatedContent, 'utf-8');
 

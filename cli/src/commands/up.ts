@@ -41,8 +41,7 @@ export const upCommand = new Command('up')
           process.exit(1);
         }
 
-        // Get resources that belong to this stack
-        servicesToStart = getResourcesForStack(stackName);
+          servicesToStart = getResourcesForStack(stackName);
         stackDescription = `stack "${stackName}"`;
       } else {
         // No stack specified - get all resources
@@ -97,7 +96,6 @@ export const upCommand = new Command('up')
         }
       }
       
-      // Set TILT_PORT for this execution
       process.env.TILT_PORT = port.toString();
 
       // Build tilt up arguments (includes Tiltfile path)

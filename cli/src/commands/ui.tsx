@@ -561,7 +561,6 @@ const TUIApp: React.FC = () => {
     }
   });
 
-  // Build file tree for Files tab
   const fileTreeNodes: FileNode[] = useMemo(() => {
     if (selectedServiceData) {
       return [{
@@ -591,12 +590,10 @@ const TUIApp: React.FC = () => {
   const compactTabBar = terminalWidth < 100;
   const compact = terminalWidth < 80;
 
-  // Loading state
   if (loading) {
     return <LoadingScreen progress={loadingProgress} message={loadingMessage} />;
   }
 
-  // Error state
   if (error) {
     return <ErrorScreen error={error} onRetry={() => {
       setError(null);

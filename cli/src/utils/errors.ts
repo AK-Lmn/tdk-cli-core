@@ -211,7 +211,7 @@ export async function withErrorHandling<T>(
     }
 
     // Handle specific error types
-    const err = error as Error;
+    const err = error instanceof Error ? error : new Error(String(error));
     const message = err.message.toLowerCase();
 
     if (message.includes('eaddrinuse') || message.includes('port')) {
