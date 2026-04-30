@@ -1,10 +1,3 @@
-/**
- * tdk upgrade command
- *
- * Self-update the TDK CLI to the latest version.
- * Detects installation method (npm, bun, or git) and upgrades accordingly.
- */
-
 import { Command } from 'commander';
 import { execSync, spawn } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';

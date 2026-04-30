@@ -1,10 +1,3 @@
-/**
- * tdk config command
- *
- * Manage project configuration and regenerate master config files.
- * Subcommands: regenerate, verify, edit
- */
-
 import { Command } from 'commander';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';

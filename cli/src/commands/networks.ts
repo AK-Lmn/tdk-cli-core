@@ -1,10 +1,3 @@
-/**
- * tdk networks command
- *
- * Show all Traefik-routed URLs for services with basePath.
- * Design spec: networks-design.md
- */
-
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { execSync, spawn } from 'node:child_process';

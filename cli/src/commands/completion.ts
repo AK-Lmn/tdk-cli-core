@@ -1,9 +1,3 @@
-/**
- * tdk completion command
- *
- * Generates shell completion scripts for bash, zsh, and fish.
- */
-
 import { Command } from 'commander';
 import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { homedir } from 'node:os';

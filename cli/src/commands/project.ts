@@ -1,10 +1,3 @@
-/**
- * tdk project command
- *
- * Initialize or validate project-level master configuration.
- * Creates .tdk/project.json and generates all 4 master config files from templates.
- */
-
 import { Command } from 'commander';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
