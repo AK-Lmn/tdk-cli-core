@@ -99,8 +99,7 @@ export function discoverResources(): DiscoveredResource[] {
     try {
       resources.push(parseResource(path));
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      console.warn(`Warning: Failed to parse service.json at ${path}: ${errorMessage}`);
+      console.warn(`Warning: Failed to parse service.json at ${path}: ${getErrorMessage(err)}`);
     }
   }
 

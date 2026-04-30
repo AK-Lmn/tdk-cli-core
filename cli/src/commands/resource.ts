@@ -399,10 +399,8 @@ export const resourceCommand = new Command('resource')
         }
       }
 
-      // Determine resource path
       let resourcePath = options.path;
       if (!resourcePath) {
-        // Default paths based on project structure
         const defaultPaths: Record<ValidResourceType, string> = {
           backend: `services/${stackName}/${resourceName}`,
           frontend: `apps/${resourceName}`,
@@ -413,8 +411,7 @@ export const resourceCommand = new Command('resource')
 
       const fullPath = resolve(projectRoot, resourcePath);
 
-      // Security: Validate that the resolved path is within the project root
-      // This prevents path traversal attacks via --path option
+      // Prevent path traversal attacks
       const relativePath = relative(projectRoot, fullPath);
       if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
         console.error(chalk.red(`Error: Invalid path - must be within project directory`));
@@ -423,7 +420,6 @@ export const resourceCommand = new Command('resource')
         process.exit(1);
       }
 
-      // Additional validation: reject paths with null bytes or other suspicious patterns
       if (resourcePath.includes('\0') || /[<>:"|?*]/.test(resourcePath)) {
         console.error(chalk.red(`Error: Path contains invalid characters`));
         process.exit(1);
