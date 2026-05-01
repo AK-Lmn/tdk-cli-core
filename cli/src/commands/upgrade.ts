@@ -5,7 +5,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
 import ora from 'ora';
-import { logVerbose } from '../utils/errors.js';
+import { logVerbose, getErrorMessage } from '../utils/errors.js';
 
 interface InstallInfo {
   method: 'npm' | 'bun' | 'git' | 'unknown';
@@ -26,7 +26,7 @@ function detectInstallation(): InstallInfo {
           return { method: 'git', path: possibleGitRoot };
         }
       }
-    } catch (err) {
+    } catch (err: unknown) {
       // readlink -f fails when the path is not a symlink (e.g., direct binary from npm/bun global install)
       // This is expected behavior for non-git installations - safe to ignore
       logVerbose('readlink -f failed (expected for non-symlinks)', err);
@@ -45,7 +45,7 @@ function detectInstallation(): InstallInfo {
     }
     
     return { method: 'unknown', path: tdkPath };
-  } catch (err) {
+  } catch (err: unknown) {
     logVerbose('Installation detection failed', err);
     return { method: 'unknown' };
   }
@@ -56,7 +56,7 @@ function getCurrentVersion(): string {
     const packagePath = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', 'package.json');
     const pkg = JSON.parse(readFileSync(packagePath, 'utf-8'));
     return pkg.version || 'unknown';
-  } catch (err) {
+  } catch (err: unknown) {
     logVerbose('Could not read package.json', err);
     return 'unknown';
   }
@@ -72,7 +72,7 @@ async function getLatestVersion(): Promise<string | null> {
     }).trim();
     spinner.succeed(`Latest version: ${chalk.green(result)}`);
     return result;
-  } catch {
+  } catch (err: unknown) {
     // npm registry failed - package not published yet
     spinner.warn('Package not yet published to npm registry');
     console.log(chalk.yellow('\n💡 For now, please upgrade manually from GitHub:'));
@@ -93,7 +93,7 @@ async function upgradeViaNpm(): Promise<boolean> {
     });
     spinner.succeed('Upgraded successfully via npm');
     return true;
-  } catch (err) {
+  } catch (err: unknown) {
     // npm registry failed (package may not exist or network issue) - try GitHub fallback
     spinner.text = 'npm registry failed, trying GitHub...';
     logVerbose('npm registry error', err);
@@ -104,8 +104,8 @@ async function upgradeViaNpm(): Promise<boolean> {
       });
       spinner.succeed('Upgraded successfully via GitHub');
       return true;
-    } catch (err) {
-      spinner.fail(`Upgrade failed: ${err}`);
+    } catch (err: unknown) {
+      spinner.fail(`Upgrade failed: ${getErrorMessage(err)}`);
       return false;
     }
   }
@@ -121,7 +121,7 @@ async function upgradeViaBun(): Promise<boolean> {
     });
     spinner.succeed('Upgraded successfully via bun');
     return true;
-  } catch (err) {
+  } catch (err: unknown) {
     // bun registry failed (package may not exist or network issue) - try GitHub fallback
     spinner.text = 'bun registry failed, trying GitHub...';
     logVerbose('bun registry error', err);
@@ -132,8 +132,8 @@ async function upgradeViaBun(): Promise<boolean> {
       });
       spinner.succeed('Upgraded successfully via GitHub');
       return true;
-    } catch (err) {
-      spinner.fail(`Upgrade failed: ${err}`);
+    } catch (err: unknown) {
+      spinner.fail(`Upgrade failed: ${getErrorMessage(err)}`);
       return false;
     }
   }
@@ -185,8 +185,8 @@ async function upgradeViaGit(path: string): Promise<boolean> {
 
     spinner.succeed('Upgraded successfully via git pull');
     return true;
-  } catch (err) {
-    spinner.fail(`Git upgrade failed: ${err}`);
+  } catch (err: unknown) {
+    spinner.fail(`Git upgrade failed: ${getErrorMessage(err)}`);
     return false;
   }
 }
@@ -242,8 +242,9 @@ export const upgradeCommand = new Command('upgrade')
         }
         
         latestVersion = remoteHash.substring(0, 7);
-      } catch (err) {
+      } catch (err: unknown) {
         console.warn(chalk.yellow('⚠️  Could not check git remote, will attempt upgrade anyway'));
+        logVerbose('Git remote check failed', err);
         latestVersion = 'latest';
       }
     } else {
@@ -369,9 +370,9 @@ export const upgradeCommand = new Command('upgrade')
       console.log();
       console.log(chalk.green('Happy coding! 🎉'));
       
-    } catch (err) {
+    } catch (err: unknown) {
       verifySpinner.warn('Could not verify new version');
-      console.error(chalk.red(`Verification error: ${err instanceof Error ? err.message : String(err)}`));
+      console.error(chalk.red(`Verification error: ${getErrorMessage(err)}`));
       console.log();
       console.log(chalk.yellow('⚠️  Upgrade status unknown - verification failed'));
       console.log();

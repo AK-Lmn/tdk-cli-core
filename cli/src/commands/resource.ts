@@ -273,11 +273,11 @@ async function main() {
       for (const job of jobs) {
         try {
           await processJob(job);
-        } catch (error) {
+        } catch (error: unknown) {
           console.error('[Worker] Job failed:', error);
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('[Worker] Error in main loop:', error);
       // Wait before retrying to avoid tight error loops
       await new Promise(resolve => setTimeout(resolve, CONFIG.pollIntervalMs));

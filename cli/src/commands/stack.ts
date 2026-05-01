@@ -115,8 +115,8 @@ export const stackCommand = new Command('stack')
 
           updated++;
           console.log(chalk.green(`  ✓ ${config.appName || configPath}`));
-        } catch (err) {
-          console.error(chalk.red(`  ✗ Failed to update ${configPath}: ${err}`));
+        } catch (err: unknown) {
+          console.error(chalk.red(`  ✗ Failed to update ${configPath}: ${err instanceof Error ? err.message : String(err)}`));
         }
       }
 

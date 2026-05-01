@@ -81,7 +81,7 @@ export const projectCommand = new Command('project')
             console.log(chalk.gray(`   Project: ${projectConfig.project.name}`));
             console.log(chalk.gray(`   Stacks: ${Object.keys(projectConfig.stacks).join(', ')}`));
             process.exit(0);
-          } catch (err) {
+          } catch (err: unknown) {
             console.log(chalk.yellow('⚠️  Project configuration out of sync'));
             console.log(chalk.gray(`   Error: ${err instanceof Error ? err.message : String(err)}`));
             console.log(chalk.gray('\nRun `tdk project` to regenerate.'));

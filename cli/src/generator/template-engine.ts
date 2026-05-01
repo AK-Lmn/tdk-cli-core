@@ -339,7 +339,7 @@ export function verifyMasterConfigs(projectRoot: string): { valid: boolean; erro
     }
 
 
-  } catch (error) {
+  } catch (error: unknown) {
     errors.push(`Verification error: ${error instanceof Error ? error.message : String(error)}`);
   }
 

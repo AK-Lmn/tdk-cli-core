@@ -57,10 +57,10 @@ function determineDefaultDomain(): string {
       if (projectName && projectName !== 'tdk-project') {
         return `${projectName}.localhost`;
       }
-    } catch (err) {
-      // Config doesn't exist or is invalid - fall through to docker domain detection
-      logVerbose('Config read failed', err);
-    }
+  } catch (err: unknown) {
+    // Config doesn't exist or is invalid - fall through to docker domain detection
+    logVerbose('Config read failed', err);
+  }
   }
 
   // Collect all unique domains from Traefik containers
@@ -78,7 +78,7 @@ function determineDefaultDomain(): string {
     while ((match = domainRegex.exec(traefikLabels)) !== null) {
       domains.add(match[1]);
     }
-  } catch (err) {
+  } catch (err: unknown) {
     // Docker not running or no Traefik containers - domains set remains empty
     logVerbose('Docker/Traefik check failed', err);
   }
@@ -166,7 +166,7 @@ async function checkServiceStatus(serviceName: string, port?: number, url?: stri
     try {
       await execSafe('lsof', ['-Pi', `:${port}`, '-sTCP:LISTEN'], { timeout: 3000 });
       return 'running';
-    } catch (lsofErr) {
+    } catch (lsofErr: unknown) {
       // lsof failed - try netstat as fallback for Linux systems
       logVerbose(`lsof check failed for port ${port}`, lsofErr);
       try {
@@ -175,7 +175,7 @@ async function checkServiceStatus(serviceName: string, port?: number, url?: stri
         if (netstatOutput.includes(`:${port}`)) {
           return 'running';
         }
-      } catch (netstatErr) {
+      } catch (netstatErr: unknown) {
         // Neither lsof nor netstat available - cannot determine port status
         logVerbose('Port check tools unavailable', netstatErr);
       }
@@ -193,7 +193,7 @@ async function checkServiceStatus(serviceName: string, port?: number, url?: stri
     if (result && result.trim().length > 0) {
       return 'running';
     }
-  } catch (err) {
+  } catch (err: unknown) {
     // Docker not available or container not found - service is stopped
     logVerbose(`Docker check failed for ${serviceName}`, err);
   }
@@ -323,7 +323,7 @@ export const networksCommand = new Command('networks')
         const projectName = projectConfig.project.name;
         console.log(chalk.yellow('💡 Tip: Set custom domain with:'));
         console.log(chalk.cyan(`   export TDK_PUBLIC_HOST=${projectName}.localhost`));
-      } catch (err) {
+      } catch (err: unknown) {
         console.log(chalk.yellow('💡 Tip: Set custom domain with:'));
         console.log(chalk.cyan('   export TDK_PUBLIC_HOST=localhost'));
         logVerbose('Could not read project config', err);

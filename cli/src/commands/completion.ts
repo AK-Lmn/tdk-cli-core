@@ -288,8 +288,8 @@ export const completionCommand = new Command('completion')
         console.log(chalk.green('✅ Installed ' + shell + ' completion to:'));
         console.log(chalk.cyan('   ' + installPath));
         console.log(chalk.yellow(installInstructions));
-      } catch (err) {
-        console.error(chalk.red('❌ Failed to install: ' + err));
+      } catch (err: unknown) {
+        console.error(chalk.red('❌ Failed to install: ' + (err instanceof Error ? err.message : String(err))));
         process.exit(1);
       }
     } else if (options.output) {
@@ -297,8 +297,8 @@ export const completionCommand = new Command('completion')
         writeFileSync(options.output, completionScript, 'utf-8');
         console.log(chalk.green('✅ Written ' + shell + ' completion to:'));
         console.log(chalk.cyan('   ' + options.output));
-      } catch (err) {
-        console.error(chalk.red('❌ Failed to write: ' + err));
+      } catch (err: unknown) {
+        console.error(chalk.red('❌ Failed to write: ' + (err instanceof Error ? err.message : String(err))));
         process.exit(1);
       }
     } else {

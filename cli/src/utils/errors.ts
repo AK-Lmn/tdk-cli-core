@@ -86,7 +86,7 @@ export async function runCommand<T>(
 ): Promise<T | never> {
   try {
     return await action();
-  } catch (err) {
+  } catch (err: unknown) {
     if (options?.verbose && err instanceof Error) {
       console.error(chalk.gray(err.stack || ''));
     }
