@@ -26,7 +26,7 @@ load(
     "PRODUCT_STACK_RESOURCES_FILE",
     "DISCOVERY_SCAN_ROOTS",
 )
-load("./manifest/constants.star", "MANIFEST_FILENAME", "MANIFEST_FILENAME_NEW", "MANIFEST_FILENAME_YAML", "MANIFEST_FILENAME_NEW_YAML")
+load("./manifest/constants.star", "MANIFEST_FILENAME")
 
 
 _DISCOVERY_CACHE = {
@@ -717,23 +717,14 @@ def load_yaml_manifests_as_resources():
     print("🎯 Loading YAML manifests as Tilt resources (local mode)...")
     
     # Find all YAML manifest files across all discovery roots (silent)
-    # Check both legacy (platform-computing-provisioner.manifest.yaml) and new (service.yaml) naming
+    # YAML files are generated from JSON for Tilt resource tracking
     yaml_files = []
     for root in DISCOVERY_SCAN_ROOTS:
-        # Search for legacy YAML manifests
-        cmd_legacy = "find " + root + " -type f -name '" + MANIFEST_FILENAME_YAML + "' 2>/dev/null"
-        result_legacy = str(local(cmd_legacy, quiet=True, echo_off=True)).strip()
-        if result_legacy:
-            for f in result_legacy.split("\n"):
-                f = f.strip()
-                if f and f not in yaml_files:
-                    yaml_files.append(f)
-        
-        # Search for new service.yaml manifests
-        cmd_new = "find " + root + " -type f -name '" + MANIFEST_FILENAME_NEW_YAML + "' 2>/dev/null"
-        result_new = str(local(cmd_new, quiet=True, echo_off=True)).strip()
-        if result_new:
-            for f in result_new.split("\n"):
+        # Search for YAML manifests
+        cmd = "find " + root + " -type f -name '" + MANIFEST_FILENAME_YAML + "' 2>/dev/null"
+        result = str(local(cmd, quiet=True, echo_off=True)).strip()
+        if result:
+            for f in result.split("\n"):
                 f = f.strip()
                 if f and f not in yaml_files:
                     yaml_files.append(f)

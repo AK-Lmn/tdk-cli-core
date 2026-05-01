@@ -21,12 +21,9 @@ DEFAULTS = {}
 
 load("./constants.star",
     "MANIFEST_FILENAME",
-    "MANIFEST_FILENAME_NEW",
     "MANIFEST_DEFAULTS",
     "VALID_APP_TYPES",
     "DEFAULT_SYNCS",
-    "MANIFEST_DEPRECATION_ENABLED",
-    "MANIFEST_DEPRECATION_WARNING",
     "MANIFEST_SEARCH_ORDER",
 )
 
@@ -108,16 +105,11 @@ def _synthesize_manifest(resource_path, stack, app_type):
     
     return manifest
 
-def _get_manifest_filename_with_fallback(resource_path):
+def _get_manifest_filename(resource_path):
     """
-    Determine which manifest filename to use, with fallback logic.
+    Determine if manifest exists for resource path.
     
-    Priority order:
-    1. service.json (new preferred)
-    2. platform-computing-provisioner.manifest.json (legacy with warning)
-    3. None (will trigger synthesis)
-    
-    Returns: (filename, is_legacy)
+    Returns: filename if exists, None otherwise (triggers synthesis)
     """
     # Prepend project root to relative paths for correct resolution
     project_root = os.environ.get('TDK_PROJECT_ROOT', '')
@@ -126,35 +118,22 @@ def _get_manifest_filename_with_fallback(resource_path):
     else:
         base_path = resource_path
     
-    # Check for new filename first
-    new_path = base_path + "/" + MANIFEST_FILENAME_NEW
-    new_content = read_file(new_path, default="")
-    if new_content:
-        return (MANIFEST_FILENAME_NEW, False)
+    # Check for manifest file
+    manifest_path = base_path + "/" + MANIFEST_FILENAME
+    content = read_file(manifest_path, default="")
+    if content:
+        return MANIFEST_FILENAME
     
-    # Fall back to legacy filename
-    legacy_path = base_path + "/" + MANIFEST_FILENAME
-    legacy_content = read_file(legacy_path, default="")
-    if legacy_content:
-        # Deprecation warning
-        if MANIFEST_DEPRECATION_ENABLED:
-            # Check if warning suppression is disabled
-            if os.environ.get('TDK_DISABLE_MANIFEST_WARNINGS', '').lower() != 'true':
-                print("⚠️  DEPRECATION: " + MANIFEST_DEPRECATION_WARNING)
-                print("   Path: " + legacy_path)
-        return (MANIFEST_FILENAME, True)
-    
-    # Neither file exists - will trigger synthesis
-    return (None, False)
+    # No manifest file - will trigger synthesis
+    return None
 
 def load_from_path(resource_path):
     """
-    Load manifest from resource directory with dual-filename support and synthesis.
+    Load manifest from resource directory with synthesis fallback.
     
     Priority:
-    1. service.json (new preferred)
-    2. platform-computing-provisioner.manifest.json (legacy with deprecation warning)
-    3. Synthesize from directory structure if neither exists
+    1. Load service.json if it exists
+    2. Synthesize from directory structure if no manifest exists
     
     Args:
         resource_path: Path to resource directory
@@ -162,8 +141,8 @@ def load_from_path(resource_path):
     Returns:
         struct with manifest and error fields
     """
-    # Determine which manifest to load
-    manifest_filename, is_legacy = _get_manifest_filename_with_fallback(resource_path)
+    # Determine if manifest exists
+    manifest_filename = _get_manifest_filename(resource_path)
     
     if manifest_filename:
         # Load existing manifest
@@ -172,10 +151,6 @@ def load_from_path(resource_path):
         
         if result.error:
             return result
-        
-        # Mark if legacy
-        if result.manifest and is_legacy:
-            result.manifest["_legacy_filename"] = True
         
         return result
     else:
@@ -215,12 +190,12 @@ def load_from_path(resource_path):
 
 def get_manifest_filename():
     """
-    Get the preferred manifest filename (for new services).
+    Get the manifest filename.
     
     Returns:
         String: "service.json"
     """
-    return MANIFEST_FILENAME_NEW
+    return MANIFEST_FILENAME
 
 def get_manifest_search_order():
     """

@@ -24,14 +24,14 @@ load("../../platform/docker/constants.star", "PlatformDockerConstants")
 # 🗃️ DATABASE MANAGEMENT
 # =============================================================================
 
-def _load_database_management(should_enable):
+def _load_database_management(should_enable, root_prefix=""):
     """Load database and messaging infrastructure."""
     if not should_enable('database-management'):
         return
     
     print("🗃️  Loading database management services...")
-    docker_compose('services/platform/database-management/docker-compose.yml')
-    docker_compose('services/platform/messaging/docker-compose.yml')
+    docker_compose(root_prefix + 'services/platform/database-management/docker-compose.yml')
+    docker_compose(root_prefix + 'services/platform/messaging/docker-compose.yml')
     dc_resource('postgres', labels=['infra.tools'], resource_deps=['init-networks'], auto_init=True)
     dc_resource('redis', labels=['infra.messaging'], auto_init=False)
     dc_resource('nats', labels=['infra.messaging'], auto_init=True)
@@ -44,13 +44,13 @@ def _load_database_management(should_enable):
 # 📦 VERDACCIO (NPM Registry)
 # =============================================================================
 
-def _load_verdaccio(should_enable):
+def _load_verdaccio(should_enable, root_prefix=""):
     """Load Verdaccio private npm registry."""
     if not should_enable(PlatformDockerConstants.VERDACCIO_RESOURCE_NAME):
         return
     
     print("📦 Loading Verdaccio...")
-    docker_compose('docker-compose.verdaccio.yml')
+    docker_compose(root_prefix + 'docker-compose.verdaccio.yml')
     dc_resource(PlatformDockerConstants.VERDACCIO_RESOURCE_NAME, labels=['infra.tools', 'registry'], resource_deps=['init-networks'], auto_init=True)
     local_resource(PlatformDockerConstants.VERDACCIO_CONNECT_NETWORK_RESOURCE,
         cmd='docker network connect ' + PlatformDockerConstants.NETWORK_BACKEND + ' ' + PlatformDockerConstants.VERDACCIO_CONTAINER_NAME + ' 2>/dev/null || true',
@@ -64,13 +64,13 @@ def _load_verdaccio(should_enable):
 # 🔐 INFISICAL (Secrets Management)
 # =============================================================================
 
-def _load_infisical(should_enable):
+def _load_infisical(should_enable, root_prefix=""):
     """Load Infisical secrets management."""
     if not should_enable('infisical'):
         return
     
     print("🔐 Loading Infisical...")
-    docker_compose('docker-compose.infisical.yml')
+    docker_compose(root_prefix + 'docker-compose.infisical.yml')
     dc_resource('infisical-db', labels=['infra.tools', 'secrets'], resource_deps=['init-networks'], auto_init=True)
     dc_resource('infisical-redis', labels=['infra.tools', 'secrets'], resource_deps=['init-networks'], auto_init=True)
     dc_resource('infisical', labels=['infra.tools', 'secrets'], resource_deps=['init-networks', 'infisical-db', 'infisical-redis'], auto_init=True)
@@ -80,25 +80,25 @@ def _load_infisical(should_enable):
 # 🌐 PROXY (Traefik)
 # =============================================================================
 
-def _load_proxy(should_enable):
+def _load_proxy(should_enable, root_prefix=""):
     """Load Traefik reverse proxy with proper health check sequencing."""
     if not should_enable('proxy'):
         return
-    
+
     print("🌐 Loading proxy services from Introvertic Infra...")
     print("   → Primary: shared-product-engineering/introvertic/infra/docker-compose.traefik.yml")
     print("   → Override flags: TRAEFIK_LOG_LEVEL, TRAEFIK_ENABLE_DASHBOARD, etc.")
     print("   → Traefik will wait for postgres and nats to be healthy")
     print("   → Services configured with 60s startup grace period")
-    
+
     # Use introvertic/infra traefik configuration (primary)
     # Keep legacy core.yml for network definitions during migration
     docker_compose([
-        'shared-product-engineering/introvertic/infra/docker-compose.traefik.yml',
-        'services/platform/proxy/docker-compose.core.yml',
-        'services/platform/proxy/docker-compose.utilities.yml', 
-        'services/platform/proxy/docker-compose.redirects.yml',
-        'services/platform/proxy/docker-compose.docs.yml'
+        root_prefix + 'shared-product-engineering/introvertic/infra/docker-compose.traefik.yml',
+        root_prefix + 'services/platform/proxy/docker-compose.core.yml',
+        root_prefix + 'services/platform/proxy/docker-compose.utilities.yml',
+        root_prefix + 'services/platform/proxy/docker-compose.redirects.yml',
+        root_prefix + 'services/platform/proxy/docker-compose.docs.yml'
     ])
     
     # Traefik depends on core infrastructure being healthy (not just started) to prevent 504s
@@ -128,13 +128,13 @@ def _load_proxy(should_enable):
 # 📊 MONITORING (SigNoz, SkyWalking)
 # =============================================================================
 
-def _load_monitoring(should_enable):
+def _load_monitoring(should_enable, root_prefix=""):
     """Load monitoring and observability stack."""
     if not should_enable('monitoring'):
         return
     
     print("📊 Loading monitoring services...")
-    docker_compose('services/platform/monitoring/docker-compose.yml')
+    docker_compose(root_prefix + 'services/platform/monitoring/docker-compose.yml')
     for svc in ['signoz-frontend', 'signoz-otel-collector', 'signoz-query-service']:
         dc_resource(svc, labels=['observability.apm'], auto_init=True)
     dc_resource('clickhouse', labels=['observability.storage'], auto_init=True)
@@ -147,13 +147,13 @@ def _load_monitoring(should_enable):
 # 🔄 DEBEZIUM (CDC)
 # =============================================================================
 
-def _load_debezium(should_enable):
+def _load_debezium(should_enable, root_prefix=""):
     """Load Debezium Change Data Capture."""
     if not should_enable('debezium'):
         return
     
     print("🔄 Loading Enhanced Debezium...")
-    docker_compose('services/platform/cdc/docker-compose.enhanced.yml')
+    docker_compose(root_prefix + 'services/platform/cdc/docker-compose.enhanced.yml')
     dc_resource('nats-http-bridge', labels=['cdc'], resource_deps=['nats'], auto_init=True)
     dc_resource('debezium-connect', labels=['cdc'], resource_deps=['kafka', 'postgres', 'nats-http-bridge'], auto_init=True)
     dc_resource('enhanced-connector-setup', labels=['cdc'], resource_deps=['debezium-connect', 'postgres', 'nats-http-bridge'], auto_init=False)
@@ -163,13 +163,13 @@ def _load_debezium(should_enable):
 # 📊 ELK STACK
 # =============================================================================
 
-def _load_elk(should_enable):
+def _load_elk(should_enable, root_prefix=""):
     """Load ELK logging stack."""
     if not should_enable('elk'):
         return
-    
+
     print("📊 Loading ELK stack...")
-    docker_compose('docker/elk-compose.yml')
+    docker_compose(root_prefix + 'docker/elk-compose.yml')
     dc_resource('elasticsearch', labels=['observability.elk'], auto_init=True)
     dc_resource('logstash', labels=['observability.elk', 'processor', 'logs'], resource_deps=['elasticsearch'], auto_init=True)
     dc_resource('kibana', labels=['observability.elk', 'frontend', 'dashboard'], resource_deps=['elasticsearch'], auto_init=True)
@@ -222,7 +222,7 @@ def _generate_golden_dockerfile(should_enable, docker_provider, write_fn):
 # 🎯 MAIN LOADER
 # =============================================================================
 
-def load_all_infrastructure(should_enable, fix_docker_networks_fn=None, docker_provider=None, write_fn=None):
+def load_all_infrastructure(should_enable, fix_docker_networks_fn=None, docker_provider=None, write_fn=None, project_root=None):
     """
     Load all infrastructure services based on configuration.
 
@@ -231,6 +231,7 @@ def load_all_infrastructure(should_enable, fix_docker_networks_fn=None, docker_p
         fix_docker_networks_fn: Function to fix Docker networks (optional)
         docker_provider: Docker provider struct (optional, for golden image)
         write_fn: File writing function (optional, for golden image)
+        project_root: Path to project root from TDK working directory (optional, e.g., "../../")
     """
     # Initialize networks first
     if fix_docker_networks_fn:
@@ -247,14 +248,17 @@ def load_all_infrastructure(should_enable, fix_docker_networks_fn=None, docker_p
         _generate_golden_dockerfile(should_enable, docker_provider, write_fn)
         golden_image_resource = _load_golden_image(should_enable, docker_provider)
     
+    # Get project root prefix for paths (e.g., "../../" from .tdk/.tdk-out/)
+    root_prefix = project_root if project_root else ""
+    
     # Load infrastructure in order
-    _load_database_management(should_enable)
-    _load_verdaccio(should_enable)
-    _load_infisical(should_enable)
-    _load_proxy(should_enable)
-    _load_monitoring(should_enable)
-    _load_debezium(should_enable)
-    _load_elk(should_enable)
+    _load_database_management(should_enable, root_prefix)
+    _load_verdaccio(should_enable, root_prefix)
+    _load_infisical(should_enable, root_prefix)
+    _load_proxy(should_enable, root_prefix)
+    _load_monitoring(should_enable, root_prefix)
+    _load_debezium(should_enable, root_prefix)
+    _load_elk(should_enable, root_prefix)
     
     return golden_image_resource
 

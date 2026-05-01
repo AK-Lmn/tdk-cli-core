@@ -4,26 +4,22 @@
 # Path: .tilt/topologies/tilt/discovery/manifest/loading.star
 # Purpose: Load, synthesize, and apply defaults to manifests
 # 
-# NEW: Dual-filename support with synthesis-by-default (ASAP timeline)
-# Priority: service.json → legacy manifest → synthesize from path
+# Manifest loading with synthesis-by-default
+# Priority: service.json → synthesize from path
 # =============================================================================
 
 load('../../engine/topologies/tilt/manifest/constants.star', 
      'MANIFEST_DEFAULTS', 
      'DEFAULT_SYNCS', 
      'MANIFEST_FILENAME',
-     'MANIFEST_FILENAME_NEW',
      'MANIFEST_SEARCH_ORDER',
-     'MANIFEST_DEPRECATION_ENABLED',
-     'MANIFEST_DEPRECATION_WARNING',
      'BASE_PORT_FRONTEND',
      'BASE_PORT_BACKEND',
      'HEALTH_CHECK_PATH')
 load('../../engine/topologies/tilt/common/utils.star', 'Utils')
 load('../../engine/topologies/platform/docker/constants.star', 'PlatformDockerConstants')
 
-# Environment variable to disable deprecation warnings
-_DISABLE_WARNINGS = os.environ.get('TDK_DISABLE_MANIFEST_WARNINGS', '') == 'true'
+# Environment variables for loader behavior
 _LEGACY_LOADER_ONLY = os.environ.get('TDK_LEGACY_LOADER_ONLY', '') == 'true'
 
 
@@ -79,12 +75,11 @@ def _extract_stack_from_path(resource_path, app_name):
 
 def load_manifest(resource_path, persist_to_disk=False):
     """
-    Load manifest with dual-filename support and synthesis-by-default.
+    Load manifest with synthesis-by-default.
     
-    Priority order (CEO Review: rename-service-manifest):
-      1. service.json (new preferred filename)
-      2. platform-computing-provisioner.manifest.json (legacy, with deprecation warning)
-      3. Synthesize from directory structure (synthesis-by-default for standard resources)
+    Priority order:
+      1. service.json (manifest file)
+      2. Synthesize from directory structure (synthesis-by-default for standard resources)
     
     Args:
         resource_path: Path to resource directory
@@ -104,17 +99,16 @@ def load_manifest(resource_path, persist_to_disk=False):
     else:
         base_path = resource_path
     
-    # Try new filename first (service.json)
-    new_manifest_path = base_path + '/' + MANIFEST_FILENAME_NEW
-    new_content = read_file(new_manifest_path, default='')
+    # Try to load manifest file
+    manifest_full_path = base_path + '/' + MANIFEST_FILENAME
+    content = read_file(manifest_full_path, default='')
     
-    if new_content and str(new_content).strip():
-        manifest = decode_json(new_content)
+    if content and str(content).strip():
+        manifest = decode_json(content)
         manifest_source = 'service.json'
-        manifest_path = new_manifest_path
-    
-    # Synthesize from directory structure if no manifest found
-    if manifest == None:
+        manifest_path = manifest_full_path
+    else:
+        # Synthesize from directory structure if no manifest found
         manifest = synthesize_manifest_from_path(resource_path)
         manifest_source = 'synthesized'
         manifest_path = resource_path  # Virtual path

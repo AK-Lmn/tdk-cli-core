@@ -65,11 +65,7 @@ def parse(content, path=""):
             warnings=warnings,
         )
     
-    # Check for legacy 'dependencies' field (should use 'internalDependencies')
-    if 'dependencies' in manifest and 'internalDependencies' not in manifest:
-        warnings.append(
-            "Field 'dependencies' is legacy, consider using 'internalDependencies'"
-        )
+    # Note: 'dependencies' field is no longer supported, use 'internalDependencies'
     
     return struct(
         manifest=manifest,
@@ -147,7 +143,7 @@ def normalize(manifest, resource_path=""):
         error_msg = """MANIFEST ERROR: Missing required 'traefik.pathPrefix' in {}
 
 Resource: {}
-File: platform-computing-provisioner.manifest.json
+File: service.json
 
 To fix, add:
   "traefik": {{
