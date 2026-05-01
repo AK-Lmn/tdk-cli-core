@@ -26,7 +26,7 @@ load(
     "PRODUCT_STACK_RESOURCES_FILE",
     "DISCOVERY_SCAN_ROOTS",
 )
-load("./manifest/constants.star", "MANIFEST_FILENAME")
+load("./manifest/constants.star", "MANIFEST_FILENAME", "MANIFEST_FILENAME_YAML", "MANIFEST_FILENAME_NEW", "MANIFEST_FILENAME_NEW_YAML")
 
 
 _DISCOVERY_CACHE = {
@@ -192,8 +192,8 @@ def get_app_resources():
     # Pass 2: Re-load from JSON (data refresh) and create Tilt local_resource from YAML
     initialized = _DISCOVERY_CACHE["initialized"] if "initialized" in _DISCOVERY_CACHE else False
     if not initialized:
-    print("")
-    print("🔍 Starting resource discovery...")
+        print("")
+        print("🔍 Starting resource discovery...")
     # First pass - load JSON and generate YAML
     initialize_discovery(_DISCOVERY_CACHE, second_pass=False)
     # Second pass - reload from JSON (not YAML - JSON is source of truth)
