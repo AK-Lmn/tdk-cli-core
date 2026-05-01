@@ -1,5 +1,3 @@
-/** ResourceTable Component - Table for displaying Resources tab content */
-
 import React from 'react';
 import { Box, Text } from 'ink';
 import type { ResourceMetadata } from '../types/index.js';

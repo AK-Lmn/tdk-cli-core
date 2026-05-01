@@ -12,41 +12,18 @@
 
 const PLATFORM_VERSION = "1.0.0";
 
-/**
- * Core technology stack - enforced across all services
- */
 const TECH_STACK = {
-  /** Runtime: Bun (not Node.js) */
   runtime: "bun",
-
-  /** Bundler: Vite (strict requirement) */
   bundler: "vite",
-
-  /** Language: TypeScript */
   language: "typescript",
-
-  /** Web framework: Hono */
   framework: "hono",
-
-  /** Database: PostgreSQL */
   database: "postgresql",
-
-  /** ORM: Prisma v7 */
   orm: "prisma",
-
-  /** Messaging: NATS JetStream */
   messaging: "nats",
-
-  /** Linting/Formatting: Biome */
   linting: "biome",
-
-  /** Testing: Vitest */
   testing: "vitest",
 } as const;
 
-/**
- * Port allocation strategy - standard across all projects
- */
 const PORTS = {
   frontend: {
     base: 3000,
@@ -78,55 +55,30 @@ const PORTS = {
     start: 7000,
     end: 7999,
   },
-  /** Tilt UI port */
   tiltUi: 10350,
-  /** Traefik dashboard port */
   traefik: 8080,
 } as const;
 
-/**
- * Health check endpoints - standard across all services
- */
 const HEALTH_CHECKS = {
-  /** Main health endpoint */
   path: "/health",
-  /** Liveness probe */
   live: "/health/live",
-  /** Readiness probe */
   ready: "/health/ready",
-  /** Timeout in seconds */
   timeout: 30,
-  /** Interval in seconds */
   interval: 5,
 } as const;
 
-/**
- * Service naming patterns - enforced across all services
- */
 const NAMING = {
-  /** Frontend service suffix */
   frontend: "-frontend",
-  /** Backend service suffix */
   backend: "-backend",
-  /** Worker service suffix */
   worker: "-worker",
-  /** Migrator service suffix */
   migrator: "-migrator",
-  /** Library suffix */
   library: "-lib",
-  /** SDK suffix */
   sdk: "-sdk",
-  /** Valid name separators */
   validSeparators: ["-", "_"],
-  /** Max service name length */
   maxLength: 63,
-  /** Min service name length */
   minLength: 3,
 } as const;
 
-/**
- * Traefik configuration - standard for all projects
- */
 const TRAEFIK = {
   entrypoint: "web",
   network: "traefik-public",
@@ -142,9 +94,6 @@ const TRAEFIK = {
   frontendPriorityBase: 100,
 } as const;
 
-/**
- * File watch ignore patterns - prevents fsnotify buffer overflow
- */
 const FILEWATCH_IGNORES = [
   "node_modules",
   "dist",
@@ -160,9 +109,6 @@ const FILEWATCH_IGNORES = [
   "tests",
 ] as const;
 
-/**
- * Service type definitions - maps types to their configuration
- */
 const RESOURCE_TYPES = {
   frontend: {
     suffix: "-frontend",
@@ -190,9 +136,6 @@ const RESOURCE_TYPES = {
   },
 } as const;
 
-/**
- * Platform features - available to all projects
- */
 const FEATURES = {
   prisma: "Database ORM with migrations",
   nats: "Event streaming via NATS",
@@ -207,9 +150,6 @@ const FEATURES = {
   maintenance: "Maintenance mode",
 } as const;
 
-/**
- * Project paths - standard directory structure
- */
 const PATHS = {
   services: "services/product",
   sharedPlatform: "shared-platform-engineering",
@@ -217,30 +157,18 @@ const PATHS = {
   sharedDdd: "shared-ddd-layers",
 } as const;
 
-/**
- * Discovery settings - how TDK finds services
- */
 const DISCOVERY = {
-  /** Scan interval in seconds */
   scanIntervalSeconds: 5,
-  /** Max manifests per root */
   maxManifestsPerRoot: 50,
-  /** Service patterns to match */
   servicePatterns: ["services/product/*", "services/platform/*"],
 } as const;
 
-/**
- * Docker build configuration defaults
- */
 const DOCKER = {
   dockerfile: "Dockerfile",
   context: ".",
   platform: "linux/amd64",
 } as const;
 
-/**
- * Runtime command configuration
- */
 const RUNTIME = {
   backend: {
     command: "bun",
@@ -254,9 +182,6 @@ const RUNTIME = {
   },
 } as const;
 
-/**
- * Export all platform standards as a single object
- */
 export const PLATFORM_STANDARDS = {
   version: PLATFORM_VERSION,
   tech: TECH_STACK,

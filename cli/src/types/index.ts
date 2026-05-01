@@ -94,28 +94,15 @@ export interface TiltResourceStatus {
  */
 export type JsonValue = string | number | boolean | null | JsonArray | JsonObject;
 
-/**
- * JSON array type (internal use only)
- */
 interface JsonArray extends Array<JsonValue> {}
-
-/**
- * JSON object type (internal use only)
- */
 interface JsonObject extends Record<string, JsonValue> {}
 
-/**
- * Stack definition within project configuration
- */
 export interface ProjectStackDefinition {
   name: string;
   description: string;
   services: string[];
 }
 
-/**
- * Optional infrastructure configuration
- */
 export interface ProjectOptionalInfra {
   monitoring: boolean;
   elk: boolean;
@@ -123,9 +110,6 @@ export interface ProjectOptionalInfra {
   golden_image: boolean;
 }
 
-/**
- * Discovery configuration for project scanning
- */
 export interface ProjectDiscovery {
   paths: string[];
 }
@@ -197,7 +181,27 @@ export interface SelectItem {
 }
 
 /**
+ * Extended status values from external systems (Tilt, Docker, etc.)
+ * These complement our internal status types
+ */
+export type ExtendedStatus =
+  | 'active'
+  | 'failed'
+  | 'critical'
+  | 'stopped'
+  | 'starting'
+  | 'building'
+  | string;
+
+/**
  * Generic status value type for status-aware components
  * Union of all status types used across the system
+ * Includes internal types plus extended values from external systems
  */
-export type StatusValue = ResourceStatus | StackHealthStatus | TiltRuntimeStatus | ServiceUrl['status'] | string | undefined;
+export type StatusValue =
+  | ResourceStatus
+  | StackHealthStatus
+  | TiltRuntimeStatus
+  | ServiceUrl['status']
+  | ExtendedStatus
+  | undefined;

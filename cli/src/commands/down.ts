@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { runTilt, buildTiltDownArgs, isTiltAvailable } from '../utils/tilt.js';
-import { runCommand, errorFactories } from '../utils/errors.js';
+import { runTilt, buildTiltDownArgs } from '../utils/tilt.js';
+import { withTiltCheck } from '../utils/errors.js';
 
 export const downCommand = new Command('down')
   .description('Stop all tilt resources')
@@ -9,12 +9,7 @@ export const downCommand = new Command('down')
   .option('-f, --force', 'Skip confirmation', false)
   .option('--dry-run', 'Show what would be stopped without stopping', false)
   .action(async (options) => {
-    await runCommand(async () => {
-      if (!await isTiltAvailable()) {
-        errorFactories.tiltNotInstalled().display();
-        process.exit(1);
-      }
-
+    await withTiltCheck(async () => {
       if (options.dryRun) {
         console.log(chalk.gray('Dry run - not stopping resources.'));
         console.log(chalk.gray('Would run: tilt down'));

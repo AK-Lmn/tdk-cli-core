@@ -8,7 +8,7 @@ Provides the foundational layers for all Dockerfiles:
 
 BUN_BASE = "oven/bun:1.3.11-alpine"
 ALPINE_BASE = "alpine:3.18"
-load('../../../tilt/discovery/config.star', 'GLOBAL_CONFIG')
+load('../../../../../discovery/config.star', 'GLOBAL_CONFIG')
 
 # Load project name for dynamic golden image naming
 # Use TDK_PROJECT_ROOT env var set by Tilt, fallback to current directory

@@ -8,7 +8,7 @@ BASE_PORT_BACKEND = 4000
 # === END INLINED CONSTANTS ===
 
 
-load('../../discovery/loading.star', 'Manifest')
+load('../../../../../discovery/loading.star', 'Manifest')
 load('./generators/manifest_resource.star', 'ManifestResource')
 
 

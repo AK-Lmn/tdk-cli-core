@@ -323,6 +323,7 @@ export function getStackMetadata(stack: DiscoveredStack): StackMetadata {
   const earliestTimestamp = Math.min(...timestamps);
   const latestTimestamp = Math.max(...timestamps);
   const totalResources = resourcesMetadata.length;
+  // TODO: Replace with real health check aggregation from Tilt API or service health endpoints
   const readyCount = resourcesMetadata.filter(() => Math.random() > 0.3).length;
   
   let overallStatus: StackMetadata['overallStatus'] = 'unknown';

@@ -2,8 +2,8 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { execSync } from 'node:child_process';
 import { getResourcesForStack, stackExists, discoverResources, discoverStacks } from '../utils/services.js';
-import { runTilt, buildTiltUpArgs, isTiltAvailable, findAvailablePort } from '../utils/tilt.js';
-import { runCommand, errorFactories } from '../utils/errors.js';
+import { runTilt, buildTiltUpArgs, findAvailablePort } from '../utils/tilt.js';
+import { withTiltCheck } from '../utils/errors.js';
 import { formatCount } from '../utils/formatting.js';
 
 export const upCommand = new Command('up')
@@ -15,12 +15,7 @@ export const upCommand = new Command('up')
   .option('--dry-run', 'Show what would be started without starting', false)
   .option('-f, --force', 'Kill existing Tilt process before starting', false)
   .action(async (stackName, options) => {
-    await runCommand(async () => {
-      if (!await isTiltAvailable()) {
-        errorFactories.tiltNotInstalled().display();
-        process.exit(1);
-      }
-
+    await withTiltCheck(async () => {
       let servicesToStart: Awaited<ReturnType<typeof discoverResources>>;
       let stackDescription: string;
 

@@ -1,5 +1,6 @@
 import chalk from 'chalk';
 import { findProjectRoot } from './paths.js';
+import { isTiltAvailable } from './tilt.js';
 
 /**
  * Extract a human-readable error message from an unknown error value.
@@ -92,4 +93,23 @@ export async function runCommand<T>(
     }
     return handleCommandError(err);
   }
+}
+
+/**
+ * Wrapper that combines runCommand with Tilt availability check.
+ * Consolidates the common pattern of checking Tilt before running a command.
+ *
+ * @param action - The async action to execute
+ * @param options - Optional configuration for verbose output
+ * @returns The result of the action, or never if an error occurs
+ */
+export async function withTiltCheck<T>(
+  action: () => Promise<T>,
+  options?: { verbose?: boolean }
+): Promise<T | never> {
+  if (!await isTiltAvailable()) {
+    errorFactories.tiltNotInstalled().display();
+    process.exit(1);
+  }
+  return runCommand(action, options);
 }

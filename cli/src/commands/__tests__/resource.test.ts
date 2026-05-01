@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
+import { KEBAB_CASE_REGEX } from '../../utils/validation.js';
 
 describe('resource command', () => {
   describe('resource name validation', () => {
-    it('should accept valid kebab-case names', () => {
+    it('should accept valid kebab-case names using KEBAB_CASE_REGEX', () => {
       const validNames = [
         'my-service',
         'service123',
@@ -12,11 +13,11 @@ describe('resource command', () => {
       ];
 
       for (const name of validNames) {
-        expect(/^[a-z0-9-]+$/.test(name)).toBe(true);
+        expect(KEBAB_CASE_REGEX.test(name)).toBe(true);
       }
     });
 
-    it('should reject invalid names', () => {
+    it('should reject invalid names using KEBAB_CASE_REGEX', () => {
       const invalidNames = [
         'MyService',      // camelCase
         'my_service',     // underscore
@@ -27,7 +28,7 @@ describe('resource command', () => {
       ];
 
       for (const name of invalidNames) {
-        expect(/^[a-z0-9-]+$/.test(name)).toBe(false);
+        expect(KEBAB_CASE_REGEX.test(name)).toBe(false);
       }
     });
   });

@@ -1,5 +1,3 @@
-/** Base Tooltip Component - Shared foundation for all tooltip variants */
-
 import React from 'react';
 import { Box, Text } from 'ink';
 

@@ -1,6 +1,8 @@
 import { spawn } from 'node:child_process';
 import { createConnection } from 'node:net';
+import { join } from 'node:path';
 import type { TiltCommandResult } from '../types/index.js';
+import { findProjectRoot } from './paths.js';
 
 export function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -84,9 +86,6 @@ export async function isTiltAvailable(): Promise<boolean> {
   const result = await runTilt('version', [], { inheritStdio: false });
   return result.exitCode === 0;
 }
-
-import { findProjectRoot } from './paths.js';
-import { join } from 'node:path';
 
 export function getTiltfilePath(): string {
   const projectRoot = findProjectRoot();

@@ -9,13 +9,6 @@ import { existsSync } from 'node:fs';
 import { resolve, join, dirname } from 'node:path';
 import { cwd } from 'node:process';
 
-/**
- * Find the project root directory by walking up from startDir
- * looking for .tdk/project.json
- *
- * @param startDir - Directory to start searching from (defaults to cwd)
- * @returns Project root path or null if not found
- */
 export function findProjectRoot(startDir: string = cwd()): string | null {
   let currentDir = resolve(startDir);
   const root = resolve('/');

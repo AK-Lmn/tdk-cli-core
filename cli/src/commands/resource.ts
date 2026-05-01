@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, dirname, relative, isAbsolute } from 'node:path';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
+import type { ResourceType } from '../types/index.js';
 import { discoverResources } from '../utils/services.js';
 import { requireProjectRoot, runCommand } from '../utils/errors.js';
 import { validateResourceName, createKebabCaseValidator } from '../utils/validation.js';
@@ -11,14 +12,18 @@ import { PORT_RANGES } from '../utils/constants.js';
 
 /**
  * Resource types supported by the `tdk resource create` command.
- * This is a subset of ResourceType (which also includes 'library', 'sdk', 'migrator').
+ * Derived from ResourceType - subset that users can directly create.
+ * Excludes 'library', 'sdk', 'migrator' which are created through other means.
  */
-type CreatableResourceType = 'backend' | 'frontend' | 'worker';
+const CREATABLE_RESOURCE_TYPES = ['backend', 'frontend', 'worker'] as const;
+type CreatableResourceType = Extract<ResourceType, typeof CREATABLE_RESOURCE_TYPES[number]>;
 
-const BACKEND_TEMPLATE = {
-  type: 'backend',
+/**
+ * Common base template for all resource types.
+ * Contains fields shared across backend, frontend, and worker resources.
+ */
+const BASE_TEMPLATE = {
   port: 0, // Will be assigned
-  healthCheck: '/health',
   dependencies: [],
   build: {
     dockerfile: 'Dockerfile',
@@ -28,39 +33,42 @@ const BACKEND_TEMPLATE = {
     command: 'bun run dev',
     watch: ['src/**/*'],
   },
-};
+} as const;
 
-const FRONTEND_TEMPLATE = {
-  type: 'frontend',
-  port: 0, // Will be assigned
-  dependencies: [],
-  build: {
-    dockerfile: 'Dockerfile',
-    context: '.',
+/**
+ * Type-specific extensions for each resource type.
+ * These are merged with BASE_TEMPLATE to create complete templates.
+ */
+const TYPE_SPECIFIC: Record<CreatableResourceType, Record<string, unknown>> = {
+  backend: {
+    healthCheck: '/health',
   },
-  dev: {
-    command: 'bun run dev',
-    watch: ['src/**/*', 'public/**/*'],
+  frontend: {
+    dev: {
+      command: 'bun run dev',
+      watch: ['src/**/*', 'public/**/*'],
+    },
   },
-};
-
-const WORKER_TEMPLATE = {
-  type: 'worker',
-  port: 0, // Will be assigned (optional for workers)
-  dependencies: [],
-  build: {
-    dockerfile: 'Dockerfile',
-    context: '.',
-  },
-  dev: {
-    command: 'bun run worker',
-    watch: ['src/**/*'],
+  worker: {
+    dev: {
+      command: 'bun run worker',
+      watch: ['src/**/*'],
+    },
   },
 };
 
-function createServiceJson(name: string, type: 'backend' | 'frontend' | 'worker', stack: string, port: number) {
-  const base = type === 'backend' ? BACKEND_TEMPLATE :
-               type === 'frontend' ? FRONTEND_TEMPLATE : WORKER_TEMPLATE;
+function createServiceJson(name: string, type: CreatableResourceType, stack: string, port: number) {
+  const typeSpecific = TYPE_SPECIFIC[type];
+
+  // Deep merge base template with type-specific overrides
+  const base = JSON.parse(JSON.stringify(BASE_TEMPLATE));
+  for (const [key, value] of Object.entries(typeSpecific)) {
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      base[key] = { ...base[key], ...value };
+    } else {
+      base[key] = value;
+    }
+  }
 
   return {
     ...base,

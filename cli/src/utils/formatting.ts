@@ -16,21 +16,11 @@ const DATE_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
   minute: '2-digit',
 };
 
-/**
- * Format a timestamp as a full locale string (date + time)
- * @param timestamp - ISO timestamp string
- * @returns Formatted date string (e.g., "Jan 15, 02:30 PM")
- */
 export function formatDate(timestamp: string): string {
   const date = new Date(timestamp);
   return date.toLocaleString('en-US', DATE_FORMAT_OPTIONS);
 }
 
-/**
- * Format a timestamp as a short date string (e.g., "Jan 15")
- * @param timestamp - ISO timestamp string
- * @returns Formatted short date
- */
 export function formatShortDate(timestamp: string): string {
   const date = new Date(timestamp);
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -38,22 +28,10 @@ export function formatShortDate(timestamp: string): string {
 
 const DEFAULT_BOX_WIDTH = 62;
 
-/**
- * Create a horizontal line for box drawing
- * @param char - Character to repeat (default: '─')
- * @param width - Line width (default: 62)
- * @returns Repeated character string
- */
 export function formatBoxLine(char: string = '─', width: number = DEFAULT_BOX_WIDTH): string {
   return char.repeat(width);
 }
 
-/**
- * Center text within a given width
- * @param text - Text to center
- * @param width - Total width (default: 60)
- * @returns Centered text with padding
- */
 export function formatCentered(text: string, width: number = DEFAULT_BOX_WIDTH - 2): string {
   const padding = Math.max(0, width - text.length);
   const left = Math.floor(padding / 2);
@@ -61,12 +39,6 @@ export function formatCentered(text: string, width: number = DEFAULT_BOX_WIDTH -
   return ' '.repeat(left) + text + ' '.repeat(right);
 }
 
-/**
- * Pad or truncate text to fit within width
- * @param text - Text to pad
- * @param width - Target width
- * @returns Padded or truncated string
- */
 export function formatPadded(text: string, width: number): string {
   if (text.length > width) {
     return text.slice(0, width - 1) + '…';
@@ -74,82 +46,79 @@ export function formatPadded(text: string, width: number): string {
   return text.padEnd(width);
 }
 
-/**
- * Truncate a string to a maximum length
- * @param str - String to truncate
- * @param maxLength - Maximum length
- * @returns Truncated string with ellipsis if needed
- */
 export function truncate(str: string, maxLength: number): string {
   if (str.length <= maxLength) return str;
   return str.slice(0, maxLength - 3) + '...';
 }
 
 /**
- * Get color name for a status string (for use with Ink Text component)
- * @param status - Status value
- * @returns Color name string
+ * Status categories for consistent status handling
  */
-export function getStatusColor(status: StatusValue): string {
-  if (!status) return 'gray';
+type StatusCategory = 'success' | 'error' | 'warning' | 'unknown';
+
+/**
+ * Categorize a status value into a canonical category.
+ * This is the single source of truth for status categorization.
+ *
+ * @param status - Status value to categorize
+ * @returns Canonical status category
+ */
+function getStatusCategory(status: StatusValue): StatusCategory {
+  if (!status) return 'unknown';
   const lowerStatus = status.toLowerCase();
+
+  // Success states
   if (lowerStatus === 'ready' || lowerStatus === 'healthy' || lowerStatus === 'active' || lowerStatus === 'running') {
-    return 'green';
+    return 'success';
   }
+
+  // Error states
   if (lowerStatus === 'error' || lowerStatus === 'failed' || lowerStatus === 'critical' || lowerStatus === 'stopped') {
-    return 'red';
+    return 'error';
   }
+
+  // Warning/pending states
   if (lowerStatus === 'pending' || lowerStatus === 'starting' || lowerStatus === 'building' || lowerStatus === 'degraded') {
-    return 'yellow';
+    return 'warning';
   }
-  return 'gray';
+
+  return 'unknown';
 }
 
-/**
- * Get icon for a status string
- * @param status - Status value
- * @returns Status icon
- */
+export function getStatusColor(status: StatusValue): string {
+  const category = getStatusCategory(status);
+  const colorMap: Record<StatusCategory, string> = {
+    success: 'green',
+    error: 'red',
+    warning: 'yellow',
+    unknown: 'gray',
+  };
+  return colorMap[category];
+}
+
 export function getStatusIcon(status: StatusValue): string {
-  if (!status) return '?';
-  const lowerStatus = status.toLowerCase();
-  if (lowerStatus === 'ready' || lowerStatus === 'healthy' || lowerStatus === 'running') {
-    return '✓';
-  }
-  if (lowerStatus === 'error' || lowerStatus === 'failed' || lowerStatus === 'stopped') {
-    return '✗';
-  }
-  if (lowerStatus === 'pending' || lowerStatus === 'starting') {
-    return '○';
-  }
-  return '?';
+  const category = getStatusCategory(status);
+  const iconMap: Record<StatusCategory, string> = {
+    success: '✓',
+    error: '✗',
+    warning: '○',
+    unknown: '?',
+  };
+  return iconMap[category];
 }
 
-/**
- * Apply chalk color to text based on status
- * @param text - Text to colorize
- * @param status - Status value to determine color
- * @returns Colorized text
- */
 export function colorizeByStatus(text: string, status: StatusValue): string {
-  const colorName = getStatusColor(status);
-  // Use a type-safe approach to call chalk color functions
-  switch (colorName) {
-    case 'green':
-      return chalk.green(text);
-    case 'red':
-      return chalk.red(text);
-    case 'yellow':
-      return chalk.yellow(text);
-    case 'gray':
-    default:
-      return chalk.gray(text);
-  }
+  const category = getStatusCategory(status);
+  // Use category for type-safe chalk color mapping
+  const colorMap = {
+    success: chalk.green,
+    error: chalk.red,
+    warning: chalk.yellow,
+    unknown: chalk.gray,
+  } as const;
+  return colorMap[category](text);
 }
 
-/**
- * Configuration for empty state messages by item type
- */
 const EMPTY_STATE_CONFIG: Record<string, { singular: string; command: string; context?: string }> = {
   resources: {
     singular: 'resource',
@@ -173,12 +142,6 @@ const EMPTY_STATE_CONFIG: Record<string, { singular: string; command: string; co
   },
 };
 
-/**
- * Display an empty state message with helpful next steps
- *
- * @param itemType - Type of item that was not found
- * @param filterContext - Optional context about what was being filtered (e.g., stack name)
- */
 export function showEmptyState(
   itemType: 'resources' | 'stacks' | 'services' | 'stack-services',
   filterContext?: string

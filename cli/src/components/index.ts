@@ -6,4 +6,6 @@ export { AccessibleTooltip } from './Accessible.js';
 export { TOOLTIPS } from './Tooltip.js';
 export { ResourceSelectInput } from './ResourceSelectInput.js';
 export type { TabId } from './TabBar.js';
-export type { FileNode } from '../types/index.js';
+
+// Note: FileNode type is exported from '../types/index.js' - import from there directly
+// to maintain a single source of truth for shared types

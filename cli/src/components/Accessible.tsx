@@ -1,5 +1,3 @@
-/** Accessible Components */
-
 import React from 'react';
 import { BaseTooltip } from './BaseTooltip.js';
 import type { TooltipProps } from '../types/index.js';

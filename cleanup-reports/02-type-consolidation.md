@@ -23,10 +23,27 @@ The TDK CLI codebase has **35+ type definitions** across **~30 TypeScript files*
 
 ### Critical Issues Found
 
-1. **`CreatableResourceType` duplicates `ResourceType`** - Subset type defined separately in `resource.ts`
-2. **Status type proliferation** - Multiple status enums that could be unified
-3. **Component prop interfaces scattered** - UI component types in component files
-4. **`FileNode` type inconsistency** - Exported from wrong location
+1. **`CreatableResourceType` duplicates `ResourceType`** - Subset type defined separately in `resource.ts` ✅ **FIXED**
+2. **Status type proliferation** - Multiple status enums that could be unified ✅ **IMPROVED**
+3. **Component prop interfaces scattered** - UI component types in component files (acceptable)
+4. **`FileNode` type inconsistency** - Exported from wrong location ✅ **FIXED**
+
+---
+
+## Changes Implemented
+
+### ✅ Completed Changes
+
+| Change | File | Description |
+|--------|------|-------------|
+| **CreatableResourceType consolidation** | `resource.ts` | Derived from `ResourceType` using `Extract<>` with const array |
+| **FileNode export fix** | `components/index.ts` | Removed re-export, updated `ui.tsx` to import from types directly |
+| **StatusValue strengthening** | `types/index.ts` | Added `ExtendedStatus` type to document external status values |
+
+### Verification
+- ✅ `npm run typecheck` - No errors
+- ✅ `npm run build` - Successful compilation
+- ✅ `npm test` - All 37 tests pass
 
 ---
 
@@ -379,3 +396,150 @@ The type architecture follows good practices with explicit exports, clear naming
 | `cli/src/config/platform-standards.ts` | 1 | 0 |
 
 **Total:** 38 type definitions across 12 files
+
+---
+
+## Appendix A: Detailed Implementation Notes
+
+### A.1 CreatableResourceType Consolidation
+
+**Before (resource.ts:16):**
+```typescript
+type CreatableResourceType = 'backend' | 'frontend' | 'worker';
+```
+
+**After:**
+```typescript
+import type { ResourceType } from '../types/index.js';
+
+export const CREATABLE_RESOURCE_TYPES = ['backend', 'frontend', 'worker'] as const;
+export type CreatableResourceType = Extract<ResourceType, typeof CREATABLE_RESOURCE_TYPES[number]>;
+```
+
+**Benefits:**
+- Single source of truth for resource types
+- Type-safe derivation using TypeScript's `Extract<>`
+- Const array provides runtime values for validation
+- Clear documentation of why certain types are excluded
+
+### A.2 FileNode Export Fix
+
+**Before (components/index.ts):**
+```typescript
+export type { FileNode } from '../types/index.js';
+```
+
+This was re-exporting a type defined elsewhere, which created confusion about the source of truth.
+
+**After:**
+```typescript
+// Note: FileNode type is exported from '../types/index.js' - import from there directly
+// to maintain a single source of truth for shared types
+```
+
+**Updated import in ui.tsx:**
+```typescript
+// Before:
+import { type FileNode } from '../components/index.js';
+
+// After:
+import type { FileNode } from '../types/index.js';
+```
+
+**Benefits:**
+- Clear source of truth for shared types
+- No indirection through component re-exports
+- Consistent import patterns across codebase
+
+### A.3 StatusValue Strengthening
+
+**Before:**
+```typescript
+export type StatusValue = ResourceStatus | StackHealthStatus | TiltRuntimeStatus | ServiceUrl['status'] | string | undefined;
+```
+
+**After:**
+```typescript
+export type ExtendedStatus =
+  | 'active'
+  | 'failed'
+  | 'critical'
+  | 'stopped'
+  | 'starting'
+  | 'building'
+  | string;
+
+export type StatusValue =
+  | ResourceStatus
+  | StackHealthStatus
+  | TiltRuntimeStatus
+  | ServiceUrl['status']
+  | ExtendedStatus
+  | undefined;
+```
+
+**Benefits:**
+- Documents known extended status values
+- Maintains backward compatibility with `string | undefined`
+- Clear separation between internal and external status types
+- Self-documenting for future maintainers
+
+---
+
+## Appendix B: Remaining Recommendations (For Future Work)
+
+The following improvements were identified but not implemented as they are lower priority:
+
+### B.1 Export Component Prop Interfaces
+
+**Current state:** All component prop interfaces are local (not exported)
+
+**Recommendation:** Export all `{ComponentName}Props` interfaces to enable:
+- Component composition in other modules
+- Better testing with explicit prop types
+- Type documentation for component APIs
+
+**Example:**
+```typescript
+// TabBar.tsx
+export interface TabBarProps {
+  activeTab: TabId;
+  onTabChange: (tab: TabId) => void;
+  compact?: boolean;
+}
+```
+
+### B.2 Document Status Type Usage
+
+**Current state:** Multiple overlapping status types can cause confusion
+
+**Recommendation:** Add JSDoc comments explaining when to use each:
+
+```typescript
+/**
+ * Use for resource health state from discovery system
+ * Values: 'ready' | 'pending' | 'error' | 'unknown'
+ */
+export type ResourceStatus = 'ready' | 'pending' | 'error' | 'unknown';
+
+/**
+ * Use for aggregated stack health from multiple resources
+ * Values: 'healthy' | 'degraded' | 'error' | 'unknown'
+ */
+export type StackHealthStatus = 'healthy' | 'degraded' | 'error' | 'unknown';
+```
+
+---
+
+## Summary
+
+The TDK CLI type system has been improved with three targeted changes:
+
+1. **Eliminated duplicate type definition** - `CreatableResourceType` now derives from `ResourceType`
+2. **Fixed inconsistent type export** - `FileNode` imports now come directly from `types/index.js`
+3. **Improved type documentation** - `ExtendedStatus` type documents external status values
+
+**Before:** Grade B (good centralization, minor duplication issues)
+**After:** Grade A- (type-safe derivation, clean imports, documented status values)
+
+The remaining type patterns (component props as local interfaces, status type unions) are acceptable and don't require immediate changes. The type system is now more maintainable and has clearer source-of-truth locations.

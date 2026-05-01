@@ -11,11 +11,11 @@ import {
   clearMetadataCache,
 } from '../utils/services.js';
 import { findProjectRoot } from '../utils/paths.js';
-import type { DiscoveredResource, DiscoveredStack, ResourceMetadata, StackMetadata, ResourceType, SelectItem } from '../types/index.js';
+import type { DiscoveredResource, DiscoveredStack, ResourceMetadata, StackMetadata, ResourceType, SelectItem, FileNode } from '../types/index.js';
 import { isTiltAvailable } from '../utils/tilt.js';
 import { errorFactories, requireProjectRoot } from '../utils/errors.js';
 import {
-  TabBar, type TabId, DetailPanel, ResourceTable, FileTree, type FileNode,
+  TabBar, type TabId, DetailPanel, ResourceTable, FileTree,
   AccessibleTooltip, TOOLTIPS, ResourceSelectInput
 } from '../components/index.js';
 

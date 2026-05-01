@@ -1,5 +1,3 @@
-/** Tooltip Component */
-
 import React from 'react';
 import { BaseTooltip } from './BaseTooltip.js';
 import type { TooltipProps } from '../types/index.js';

@@ -90,40 +90,6 @@ describe('error handling', () => {
       expect(isValidPort(-1)).toBe(false);
     });
 
-    it('should validate port is within valid range (legacy test format)', () => {
-      function validatePort(port: number): { valid: boolean; error?: string } {
-        if (port < 1024 || port > 65535) {
-          return {
-            valid: false,
-            error: `Invalid port: ${port}. Must be between 1024 and 65535`,
-          };
-        }
-        return { valid: true };
-      }
-
-      expect(validatePort(3000)).toEqual({ valid: true });
-      expect(validatePort(8080)).toEqual({ valid: true });
-      expect(validatePort(1024)).toEqual({ valid: true });
-      expect(validatePort(65535)).toEqual({ valid: true });
-
-      expect(validatePort(1023)).toEqual({
-        valid: false,
-        error: 'Invalid port: 1023. Must be between 1024 and 65535',
-      });
-      expect(validatePort(65536)).toEqual({
-        valid: false,
-        error: 'Invalid port: 65536. Must be between 1024 and 65535',
-      });
-      expect(validatePort(0)).toEqual({
-        valid: false,
-        error: 'Invalid port: 0. Must be between 1024 and 65535',
-      });
-      expect(validatePort(-1)).toEqual({
-        valid: false,
-        error: 'Invalid port: -1. Must be between 1024 and 65535',
-      });
-    });
-
     it('should allow port 0 for workers', () => {
       function validatePortForType(port: number, type: string): { valid: boolean; error?: string } {
         if (type === 'worker' && port === 0) {
@@ -238,40 +204,6 @@ describe('error handling', () => {
 
       for (const name of invalidNames) {
         expect(typeof stackValidator(name)).toBe('string');
-      }
-    });
-
-    it('should validate stack name format (legacy inline test)', () => {
-      const validNames = [
-        'main',
-        'api-services',
-        'v1-stack',
-        'test123',
-      ];
-
-      const invalidNames = [
-        'My Stack',
-        'my_stack',
-        'MyStack',
-        '',
-      ];
-
-      function validateStackName(name: string): { valid: boolean; error?: string } {
-        if (!name.trim()) {
-          return { valid: false, error: 'Stack name is required' };
-        }
-        if (!/^[a-z0-9-]+$/.test(name)) {
-          return { valid: false, error: 'Use kebab-case (lowercase, numbers, hyphens only)' };
-        }
-        return { valid: true };
-      }
-
-      for (const name of validNames) {
-        expect(validateStackName(name)).toEqual({ valid: true });
-      }
-
-      for (const name of invalidNames) {
-        expect(validateStackName(name).valid).toBe(false);
       }
     });
   });

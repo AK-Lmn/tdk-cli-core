@@ -4,7 +4,7 @@
 # =============================================================================
 
 load("./constants.star", "RESOURCES_ROOT")
-load("../../platform/docker/constants.star", "PlatformDockerConstants")
+load("../engine/topologies/platform/docker/constants.star", "PlatformDockerConstants")
 
 # NOTE: DEFAULTS and focus lists are now loaded dynamically in resource_registry.star
 # from the project's spec.master (using TDK_PROJECT_ROOT environment variable).

@@ -15,7 +15,7 @@ load(
     "PRODUCT_LIBS_FRONTEND"
 )
 load("./discovery_orchestrator.star", "initialize_discovery")
-load("./manifest/loader.star", "ManifestLoader")
+load("../engine/topologies/tilt/manifest/loader.star", "ManifestLoader")
 load("./libraries.star", "autodiscover_libraries", "get_platform_libs", "get_product_libs")
 load(
     "./constants.star",
@@ -184,6 +184,9 @@ CacheOps = struct(
     persist=persist_cache_to_file,
     stats=get_cache_stats,
 )
+
+# Backwards compatibility export
+Registry = CacheOps
 
 
 def get_app_resources():

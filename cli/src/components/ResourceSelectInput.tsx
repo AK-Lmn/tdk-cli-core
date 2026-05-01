@@ -1,5 +1,3 @@
-/** ResourceSelectInput Component - Standardized SelectInput for TDK CLI */
-
 import React from 'react';
 import { Text } from 'ink';
 import SelectInput from 'ink-select-input';
