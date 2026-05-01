@@ -8,10 +8,11 @@
 # Priority: service.json → synthesize from path
 # =============================================================================
 
-load('../../engine/topologies/tilt/manifest/constants.star', 
-     'MANIFEST_DEFAULTS', 
-     'DEFAULT_SYNCS', 
+load('../../engine/topologies/tilt/manifest/constants.star',
+     'MANIFEST_DEFAULTS',
+     'DEFAULT_SYNCS',
      'MANIFEST_FILENAME',
+     'MANIFEST_FILENAME_NEW',
      'MANIFEST_SEARCH_ORDER',
      'BASE_PORT_FRONTEND',
      'BASE_PORT_BACKEND',

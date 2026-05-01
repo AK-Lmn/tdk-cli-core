@@ -4,7 +4,7 @@
 
 load("../../../topologies/tilt/common/utils.star", "Utils")
 load(
-    "../discovery/resource_registry.star",
+    "../../../../discovery/registry.star",
     "APP_RESOURCES",
     "CORE_INFRA_EXPORT",
     "INFRA_STACK_MAP_EXPORT",
@@ -14,7 +14,7 @@ load(
     "RESOURCE_ALIASES",
     "get_app_resources",
 )
-load("../discovery/config.star", "Config")
+load("../../../../discovery/config.star", "Config")
 
 # =============================================================================
 # 🎯 RELEASE PHASE MAPPINGS
