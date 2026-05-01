@@ -115,7 +115,6 @@ export const stackCommand = new Command('stack')
         updated++;
         console.log(chalk.green(`  ✓ ${config.appName || configPath}`));
       }
-      }
 
       console.log();
       console.log(chalk.green(`Updated ${formatCount(updated, 'resource')}.`));

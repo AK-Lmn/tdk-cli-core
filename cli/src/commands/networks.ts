@@ -164,12 +164,6 @@ async function checkServiceStatus(serviceName: string, port?: number, url?: stri
       // Port not listening or lsof not available
     }
   }
-      } catch (netstatErr: unknown) {
-        // Neither lsof nor netstat available - cannot determine port status
-        logVerbose('Port check tools unavailable', netstatErr);
-      }
-    }
-  }
 
   try {
     const containerName = sanitizeForShell(serviceName);
@@ -182,9 +176,8 @@ async function checkServiceStatus(serviceName: string, port?: number, url?: stri
     if (result && result.trim().length > 0) {
       return 'running';
     }
-  } catch (err: unknown) {
+  } catch {
     // Docker not available or container not found - service is stopped
-    logVerbose(`Docker check failed for ${serviceName}`, err);
   }
 
   return 'stopped';
@@ -312,9 +305,6 @@ export const networksCommand = new Command('networks')
       console.log(chalk.yellow('💡 Tip: Set custom domain with:'));
       console.log(chalk.cyan(`   export TDK_PUBLIC_HOST=${projectName}.localhost`));
     }
-    }
     
     console.log();
   });
-
-

@@ -339,17 +339,3 @@ export function verifyMasterConfigs(projectRoot: string): { valid: boolean; erro
 
   return { valid: errors.length === 0, errors };
 }
-
-      const actualContent = fs.readFileSync(filePath, "utf-8");
-      if (actualContent !== expectedContent) {
-        errors.push(`Out of sync: .tdk/.tdk-out/${filename} (run 'tdk config regenerate')`);
-      }
-    }
-
-
-  } catch (error: unknown) {
-    errors.push(`Verification error: ${error instanceof Error ? error.message : String(error)}`);
-  }
-
-  return { valid: errors.length === 0, errors };
-}
