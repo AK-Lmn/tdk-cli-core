@@ -316,21 +316,29 @@ export function generateMasterConfigs(projectRoot: string): void {
 export function verifyMasterConfigs(projectRoot: string): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
-  try {
-    const projectConfig = readProjectConfig(projectRoot);
-    const engine = new TemplateEngine();
-    const expectedFiles = engine.generateAll(projectConfig);
+  const projectConfig = readProjectConfig(projectRoot);
+  const engine = new TemplateEngine();
+  const expectedFiles = engine.generateAll(projectConfig);
 
-    const outputDir = path.join(projectRoot, ".tdk", ".tdk-out");
+  const outputDir = path.join(projectRoot, ".tdk", ".tdk-out");
 
-    for (const filename of ALL_GENERATED_FILES) {
-      const expectedContent = expectedFiles[filename as keyof typeof expectedFiles];
-      const filePath = path.join(outputDir, filename);
+  for (const filename of ALL_GENERATED_FILES) {
+    const expectedContent = expectedFiles[filename as keyof typeof expectedFiles];
+    const filePath = path.join(outputDir, filename);
 
-      if (!fs.existsSync(filePath)) {
-        errors.push(`Missing file: .tdk/.tdk-out/${filename}`);
-        continue;
-      }
+    if (!fs.existsSync(filePath)) {
+      errors.push(`Missing file: .tdk/.tdk-out/${filename}`);
+      continue;
+    }
+
+    const actualContent = fs.readFileSync(filePath, "utf-8");
+    if (actualContent !== expectedContent) {
+      errors.push(`Out of sync: .tdk/.tdk-out/${filename} (run 'tdk config regenerate')`);
+    }
+  }
+
+  return { valid: errors.length === 0, errors };
+}
 
       const actualContent = fs.readFileSync(filePath, "utf-8");
       if (actualContent !== expectedContent) {

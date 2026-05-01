@@ -106,18 +106,15 @@ export const stackCommand = new Command('stack')
 
       let updated = 0;
       for (const configPath of selectedResources) {
-        try {
-          const content = readFileSync(configPath, 'utf-8');
-          const config = JSON.parse(content);
-          config.stack = targetStack;
-          const updatedContent = JSON.stringify(config, null, 2) + '\n';
-          writeFileSync(configPath, updatedContent, 'utf-8');
+        const content = readFileSync(configPath, 'utf-8');
+        const config = JSON.parse(content);
+        config.stack = targetStack;
+        const updatedContent = JSON.stringify(config, null, 2) + '\n';
+        writeFileSync(configPath, updatedContent, 'utf-8');
 
-          updated++;
-          console.log(chalk.green(`  ✓ ${config.appName || configPath}`));
-        } catch (err: unknown) {
-          console.error(chalk.red(`  ✗ Failed to update ${configPath}: ${err instanceof Error ? err.message : String(err)}`));
-        }
+        updated++;
+        console.log(chalk.green(`  ✓ ${config.appName || configPath}`));
+      }
       }
 
       console.log();

@@ -73,21 +73,13 @@ export const projectCommand = new Command('project')
           .every(f => existsSync(join(projectRoot, '.tdk', '.tdk-out', f)));
         const projectJsonExists = existsSync(projectJsonPath);
 
-        if (allFilesExist && projectJsonExists) {
-          // Verify files are in sync
-          try {
-            const projectConfig = readProjectConfig(projectRoot);
-            console.log(chalk.green('✅ Project configuration is valid'));
-            console.log(chalk.gray(`   Project: ${projectConfig.project.name}`));
-            console.log(chalk.gray(`   Stacks: ${Object.keys(projectConfig.stacks).join(', ')}`));
-            process.exit(0);
-          } catch (err: unknown) {
-            console.log(chalk.yellow('⚠️  Project configuration out of sync'));
-            console.log(chalk.gray(`   Error: ${err instanceof Error ? err.message : String(err)}`));
-            console.log(chalk.gray('\nRun `tdk project` to regenerate.'));
-            process.exit(1);
-          }
-        } else {
+      if (allFilesExist && projectJsonExists) {
+        const projectConfig = readProjectConfig(projectRoot);
+        console.log(chalk.green('✅ Project configuration is valid'));
+        console.log(chalk.gray(`   Project: ${projectConfig.project.name}`));
+        console.log(chalk.gray(`   Stacks: ${Object.keys(projectConfig.stacks).join(', ')}`));
+        process.exit(0);
+      } else {
           console.log(chalk.yellow('⚠️  Project configuration incomplete:'));
           if (!projectJsonExists) console.log(chalk.gray('   - .tdk/project.json (not found)'));
           if (!allFilesExist) {

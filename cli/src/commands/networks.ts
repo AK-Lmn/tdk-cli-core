@@ -5,7 +5,7 @@ import { discoverResources } from '../utils/services.js';
 import { findProjectRoot } from '../utils/paths.js';
 import { readProjectConfig } from '../generator/template-engine.js';
 import { sanitizeForShell, isValidPort } from '../utils/validation.js';
-import { requireProjectRoot, logVerbose } from '../utils/errors.js';
+import { requireProjectRoot } from '../utils/errors.js';
 import { formatBoxLine, formatCentered, formatPadded, getStatusIcon, colorizeByStatus } from '../utils/formatting.js';
 import { getStackEmoji } from '../utils/constants.js';
 import type { ServiceUrl } from '../types/index.js';
@@ -51,16 +51,11 @@ const BOX_WIDTH = 62;
 function determineDefaultDomain(): string {
   const projectRoot = findProjectRoot();
   if (projectRoot) {
-    try {
-      const projectConfig = readProjectConfig(projectRoot);
-      const projectName = projectConfig.project?.name;
-      if (projectName && projectName !== 'tdk-project') {
-        return `${projectName}.localhost`;
-      }
-  } catch (err: unknown) {
-    // Config doesn't exist or is invalid - fall through to docker domain detection
-    logVerbose('Config read failed', err);
-  }
+    const projectConfig = readProjectConfig(projectRoot);
+    const projectName = projectConfig.project?.name;
+    if (projectName && projectName !== 'tdk-project') {
+      return `${projectName}.localhost`;
+    }
   }
 
   // Collect all unique domains from Traefik containers
@@ -78,9 +73,8 @@ function determineDefaultDomain(): string {
     while ((match = domainRegex.exec(traefikLabels)) !== null) {
       domains.add(match[1]);
     }
-  } catch (err: unknown) {
+  } catch {
     // Docker not running or no Traefik containers - domains set remains empty
-    logVerbose('Docker/Traefik check failed', err);
   }
 
   // Filter out service-specific domains (ones that look like individual services)
@@ -166,15 +160,10 @@ async function checkServiceStatus(serviceName: string, port?: number, url?: stri
     try {
       await execSafe('lsof', ['-Pi', `:${port}`, '-sTCP:LISTEN'], { timeout: 3000 });
       return 'running';
-    } catch (lsofErr: unknown) {
-      // lsof failed - try netstat as fallback for Linux systems
-      logVerbose(`lsof check failed for port ${port}`, lsofErr);
-      try {
-        const netstatOutput = await execSafe('netstat', ['-tlnp'], { timeout: 3000 });
-        // Check if the port is in the netstat output
-        if (netstatOutput.includes(`:${port}`)) {
-          return 'running';
-        }
+    } catch {
+      // Port not listening or lsof not available
+    }
+  }
       } catch (netstatErr: unknown) {
         // Neither lsof nor netstat available - cannot determine port status
         logVerbose('Port check tools unavailable', netstatErr);
@@ -318,16 +307,11 @@ export const networksCommand = new Command('networks')
     
     if (baseDomain === 'localhost') {
       console.log();
-      try {
-        const projectConfig = readProjectConfig(projectRoot);
-        const projectName = projectConfig.project.name;
-        console.log(chalk.yellow('💡 Tip: Set custom domain with:'));
-        console.log(chalk.cyan(`   export TDK_PUBLIC_HOST=${projectName}.localhost`));
-      } catch (err: unknown) {
-        console.log(chalk.yellow('💡 Tip: Set custom domain with:'));
-        console.log(chalk.cyan('   export TDK_PUBLIC_HOST=localhost'));
-        logVerbose('Could not read project config', err);
-      }
+      const projectConfig = readProjectConfig(projectRoot);
+      const projectName = projectConfig.project.name;
+      console.log(chalk.yellow('💡 Tip: Set custom domain with:'));
+      console.log(chalk.cyan(`   export TDK_PUBLIC_HOST=${projectName}.localhost`));
+    }
     }
     
     console.log();
