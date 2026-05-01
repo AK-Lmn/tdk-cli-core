@@ -8,6 +8,7 @@ import { requireProjectRoot, runCommand } from '../utils/errors.js';
 import { validateResourceName, createKebabCaseValidator } from '../utils/validation.js';
 import { formatCount } from '../utils/formatting.js';
 import { PORT_RANGES } from '../utils/constants.js';
+import type { ResourceType } from '../types/index.js';
 
 const BACKEND_TEMPLATE = {
   type: 'backend',
@@ -340,8 +341,7 @@ export const resourceCommand = new Command('resource')
         }
       }
 
-      type ValidResourceType = 'backend' | 'frontend' | 'worker';
-      let resourceType: ValidResourceType = options.type;
+      let resourceType: ResourceType = options.type;
       if (!['backend', 'frontend', 'worker'].includes(resourceType)) {
         const { selectedType } = await inquirer.prompt([{
           type: 'list',
@@ -401,7 +401,7 @@ export const resourceCommand = new Command('resource')
 
       let resourcePath = options.path;
       if (!resourcePath) {
-        const defaultPaths: Record<ValidResourceType, string> = {
+        const defaultPaths: Record<'backend' | 'frontend' | 'worker', string> = {
           backend: `services/${stackName}/${resourceName}`,
           frontend: `apps/${resourceName}`,
           worker: `workers/${resourceName}`,

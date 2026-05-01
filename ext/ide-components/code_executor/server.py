@@ -4,47 +4,36 @@ Tilt IDE Code Executor
 Execute commands from web UI at http://localhost:9768
 """
 
-import os
-import sys
-import subprocess
-import urllib.parse
 import json
-from http.server import HTTPServer, BaseHTTPRequestHandler
+import os
+import subprocess
+import sys
+import urllib.parse
 from pathlib import Path
 
 # Add shared modules
 sys.path.insert(0, str(Path(__file__).parent.parent / 'shared'))
 from file_utils import PROJECT_ROOT
+from http_utils import BaseIDEHandler, run_server
 
 PORT = 9768
 
 
-class CodeExecutorHandler(BaseHTTPRequestHandler):
+class CodeExecutorHandler(BaseIDEHandler):
     """HTTP request handler for code executor"""
     
-    def log_message(self, format, *args):
-        pass
+    # Command validation constants
+    DANGEROUS_COMMANDS = [
+        'rm -rf /', 'rm -rf /*', ':(){ :|:& };:', '> /dev/sda',
+        'mv / /dev/null', 'dd if=/dev/zero', 'mkfs.', 'chmod -R 777 /',
+        'sudo', 'su -', 'passwd', 'deluser', 'userdel'
+    ]
     
-    def send_json_response(self, data, status=200):
-        self.send_response(status)
-        self.send_header('Content-Type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-        self.wfile.write(json.dumps(data).encode())
-    
-    def send_html_response(self, html, status=200):
-        self.send_response(status)
-        self.send_header('Content-Type', 'text/html; charset=utf-8')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-        self.wfile.write(html.encode())
-    
-    def escape_html(self, text: str) -> str:
-        return (text
-                .replace('&', '&amp;')
-                .replace('<', '&lt;')
-                .replace('>', '&gt;')
-                .replace('"', '&quot;'))
+    ALLOWED_PREFIXES = [
+        'bun ', 'ls ', 'pwd', 'echo ', 'cat ', 'head ', 'tail ', 
+        'grep ', 'find ', 'cd ', 'mkdir ', 'touch ', 'clear', 'exit',
+        'npm ', 'yarn ', 'npx ', 'pnpm ', 'git ', 'curl ', 'wget '
+    ]
     
     def validate_command(self, cmd: str) -> tuple:
         """
@@ -52,21 +41,13 @@ class CodeExecutorHandler(BaseHTTPRequestHandler):
         Returns (is_valid, error_message)
         """
         # Block dangerous commands
-        dangerous = ['rm -rf /', 'rm -rf /*', ':(){ :|:& };:', '> /dev/sda', 
-                     'mv / /dev/null', 'dd if=/dev/zero', 'mkfs.', 'chmod -R 777 /',
-                     'sudo', 'su -', 'passwd', 'deluser', 'userdel']
-        
-        for d in dangerous:
-            if d in cmd.lower():
-                return False, f"Command blocked for safety: {d}"
+        for dangerous in self.DANGEROUS_COMMANDS:
+            if dangerous in cmd.lower():
+                return False, f"Command blocked for safety: {dangerous}"
         
         # Only allow bun commands and safe system commands
-        allowed_prefixes = ['bun ', 'ls ', 'pwd', 'echo ', 'cat ', 'head ', 'tail ', 
-                           'grep ', 'find ', 'cd ', 'mkdir ', 'touch ', 'clear', 'exit',
-                           'npm ', 'yarn ', 'npx ', 'pnpm ', 'git ', 'curl ', 'wget ']
-        
         cmd_stripped = cmd.strip()
-        is_allowed = any(cmd_stripped.startswith(prefix) for prefix in allowed_prefixes)
+        is_allowed = any(cmd_stripped.startswith(prefix) for prefix in self.ALLOWED_PREFIXES)
         
         if not is_allowed:
             return False, "Only bun, npm, git, and safe system commands are allowed"
@@ -106,29 +87,9 @@ class CodeExecutorHandler(BaseHTTPRequestHandler):
         except Exception as e:
             return {'success': False, 'stdout': '', 'stderr': str(e), 'exit_code': -1}
     
-    def render_page(self, title: str, content: str) -> str:
-        """Render full HTML page"""
-        template_path = Path(__file__).parent.parent / 'shared' / 'templates' / 'base.html'
-        try:
-            with open(template_path, 'r') as f:
-                template = f.read()
-        except:
-            template = '''<!DOCTYPE html>
-<html><head><title>{title}</title><link rel="stylesheet" href="/static/styles.css"></head>
-<body><header class="header"><h1>{icon} {title}</h1></header>
-<div class="container">{sidebar}<main class="content">{content}</main></div></body></html>'''
-        
-        return template.format(
-            title=title,
-            icon='💻',
-            favicon='💻',
-            active_browser='',
-            active_viewer='',
-            active_inspector='',
-            active_terminal='active',
-            sidebar='',
-            content=content
-        )
+    def _get_template_path(self) -> Path:
+        """Override to use shared template"""
+        return Path(__file__).parent.parent / 'shared' / 'templates' / 'base.html'
     
     def do_GET(self):
         """Handle GET requests"""
@@ -138,7 +99,7 @@ class CodeExecutorHandler(BaseHTTPRequestHandler):
         
         # Health check
         if path == '/health':
-            self.send_json_response({'status': 'ok', 'service': 'code-executor'})
+            self.handle_health_check('code-executor')
             return
         
         # Static files
@@ -147,12 +108,9 @@ class CodeExecutorHandler(BaseHTTPRequestHandler):
             if static_path.exists():
                 with open(static_path, 'r') as f:
                     content = f.read()
-                self.send_response(200)
-                self.send_header('Content-Type', 'text/css')
-                self.end_headers()
-                self.wfile.write(content.encode())
+                self.send_css_response(content)
             else:
-                self.send_error(404)
+                self.send_error_response(404, 'Not found')
             return
         
         if path in ('/', '/terminal'):
@@ -256,13 +214,14 @@ class CodeExecutorHandler(BaseHTTPRequestHandler):
                 </script>
             '''
             
-            self.send_html_response(self.render_page('Terminal', content))
+            self.send_html_response(self.render_page('Terminal', content, icon='💻'))
             return
         
         # 404
         self.send_html_response(self.render_page(
             'Not Found',
-            '<div class="empty-state"><div class="empty-state-icon">❓</div>Page not found</div>'
+            '<div class="empty-state"><div class="empty-state-icon">❓</div>Page not found</div>',
+            icon='❓'
         ), 404)
     
     def do_POST(self):
@@ -295,19 +254,15 @@ class CodeExecutorHandler(BaseHTTPRequestHandler):
         self.send_json_response({'error': 'Not found'}, 404)
 
 
-def run_server():
+def main():
     """Run the code executor server"""
-    server = HTTPServer(('127.0.0.1', PORT), CodeExecutorHandler)
-    print(f"💻 Tilt IDE Code Executor running at http://localhost:{PORT}")
-    print(f"   🚀 Execute bun commands from the browser")
-    print(f"   ⚠️  Safety: Only bun, npm, git, and safe system commands allowed")
-    
-    try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        print("\n👋 Shutting down...")
-        server.shutdown()
+    run_server(
+        CodeExecutorHandler,
+        PORT,
+        '💻 Tilt IDE Code Executor',
+        '🚀 Execute bun commands from the browser\n   ⚠️  Safety: Only bun, npm, git, and safe system commands allowed'
+    )
 
 
 if __name__ == '__main__':
-    run_server()
+    main()

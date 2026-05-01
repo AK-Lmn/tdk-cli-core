@@ -1,6 +1,5 @@
 import chalk from 'chalk';
-
-type StatusValue = string | undefined;
+import type { StatusValue } from '../types/index.js';
 
 function pluralize(count: number, singular: string, plural?: string): string {
   return count === 1 ? singular : (plural || `${singular}s`);

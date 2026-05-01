@@ -173,30 +173,43 @@ export const configCommand = new Command('config')
         });
       })
   )
+/**
+ * Toggle an optional infrastructure service on or off.
+ * Shared logic for enable-infra and disable-infra commands.
+ *
+ * @param service - The service name to toggle
+ * @param enabled - Whether to enable (true) or disable (false) the service
+ */
+async function toggleInfraService(service: string, enabled: boolean): Promise<void> {
+  const projectRoot = requireProjectRoot();
+
+  const validation = validateOptionalInfraService(service);
+  if (!validation.valid) {
+    console.error(chalk.red(`Error: ${validation.error}`));
+    process.exit(1);
+  }
+
+  const config = readProjectConfig(projectRoot);
+  // After validation, service is guaranteed to be a key of optional_infra
+  type OptionalInfraKey = keyof typeof config.optional_infra;
+  config.optional_infra[service as OptionalInfraKey] = enabled;
+
+  const projectJsonPath = join(projectRoot, '.tdk', 'project.json');
+  writeFileSync(projectJsonPath, JSON.stringify(config, null, 2), 'utf-8');
+
+  const action = enabled ? 'Enabled' : 'Disabled';
+  console.log(chalk.green(`✓ ${action}: ${service}`));
+  console.log(chalk.gray('Run `tdk config regenerate` to apply.'));
+}
+
+configCommand
   .addCommand(
     new Command('enable-infra')
       .description('Enable optional infrastructure service')
       .argument('<service>', 'Service name (monitoring, elk, debezium, golden_image)')
       .action(async (service) => {
         await runCommand(async () => {
-          const projectRoot = requireProjectRoot();
-
-          const validation = validateOptionalInfraService(service);
-          if (!validation.valid) {
-            console.error(chalk.red(`Error: ${validation.error}`));
-            process.exit(1);
-          }
-
-          const config = readProjectConfig(projectRoot);
-          // After validation, service is guaranteed to be a key of optional_infra
-          type OptionalInfraKey = keyof typeof config.optional_infra;
-          config.optional_infra[service as OptionalInfraKey] = true;
-
-          const projectJsonPath = join(projectRoot, '.tdk', 'project.json');
-          writeFileSync(projectJsonPath, JSON.stringify(config, null, 2), 'utf-8');
-
-          console.log(chalk.green(`✓ Enabled: ${service}`));
-          console.log(chalk.gray('Run `tdk config regenerate` to apply.'));
+          await toggleInfraService(service, true);
         });
       })
   )
@@ -206,24 +219,7 @@ export const configCommand = new Command('config')
       .argument('<service>', 'Service name (monitoring, elk, debezium, golden_image)')
       .action(async (service) => {
         await runCommand(async () => {
-          const projectRoot = requireProjectRoot();
-
-          const validation = validateOptionalInfraService(service);
-          if (!validation.valid) {
-            console.error(chalk.red(`Error: ${validation.error}`));
-            process.exit(1);
-          }
-
-          const config = readProjectConfig(projectRoot);
-          // After validation, service is guaranteed to be a key of optional_infra
-          type OptionalInfraKey = keyof typeof config.optional_infra;
-          config.optional_infra[service as OptionalInfraKey] = false;
-
-          const projectJsonPath = join(projectRoot, '.tdk', 'project.json');
-          writeFileSync(projectJsonPath, JSON.stringify(config, null, 2), 'utf-8');
-
-          console.log(chalk.green(`✓ Disabled: ${service}`));
-          console.log(chalk.gray('Run `tdk config regenerate` to apply.'));
+          await toggleInfraService(service, false);
         });
       })
   );

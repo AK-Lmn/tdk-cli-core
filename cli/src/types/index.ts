@@ -195,3 +195,9 @@ export interface SelectItem {
   label: string;
   value: string;
 }
+
+/**
+ * Generic status value type for status-aware components
+ * Union of all status types used across the system
+ */
+export type StatusValue = ResourceStatus | StackHealthStatus | TiltRuntimeStatus | ServiceUrl['status'] | string | undefined;

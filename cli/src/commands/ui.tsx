@@ -11,7 +11,7 @@ import {
   clearMetadataCache,
 } from '../utils/services.js';
 import { findProjectRoot } from '../utils/paths.js';
-import type { DiscoveredResource, DiscoveredStack, ResourceMetadata, StackMetadata } from '../types/index.js';
+import type { DiscoveredResource, DiscoveredStack, ResourceMetadata, StackMetadata, ResourceType, SelectItem } from '../types/index.js';
 import { isTiltAvailable } from '../utils/tilt.js';
 import { errorFactories, requireProjectRoot } from '../utils/errors.js';
 import {
@@ -272,7 +272,7 @@ const TUIApp: React.FC = () => {
     }
   }, [highlightedIndex, items.length, setHighlightedIndex]);
 
-  const handleSelect = useCallback((item: { label: string; value: string }) => {
+  const handleSelect = useCallback((item: SelectItem) => {
     if (activeTab === 'overview') {
       setSelectedStack(item.value);
       setSelectedService(null);

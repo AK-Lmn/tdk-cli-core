@@ -7,39 +7,19 @@ Serves a web-based file browser at http://localhost:9765
 import os
 import sys
 import urllib.parse
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import HTTPServer
 from pathlib import Path
 
 # Add shared modules
 sys.path.insert(0, str(Path(__file__).parent.parent / 'shared'))
 from file_utils import FileUtils, PROJECT_ROOT
+from http_utils import BaseIDEHandler, run_server
 
 PORT = 9765
 
 
-class FileBrowserHandler(BaseHTTPRequestHandler):
+class FileBrowserHandler(BaseIDEHandler):
     """HTTP request handler for file browser"""
-    
-    def log_message(self, format, *args):
-        """Suppress default logging"""
-        pass
-    
-    def send_json_response(self, data, status=200):
-        """Send JSON response"""
-        import json
-        self.send_response(status)
-        self.send_header('Content-Type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-        self.wfile.write(json.dumps(data).encode())
-    
-    def send_html_response(self, html, status=200):
-        """Send HTML response"""
-        self.send_response(status)
-        self.send_header('Content-Type', 'text/html; charset=utf-8')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-        self.wfile.write(html.encode())
     
     def render_breadcrumb(self, path: str) -> str:
         """Render breadcrumb navigation"""
@@ -54,7 +34,7 @@ class FileBrowserHandler(BaseHTTPRequestHandler):
             if not part or part == '.':
                 continue
             current_path = f"{current_path}/{part}" if current_path else part
-            breadcrumbs.append(f'<span class="breadcrumb-separator">/</span>')
+            breadcrumbs.append('<span class="breadcrumb-separator">/</span>')
             breadcrumbs.append(f'<a href="/browse?path={urllib.parse.quote(current_path)}">{part}</a>')
         
         return f'<div class="breadcrumb">{ "".join(breadcrumbs) }</div>'
@@ -95,7 +75,7 @@ class FileBrowserHandler(BaseHTTPRequestHandler):
             if parent == '.':
                 parent = '.'
             html.append(f'''
-                <li class="file-item dir-item" onclick="location.href='/browse?path={urllib.parse.quote(parent)}'">
+                <li class="file-item dir-item" onclick="location.href=\'/browse?path={urllib.parse.quote(parent)}\'">
                     <span class="file-icon">📁</span>
                     <span class="file-name">..</span>
                     <span class="file-meta">Parent directory</span>
@@ -109,7 +89,7 @@ class FileBrowserHandler(BaseHTTPRequestHandler):
         for item in dirs:
             encoded_path = urllib.parse.quote(item['path'])
             html.append(f'''
-                <li class="file-item dir-item" onclick="location.href='/browse?path={encoded_path}'">
+                <li class="file-item dir-item" onclick="location.href=\'/browse?path={encoded_path}\'">
                     <span class="file-icon">{item['icon']}</span>
                     <span class="file-name">{item['name']}/</span>
                     <span class="file-meta">{item['modified']}</span>
@@ -120,7 +100,7 @@ class FileBrowserHandler(BaseHTTPRequestHandler):
             # Link to code viewer for files
             viewer_url = f"http://localhost:9766/view?file={urllib.parse.quote(item['path'])}"
             html.append(f'''
-                <li class="file-item" onclick="window.open('{viewer_url}', '_blank')">
+                <li class="file-item" onclick="window.open(\'{viewer_url}\', \'_blank\')">
                     <span class="file-icon">{item['icon']}</span>
                     <span class="file-name">{item['name']}</span>
                     <span class="file-meta">{item['size_str']} • {item['modified']}</span>
@@ -154,34 +134,6 @@ class FileBrowserHandler(BaseHTTPRequestHandler):
         html.append('</ul>')
         return ''.join(html)
     
-    def render_page(self, title: str, content: str, sidebar: str = '') -> str:
-        """Render full HTML page"""
-        # Determine active nav item
-        active_browser = 'active' if 'Files' in title else ''
-        
-        # Read base template
-        template_path = Path(__file__).parent.parent / 'shared' / 'templates' / 'base.html'
-        try:
-            with open(template_path, 'r') as f:
-                template = f.read()
-        except:
-            template = '''<!DOCTYPE html>
-<html><head><title>{title}</title><link rel="stylesheet" href="/static/styles.css"></head>
-<body><header class="header"><h1>{icon} {title}</h1></header>
-<div class="container">{sidebar}<main class="content">{content}</main></div></body></html>'''
-        
-        return template.format(
-            title=title,
-            icon='📁',
-            favicon='📁',
-            active_browser=active_browser,
-            active_viewer='',
-            active_inspector='',
-            active_terminal='',
-            sidebar=f'<aside class="sidebar">{sidebar}</aside>' if sidebar else '',
-            content=content
-        )
-    
     def do_GET(self):
         """Handle GET requests"""
         parsed = urllib.parse.urlparse(self.path)
@@ -190,7 +142,7 @@ class FileBrowserHandler(BaseHTTPRequestHandler):
         
         # Health check
         if path == '/health':
-            self.send_json_response({'status': 'ok', 'service': 'file-browser'})
+            self.handle_health_check('file-browser')
             return
         
         # Browse directory
@@ -210,7 +162,8 @@ class FileBrowserHandler(BaseHTTPRequestHandler):
             if not resolved:
                 self.send_html_response(self.render_page(
                     'Access Denied',
-                    '<div class="empty-state"><div class="empty-state-icon">🚫</div>Invalid path or access denied</div>'
+                    '<div class="empty-state"><div class="empty-state-icon">🚫</div>Invalid path or access denied</div>',
+                    icon='🚫'
                 ), 403)
                 return
             
@@ -220,7 +173,8 @@ class FileBrowserHandler(BaseHTTPRequestHandler):
             if error:
                 self.send_html_response(self.render_page(
                     'Error',
-                    f'<div class="empty-state"><div class="empty-state-icon">⚠️</div>{error}</div>'
+                    f'<div class="empty-state"><div class="empty-state-icon">⚠️</div>{error}</div>',
+                    icon='⚠️'
                 ), 500)
                 return
             
@@ -248,7 +202,8 @@ class FileBrowserHandler(BaseHTTPRequestHandler):
             
             self.send_html_response(self.render_page(
                 'File Browser',
-                content
+                content,
+                icon='📁'
             ))
             return
         
@@ -259,7 +214,8 @@ class FileBrowserHandler(BaseHTTPRequestHandler):
             if not query_str:
                 self.send_html_response(self.render_page(
                     'Search',
-                    '<div class="empty-state"><div class="empty-state-icon">🔍</div>Enter a search query</div>'
+                    '<div class="empty-state"><div class="empty-state-icon">🔍</div>Enter a search query</div>',
+                    icon='🔍'
                 ))
                 return
             
@@ -279,7 +235,7 @@ class FileBrowserHandler(BaseHTTPRequestHandler):
                 for item in results:
                     viewer_url = f"http://localhost:9766/view?file={urllib.parse.quote(item['path'])}"
                     html.append(f'''
-                        <li class="file-item" onclick="window.open('{viewer_url}', '_blank')">
+                        <li class="file-item" onclick="window.open(\'{viewer_url}\', \'_blank\')">
                             <span class="file-icon">{item['icon']}</span>
                             <span class="file-name">{item['name']}</span>
                             <span class="file-meta">{item['path']} • {item['size_str']}</span>
@@ -289,7 +245,7 @@ class FileBrowserHandler(BaseHTTPRequestHandler):
                 html.append('</ul>')
                 content = ''.join(html)
             
-            self.send_html_response(self.render_page('Search Results', content))
+            self.send_html_response(self.render_page('Search Results', content, icon='🔍'))
             return
         
         # Static files (CSS)
@@ -298,18 +254,16 @@ class FileBrowserHandler(BaseHTTPRequestHandler):
             if static_path.exists():
                 with open(static_path, 'r') as f:
                     content = f.read()
-                self.send_response(200)
-                self.send_header('Content-Type', 'text/css')
-                self.end_headers()
-                self.wfile.write(content.encode())
+                self.send_css_response(content)
             else:
-                self.send_error(404)
+                self.send_error_response(404, 'Not found')
             return
         
         # 404
         self.send_html_response(self.render_page(
             'Not Found',
-            '<div class="empty-state"><div class="empty-state-icon">❓</div>Page not found</div>'
+            '<div class="empty-state"><div class="empty-state-icon">❓</div>Page not found</div>',
+            icon='❓'
         ), 404)
     
     def do_POST(self):
@@ -317,18 +271,15 @@ class FileBrowserHandler(BaseHTTPRequestHandler):
         self.send_json_response({'error': 'Method not allowed'}, 405)
 
 
-def run_server():
+def main():
     """Run the file browser server"""
-    server = HTTPServer(('127.0.0.1', PORT), FileBrowserHandler)
-    print(f"🗂️  Tilt IDE File Browser running at http://localhost:{PORT}")
-    print(f"   📁 Project root: {PROJECT_ROOT}")
-    
-    try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        print("\n👋 Shutting down...")
-        server.shutdown()
+    run_server(
+        FileBrowserHandler,
+        PORT,
+        '🗂️  Tilt IDE File Browser',
+        f'📁 Project root: {PROJECT_ROOT}'
+    )
 
 
 if __name__ == '__main__':
-    run_server()
+    main()

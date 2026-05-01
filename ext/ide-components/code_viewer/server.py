@@ -4,44 +4,24 @@ Tilt IDE Code Viewer
 Serves syntax-highlighted code viewing at http://localhost:9766
 """
 
-import os
+import re
 import sys
 import urllib.parse
-from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 
 # Add shared modules
 sys.path.insert(0, str(Path(__file__).parent.parent / 'shared'))
 from file_utils import FileUtils, PROJECT_ROOT
+from http_utils import BaseIDEHandler, run_server
 
 PORT = 9766
 
 
-class CodeViewerHandler(BaseHTTPRequestHandler):
+class CodeViewerHandler(BaseIDEHandler):
     """HTTP request handler for code viewer"""
-    
-    def log_message(self, format, *args):
-        pass
-    
-    def send_html_response(self, html, status=200):
-        self.send_response(status)
-        self.send_header('Content-Type', 'text/html; charset=utf-8')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-        self.wfile.write(html.encode())
-    
-    def escape_html(self, text: str) -> str:
-        """Escape HTML special characters"""
-        return (text
-                .replace('&', '&amp;')
-                .replace('<', '&lt;')
-                .replace('>', '&gt;')
-                .replace('"', '&quot;'))
     
     def simple_highlight(self, code: str, language: str) -> str:
         """Simple syntax highlighting using regex"""
-        import re
-        
         # Escape HTML first
         code = self.escape_html(code)
         
@@ -102,43 +82,21 @@ class CodeViewerHandler(BaseHTTPRequestHandler):
         
         return ''.join(html)
     
-    def render_page(self, title: str, content: str) -> str:
-        """Render full HTML page"""
-        template_path = Path(__file__).parent.parent / 'shared' / 'templates' / 'base.html'
-        try:
-            with open(template_path, 'r') as f:
-                template = f.read()
-        except:
-            template = '''<!DOCTYPE html>
-<html><head><title>{title}</title><link rel="stylesheet" href="/static/styles.css"></head>
-<body><header class="header"><h1>{icon} {title}</h1></header>
-<div class="container">{sidebar}<main class="content">{content}</main></div></body></html>'''
-        
-        return template.format(
-            title=title,
-            icon='👁️',
-            favicon='👁️',
-            active_browser='',
-            active_viewer='active',
-            active_inspector='',
-            active_terminal='',
-            sidebar='',
-            content=content
-        )
+    def _get_template_path(self) -> Path:
+        """Override to use shared template"""
+        return Path(__file__).parent.parent / 'shared' / 'templates' / 'base.html'
     
     def do_GET(self):
         """Handle GET requests"""
+        import json
+        
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         query = urllib.parse.parse_qs(parsed.query)
         
         # Health check
         if path == '/health':
-            import json
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({'status': 'ok', 'service': 'code-viewer'}).encode())
+            self.handle_health_check('code-viewer')
             return
         
         # Static files
@@ -147,12 +105,9 @@ class CodeViewerHandler(BaseHTTPRequestHandler):
             if static_path.exists():
                 with open(static_path, 'r') as f:
                     content = f.read()
-                self.send_response(200)
-                self.send_header('Content-Type', 'text/css')
-                self.end_headers()
-                self.wfile.write(content.encode())
+                self.send_css_response(content)
             else:
-                self.send_error(404)
+                self.send_error_response(404, 'Not found')
             return
         
         # View file
@@ -169,7 +124,7 @@ class CodeViewerHandler(BaseHTTPRequestHandler):
                         <p class="text-muted">Supports TypeScript, JavaScript, Starlark, JSON, YAML, and more.</p>
                     </div>
                 '''
-                self.send_html_response(self.render_page('Code Viewer', content))
+                self.send_html_response(self.render_page('Code Viewer', content, icon='👁️'))
                 return
             
             # Read file
@@ -192,7 +147,7 @@ class CodeViewerHandler(BaseHTTPRequestHandler):
                         </div>
                     </div>
                 '''
-                self.send_html_response(self.render_page('Error', error_content))
+                self.send_html_response(self.render_page('Error', error_content, icon='⚠️'), 404)
                 return
             
             # Get file info
@@ -226,28 +181,26 @@ class CodeViewerHandler(BaseHTTPRequestHandler):
                 </div>
             '''
             
-            self.send_html_response(self.render_page(f"{file_info['name']}", page_content))
+            self.send_html_response(self.render_page(f"{file_info['name']}", page_content, icon='👁️'))
             return
         
         # 404
         self.send_html_response(self.render_page(
             'Not Found',
-            '<div class="empty-state"><div class="empty-state-icon">❓</div>Page not found</div>'
+            '<div class="empty-state"><div class="empty-state-icon">❓</div>Page not found</div>',
+            icon='❓'
         ), 404)
 
 
-def run_server():
+def main():
     """Run the code viewer server"""
-    server = HTTPServer(('127.0.0.1', PORT), CodeViewerHandler)
-    print(f"👁️  Tilt IDE Code Viewer running at http://localhost:{PORT}")
-    print(f"   📄 Open files from the file browser to view with syntax highlighting")
-    
-    try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        print("\n👋 Shutting down...")
-        server.shutdown()
+    run_server(
+        CodeViewerHandler,
+        PORT,
+        '👁️  Tilt IDE Code Viewer',
+        '📄 Open files from the file browser to view with syntax highlighting'
+    )
 
 
 if __name__ == '__main__':
-    run_server()
+    main()
