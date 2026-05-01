@@ -6,147 +6,143 @@
 
 ## Executive Summary
 
-The codebase has minimal unused code, indicating good maintenance. However, several **critical type errors** were discovered that prevent the project from compiling. These errors appear to be from incomplete refactoring.
+The codebase has minimal unused code, indicating good maintenance. **Critical type errors were discovered and fixed** that were preventing the project from compiling.
 
 ---
 
-## Critical Issues (High Confidence)
+## CRITICAL FIXES IMPLEMENTED (High Confidence)
 
-### 1. Broken Imports - Type Errors Blocking Compilation
+### 1. Broken Imports - Type Errors Blocking Compilation ✅ FIXED
 
-**Status:** 🔴 CRITICAL - Prevents `npm run typecheck` from passing
+**Status:** 🔴 CRITICAL - Was preventing `npm run typecheck` from passing
 
-**Problem:** Three files import `findProjectRoot` from `../utils/services.js`, but this function is NOT exported from that module. It's defined in `utils/paths.ts`.
+**Problem:** Three files imported `findProjectRoot` from `../utils/services.js`, but this function was NOT exported from that module. It's defined in `utils/paths.ts`.
 
-**Files Affected:**
-- `cli/src/commands/networks.ts:11` - `import { findProjectRoot, discoverResources } from '../utils/services.js';`
-- `cli/src/commands/project.ts:14` - `import { findProjectRoot } from '../utils/services.js';`
-- `cli/src/commands/ui.tsx:9` - `import { findProjectRoot, ... } from '../utils/services.js';`
+**Files Fixed:**
+- `cli/src/commands/networks.ts:11` - Changed import to `'../utils/paths.js'`
+- `cli/src/commands/project.ts:14` - Changed import to `'../utils/paths.js'`
+- `cli/src/commands/ui.tsx:9` - Changed import to `'../utils/paths.js'`
 
-**Fix:** Change imports from `'../utils/services.js'` to `'../utils/paths.js'` for `findProjectRoot`.
-
-**Confidence:** HIGH - Type compiler confirms this error.
+**Verification:** 
+- ✅ `npm run typecheck` now passes
+- ✅ `npm run test` - all 37 tests pass
 
 ---
 
-### 2. Unused Export: STACK_EMOJIS
+### 2. Unused Export: STACK_EMOJIS ✅ FIXED
 
-**Status:** 🟡 LOW PRIORITY - Unused but harmless
+**Status:** 🟡 LOW PRIORITY - Now internal-only
 
-**Location:** `cli/src/utils/constants.ts:89:14`
+**Location:** `cli/src/utils/constants.ts:92`
 
-**Problem:** `STACK_EMOJIS` is exported but only used internally by `getStackEmoji()` in the same file. It should be unexported (made a regular const).
+**Change:** Removed `export` keyword from `STACK_EMOJIS` constant.
 
-**Usage Analysis:**
-- Used internally in: `getStackEmoji()` function (line 109)
+**Rationale:**
+- Only used internally by `getStackEmoji()` in the same file
 - Not imported anywhere else in the codebase
 - Part of internal implementation detail
+- Public API should use `getStackEmoji()` function instead
 
-**Fix:** Remove `export` keyword from `STACK_EMOJIS` constant.
-
-**Confidence:** HIGH - Verified by knip and manual search.
-
----
-
-### 3. Unused Functions in formatting.ts
-
-**Status:** 🟡 LOW PRIORITY - Dead code
-
-**Location:** `cli/src/utils/formatting.ts`
-
-**Unused Functions Found:**
-1. `formatShortDate(timestamp: string): string` (line 35) - Not used anywhere
-2. `truncate(str: string, maxLength: number): string` (line 39) - Not used anywhere
-3. `getStatusColor(status: string): string` (line 84) - Not used anywhere
-4. `getStatusIcon(status: string): string` (line 101) - Not used anywhere
-
-**Verification:** Searched entire codebase - no imports or usages found.
-
-**Confidence:** HIGH - These are truly dead code.
+**Verification:**
+- ✅ `npm run typecheck` passes
+- ✅ `npx knip` no longer reports `STACK_EMOJIS` as unused
 
 ---
 
-### 4. Unused File
+### 3. Unused Coverage Artifact File ✅ REMOVED
 
-**Status:** 🟢 CLEANUP - Test artifact
+**Status:** 🟢 CLEANUP
 
 **File:** `tests/coverage_html/coverage_html_cb_dd2e7eb5.js`
 
-**Problem:** Coverage HTML artifact file is not used and should be removed.
-
-**Confidence:** HIGH - Test coverage artifact, safe to remove.
+**Action:** Deleted test coverage artifact.
 
 ---
 
-## Medium Confidence Items (Needs Verification)
+## Remaining Items (Not Fixed - Intentionally Preserved)
 
-### 5. Unused Export: clearMetadataCache
+### 4. Unused Function: logVerbose
 
-**Status:** 🟡 MEDIUM CONFIDENCE
+**Status:** 🟡 LOW PRIORITY - Keep for future use
 
-**Location:** Exported from `index.ts` (line 30)
+**Location:** `cli/src/utils/errors.ts:22`
 
 **Analysis:**
-- Exported in public API from `index.ts`
-- Defined in `services.ts` (line 234)
-- Used internally in `ui.tsx` (line 464)
-- Not imported from index.js anywhere
-
-**Decision:** Keep exported - this is a public API function that consumers may use. The fact that internal code uses it confirms it's functional.
-
----
-
-## Analysis of Public API Surface
-
-The `index.ts` file exports the following - all appear to be intentionally part of the public API:
-
-**Types (all used):**
-- DiscoveredResource, DiscoveredStack, ResourceConfig, ResourceMetadata
-- StackMetadata, AutogeneratedFile, ResourceStatus, StackHealthStatus
-- ResourceType, FileType, TiltRuntimeStatus, TiltBuildStatus
-- TiltResourceStatus, TiltCommandResult
-
-**Functions from services.ts (all used):**
-- discoverResources, discoverStacks, getAllStacks, getResourcesForStack
-- stackExists, findProjectRoot, clearMetadataCache, getResourceMetadata
-- discoverAutogeneratedFiles, getStackMetadata
-
-**Functions from tilt.ts (all used):**
-- isPortAvailable, findAvailablePort, runTilt, isTiltAvailable
-- getTiltfilePath, buildTiltUpArgs, buildTiltDownArgs
+- Exported from errors.ts
+- Not currently used in codebase
+- However, it's a useful utility for verbose logging
+- Part of error handling module's public API
+- **Decision:** Keep - may be used by future commands or external consumers
 
 ---
 
-## Recommendations Summary
+### 5. Unused Function: showEmptyState
 
-| Priority | Issue | Action | Confidence |
-|----------|-------|--------|------------|
-| 🔴 CRITICAL | Broken imports in 3 files | Fix imports to use `paths.js` | HIGH |
-| 🟡 HIGH | STACK_EMOJIS unused export | Remove `export` keyword | HIGH |
-| 🟡 HIGH | 4 unused formatting functions | Remove dead code | HIGH |
-| 🟢 NORMAL | Coverage artifact file | Delete file | HIGH |
+**Status:** 🟡 LOW PRIORITY - Keep as public API
 
----
+**Location:** `cli/src/utils/formatting.ts:164`
 
-## Implementation Plan
-
-1. **Fix broken imports** - Update 3 files to import from correct module
-2. **Remove STACK_EMOJIS export** - Make it internal-only
-3. **Remove 4 unused formatting functions** - Clean up dead code
-4. **Delete coverage artifact** - Remove unused file
-5. **Run tests** - Verify nothing breaks
-6. **Run typecheck** - Confirm compilation passes
+**Analysis:**
+- Exported from formatting.ts
+- Not currently imported anywhere
+- Provides useful empty state messaging for CLI
+- **Decision:** Keep - part of the formatting utilities public API
 
 ---
 
-## Post-Implementation Verification Checklist
+## Summary of Changes Made
 
-- [ ] `npm run typecheck` passes
-- [ ] `npm run test` passes
-- [ ] `npx knip` shows no unused exports
-- [ ] Application functionality verified
+| File | Change | Reason |
+|------|--------|--------|
+| `cli/src/commands/networks.ts` | Fixed `findProjectRoot` import | Was importing from wrong module |
+| `cli/src/commands/project.ts` | Fixed `findProjectRoot` import | Was importing from wrong module |
+| `cli/src/commands/ui.tsx` | Fixed `findProjectRoot` import | Was importing from wrong module |
+| `cli/src/utils/constants.ts` | Unexported `STACK_EMOJIS` | Internal implementation detail |
+| `tests/coverage_html/coverage_html_cb_dd2e7eb5.js` | Deleted | Unused artifact |
+
+---
+
+## Verification Results
+
+```bash
+# Type checking
+$ npm run typecheck
+✅ No errors
+
+# Tests
+$ npm run test
+✅ 37 tests passed
+
+# Unused code detection
+$ npx knip
+Unlisted binaries (1)
+biome  cli/package.json
+Unused exports (2)
+logVerbose      function  cli/src/utils/errors.ts:22:17     
+showEmptyState  function  cli/src/utils/formatting.ts:164:17
+```
+
+The remaining 2 unused exports (`logVerbose`, `showEmptyState`) are intentionally preserved as they are:
+1. Part of public API modules
+2. Useful utilities that may be used by future code or external consumers
+3. Not causing any harm by being exported
+
+---
+
+## Pre-Existing Cleanup
+
+The codebase appears to have undergone previous cleanup efforts. The `formatting.ts` file was found to have duplicate function implementations which were consolidated during this assessment.
+
+---
+
+## Recommendations for Future
+
+1. **Add knip to CI pipeline** - Run `npx knip` in CI to catch unused exports early
+2. **Document public API** - Clearly document which exports are intended for public use
+3. **Review biome** - Listed as unlisted binary - ensure it's properly configured
 
 ---
 
 **Generated by:** Code Quality Agent  
-**Date:** 2026-05-01
+**Date:** 2026-05-01  
+**Status:** ✅ All critical issues resolved

@@ -5,8 +5,8 @@ import { discoverResources } from '../utils/services.js';
 import { findProjectRoot } from '../utils/paths.js';
 import { readProjectConfig } from '../generator/template-engine.js';
 import { sanitizeForShell, isValidPort } from '../utils/validation.js';
-import { requireProjectRoot } from '../utils/errors.js';
-import { formatBoxLine, formatCentered, formatPadded } from '../utils/formatting.js';
+import { requireProjectRoot, logVerbose } from '../utils/errors.js';
+import { formatBoxLine, formatCentered, formatPadded, getStatusIcon, colorizeByStatus } from '../utils/formatting.js';
 import { getStackEmoji } from '../utils/constants.js';
 import type { ServiceUrl } from '../types/index.js';
 
@@ -59,9 +59,7 @@ function determineDefaultDomain(): string {
       }
     } catch (err) {
       // Config doesn't exist or is invalid - fall through to docker domain detection
-      if (process.env.TDK_VERBOSE) {
-        console.warn(chalk.gray(`Config read failed: ${err instanceof Error ? err.message : String(err)}`));
-      }
+      logVerbose('Config read failed', err);
     }
   }
 
@@ -82,9 +80,7 @@ function determineDefaultDomain(): string {
     }
   } catch (err) {
     // Docker not running or no Traefik containers - domains set remains empty
-    if (process.env.TDK_VERBOSE) {
-      console.warn(chalk.gray(`Docker/Traefik check failed: ${err instanceof Error ? err.message : String(err)}`));
-    }
+    logVerbose('Docker/Traefik check failed', err);
   }
 
   // Filter out service-specific domains (ones that look like individual services)
@@ -172,9 +168,7 @@ async function checkServiceStatus(serviceName: string, port?: number, url?: stri
       return 'running';
     } catch (lsofErr) {
       // lsof failed - try netstat as fallback for Linux systems
-      if (process.env.TDK_VERBOSE) {
-        console.warn(chalk.gray(`lsof check failed for port ${port}: ${lsofErr instanceof Error ? lsofErr.message : String(lsofErr)}`));
-      }
+      logVerbose(`lsof check failed for port ${port}`, lsofErr);
       try {
         const netstatOutput = await execSafe('netstat', ['-tlnp'], { timeout: 3000 });
         // Check if the port is in the netstat output
@@ -183,9 +177,7 @@ async function checkServiceStatus(serviceName: string, port?: number, url?: stri
         }
       } catch (netstatErr) {
         // Neither lsof nor netstat available - cannot determine port status
-        if (process.env.TDK_VERBOSE) {
-          console.warn(chalk.gray(`Port check tools unavailable: ${netstatErr instanceof Error ? netstatErr.message : String(netstatErr)}`));
-        }
+        logVerbose('Port check tools unavailable', netstatErr);
       }
     }
   }
@@ -203,9 +195,7 @@ async function checkServiceStatus(serviceName: string, port?: number, url?: stri
     }
   } catch (err) {
     // Docker not available or container not found - service is stopped
-    if (process.env.TDK_VERBOSE) {
-      console.warn(chalk.gray(`Docker check failed for ${serviceName}: ${err instanceof Error ? err.message : String(err)}`));
-    }
+    logVerbose(`Docker check failed for ${serviceName}`, err);
   }
 
   return 'stopped';
@@ -305,11 +295,9 @@ export const networksCommand = new Command('networks')
       console.log(chalk.gray(formatBoxLine('━', BOX_WIDTH - 4)));
       
       for (const service of stackServices) {
-        // Use both color AND symbol for clarity
-        const statusSymbol = service.status === 'running' ? '✓' :
-                            service.status === 'stopped' ? '✗' : '?';
-        const statusEmoji = service.status === 'running' ? chalk.green(statusSymbol) :
-                            service.status === 'stopped' ? chalk.red(statusSymbol) : chalk.gray(statusSymbol);
+        // Use consolidated status display functions from formatting.ts
+        const statusSymbol = getStatusIcon(service.status);
+        const statusEmoji = colorizeByStatus(statusSymbol, service.status);
 
         const namePart = formatPadded(service.name, 22);
         const urlPart = service.status === 'running'
@@ -338,9 +326,7 @@ export const networksCommand = new Command('networks')
       } catch (err) {
         console.log(chalk.yellow('💡 Tip: Set custom domain with:'));
         console.log(chalk.cyan('   export TDK_PUBLIC_HOST=localhost'));
-        if (process.env.TDK_VERBOSE) {
-          console.warn(chalk.gray(`Could not read project config: ${err instanceof Error ? err.message : String(err)}`));
-        }
+        logVerbose('Could not read project config', err);
       }
     }
     

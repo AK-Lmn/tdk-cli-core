@@ -5,6 +5,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
 import ora from 'ora';
+import { logVerbose } from '../utils/errors.js';
 
 interface InstallInfo {
   method: 'npm' | 'bun' | 'git' | 'unknown';
@@ -28,9 +29,7 @@ function detectInstallation(): InstallInfo {
     } catch (err) {
       // readlink -f fails when the path is not a symlink (e.g., direct binary from npm/bun global install)
       // This is expected behavior for non-git installations - safe to ignore
-      if (process.env.TDK_VERBOSE) {
-        console.warn(chalk.gray(`readlink -f failed (expected for non-symlinks): ${err instanceof Error ? err.message : String(err)}`));
-      }
+      logVerbose('readlink -f failed (expected for non-symlinks)', err);
     }
     
     if (tdkPath.includes('node_modules') || tdkPath.includes('.npm') || tdkPath.includes('.bun')) {
@@ -47,9 +46,7 @@ function detectInstallation(): InstallInfo {
     
     return { method: 'unknown', path: tdkPath };
   } catch (err) {
-    if (process.env.TDK_VERBOSE) {
-      console.warn(chalk.gray(`Installation detection failed: ${err instanceof Error ? err.message : String(err)}`));
-    }
+    logVerbose('Installation detection failed', err);
     return { method: 'unknown' };
   }
 }
@@ -60,9 +57,7 @@ function getCurrentVersion(): string {
     const pkg = JSON.parse(readFileSync(packagePath, 'utf-8'));
     return pkg.version || 'unknown';
   } catch (err) {
-    if (process.env.TDK_VERBOSE) {
-      console.warn(chalk.gray(`Could not read package.json: ${err instanceof Error ? err.message : String(err)}`));
-    }
+    logVerbose('Could not read package.json', err);
     return 'unknown';
   }
 }
@@ -101,9 +96,7 @@ async function upgradeViaNpm(): Promise<boolean> {
   } catch (err) {
     // npm registry failed (package may not exist or network issue) - try GitHub fallback
     spinner.text = 'npm registry failed, trying GitHub...';
-    if (process.env.TDK_VERBOSE) {
-      console.warn(chalk.gray(`npm registry error: ${err instanceof Error ? err.message : String(err)}`));
-    }
+    logVerbose('npm registry error', err);
     try {
       execSync('npm install -g github:tdk-landscape/tdk-cli', {
         stdio: 'inherit',
@@ -131,9 +124,7 @@ async function upgradeViaBun(): Promise<boolean> {
   } catch (err) {
     // bun registry failed (package may not exist or network issue) - try GitHub fallback
     spinner.text = 'bun registry failed, trying GitHub...';
-    if (process.env.TDK_VERBOSE) {
-      console.warn(chalk.gray(`bun registry error: ${err instanceof Error ? err.message : String(err)}`));
-    }
+    logVerbose('bun registry error', err);
     try {
       execSync('bun install -g github:tdk-landscape/tdk-cli', {
         stdio: 'inherit',

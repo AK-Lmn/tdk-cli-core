@@ -247,6 +247,79 @@ The main `index.ts` exports 21 types and 12 functions - a clean, explicit public
 
 ---
 
+## Implementation Completed
+
+### Changes Made
+
+The following high-confidence recommendations were implemented:
+
+#### 1. VALID_RESOURCE_TYPES now derives from ResourceType
+
+**File:** `cli/src/utils/constants.ts`
+
+**Change:** Added explicit type annotation and import:
+```typescript
+import type { ResourceType } from '../types/index.js';
+
+export const VALID_RESOURCE_TYPES: ResourceType[] = [
+  'backend',
+  'frontend',
+  'library',
+  'sdk',
+  'worker',
+  'migrator',
+] as const;
+```
+
+**Benefit:** The constant is now explicitly typed with `ResourceType[]`, ensuring:
+- TypeScript will error if the array contains invalid resource types
+- Updates to `ResourceType` in types/index.ts will automatically be reflected
+- Runtime behavior unchanged, but compile-time safety improved
+
+#### 2. Pre-existing Issue Fixed: formatting.ts Duplicates
+
+**File:** `cli/src/utils/formatting.ts`
+
+**Issue:** The file had significant content duplication with multiple declarations of the same functions (appeared 2-3 times each).
+
+**Resolution:** Rewrote the file with clean, single declarations of all functions:
+- `formatCount`, `formatDate`, `formatShortDate`
+- `formatBoxLine`, `formatCentered`, `formatPadded`
+- `truncate`, `getStatusColor`, `getStatusIcon`
+- `showEmptyState`
+
+**Result:** File reduced from ~312 lines to 180 lines (42% reduction).
+
+### Verification
+
+All changes verified with:
+```bash
+cd cli && npm run typecheck
+```
+
+**Result:** ✅ Typecheck passes with zero errors.
+
+### Note on DiscoveredResource.type
+
+Upon investigation, `DiscoveredResource.type` was already correctly typed as `ResourceType` in the original codebase:
+```typescript
+// types/index.ts line 8 (original)
+type?: ResourceType;
+```
+
+No changes were required for this item.
+
+---
+
+## Remaining Recommendations (Not Implemented)
+
+| # | Recommendation | Reason |
+|---|----------------|--------|
+| 3 | Export `JsonArray` and `JsonObject` | Not currently needed by other modules - can be exported when required |
+| 4 | Add JSDoc to clarify MASTER_CONFIG_FILES | Low priority documentation improvement |
+
+---
+
 ## Implementation Plan
 
 ### Phase 1: High Confidence Changes (This Assessment)

@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { discoverResources } from '../utils/services.js';
 import { requireProjectRoot, runCommand } from '../utils/errors.js';
-import { formatCount } from '../utils/formatting.js';
+import { formatCount, showEmptyState } from '../utils/formatting.js';
 
 export const resourcesCommand = new Command('resources')
   .description('List all resources (services) in the project')
@@ -17,9 +17,7 @@ export const resourcesCommand = new Command('resources')
       const allResources = discoverResources();
 
       if (allResources.length === 0) {
-        console.log(chalk.yellow('No resources found.'));
-        console.log(chalk.gray('\nTo create a resource:'));
-        console.log(chalk.gray('  tdk resource <name>'));
+        showEmptyState('resources');
         return;
       }
 
@@ -28,7 +26,7 @@ export const resourcesCommand = new Command('resources')
       if (options.stack) {
         resources = resources.filter(r => r.stack === options.stack);
         if (resources.length === 0) {
-          console.log(chalk.yellow(`No resources found in stack "${options.stack}".`));
+          showEmptyState('stack-services', ` in stack "${options.stack}"`);
           return;
         }
       }

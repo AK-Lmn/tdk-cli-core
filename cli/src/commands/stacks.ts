@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { discoverStacks, discoverResources, getAllStacks } from '../utils/services.js';
 import { runCommand } from '../utils/errors.js';
-import { formatCount } from '../utils/formatting.js';
+import { formatCount, showEmptyState } from '../utils/formatting.js';
 
 export const stacksCommand = new Command('stacks')
   .description('List all stacks and their resources')
@@ -15,11 +15,7 @@ export const stacksCommand = new Command('stacks')
       const stackNames = getAllStacks(services);
 
       if (stackNames.length === 0) {
-        console.log(chalk.yellow('No stacks found.'));
-        console.log(chalk.gray('\nTo create a stack, use:'));
-        console.log(chalk.gray('  tdk stack <stack-name>'));
-        console.log(chalk.gray('\nOr create a new resource with a stack:'));
-        console.log(chalk.gray('  tdk resource --stack <stack-name>'));
+        showEmptyState('stacks');
         return;
       }
 
