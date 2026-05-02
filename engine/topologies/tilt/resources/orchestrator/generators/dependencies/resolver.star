@@ -5,7 +5,7 @@
 #          Auto-inject configuration from internal dependencies
 # =============================================================================
 
-load("../../../../discovery/registry.star", "get_resource_by_name")
+load("../../../../../../../discovery/registry.star", "get_resource_by_name")
 
 def resolve_backend_api_path(manifest):
     """Resolve API path from backend manifest if backendName is specified.

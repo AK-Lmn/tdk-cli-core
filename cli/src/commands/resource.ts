@@ -19,6 +19,15 @@ const CREATABLE_RESOURCE_TYPES = ['backend', 'frontend', 'worker'] as const;
 type CreatableResourceType = Extract<ResourceType, typeof CREATABLE_RESOURCE_TYPES[number]>;
 
 /**
+ * Type guard to validate if a string is a valid CreatableResourceType
+ * @param type - The type string to validate
+ * @returns True if the type is a valid creatable resource type
+ */
+function isCreatableResourceType(type: string): type is CreatableResourceType {
+  return (CREATABLE_RESOURCE_TYPES as readonly string[]).includes(type);
+}
+
+/**
  * Common base template for all resource types.
  * Contains fields shared across backend, frontend, and worker resources.
  */
@@ -309,7 +318,10 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-main().catch(console.error);
+main().catch((err) => {
+  console.error('[Worker] Fatal error:', err);
+  process.exit(1);
+});
 `;
 }
 
@@ -354,8 +366,8 @@ export const resourceCommand = new Command('resource')
         }
       }
 
-      let resourceType: CreatableResourceType = options.type as CreatableResourceType;
-      if (!['backend', 'frontend', 'worker'].includes(resourceType)) {
+      let resourceType: CreatableResourceType;
+      if (!isCreatableResourceType(options.type)) {
         const { selectedType } = await inquirer.prompt([{
           type: 'list',
           name: 'selectedType',
@@ -367,6 +379,8 @@ export const resourceCommand = new Command('resource')
           ]
         }]);
         resourceType = selectedType;
+      } else {
+        resourceType = options.type;
       }
 
       let stackName = options.stack;
@@ -492,7 +506,7 @@ export const resourceCommand = new Command('resource')
       mkdirSync(resolve(fullPath, 'tests'), { recursive: true });
 
       console.log(chalk.blue('📝 Generating service.json...'));
-      const serviceJson = createServiceJson(resourceName, resourceType as CreatableResourceType, stackName, assignedPort);
+      const serviceJson = createServiceJson(resourceName, resourceType, stackName, assignedPort);
       writeFileSync(
         resolve(fullPath, 'service.json'),
         JSON.stringify(serviceJson, null, 2) + '\n',

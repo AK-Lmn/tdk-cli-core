@@ -41,9 +41,9 @@ describe('project command', () => {
       expect(EXPECTED_TEMPLATES).toContain(templateName);
     }
 
-    for (const [template, patterns] of Object.entries(TEMPLATE_PATTERNS)) {
+    for (const [, patterns] of Object.entries(TEMPLATE_PATTERNS)) {
       for (const pattern of patterns) {
-        expect(TEMPLATE_PATTERNS[template as keyof typeof TEMPLATE_PATTERNS]).toContain(pattern);
+        expect(patterns).toContain(pattern);
       }
     }
   });

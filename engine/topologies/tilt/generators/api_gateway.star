@@ -5,7 +5,7 @@
 # Purpose: Auto-discover backends and generate referer-based routing map
 # =============================================================================
 
-load('../discovery/resource_registry.star', 'get_app_resources', 'get_resource_aliases')
+load('../../../../discovery/registry.star', 'get_app_resources', 'get_resource_aliases')
 
 
 def _extract_referer_pattern(base_path, stack):

@@ -185,23 +185,60 @@ CacheOps = struct(
     stats=get_cache_stats,
 )
 
+# Reinitialize function for Tiltfile fallback
+def reinitialize():
+    """Force reinitialize the discovery cache and return app resources."""
+    # Return fresh discovery results without modifying frozen cache
+    return get_app_resources()
+
 # Backwards compatibility export
-Registry = CacheOps
+Registry = struct(
+    add=add_resource_to_cache,
+    remove=remove_resource_from_cache,
+    has=has_resource_in_cache,
+    get_by_path=get_resource_by_path_from_cache,
+    persist=persist_cache_to_file,
+    stats=get_cache_stats,
+    reinitialize=reinitialize,
+)
 
 
 def get_app_resources():
     # TWO PASS DISCOVERY (both passes use JSON - source of truth):
     # Pass 1: Load JSON manifests and generate YAML files for Tilt resource tracking
     # Pass 2: Re-load from JSON (data refresh) and create Tilt local_resource from YAML
-    initialized = _DISCOVERY_CACHE["initialized"] if "initialized" in _DISCOVERY_CACHE else False
-    if not initialized:
-        print("")
-        print("🔍 Starting resource discovery...")
+    initialized = _DISCOVERY_CACHE.get("initialized", False)
+    if initialized:
+        return _DISCOVERY_CACHE["app_resources"]
+
+    print("")
+    print("🔍 Starting resource discovery...")
+
+    # Create a mutable working cache for both passes
+    working_cache = {
+        "initialized": False,
+        "app_resources": [],
+        "resource_dependencies": {},
+        "resource_aliases": {},
+        "resource_path_map": {},
+        "stack_configs": {},
+    }
+
     # First pass - load JSON and generate YAML
-    initialize_discovery(_DISCOVERY_CACHE, second_pass=False)
+    initialize_discovery(working_cache, second_pass=False)
+
     # Second pass - reload from JSON (not YAML - JSON is source of truth)
-    _DISCOVERY_CACHE["initialized"] = False
-    initialize_discovery(_DISCOVERY_CACHE, second_pass=True)
+    working_cache["initialized"] = False
+    initialize_discovery(working_cache, second_pass=True)
+
+    # Update the module-level cache
+    _DISCOVERY_CACHE["app_resources"] = working_cache["app_resources"]
+    _DISCOVERY_CACHE["resource_dependencies"] = working_cache["resource_dependencies"]
+    _DISCOVERY_CACHE["resource_aliases"] = working_cache["resource_aliases"]
+    _DISCOVERY_CACHE["resource_path_map"] = working_cache["resource_path_map"]
+    _DISCOVERY_CACHE["stack_configs"] = working_cache["stack_configs"]
+    _DISCOVERY_CACHE["initialized"] = True
+
     print("")
     return _DISCOVERY_CACHE["app_resources"]
 

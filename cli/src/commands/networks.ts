@@ -5,7 +5,7 @@ import { discoverResources } from '../utils/services.js';
 import { findProjectRoot } from '../utils/paths.js';
 import { readProjectConfig } from '../generator/template-engine.js';
 import { sanitizeForShell, isValidPort } from '../utils/validation.js';
-import { requireProjectRoot } from '../utils/errors.js';
+import { requireProjectRoot, logVerbose } from '../utils/errors.js';
 import { formatBoxLine, formatCentered, formatPadded, getStatusIcon, colorizeByStatus } from '../utils/formatting.js';
 import { getStackEmoji } from '../utils/constants.js';
 import type { ServiceUrl } from '../types/index.js';
@@ -73,8 +73,9 @@ function determineDefaultDomain(): string {
     while ((match = domainRegex.exec(traefikLabels)) !== null) {
       domains.add(match[1]);
     }
-  } catch {
+  } catch (err: unknown) {
     // Docker not running or no Traefik containers - domains set remains empty
+    logVerbose('Docker not available for Traefik label scan', err);
   }
 
   // Filter out service-specific domains (ones that look like individual services)
@@ -150,8 +151,9 @@ async function checkServiceStatus(serviceName: string, port?: number, url?: stri
       if (code === '000') {
         return 'stopped';
       }
-    } catch {
+    } catch (err: unknown) {
       // HTTP check failed completely - service not accessible
+      logVerbose(`HTTP check failed for ${url}`, err);
       return 'stopped';
     }
   }
@@ -160,8 +162,9 @@ async function checkServiceStatus(serviceName: string, port?: number, url?: stri
     try {
       await execSafe('lsof', ['-Pi', `:${port}`, '-sTCP:LISTEN'], { timeout: 3000 });
       return 'running';
-    } catch {
+    } catch (err: unknown) {
       // Port not listening or lsof not available
+      logVerbose(`Port check failed for ${port}`, err);
     }
   }
 
@@ -176,8 +179,9 @@ async function checkServiceStatus(serviceName: string, port?: number, url?: stri
     if (result && result.trim().length > 0) {
       return 'running';
     }
-  } catch {
+  } catch (err: unknown) {
     // Docker not available or container not found - service is stopped
+    logVerbose(`Docker check failed for ${serviceName}`, err);
   }
 
   return 'stopped';

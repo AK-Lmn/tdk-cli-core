@@ -9,6 +9,7 @@ Manifest = struct(
     load_and_normalize = load_and_normalize,
     discover_manifests = discover_manifests_in_path,
     load_all_manifests = load_all_manifests,
+    load_all = load_all_manifests,
     validate = _validate,
     get_port = get_port,
     get_database_url = get_database_url,
