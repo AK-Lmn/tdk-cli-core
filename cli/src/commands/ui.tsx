@@ -1,5 +1,3 @@
-/** tdk ui command - Interactive Terminal UI using Ink */
-
 import { Command } from 'commander';
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { render, Box, Text, useInput, useApp, useStdout, useStdin } from 'ink';

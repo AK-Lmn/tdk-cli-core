@@ -1,12 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { KEBAB_CASE_REGEX } from '../../utils/validation.js';
+import { CREATABLE_RESOURCE_TYPES, isCreatableResourceType } from '../../types/index.js';
 import {
   createServiceJson,
   createPackageJson,
   getBackendIndexTemplate,
   getWorkerIndexTemplate,
-  CREATABLE_RESOURCE_TYPES,
-  isCreatableResourceType,
   TYPE_SPECIFIC,
   BASE_TEMPLATE,
   TSCONFIG_TEMPLATE,

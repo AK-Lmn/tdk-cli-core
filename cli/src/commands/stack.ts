@@ -3,9 +3,9 @@ import { writeFileSync, readFileSync } from 'node:fs';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { discoverResources, getAllStacks } from '../utils/services.js';
-import { requireProjectRoot, runCommand } from '../utils/errors.js';
+import { requireProjectRoot, runCommand, showErrorAndExit } from '../utils/errors.js';
 import { createKebabCaseValidator } from '../utils/validation.js';
-import { formatCount } from '../utils/formatting.js';
+import { formatCount, showCancelled, showCommandHeader, showAllSatisfyCondition } from '../utils/formatting.js';
 
 export const stackCommand = new Command('stack')
   .description('Organize resources into stacks (groups)')
@@ -15,7 +15,7 @@ export const stackCommand = new Command('stack')
     await runCommand(async () => {
       requireProjectRoot();
 
-      console.log(chalk.blue('TDK Stack Management\n'));
+      showCommandHeader('Stack Management');
 
       const allResources = discoverResources();
 
@@ -40,7 +40,7 @@ export const stackCommand = new Command('stack')
 
       if (options.list) {
         if (resourcesWithoutStack.length === 0) {
-          console.log(chalk.green('All resources are already assigned to a stack!'));
+          showAllSatisfyCondition('resources', 'already assigned to a stack');
           return;
         }
 
@@ -100,7 +100,7 @@ export const stackCommand = new Command('stack')
       }]);
 
       if (!confirm) {
-        console.log(chalk.yellow('Cancelled.'));
+        showCancelled();
         return;
       }
 

@@ -1,10 +1,6 @@
 import { OPTIONAL_INFRA_SERVICES, VALID_RESOURCE_TYPES } from './constants.js';
 import type { ValidationResult } from '../types/index.js';
 
-/**
- * Regex pattern for kebab-case validation (lowercase letters, numbers, hyphens)
- * Exported for use in tests to ensure consistency
- */
 export const KEBAB_CASE_REGEX = /^[a-z0-9-]+$/;
 
 function isKebabCase(value: string): boolean {

@@ -17,9 +17,16 @@
     "cli": "cd cli && node bin/tdk.js",
     "tdk": "cd cli && node bin/tdk.js"
   },
-  "keywords": ["tdk", "tilt", "cli", "microservices", "local-dev"],
+  "keywords": [
+    "tdk",
+    "tilt",
+    "cli",
+    "microservices",
+    "local-dev"
+  ],
   "license": "MIT",
   "devDependencies": {
-    "knip": "^6.9.0"
+    "knip": "^6.9.0",
+    "madge": "^8.0.0"
   }
 }

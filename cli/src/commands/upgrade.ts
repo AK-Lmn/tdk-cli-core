@@ -5,7 +5,8 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
 import ora from 'ora';
-import { logVerbose, getErrorMessage } from '../utils/errors.js';
+import { logVerbose, getErrorMessage, showErrorAndExit } from '../utils/errors.js';
+import { showCancelled } from '../utils/formatting.js';
 
 interface InstallInfo {
   method: 'npm' | 'bun' | 'git' | 'unknown';
@@ -55,7 +56,7 @@ function getCurrentVersion(): string {
   try {
     const packagePath = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', 'package.json');
     const pkg = JSON.parse(readFileSync(packagePath, 'utf-8'));
-    return pkg.version || 'unknown';
+    return pkg.version;
   } catch (err: unknown) {
     logVerbose('Could not read package.json', err);
     return 'unknown';
@@ -250,8 +251,7 @@ export const upgradeCommand = new Command('upgrade')
       latestVersion = await getLatestVersion();
       
       if (!latestVersion) {
-        console.error(chalk.red('\n❌ Could not determine latest version'));
-        process.exit(1);
+        showErrorAndExit('Could not determine latest version');
       }
 
       if (currentVersion === latestVersion && !options.force) {
@@ -292,7 +292,7 @@ export const upgradeCommand = new Command('upgrade')
       }]));
       
       if (!confirm) {
-        console.log(chalk.yellow('Cancelled.'));
+        showCancelled();
         process.exit(0);
       }
     } else {
@@ -376,6 +376,8 @@ export const upgradeCommand = new Command('upgrade')
       console.log(chalk.yellow('💡 Verify manually:'));
       console.log(chalk.white('   1. Restart your terminal'));
       console.log(chalk.white('   2. Run: tdk version'));
-      console.log(chalk.white('   3. Compare with: git -C ' + (installInfo.path || '/path/to/tdk-cli') + ' rev-parse HEAD'));
+      if (installInfo.path) {
+        console.log(chalk.white('   3. Compare with: git -C ' + installInfo.path + ' rev-parse HEAD'));
+      }
     }
   });

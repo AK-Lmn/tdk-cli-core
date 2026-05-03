@@ -1,28 +1,8 @@
 import React from 'react';
 import { Box, Text } from 'ink';
+import type { TooltipProps } from '../types/index.js';
 
-interface BaseTooltipProps {
-  /** Tooltip content text */
-  content: string;
-  /** Optional keyboard shortcut to display */
-  shortcut?: string;
-  /** Whether the tooltip is currently visible */
-  visible: boolean;
-  /** Maximum width for tooltip content wrapping */
-  maxWidth?: number;
-  /** Whether to wrap text to multiple lines */
-  wrapText?: boolean;
-  /** Additional prefix element (e.g., "ℹ " info icon) */
-  prefix?: string;
-  /** Vertical margin offset */
-  marginTop?: number;
-}
-
-/**
- * Base tooltip component with shared styling
- * Provides consistent yellow border, black background, and padding
- */
-export const BaseTooltip: React.FC<BaseTooltipProps> = ({
+export const BaseTooltip: React.FC<TooltipProps> = ({
   content,
   shortcut,
   visible,
@@ -62,9 +42,6 @@ export const BaseTooltip: React.FC<BaseTooltipProps> = ({
   );
 };
 
-/**
- * Wrap content text to fit within maxWidth
- */
 function wrapContent(content: string, maxWidth: number): string[] {
   const words = content.split(' ');
   const lines: string[] = [];

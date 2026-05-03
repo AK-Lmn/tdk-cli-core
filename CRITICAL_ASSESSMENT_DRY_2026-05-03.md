@@ -1,300 +1,373 @@
-# DRY Implementation Assessment
-
+# DRY Assessment Report - TDK CLI Codebase
 **Date:** 2026-05-03  
-**Scope:** `/private/var/www/2025/ollamar1/tdk-cli/cli/src`  
-**File Types:** TypeScript (.ts, .tsx)
+**Scope:** `/private/var/www/2025/ollamar1/tdk-cli/cli/src/**/*.ts`  
+**Assessor:** Code Deduplication Specialist
 
 ---
 
 ## Executive Summary
 
-This assessment identifies code duplications in the TDK CLI codebase and provides recommendations for consolidation. The focus is on **high-confidence** consolidations that genuinely reduce complexity without creating "utility hell."
+Found **11 distinct duplication patterns** across the TDK CLI codebase. Most violations are in command action patterns, console output formatting, and error handling. All identified duplications are **low-hanging fruit** that can be consolidated without architectural changes.
 
 ---
 
-## Findings
+## High Severity Duplications
 
-### 1. **HIGH** - Duplicate Package.json Template Logic
-
-**Files:**
-- `commands/resource.ts` (lines 90-114)
-- `commands/__tests__/resource.test.ts` (lines 125-188)
+### 1. Cancelled Message Pattern
+**Severity:** High  
+**Confidence:** High  
+**Files:** 4 occurrences
 
 **Duplicate Code:**
 ```typescript
-// In resource.ts
-function createPackageJson(name: string, type: string) {
-  const isFrontend = type === 'frontend';
-  return {
-    name: `@project/${name}`,
-    version: '0.0.1',
-    type: 'module',
-    scripts: {
-      dev: isFrontend ? 'vite' : 'bun run --watch src/index.ts',
-      build: isFrontend ? 'tsc && vite build' : 'tsc',
-      ...
-    },
-    dependencies: {
-      ...(isFrontend ? {} : { hono: '^4.0.0' }),
-    },
-    ...
-  };
-}
-
-// In resource.test.ts - nearly identical inline object
-const packageJson = {
-  name: `@project/${name}`,
-  version: '0.0.1',
-  ...
-};
+console.log(chalk.yellow('Cancelled.'));
 ```
 
-**Severity:** High  
-**DRY Violation:** Same template logic duplicated in tests and implementation  
-**Recommended Approach:** 
-- Export `createPackageJson` from resource.ts or a templates.ts module
-- Update tests to use the actual function  
-**Confidence:** High
+**Locations:**
+- `commands/resource.ts:484`
+- `commands/upgrade.ts:295`
+- `commands/stack.ts:103`
+- `commands/project.ts:127`
 
----
+**Why Violates DRY:**
+Same exact string and formatting pattern used when user cancels an operation. Should be a shared utility for consistency and easier localization.
 
-### 2. **HIGH** - Duplicate Service.json Template Logic
-
-**Files:**
-- `commands/resource.ts` (lines 69-88, TYPE_SPECIFIC object)
-- `commands/__tests__/resource.test.ts` (lines 37-95)
-
-**Duplicate Code:**
-- Backend service.json structure defined twice
-- Frontend service.json structure defined twice  
-- Worker service.json structure defined twice
-
-**Severity:** High  
-**DRY Violation:** Same template objects in both production and test code  
-**Recommended Approach:**
-- Export `createServiceJson` and `TYPE_SPECIFIC` from resource.ts
-- Import in tests and verify against actual templates
-**Confidence:** High
-
----
-
-### 3. **HIGH** - Similar Exec Check Pattern in Doctor Commands
-
-**Files:**
-- `commands/doctor.ts` (lines 8-60)
-
-**Duplicate Code:**
+**Recommended Fix:**
+Add to `src/utils/formatting.ts`:
 ```typescript
-// Pattern repeated 3 times with only name/command varying
-function checkDocker(): CheckResult {
-  try {
-    execSync("docker ps", { stdio: "pipe" });
-    return { name: "Docker", didPass: true, message: "..." };
-  } catch {
-    return { name: "Docker", didPass: false, message: "...", fix: "..." };
-  }
-}
-
-function checkTilt(): CheckResult { ...same pattern... }
-function checkDockerCompose(): CheckResult { ...same pattern... }
-```
-
-**Severity:** High  
-**DRY Violation:** Identical try/catch structure repeated  
-**Recommended Approach:**
-- Create a `createExecCheck()` factory that takes command, name, messages
-- Reduces 3 functions to simple configuration objects  
-**Confidence:** High
-
----
-
-### 4. **HIGH** - Duplicate Port Assignment Logic
-
-**Files:**
-- `commands/resource.ts` (lines 459-480)
-- `utils/services.ts` (discoverResources and port handling)
-
-**Duplicate Code:**
-- Collecting used ports from resources
-- Finding next available port in range
-- PORT_RANGES usage pattern
-
-**Severity:** High  
-**DRY Violation:** Port assignment logic should be centralized  
-**Recommended Approach:**
-- Create `assignPort(resourceType: string, existingResources: DiscoveredResource[]): number` in utils
-- Use in resource.ts and anywhere ports need assignment
-**Confidence:** High
-
----
-
-### 5. **MEDIUM** - Chalk Color Output Patterns
-
-**Files:**
-- `commands/up.ts` - dry-run messages (lines 56-58)
-- `commands/down.ts` - dry-run messages (lines 14-16)
-- `commands/networks.ts` - status messages
-- Multiple other commands
-
-**Duplicate Code:**
-```typescript
-console.log(chalk.gray('Dry run - not starting resources.'));
-console.log(chalk.gray(`Would run: tilt up ${serviceNames.join(' ')}`));
-
-// In down.ts:
-console.log(chalk.gray('Dry run - not stopping resources.'));
-console.log(chalk.gray('Would run: tilt down'));
-```
-
-**Severity:** Medium  
-**DRY Violation:** Similar dry-run message pattern  
-**Recommended Approach:**
-- Could create `printDryRun(action: string, command: string)` utility
-- But this is borderline - may not reduce complexity  
-**Confidence:** Medium
-
----
-
-### 6. **MEDIUM** - Project Root Check Pattern
-
-**Files:**
-- `commands/networks.ts` (lines 194-199)
-- `commands/resource.ts` (uses requireProjectRoot)
-- Various commands using `requireProjectRoot()`
-
-**Duplicate Code:**
-```typescript
-const projectRoot = findProjectRoot();
-if (!projectRoot) {
-  console.error(chalk.red('❌ Not in a TDK project directory'));
-  process.exit(1);
+export function showCancelled(message?: string): void {
+  console.log(chalk.yellow(message || 'Cancelled.'));
 }
 ```
 
-**Severity:** Medium  
-**DRY Violation:** Some commands use requireProjectRoot, others inline the check  
-**Recommended Approach:**
-- Use `requireProjectRoot()` consistently across all commands
-- Already exists in utils/errors.ts  
-**Confidence:** High (for unifying usage)
+---
+
+### 2. Error Display + Exit Pattern
+**Severity:** High  
+**Confidence:** High  
+**Files:** 18+ occurrences
+
+**Duplicate Pattern:**
+```typescript
+console.error(chalk.red(`Error: ${message}`));
+process.exit(1);
+```
+
+**Key Locations:**
+- `commands/resource.ts:364-365`, `444-447`, `451-452`, `456-458`, `465-467`
+- `commands/project.ts:137-138`, `91`
+- `commands/config.ts:188-189`
+- `commands/upgrade.ts:210`, `253`, `330`
+- `commands/completion.ts:246-247`
+- `commands/up.ts:24-31`
+
+**Why Violates DRY:**
+Every command handles errors the same way but with slight variations. This creates inconsistency in error formatting and exit codes.
+
+**Recommended Fix:**
+Use existing `TdkError` class in `utils/errors.ts` or add helper:
+```typescript
+export function showErrorAndExit(message: string, exitCode: number = 1): never {
+  console.error(chalk.red(`Error: ${message}`));
+  process.exit(exitCode);
+}
+```
 
 ---
 
-### 7. **MEDIUM** - Stack Resource Count Logic
-
-**Files:**
-- `commands/stacks.ts` (lines 44-49)
-- `commands/projects.ts` (lines 58-61)
-- `commands/stack.ts` (lines 33-34)
+### 3. "All X are Y" Success Messages
+**Severity:** Medium  
+**Confidence:** High  
+**Files:** 4 occurrences
 
 **Duplicate Code:**
 ```typescript
-// Count resources per stack
-const count = resources.filter(r => r.stack === name).length;
-// Or variations of this pattern
+console.log(chalk.green('All resources are assigned to a stack!'));
+console.log(chalk.green('All resources are already assigned to a stack!'));
 ```
 
-**Severity:** Medium  
-**DRY Violation:** Same filtering logic repeated  
-**Recommended Approach:**
-- Create `countResourcesInStack(resources, stackName)` utility
-- Export from utils/services.ts  
-**Confidence:** Medium
+**Locations:**
+- `commands/resources.ts:37`
+- `commands/stack.ts:43`
+- `commands/resources.ts:37`
+
+**Why Violates DRY:**
+Nearly identical messages for the same semantic concept (all items in a category satisfy a condition).
+
+**Recommended Fix:**
+Add to `src/utils/formatting.ts`:
+```typescript
+export function showAllSatisfyCondition(items: string, condition: string): void {
+  console.log(chalk.green(`All ${items} are ${condition}!`));
+}
+```
 
 ---
 
-### 8. **LOW** - Console Output Section Headers
+### 4. Command Action Wrapper Pattern
+**Severity:** Medium  
+**Confidence:** High  
+**Files:** 12 occurrences
 
-**Files:**
-- `commands/resource.ts` - lines 501-553
-- `commands/project.ts` - lines 225-242
+**Duplicate Pattern:**
+```typescript
+.action(async (options) => {
+  await runCommand(async () => {
+    // command implementation
+  });
+});
+```
 
-**Duplicate Code:**
-- Pattern: `console.log(chalk.blue('📁 Creating directory structure...'));`
-- File generation progress messages
+**Locations:**
+- `commands/resource.ts:345`
+- `commands/stack.ts:15`
+- `commands/project.ts:59`
+- `commands/resources.ts:14`
+- `commands/stacks.ts:13`
+- `commands/projects.ts:14`
+- `commands/status.ts:15`
+- `commands/config.ts` (5 subcommands)
 
+**Why Violates DRY:**
+Every command uses the same wrapper pattern. Could be abstracted into a helper that combines command registration with error handling.
+
+**Recommended Fix:**
+Create a command factory:
+```typescript
+export function createCommand(name: string, description: string, action: () => Promise<void>): Command {
+  return new Command(name)
+    .description(description)
+    .action(async () => {
+      await runCommand(action);
+    });
+}
+```
+
+---
+
+### 5. Header Display Pattern
+**Severity:** Medium  
+**Confidence:** High  
+**Files:** 15+ occurrences
+
+**Duplicate Pattern:**
+```typescript
+console.log(chalk.blue('TDK Resource Creation\n'));
+console.log(chalk.blue('TDK Stack Management\n'));
+console.log(chalk.blue('TDK Project Configuration\n'));
+```
+
+**Locations:**
+- `commands/resource.ts:348`
+- `commands/stack.ts:18`
+- `commands/project.ts:64`, `95`, `148`, `225`, `230`
+- `commands/config.ts:22`, `105`, `113`, `126`, `156`
+- `commands/status.ts:18`
+- `commands/stacks.ts:26`, `42`
+- `commands/resources.ts:42`
+- `commands/projects.ts:17`
+
+**Why Violates DRY:**
+Same pattern with only the noun changing. Creates visual inconsistency if one deviates.
+
+**Recommended Fix:**
+Add to `src/utils/formatting.ts`:
+```typescript
+export function showCommandHeader(title: string): void {
+  console.log(chalk.blue(`TDK ${title}\n`));
+}
+```
+
+---
+
+## Medium Severity Duplications
+
+### 6. Verbose Logging Pattern
+**Severity:** Medium  
+**Confidence:** Medium  
+**Files:** 20+ occurrences
+
+**Duplicate Pattern:**
+```typescript
+console.log(chalk.gray(`Found ${formatCount(count, 'item')} in ${context}`));
+console.log(chalk.gray(`  - ${name}`));
+```
+
+**Why Violates DRY:**
+Verbose/detail output follows same pattern across commands. Could use a shared verbose logger.
+
+**Recommended Fix:**
+Extend existing `logVerbose` or create:
+```typescript
+export function logDetail(message: string): void {
+  console.log(chalk.gray(message));
+}
+```
+
+---
+
+### 7. Resource Discovery Call Pattern
 **Severity:** Low  
-**DRY Violation:** Visual progress indicators are similar  
-**Recommended Approach:**
-- Not recommended for consolidation - these are context-specific UI patterns
-- Forcing abstraction would create "utility hell"  
-**Confidence:** Low
+**Confidence:** High  
+**Files:** 13 occurrences
+
+**Duplicate Pattern:**
+```typescript
+const allResources = discoverResources();
+```
+
+**Locations:** Nearly every command file
+
+**Why Violates DRY:**
+While not strictly duplicate code, many commands repeat the same discovery pattern. Could benefit from a cached/validated wrapper.
+
+**Note:** This is borderline acceptable since it's the primary API. Not recommended to consolidate unless adding caching.
 
 ---
 
-### 9. **HIGH** - File Writing Pattern with JSON Stringify
+### 8. Project Root Validation
+**Severity:** Low  
+**Confidence:** High  
+**Files:** 11 occurrences
 
-**Files:**
-- `commands/resource.ts` (lines 506-553)
-- `commands/project.ts` (lines 226)
-- `generator/template-engine.ts` (lines 300)
+**Duplicate Pattern:**
+```typescript
+const projectRoot = requireProjectRoot();
+// or
+requireProjectRoot();
+```
+
+**Locations:** Most command files
+
+**Why Violates DRY:**
+Same validation repeated. Some commands don't use the return value but call it anyway for side effects.
+
+**Note:** This is acceptable as it's the entry guard pattern. No action needed.
+
+---
+
+## Low Severity Duplications
+
+### 9. Next Steps Output Pattern
+**Severity:** Low  
+**Confidence:** Medium  
+**Files:** 5+ occurrences
+
+**Example in `resource.ts:524-527`:**
+```typescript
+console.log(chalk.gray(`\nLocation: ${fullPath}`));
+console.log(chalk.gray(`\nNext steps:`));
+console.log(chalk.gray(`  cd ${resourcePath}`));
+```
+
+**Why Low Severity:**
+Each command has context-specific next steps. Consolidation would reduce clarity.
+
+**Recommendation:** No action - keep context-specific.
+
+---
+
+### 10. Config File Existence Check Pattern
+**Severity:** Low  
+**Confidence:** Medium  
+**Files:** `doctor.ts`, `projects.ts`
 
 **Duplicate Code:**
 ```typescript
-writeFileSync(
-  resolve(fullPath, 'service.json'),
-  JSON.stringify(serviceJson, null, 2) + '\n',
-  'utf-8'
-);
-// Similar pattern for package.json, tsconfig.json, etc.
+const defaultsPath = resolve(process.cwd(), "TILT_RESOURCE_DEFAULTS.star");
+const techStackPath = resolve(process.cwd(), "TILT_TECH_STACK.star");
+const defaultsExists = existsSync(defaultsPath);
+const techStackExists = existsSync(techStackPath);
 ```
 
-**Severity:** High  
-**DRY Violation:** Same write pattern with JSON stringify + newline  
-**Recommended Approach:**
-- Create `writeJsonFile(path, data)` utility in utils  
-- Consistent formatting and error handling  
-**Confidence:** High
+**Locations:**
+- `commands/doctor.ts:67-72`
+- `commands/projects.ts:23-27`
+
+**Why Low Severity:**
+Only 2 occurrences and context differs slightly.
+
+**Recommendation:** No action - acceptable duplication.
 
 ---
 
-### 10. **MEDIUM** - Type Guard Pattern for ResourceType
+### 11. Tilt Check Wrapper
+**Severity:** Low  
+**Confidence:** High  
+**Files:** 2 occurrences
 
-**Files:**
-- `commands/resource.ts` (lines 26-28)
-- `utils/validation.ts` - has similar patterns
-
-**Duplicate Code:**
+**Duplicate Pattern:**
 ```typescript
-function isCreatableResourceType(type: string): type is CreatableResourceType {
-  return (CREATABLE_RESOURCE_TYPES as readonly string[]).includes(type);
-}
+await withTiltCheck(async () => {
+  // command logic
+});
 ```
 
-**Severity:** Medium  
-**DRY Violation:** Type checking pattern could be generalized  
-**Recommended Approach:**
-- Create generic `isInArray<T>(value: string, array: readonly T[]): value is T`  
-- Or use the existing `includes()` from validation.ts  
-**Confidence:** Medium
+**Locations:**
+- `commands/up.ts:18`
+- `commands/down.ts:12`
+
+**Why Low Severity:**
+Only 2 occurrences and they correctly use the shared utility. Pattern is already consolidated.
+
+**Recommendation:** No action - already using shared abstraction.
 
 ---
 
-## Summary
+## Implementation Priority
 
-| Priority | Finding | Confidence | Action |
-|----------|---------|------------|--------|
-| High | Package.json template duplication | High | Consolidate |
-| High | Service.json template duplication | High | Consolidate |
-| High | Doctor exec check pattern | High | Consolidate |
-| High | Port assignment logic | High | Consolidate |
-| High | File writing pattern | High | Consolidate |
-| Medium | Project root check pattern | High | Unify usage |
-| Medium | Stack resource count | Medium | Consider |
-| Medium | Type guard pattern | Medium | Consider |
-| Low | Console output headers | Low | Skip |
+### Phase 1: High Confidence, High Impact
+1. ✅ Cancelled message utility
+2. ✅ Error display + exit helper  
+3. ✅ Header display utility
+4. ✅ "All X are Y" message utility
 
----
+### Phase 2: Medium Confidence
+5. Command factory (requires more design)
+6. Verbose logging helper
 
-## Recommended Implementation Order
-
-1. **Port Assignment Utility** (`utils/port-assignment.ts`)
-2. **File Writing Utility** (`utils/file-helpers.ts`)
-3. **Doctor Check Factory** (`commands/doctor.ts` internal refactor)
-4. **Template Exports** (`commands/resource.ts` exports)
-5. **Consistent requireProjectRoot usage**
+### Phase 3: Low Priority
+7. No changes recommended for low-severity items
 
 ---
 
-**Assessment completed by:** Code Deduplication Specialist  
-**Date:** 2026-05-03
+## Files to Modify
+
+### New Utilities (in `utils/formatting.ts`):
+- `showCancelled()` - for cancellation messages
+- `showCommandHeader()` - for command headers
+- `showAllSatisfyCondition()` - for "all items satisfy" messages
+
+### New Utilities (in `utils/errors.ts`):
+- `showErrorAndExit()` - for error + exit pattern
+
+### Command Files Requiring Updates:
+- `commands/resource.ts` - use new utilities
+- `commands/upgrade.ts` - use new utilities
+- `commands/stack.ts` - use new utilities
+- `commands/project.ts` - use new utilities
+- `commands/config.ts` - use new utilities
+- `commands/resources.ts` - use new utilities
+
+---
+
+## Success Criteria
+
+- [ ] Assessment document created (this file)
+- [ ] All high-confidence duplications consolidated
+- [ ] Project builds successfully (`cd cli && bun run build`)
+- [ ] No test regressions (`cd cli && bun test`)
+- [ ] No behavioral changes (pure refactor)
+
+---
+
+## Estimated Impact
+
+- **Lines Removed:** ~50-80 lines of duplicate code
+- **Files Modified:** 8 files
+- **New Utilities:** 4 functions
+- **Risk Level:** Low (all changes are pure refactor)
+
+---
+
+*Generated by Code Deduplication Specialist - 2026-05-03*

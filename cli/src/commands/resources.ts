@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { discoverResources } from '../utils/services.js';
 import { requireProjectRoot, runCommand } from '../utils/errors.js';
-import { formatCount, showEmptyState } from '../utils/formatting.js';
+import { formatCount, showEmptyState, showAllSatisfyCondition } from '../utils/formatting.js';
 
 export const resourcesCommand = new Command('resources')
   .description('List all resources (services) in the project')
@@ -34,7 +34,7 @@ export const resourcesCommand = new Command('resources')
       if (options.noStack) {
         resources = resources.filter(r => !r.stack);
         if (resources.length === 0) {
-          console.log(chalk.green('All resources are assigned to a stack!'));
+          showAllSatisfyCondition('resources', 'assigned to a stack');
           return;
         }
       }

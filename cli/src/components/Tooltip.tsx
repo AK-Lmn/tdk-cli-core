@@ -2,10 +2,6 @@ import React from 'react';
 import { BaseTooltip } from './BaseTooltip.js';
 import type { TooltipProps } from '../types/index.js';
 
-/**
- * Tooltip component for displaying contextual help
- * Uses BaseTooltip for consistent styling with text wrapping support
- */
 const Tooltip: React.FC<TooltipProps> = ({
   content,
   shortcut,

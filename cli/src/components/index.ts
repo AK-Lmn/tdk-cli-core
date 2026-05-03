@@ -5,7 +5,15 @@ export { FileTree } from './FileTree.js';
 export { AccessibleTooltip } from './Accessible.js';
 export { TOOLTIPS } from './Tooltip.js';
 export { ResourceSelectInput } from './ResourceSelectInput.js';
-export type { TabId } from './TabBar.js';
 
-// Note: FileNode type is exported from '../types/index.js' - import from there directly
-// to maintain a single source of truth for shared types
+// Component prop types are re-exported from types/index.js
+export type {
+  TabId,
+  Tab,
+  TabBarProps,
+  DetailPanelProps,
+  ResourceTableProps,
+  ResourceSelectInputProps,
+  TooltipProps,
+  FileNode,
+} from '../types/index.js';

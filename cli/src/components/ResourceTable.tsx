@@ -1,12 +1,7 @@
 import React from 'react';
 import { Box, Text } from 'ink';
-import type { ResourceMetadata } from '../types/index.js';
+import type { ResourceMetadata, ResourceTableProps } from '../types/index.js';
 import { truncate, formatShortDate, getStatusColor, getStatusIcon } from '../utils/formatting.js';
-
-interface ResourceTableProps {
-  resources: ResourceMetadata[];
-  maxWidth?: number;
-}
 
 export const ResourceTable: React.FC<ResourceTableProps> = ({ resources, maxWidth = 100 }) => {
   if (resources.length === 0) {

@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import type { StatusValue } from '../types/index.js';
+import type { StatusValue, StatusCategory } from '../types/index.js';
 
 function pluralize(count: number, singular: string, plural?: string): string {
   return count === 1 ? singular : (plural || `${singular}s`);
@@ -50,8 +50,6 @@ export function truncate(str: string, maxLength: number): string {
   if (str.length <= maxLength) return str;
   return str.slice(0, maxLength - 3) + '...';
 }
-
-type StatusCategory = 'success' | 'error' | 'warning' | 'unknown';
 
 function getStatusCategory(status: StatusValue): StatusCategory {
   if (!status) return 'unknown';
@@ -151,4 +149,34 @@ export function showEmptyState(
     console.log(chalk.gray('\nOr create a new resource with a stack:'));
     console.log(chalk.gray('  tdk resource <name> --stack <stack-name>'));
   }
+}
+
+/**
+ * Display a cancellation message to the user.
+ * Used when user cancels an interactive operation.
+ *
+ * @param message - Optional custom message (defaults to 'Cancelled.')
+ */
+export function showCancelled(message?: string): void {
+  console.log(chalk.yellow(message || 'Cancelled.'));
+}
+
+/**
+ * Display a command header with consistent formatting.
+ * Standard blue color with TDK prefix and trailing newline.
+ *
+ * @param title - The command title (e.g., 'Resource Creation')
+ */
+export function showCommandHeader(title: string): void {
+  console.log(chalk.blue(`TDK ${title}\n`));
+}
+
+/**
+ * Display a success message when all items satisfy a condition.
+ *
+ * @param items - The item type name (e.g., 'resources')
+ * @param condition - The condition they satisfy (e.g., 'assigned to a stack')
+ */
+export function showAllSatisfyCondition(items: string, condition: string): void {
+  console.log(chalk.green(`All ${items} are ${condition}!`));
 }

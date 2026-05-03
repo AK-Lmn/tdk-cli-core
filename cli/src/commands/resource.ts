@@ -3,31 +3,15 @@ import { existsSync, mkdirSync } from 'node:fs';
 import { resolve, relative, isAbsolute } from 'node:path';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import type { ResourceType } from '../types/index.js';
+import type { CreatableResourceType, ResourceType } from '../types/index.js';
+import { CREATABLE_RESOURCE_TYPES, isCreatableResourceType } from '../types/index.js';
 import { discoverResources } from '../utils/services.js';
-import { requireProjectRoot, runCommand } from '../utils/errors.js';
+import { requireProjectRoot, runCommand, showErrorAndExit } from '../utils/errors.js';
 import { validateResourceName, createKebabCaseValidator } from '../utils/validation.js';
-import { formatCount } from '../utils/formatting.js';
+import { formatCount, showCancelled, showCommandHeader } from '../utils/formatting.js';
 import { PORT_RANGES } from '../utils/constants.js';
 import { assignPort } from '../utils/port-assignment.js';
 import { writeJsonFileInDir, writeTextFileInDir } from '../utils/file-helpers.js';
-
-/**
- * Resource types supported by the `tdk resource create` command.
- * Derived from ResourceType - subset that users can directly create.
- * Excludes 'library', 'sdk', 'migrator' which are created through other means.
- */
-export const CREATABLE_RESOURCE_TYPES = ['backend', 'frontend', 'worker'] as const;
-export type CreatableResourceType = Extract<ResourceType, typeof CREATABLE_RESOURCE_TYPES[number]>;
-
-/**
- * Type guard to validate if a string is a valid CreatableResourceType
- * @param type - The type string to validate
- * @returns True if the type is a valid creatable resource type
- */
-export function isCreatableResourceType(type: string): type is CreatableResourceType {
-  return (CREATABLE_RESOURCE_TYPES as readonly string[]).includes(type);
-}
 
 /**
  * Common base template for all resource types.
@@ -46,10 +30,6 @@ export const BASE_TEMPLATE = {
   },
 } as const;
 
-/**
- * Type-specific extensions for each resource type.
- * These are merged with BASE_TEMPLATE to create complete templates.
- */
 export const TYPE_SPECIFIC: Record<CreatableResourceType, Record<string, unknown>> = {
   backend: {
     healthCheck: '/health',
@@ -207,7 +187,7 @@ export default {
 `;
 }
 
-export function getFrontendIndexTemplate(name: string) {
+function getFrontendIndexTemplate(name: string) {
   return `<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -223,7 +203,7 @@ export function getFrontendIndexTemplate(name: string) {
 `;
 }
 
-export const FRONTEND_MAIN_TEMPLATE = `import React from 'react';
+const FRONTEND_MAIN_TEMPLATE = `import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 
@@ -234,7 +214,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 );
 `;
 
-export function getFrontendAppTemplate(name: string) {
+function getFrontendAppTemplate(name: string) {
   return `function App() {
   return (
     <div style={{ padding: '2rem', fontFamily: 'system-ui' }}>
@@ -325,7 +305,7 @@ main().catch((err) => {
 `;
 }
 
-export function getTestTemplate(name: string) {
+function getTestTemplate(name: string) {
   return `import { describe, it, expect } from 'vitest';
 
 describe('${name}', () => {
@@ -345,7 +325,7 @@ export const resourceCommand = new Command('resource')
     await runCommand(async () => {
       const projectRoot = requireProjectRoot();
 
-      console.log(chalk.blue('TDK Resource Creation\n'));
+      showCommandHeader('Resource Creation');
 
       const allResources = discoverResources();
 
@@ -361,8 +341,7 @@ export const resourceCommand = new Command('resource')
       } else {
         const validation = validateResourceName(resourceName);
         if (!validation.valid) {
-          console.error(chalk.red(`Error: ${validation.error}`));
-          process.exit(1);
+          showErrorAndExit(validation.error ?? 'Invalid resource name');
         }
       }
 
@@ -448,8 +427,7 @@ export const resourceCommand = new Command('resource')
       }
 
       if (resourcePath.includes('\0') || /[<>:"|?*]/.test(resourcePath)) {
-        console.error(chalk.red(`Error: Path contains invalid characters`));
-        process.exit(1);
+        showErrorAndExit('Path contains invalid characters');
       }
 
       if (existsSync(fullPath)) {
@@ -462,8 +440,7 @@ export const resourceCommand = new Command('resource')
       try {
         assignedPort = assignPort(resourceType, allResources);
       } catch (err: unknown) {
-        console.error(chalk.red(`Error: ${err instanceof Error ? err.message : String(err)}`));
-        process.exit(1);
+        showErrorAndExit(err instanceof Error ? err.message : String(err));
       }
 
       console.log(chalk.gray('\nResource details:'));
@@ -481,7 +458,7 @@ export const resourceCommand = new Command('resource')
       }]);
 
       if (!confirm) {
-        console.log(chalk.yellow('Cancelled.'));
+        showCancelled();
         return;
       }
 

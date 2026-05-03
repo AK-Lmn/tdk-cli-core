@@ -2,24 +2,10 @@ import chalk from 'chalk';
 import { findProjectRoot } from './paths.js';
 import { isTiltAvailable } from './tilt.js';
 
-/**
- * Extract a human-readable error message from an unknown error value.
- * Handles Error objects, strings, and any other type safely.
- *
- * @param err - The error value (unknown type from catch blocks)
- * @returns A string representation of the error
- */
 export function getErrorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
 }
 
-/**
- * Log a verbose message if TDK_VERBOSE environment variable is set.
- * Automatically extracts error messages from Error objects.
- *
- * @param message - The base message to log
- * @param err - Optional error to append to the message
- */
 export function logVerbose(message: string, err?: unknown): void {
   if (process.env.TDK_VERBOSE) {
     const errMsg = err !== undefined ? `: ${getErrorMessage(err)}` : '';
@@ -112,4 +98,16 @@ export async function withTiltCheck<T>(
     process.exit(1);
   }
   return runCommand(action, options);
+}
+
+/**
+ * Display an error message and exit with a specific code.
+ * Consolidates the common pattern of error display + process exit.
+ *
+ * @param message - The error message to display
+ * @param exitCode - The exit code (defaults to 1)
+ */
+export function showErrorAndExit(message: string, exitCode: number = 1): never {
+  console.error(chalk.red(`Error: ${message}`));
+  process.exit(exitCode);
 }

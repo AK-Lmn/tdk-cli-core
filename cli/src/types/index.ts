@@ -52,7 +52,13 @@ export type ResourceType = 'frontend' | 'backend' | 'library' | 'sdk' | 'worker'
  * Resource types that can be created via `tdk resource create`
  * Subset of ResourceType excluding library, sdk, migrator
  */
-export type CreatableResourceType = 'backend' | 'frontend' | 'worker';
+export const CREATABLE_RESOURCE_TYPES = ['backend', 'frontend', 'worker'] as const;
+
+/**
+ * Type for creatable resources (backend, frontend, worker)
+ * Derived from ResourceType using Extract for type safety
+ */
+export type CreatableResourceType = Extract<ResourceType, typeof CREATABLE_RESOURCE_TYPES[number]>;
 
 /**
  * Type guard to validate if a string is a valid CreatableResourceType
@@ -60,7 +66,7 @@ export type CreatableResourceType = 'backend' | 'frontend' | 'worker';
  * @returns True if the value is a valid creatable resource type
  */
 export function isCreatableResourceType(value: unknown): value is CreatableResourceType {
-  return typeof value === 'string' && ['backend', 'frontend', 'worker'].includes(value);
+  return typeof value === 'string' && (CREATABLE_RESOURCE_TYPES as readonly string[]).includes(value);
 }
 
 export type ResourceStatus = 'ready' | 'pending' | 'error' | 'unknown';
@@ -103,10 +109,6 @@ export interface TiltResourceStatus {
   available: boolean;
 }
 
-/**
- * JSON-compatible value types for configuration overrides
- * Used for project configuration and template generation
- */
 export type JsonValue = string | number | boolean | null | JsonArray | JsonObject;
 
 interface JsonArray extends Array<JsonValue> {}
@@ -129,10 +131,6 @@ export interface ProjectDiscovery {
   paths: string[];
 }
 
-/**
- * Project configuration structure (from .tdk/project.json)
- * This is the canonical type - consolidated from template-engine.ts
- */
 export interface ProjectConfig {
   version: string;
   project: {
@@ -150,13 +148,46 @@ export interface ProjectConfig {
   overrides?: Record<string, JsonValue>;
 }
 
-// UI Component Types
+export type TabId = 'overview' | 'resources' | 'events' | 'files' | 'config';
+
+export interface Tab {
+  id: TabId;
+  label: string;
+  shortcut: string;
+}
+
+export interface TabBarProps {
+  activeTab: TabId;
+  onTabChange: (tab: TabId) => void;
+  compact?: boolean;
+}
 
 export interface TooltipProps {
   content: string;
   shortcut?: string;
   visible: boolean;
   maxWidth?: number;
+  wrapText?: boolean;
+  prefix?: string;
+  marginTop?: number;
+}
+
+export interface DetailPanelProps {
+  stack: DiscoveredStack | null;
+  service: DiscoveredResource | null;
+  stackMetadata?: StackMetadata | null;
+  visible: boolean;
+}
+
+export interface ResourceTableProps {
+  resources: ResourceMetadata[];
+  maxWidth?: number;
+}
+
+export interface ResourceSelectInputProps {
+  items: SelectItem[];
+  onSelect: (item: SelectItem) => void;
+  highlightedIndex: number;
 }
 
 export interface FileNode {
@@ -196,27 +227,21 @@ export interface SelectItem {
 }
 
 /**
- * Extended status values from external systems (Tilt, Docker, etc.)
- * These complement our internal status types
- */
-export type ExtendedStatus =
-  | 'active'
-  | 'failed'
-  | 'critical'
-  | 'stopped'
-  | 'starting'
-  | 'building'
-  | string;
-
-/**
  * Generic status value type for status-aware components
  * Union of all status types used across the system
- * Includes internal types plus extended values from external systems
  */
 export type StatusValue =
   | ResourceStatus
   | StackHealthStatus
   | TiltRuntimeStatus
   | ServiceUrl['status']
-  | ExtendedStatus
+  | 'active'
+  | 'failed'
+  | 'critical'
+  | 'stopped'
+  | 'starting'
+  | 'building'
+  | string
   | undefined;
+
+export type StatusCategory = 'success' | 'error' | 'warning' | 'unknown';

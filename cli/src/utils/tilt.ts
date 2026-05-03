@@ -55,7 +55,7 @@ export function runTilt(
       child.stdout?.on('data', (data) => {
         stdout += data.toString();
       });
-      
+
       child.stderr?.on('data', (data) => {
         stderr += data.toString();
       });

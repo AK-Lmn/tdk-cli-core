@@ -1,5 +1,6 @@
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import type { JsonValue } from '../types/index.js';
 
 /**
  * Write a JSON object to a file with consistent formatting
@@ -11,7 +12,7 @@ import { resolve } from 'node:path';
  */
 function writeJsonFile(
   filePath: string,
-  data: unknown,
+  data: JsonValue,
   space: number = 2
 ): void {
   const content = JSON.stringify(data, null, space) + '\n';
@@ -30,7 +31,7 @@ function writeJsonFile(
 export function writeJsonFileInDir(
   dir: string,
   filename: string,
-  data: unknown,
+  data: JsonValue,
   space: number = 2
 ): void {
   const filePath = resolve(dir, filename);

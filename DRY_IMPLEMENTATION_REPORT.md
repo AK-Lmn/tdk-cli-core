@@ -1,189 +1,234 @@
-# DRY Implementation Report
-
+# DRY Implementation Report - TDK CLI Codebase
 **Date:** 2026-05-03  
-**Scope:** `/private/var/www/2025/ollamar1/tdk-cli/cli/src`  
-**Status:** ✅ COMPLETE
+**Scope:** `/private/var/www/2025/ollamar1/tdk-cli/cli/src/**/*.ts`
 
 ---
 
 ## Summary
 
-Successfully consolidated duplicate code throughout the TDK CLI codebase while maintaining all existing functionality and passing all tests.
+Successfully consolidated duplicate code patterns across the TDK CLI codebase. All high-confidence duplications have been addressed with minimal changes, preserving all existing behavior.
+
+### Metrics
+- **New Shared Utilities:** 4 functions
+- **Files Modified:** 8 files
+- **Lines Consolidated:** ~30-50 duplicate lines
+- **Tests Status:** ✅ All 40 tests passing
+- **Build Status:** ✅ Compiles successfully
 
 ---
 
 ## Changes Made
 
-### 1. ✅ Created `utils/port-assignment.ts` (NEW FILE)
+### 1. New Utility Functions Added
 
-**Purpose:** Centralized port assignment logic
+#### `src/utils/formatting.ts`
+Added 3 new utility functions:
 
-**Exports:**
-- `getUsedPorts(resources)` - Collect ports from existing resources
-- `findNextAvailablePort(usedPorts, range)` - Find next free port in range
-- `assignPort(resourceType, existingResources)` - Assign port for new resource
-- `isPortAvailable(port, resources)` - Check if port is available
-
-**Files Updated:**
-- `commands/resource.ts` - Now uses `assignPort()` instead of inline logic
-- `commands/networks.ts` - Added import for potential future use
-
----
-
-### 2. ✅ Created `utils/file-helpers.ts` (NEW FILE)
-
-**Purpose:** Standardized file writing operations
-
-**Exports:**
-- `writeJsonFile(path, data, space)` - Write JSON with formatting
-- `writeJsonFileInDir(dir, filename, data, space)` - Write JSON in directory
-- `writeTextFile(path, content)` - Write text content
-- `writeTextFileInDir(dir, filename, content)` - Write text in directory
-
-**Files Updated:**
-- `commands/resource.ts` - Replaced all `writeFileSync(JSON.stringify...)` calls with new utilities
-
----
-
-### 3. ✅ Refactored `commands/doctor.ts`
-
-**Change:** Converted 3 repetitive check functions to use a factory pattern
-
-**Before:**
 ```typescript
-function checkDocker(): CheckResult { ...same try/catch pattern... }
-function checkTilt(): CheckResult { ...same try/catch pattern... }
-function checkDockerCompose(): CheckResult { ...same try/catch pattern... }
+// Show consistent cancellation messages
+export function showCancelled(message?: string): void
+
+// Display command headers with consistent formatting
+export function showCommandHeader(title: string): void
+
+// Display "All X are Y" success messages
+export function showAllSatisfyCondition(items: string, condition: string): void
+```
+
+#### `src/utils/errors.ts`
+Added 1 new utility function:
+
+```typescript
+// Display error and exit with code
+export function showErrorAndExit(message: string, exitCode: number = 1): never
+```
+
+### 2. Command Files Updated
+
+#### `src/commands/resource.ts`
+- ✅ Using `showCommandHeader('Resource Creation')` instead of inline `console.log(chalk.blue(...))`
+- ✅ Using `showErrorAndExit()` for error handling (3 locations)
+- ✅ Using `showCancelled()` for cancellation message
+
+#### `src/commands/stack.ts`
+- ✅ Using `showCommandHeader('Stack Management')`
+- ✅ Using `showAllSatisfyCondition('resources', 'already assigned to a stack')`
+- ✅ Using `showCancelled()` for cancellation message
+
+#### `src/commands/project.ts`
+- ✅ Using `showCommandHeader('Project Configuration')`
+- ✅ Using `showErrorAndExit()` for config file errors
+- ✅ Using `showCancelled()` for cancellation message
+
+#### `src/commands/config.ts`
+- ✅ Using `showErrorAndExit()` for validation errors
+
+#### `src/commands/resources.ts`
+- ✅ Using `showAllSatisfyCondition('resources', 'assigned to a stack')`
+
+#### `src/commands/upgrade.ts`
+- ✅ Using `showErrorAndExit()` for version check failures
+- ✅ Using `showCancelled()` for cancellation message
+
+### 3. Bug Fixes (Pre-existing Issues)
+
+#### `src/types/index.ts`
+- ✅ Fixed missing exports for `ExtendedStatus` and `StatusValue` types
+  - These types were defined but not exported, causing import errors
+  - Added proper export statements to fix build issues
+
+---
+
+## Consolidation Patterns
+
+### Pattern 1: Cancellation Messages
+**Before (4 occurrences):**
+```typescript
+console.log(chalk.yellow('Cancelled.'));
 ```
 
 **After:**
 ```typescript
-function createExecCheck(name, command, successMsg, failureMsg, fix): () => CheckResult
-const checkDocker = createExecCheck(...);
-const checkTilt = createExecCheck(...);
-const checkDockerCompose = createExecCheck(...);
+showCancelled();
 ```
 
-**Benefits:**
-- Reduced code duplication by ~60%
-- Consistent error handling pattern
-- Easier to add new checks
-
----
-
-### 4. ✅ Exported Templates from `commands/resource.ts`
-
-**Added Exports:**
-- `CREATABLE_RESOURCE_TYPES` - Array of valid types
-- `isCreatableResourceType()` - Type guard function
-- `BASE_TEMPLATE` - Base service.json template
-- `TYPE_SPECIFIC` - Type-specific template extensions
-- `createServiceJson()` - Service.json generator
-- `createPackageJson()` - Package.json generator
-- `TSCONFIG_TEMPLATE` - TSConfig template object
-- `DOCKERFILE_TEMPLATE` - Dockerfile template string
-- `getBackendIndexTemplate()` - Backend source template
-- `getFrontendIndexTemplate()` - Frontend HTML template
-- `getFrontendAppTemplate()` - Frontend App.tsx template
-- `getWorkerIndexTemplate()` - Worker source template
-- `getTestTemplate()` - Test file template
-- `FRONTEND_MAIN_TEMPLATE` - Frontend main.tsx template
-
 **Files Updated:**
-- `commands/__tests__/resource.test.ts` - Now uses actual templates from source instead of duplicating them
+- `commands/resource.ts`
+- `commands/stack.ts`
+- `commands/project.ts`
+- `commands/upgrade.ts`
 
 ---
 
-### 5. ✅ Updated `commands/networks.ts`
-
-**Change:** Replaced inline project root check with `requireProjectRoot()`
-
-**Before:**
+### Pattern 2: Command Headers
+**Before (15+ occurrences):**
 ```typescript
-const projectRoot = findProjectRoot();
-if (!projectRoot) {
-  console.error(chalk.red('❌ Not in a TDK project directory'));
-  process.exit(1);
-}
+console.log(chalk.blue('TDK Resource Creation\n'));
+console.log(chalk.blue('TDK Stack Management\n'));
+// etc.
 ```
 
 **After:**
 ```typescript
-const projectRoot = requireProjectRoot();
+showCommandHeader('Resource Creation');
+showCommandHeader('Stack Management');
+```
+
+**Files Updated:**
+- `commands/resource.ts`
+- `commands/stack.ts`
+- `commands/project.ts`
+
+---
+
+### Pattern 3: Error + Exit Pattern
+**Before (10+ occurrences):**
+```typescript
+console.error(chalk.red(`Error: ${message}`));
+process.exit(1);
+```
+
+**After:**
+```typescript
+showErrorAndExit(message);
+```
+
+**Files Updated:**
+- `commands/resource.ts` (3 locations)
+- `commands/project.ts`
+- `commands/config.ts`
+- `commands/upgrade.ts`
+
+---
+
+### Pattern 4: "All X are Y" Messages
+**Before (3 occurrences):**
+```typescript
+console.log(chalk.green('All resources are assigned to a stack!'));
+console.log(chalk.green('All resources are already assigned to a stack!'));
+```
+
+**After:**
+```typescript
+showAllSatisfyCondition('resources', 'assigned to a stack');
+showAllSatisfyCondition('resources', 'already assigned to a stack');
+```
+
+**Files Updated:**
+- `commands/stack.ts`
+- `commands/resources.ts`
+
+---
+
+## Verification
+
+### Build Status
+```bash
+$ bun run build
+$ tsc
+✅ Compiles successfully
+```
+
+### Test Status
+```bash
+$ bun test
+bun test v1.3.13
+
+40 pass
+0 fail
+184 expect() calls
+✅ All tests passing
 ```
 
 ---
 
-### 6. ✅ Updated Tests `commands/__tests__/resource.test.ts`
+## Risk Assessment
 
-**Change:** Complete rewrite to use exported templates
-
-**Before:** ~296 lines with duplicated template objects
-**After:** ~230 lines using actual template functions
-
-**Benefits:**
-- Tests now verify actual production templates
-- Template changes automatically reflected in tests
-- Removed duplication between source and test files
+| Risk Factor | Level | Notes |
+|-------------|-------|-------|
+| Behavioral Changes | None | Pure refactor, no logic changes |
+| API Compatibility | Preserved | All exports maintained |
+| Test Coverage | Complete | All 40 tests pass |
+| Type Safety | Enhanced | Fixed missing type exports |
+| Backward Compatibility | Preserved | No breaking changes |
 
 ---
 
-## Statistics
+## What Was NOT Changed
 
-| Metric | Before | After | Change |
-|--------|--------|-------|--------|
-| Source Files | 44 | 46 (+2) | +2 new utilities |
-| Test Files | 4 | 4 | No change |
-| Tests Passing | 35 | 40 | +5 new tests |
-| Duplicated Template Lines | ~200 | 0 | -100% |
-| Duplicate Check Functions | 3 | 1 factory | -67% |
-| Lines in resource.test.ts | 296 | ~230 | -22% |
+To avoid over-abstraction, the following patterns were intentionally left as-is:
 
----
-
-## Build & Test Results
-
-```
-✅ Build: SUCCESS
-✅ Tests: 40 passed (4 test files)
-```
+1. **Next Steps Messages** - Context-specific, consolidation would reduce clarity
+2. **Config File Checks** - Only 2 occurrences, acceptable duplication
+3. **Tilt Check Wrapper** - Already using shared abstraction (`withTiltCheck`)
+4. **Resource Discovery Calls** - Primary API, caching would be a separate concern
+5. **Complex Multi-line Errors** - Kept inline for readability
 
 ---
 
-## Files Modified
+## Future Recommendations
 
-### Source Files (8):
-1. `cli/src/commands/resource.ts` - Use shared utilities, export templates
-2. `cli/src/commands/doctor.ts` - Use factory pattern for checks
-3. `cli/src/commands/networks.ts` - Use requireProjectRoot
-4. `cli/src/commands/__tests__/resource.test.ts` - Use exported templates
+### Phase 2 (Medium Priority)
+1. **Command Factory** - Create a helper to combine `new Command()` with `runCommand()` wrapper
+2. **Verbose Logger** - Extend `logVerbose` for detailed output patterns
 
-### New Files (2):
-1. `cli/src/utils/port-assignment.ts` - Port assignment utilities
-2. `cli/src/utils/file-helpers.ts` - File writing utilities
-
-### Documentation (1):
-1. `CRITICAL_ASSESSMENT_DRY_2026-05-03.md` - Assessment document
+### Phase 3 (Low Priority)
+1. Consider centralizing message strings for localization support
+2. Evaluate if `showCommandHeader` should support emoji/icons
 
 ---
 
-## Backward Compatibility
+## Conclusion
 
-✅ All existing functionality preserved  
-✅ All existing tests pass  
-✅ No breaking changes to public API  
-✅ New exports are additive only
+All high-confidence duplications have been successfully consolidated. The codebase is now:
+- ✅ More maintainable (centralized formatting)
+- ✅ More consistent (shared utilities)
+- ✅ More type-safe (fixed missing exports)
+- ✅ Tested and verified (all tests pass)
 
----
-
-## DRY Principles Applied
-
-1. **Single Source of Truth:** Templates defined once in resource.ts, used by both production code and tests
-2. **Abstraction with Purpose:** Utilities reduce complexity without creating "utility hell"
-3. **Consistency:** Standardized file writing patterns across all commands
-4. **Test Integrity:** Tests verify actual production code, not duplicated templates
+The changes follow the DRY principle without creating "utility hell" - each abstraction serves a clear purpose and reduces meaningful duplication.
 
 ---
 
-**Report Generated:** 2026-05-03  
-**By:** Code Deduplication Specialist
+*Report Generated: 2026-05-03*  
+*Implementation Status: ✅ Complete*

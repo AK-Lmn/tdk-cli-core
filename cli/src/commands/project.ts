@@ -6,8 +6,9 @@ import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { findProjectRoot } from '../utils/paths.js';
 import { generateMasterConfigs, readProjectConfig } from '../generator/template-engine.js';
-import { runCommand } from '../utils/errors.js';
+import { runCommand, showErrorAndExit } from '../utils/errors.js';
 import { MASTER_CONFIG_FILES } from '../utils/constants.js';
+import { showCancelled, showCommandHeader } from '../utils/formatting.js';
 
 const DEFAULT_PROJECT_JSON = {
   version: "1.0",
@@ -92,7 +93,7 @@ export const projectCommand = new Command('project')
         }
       }
 
-      console.log(chalk.blue('TDK Project Configuration\n'));
+      showCommandHeader('Project Configuration');
       console.log(chalk.gray(`Project root: ${projectRoot}\n`));
 
       if (!existsSync(tdkDir)) {
@@ -124,7 +125,7 @@ export const projectCommand = new Command('project')
           default: false
         }]);
         if (!confirm) {
-          console.log(chalk.yellow('Cancelled.'));
+          showCancelled();
           return;
         }
       }
@@ -134,8 +135,7 @@ export const projectCommand = new Command('project')
       if (options.configFile) {
         const configFilePath = resolve(options.configFile);
         if (!existsSync(configFilePath)) {
-          console.error(chalk.red(`Error: Config file not found: ${configFilePath}`));
-          process.exit(1);
+          showErrorAndExit(`Config file not found: ${configFilePath}`);
         }
         const configContent = await import('node:fs').then(fs => fs.readFileSync(configFilePath, 'utf-8'));
         projectConfig = JSON.parse(configContent);

@@ -1,14 +1,7 @@
 import React from 'react';
 import { Box, Text } from 'ink';
-import type { DiscoveredStack, DiscoveredResource, StackMetadata, ResourceMetadata } from '../types/index.js';
+import type { DiscoveredStack, DiscoveredResource, StackMetadata, ResourceMetadata, DetailPanelProps } from '../types/index.js';
 import { formatDate, getStatusColor, getStatusIcon } from '../utils/formatting.js';
-
-interface DetailPanelProps {
-  stack: DiscoveredStack | null;
-  service: DiscoveredResource | null;
-  stackMetadata?: StackMetadata | null;
-  visible: boolean;
-}
 
 export const DetailPanel: React.FC<DetailPanelProps> = ({ 
   stack, 

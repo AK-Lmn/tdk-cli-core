@@ -1,13 +1,6 @@
 import React from 'react';
 import { Box, Text } from 'ink';
-
-export type TabId = 'overview' | 'resources' | 'events' | 'files' | 'config';
-
-interface Tab {
-  id: TabId;
-  label: string;
-  shortcut: string;
-}
+import type { Tab, TabBarProps, TabId } from '../types/index.js';
 
 const TABS: Tab[] = [
   { id: 'overview', label: 'OVERVIEW', shortcut: '1' },
@@ -16,12 +9,6 @@ const TABS: Tab[] = [
   { id: 'files', label: 'FILES', shortcut: '4' },
   { id: 'config', label: 'CONFIG', shortcut: '5' },
 ];
-
-interface TabBarProps {
-  activeTab: TabId;
-  onTabChange: (tab: TabId) => void;
-  compact?: boolean;
-}
 
 export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange, compact = false }) => {
   return (

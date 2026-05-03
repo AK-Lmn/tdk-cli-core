@@ -1,8 +1,3 @@
-/**
- * TDK (Tilt Development Kit)
- * A CLI tool for managing resources and stacks in Tilt-based microservice projects.
- */
-
 export type {
   DiscoveredResource,
   DiscoveredStack,
