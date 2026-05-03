@@ -1,6 +1,6 @@
 import { Command } from 'commander';
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
-import { resolve, dirname, relative, isAbsolute } from 'node:path';
+import { existsSync, mkdirSync } from 'node:fs';
+import { resolve, relative, isAbsolute } from 'node:path';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import type { ResourceType } from '../types/index.js';
@@ -9,21 +9,23 @@ import { requireProjectRoot, runCommand } from '../utils/errors.js';
 import { validateResourceName, createKebabCaseValidator } from '../utils/validation.js';
 import { formatCount } from '../utils/formatting.js';
 import { PORT_RANGES } from '../utils/constants.js';
+import { assignPort } from '../utils/port-assignment.js';
+import { writeJsonFileInDir, writeTextFileInDir } from '../utils/file-helpers.js';
 
 /**
  * Resource types supported by the `tdk resource create` command.
  * Derived from ResourceType - subset that users can directly create.
  * Excludes 'library', 'sdk', 'migrator' which are created through other means.
  */
-const CREATABLE_RESOURCE_TYPES = ['backend', 'frontend', 'worker'] as const;
-type CreatableResourceType = Extract<ResourceType, typeof CREATABLE_RESOURCE_TYPES[number]>;
+export const CREATABLE_RESOURCE_TYPES = ['backend', 'frontend', 'worker'] as const;
+export type CreatableResourceType = Extract<ResourceType, typeof CREATABLE_RESOURCE_TYPES[number]>;
 
 /**
  * Type guard to validate if a string is a valid CreatableResourceType
  * @param type - The type string to validate
  * @returns True if the type is a valid creatable resource type
  */
-function isCreatableResourceType(type: string): type is CreatableResourceType {
+export function isCreatableResourceType(type: string): type is CreatableResourceType {
   return (CREATABLE_RESOURCE_TYPES as readonly string[]).includes(type);
 }
 
@@ -31,7 +33,7 @@ function isCreatableResourceType(type: string): type is CreatableResourceType {
  * Common base template for all resource types.
  * Contains fields shared across backend, frontend, and worker resources.
  */
-const BASE_TEMPLATE = {
+export const BASE_TEMPLATE = {
   port: 0, // Will be assigned
   dependencies: [],
   build: {
@@ -48,7 +50,7 @@ const BASE_TEMPLATE = {
  * Type-specific extensions for each resource type.
  * These are merged with BASE_TEMPLATE to create complete templates.
  */
-const TYPE_SPECIFIC: Record<CreatableResourceType, Record<string, unknown>> = {
+export const TYPE_SPECIFIC: Record<CreatableResourceType, Record<string, unknown>> = {
   backend: {
     healthCheck: '/health',
   },
@@ -66,7 +68,7 @@ const TYPE_SPECIFIC: Record<CreatableResourceType, Record<string, unknown>> = {
   },
 };
 
-function createServiceJson(name: string, type: CreatableResourceType, stack: string, port: number) {
+export function createServiceJson(name: string, type: CreatableResourceType, stack: string, port: number) {
   const typeSpecific = TYPE_SPECIFIC[type];
 
   const base = JSON.parse(JSON.stringify(BASE_TEMPLATE));
@@ -87,9 +89,9 @@ function createServiceJson(name: string, type: CreatableResourceType, stack: str
   };
 }
 
-function createPackageJson(name: string, type: string) {
+export function createPackageJson(name: string, type: string) {
   const isFrontend = type === 'frontend';
-  
+
   return {
     name: `@project/${name}`,
     version: '0.0.1',
@@ -114,7 +116,7 @@ function createPackageJson(name: string, type: string) {
   };
 }
 
-const TSCONFIG_TEMPLATE = {
+export const TSCONFIG_TEMPLATE = {
   compilerOptions: {
     target: 'ES2022',
     module: 'ESNext',
@@ -133,7 +135,7 @@ const TSCONFIG_TEMPLATE = {
   exclude: ['node_modules', 'dist'],
 };
 
-const DOCKERFILE_TEMPLATE = `FROM oven/bun:1.2
+export const DOCKERFILE_TEMPLATE = `FROM oven/bun:1.2
 
 WORKDIR /app
 
@@ -158,7 +160,7 @@ EXPOSE 3000
 CMD ["bun", "run", "start"]
 `;
 
-function getBackendIndexTemplate(name: string) {
+export function getBackendIndexTemplate(name: string) {
   return `import { Hono } from 'hono';
 
 const app = new Hono();
@@ -205,7 +207,7 @@ export default {
 `;
 }
 
-function getFrontendIndexTemplate(name: string) {
+export function getFrontendIndexTemplate(name: string) {
   return `<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -221,7 +223,7 @@ function getFrontendIndexTemplate(name: string) {
 `;
 }
 
-const FRONTEND_MAIN_TEMPLATE = `import React from 'react';
+export const FRONTEND_MAIN_TEMPLATE = `import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 
@@ -232,7 +234,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 );
 `;
 
-function getFrontendAppTemplate(name: string) {
+export function getFrontendAppTemplate(name: string) {
   return `function App() {
   return (
     <div style={{ padding: '2rem', fontFamily: 'system-ui' }}>
@@ -245,7 +247,7 @@ function getFrontendAppTemplate(name: string) {
 export default App;
 `;}
 
-function getWorkerIndexTemplate(name: string) {
+export function getWorkerIndexTemplate(name: string) {
   return `console.log('🚀 ${name} worker started');
 
 interface Job {
@@ -323,7 +325,7 @@ main().catch((err) => {
 `;
 }
 
-function getTestTemplate(name: string) {
+export function getTestTemplate(name: string) {
   return `import { describe, it, expect } from 'vitest';
 
 describe('${name}', () => {
@@ -456,26 +458,11 @@ export const resourceCommand = new Command('resource')
         process.exit(1);
       }
 
-      const usedPorts = new Set<number>();
-      for (const r of allResources) {
-        if (r.port && r.port > 0) {
-          usedPorts.add(r.port);
-        }
-      }
-
-      const portRange = PORT_RANGES[resourceType];
       let assignedPort: number;
-
-      for (let port = portRange.base; port <= portRange.max; port++) {
-        if (!usedPorts.has(port)) {
-          assignedPort = port;
-          break;
-        }
-      }
-      
-      if (!assignedPort!) {
-        console.error(chalk.red(`Error: No available ports in range ${portRange.base}-${portRange.max}`));
-        console.error(chalk.gray('Check TILT_RESOURCE_DEFAULTS.star for port configuration'));
+      try {
+        assignedPort = assignPort(resourceType, allResources);
+      } catch (err: unknown) {
+        console.error(chalk.red(`Error: ${err instanceof Error ? err.message : String(err)}`));
         process.exit(1);
       }
 
@@ -505,52 +492,32 @@ export const resourceCommand = new Command('resource')
 
       console.log(chalk.blue('📝 Generating service.json...'));
       const serviceJson = createServiceJson(resourceName, resourceType, stackName, assignedPort);
-      writeFileSync(
-        resolve(fullPath, 'service.json'),
-        JSON.stringify(serviceJson, null, 2) + '\n',
-        'utf-8'
-      );
+      writeJsonFileInDir(fullPath, 'service.json', serviceJson);
 
       console.log(chalk.blue('📦 Generating package.json...'));
       const packageJson = createPackageJson(resourceName, resourceType);
-      writeFileSync(
-        resolve(fullPath, 'package.json'),
-        JSON.stringify(packageJson, null, 2) + '\n',
-        'utf-8'
-      );
+      writeJsonFileInDir(fullPath, 'package.json', packageJson);
 
       console.log(chalk.blue('⚙️  Generating tsconfig.json...'));
-      writeFileSync(
-        resolve(fullPath, 'tsconfig.json'),
-        JSON.stringify(TSCONFIG_TEMPLATE, null, 2) + '\n',
-        'utf-8'
-      );
+      writeJsonFileInDir(fullPath, 'tsconfig.json', TSCONFIG_TEMPLATE);
 
       console.log(chalk.blue('🐳 Generating Dockerfile...'));
-      writeFileSync(
-        resolve(fullPath, 'Dockerfile'),
-        DOCKERFILE_TEMPLATE,
-        'utf-8'
-      );
+      writeTextFileInDir(fullPath, 'Dockerfile', DOCKERFILE_TEMPLATE);
 
       console.log(chalk.blue('💻 Generating source files...'));
-      
+
       if (resourceType === 'backend') {
-        writeFileSync(resolve(fullPath, 'src', 'index.ts'), getBackendIndexTemplate(resourceName), 'utf-8');
+        writeTextFileInDir(fullPath, 'src/index.ts', getBackendIndexTemplate(resourceName));
       } else if (resourceType === 'frontend') {
-        writeFileSync(resolve(fullPath, 'index.html'), getFrontendIndexTemplate(resourceName), 'utf-8');
-        writeFileSync(resolve(fullPath, 'src', 'main.tsx'), FRONTEND_MAIN_TEMPLATE, 'utf-8');
-        writeFileSync(resolve(fullPath, 'src', 'App.tsx'), getFrontendAppTemplate(resourceName), 'utf-8');
+        writeTextFileInDir(fullPath, 'index.html', getFrontendIndexTemplate(resourceName));
+        writeTextFileInDir(fullPath, 'src/main.tsx', FRONTEND_MAIN_TEMPLATE);
+        writeTextFileInDir(fullPath, 'src/App.tsx', getFrontendAppTemplate(resourceName));
       } else if (resourceType === 'worker') {
-        writeFileSync(resolve(fullPath, 'src', 'index.ts'), getWorkerIndexTemplate(resourceName), 'utf-8');
+        writeTextFileInDir(fullPath, 'src/index.ts', getWorkerIndexTemplate(resourceName));
       }
 
       console.log(chalk.blue('🧪 Generating test file...'));
-      writeFileSync(
-        resolve(fullPath, 'tests', `${resourceName}.test.ts`),
-        getTestTemplate(resourceName),
-        'utf-8'
-      );
+      writeTextFileInDir(fullPath, `tests/${resourceName}.test.ts`, getTestTemplate(resourceName));
 
       console.log(chalk.green('\n✅ Resource created successfully!'));
       console.log(chalk.gray(`\nLocation: ${fullPath}`));

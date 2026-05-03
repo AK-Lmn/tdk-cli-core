@@ -51,18 +51,8 @@ export function truncate(str: string, maxLength: number): string {
   return str.slice(0, maxLength - 3) + '...';
 }
 
-/**
- * Status categories for consistent status handling
- */
 type StatusCategory = 'success' | 'error' | 'warning' | 'unknown';
 
-/**
- * Categorize a status value into a canonical category.
- * This is the single source of truth for status categorization.
- *
- * @param status - Status value to categorize
- * @returns Canonical status category
- */
 function getStatusCategory(status: StatusValue): StatusCategory {
   if (!status) return 'unknown';
   const lowerStatus = status.toLowerCase();

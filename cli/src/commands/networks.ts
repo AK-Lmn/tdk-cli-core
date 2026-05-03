@@ -6,6 +6,7 @@ import { findProjectRoot } from '../utils/paths.js';
 import { readProjectConfig } from '../generator/template-engine.js';
 import { sanitizeForShell, isValidPort } from '../utils/validation.js';
 import { requireProjectRoot, logVerbose } from '../utils/errors.js';
+import { getUsedPorts } from '../utils/port-assignment.js';
 import { formatBoxLine, formatCentered, formatPadded, getStatusIcon, colorizeByStatus } from '../utils/formatting.js';
 import { getStackEmoji } from '../utils/constants.js';
 import type { ServiceUrl } from '../types/index.js';
@@ -191,12 +192,7 @@ export const networksCommand = new Command('networks')
   .option('--json', 'Output as JSON')
   .option('--raw', 'Output raw URLs only')
   .action(async (options) => {
-    const projectRoot = findProjectRoot();
-    
-    if (!projectRoot) {
-      console.error(chalk.red('❌ Not in a TDK project directory'));
-      process.exit(1);
-    }
+    const projectRoot = requireProjectRoot();
     
     const baseDomain = determineDefaultDomain();
     const services = discoverResources();

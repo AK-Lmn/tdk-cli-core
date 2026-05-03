@@ -5,59 +5,64 @@ import { existsSync } from "fs";
 import { resolve } from "path";
 import type { CheckResult } from '../types/index.js';
 
-function checkDocker(): CheckResult {
-  try {
-    execSync("docker ps", { stdio: "pipe" });
-    return {
-      name: "Docker",
-      didPass: true,
-      message: "Docker daemon is running",
-    };
-  } catch {
-    return {
-      name: "Docker",
-      didPass: false,
-      message: "Docker is not running",
-      fix: "Start Docker Desktop or run: open -a Docker (macOS) or sudo systemctl start docker (Linux)",
-    };
-  }
+/**
+ * Creates a check function that validates a command can be executed successfully
+ * @param name - Display name for the check
+ * @param command - Command to execute
+ * @param successMessage - Message when check passes
+ * @param failureMessage - Message when check fails
+ * @param fixInstructions - Instructions to fix the issue
+ * @returns CheckResult function
+ */
+function createExecCheck(
+  name: string,
+  command: string,
+  successMessage: string,
+  failureMessage: string,
+  fixInstructions: string
+): () => CheckResult {
+  return () => {
+    try {
+      execSync(command, { stdio: "pipe" });
+      return {
+        name,
+        didPass: true,
+        message: successMessage,
+      };
+    } catch {
+      return {
+        name,
+        didPass: false,
+        message: failureMessage,
+        fix: fixInstructions,
+      };
+    }
+  };
 }
 
-function checkDockerCompose(): CheckResult {
-  try {
-    execSync("docker compose version", { stdio: "pipe" });
-    return {
-      name: "Docker Compose",
-      didPass: true,
-      message: "Docker Compose plugin available",
-    };
-  } catch {
-    return {
-      name: "Docker Compose",
-      didPass: false,
-      message: "Docker Compose plugin not found",
-      fix: "Install Docker Compose: https://docs.docker.com/compose/install/",
-    };
-  }
-}
+const checkDocker = createExecCheck(
+  "Docker",
+  "docker ps",
+  "Docker daemon is running",
+  "Docker is not running",
+  "Start Docker Desktop or run: open -a Docker (macOS) or sudo systemctl start docker (Linux)"
+);
 
-function checkTilt(): CheckResult {
-  try {
-    const output = execSync("tilt version", { stdio: "pipe", encoding: "utf8" }).trim();
-    return {
-      name: "Tilt CLI",
-      didPass: true,
-      message: "Tilt CLI installed",
-    };
-  } catch {
-    return {
-      name: "Tilt CLI",
-      didPass: false,
-      message: "Tilt CLI not found",
-      fix: "Install Tilt: brew install tilt (macOS) or see https://docs.tilt.dev/install.html",
-    };
-  }
-}
+const checkDockerCompose = createExecCheck(
+  "Docker Compose",
+  "docker compose version",
+  "Docker Compose plugin available",
+  "Docker Compose plugin not found",
+  "Install Docker Compose: https://docs.docker.com/compose/install/"
+);
+
+const checkTilt = createExecCheck(
+  "Tilt CLI",
+  "tilt version",
+  "Tilt CLI installed",
+  "Tilt CLI not found",
+  "Install Tilt: brew install tilt (macOS) or see https://docs.tilt.dev/install.html"
+);
 
 function checkMasterConfigs(): CheckResult {
   const defaultsPath = resolve(process.cwd(), "TILT_RESOURCE_DEFAULTS.star");
