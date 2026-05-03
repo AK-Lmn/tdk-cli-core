@@ -216,8 +216,7 @@ export const upgradeCommand = new Command('upgrade')
     }
     
     let latestVersion: string | null = null;
-    
-    // For git installs, skip npm check and use git to check for updates
+
     if (installInfo.method === 'git' && installInfo.path) {
       console.log(chalk.blue('📦 Git installation detected - will pull latest from origin'));
       
@@ -248,15 +247,13 @@ export const upgradeCommand = new Command('upgrade')
         latestVersion = 'latest';
       }
     } else {
-      // For npm/bun installs, check registry
       latestVersion = await getLatestVersion();
       
       if (!latestVersion) {
         console.error(chalk.red('\n❌ Could not determine latest version'));
         process.exit(1);
       }
-      
-      // Compare versions
+
       if (currentVersion === latestVersion && !options.force) {
         console.log(chalk.green('\n✅ You are already on the latest version!'));
         console.log(chalk.gray(`   ${currentVersion} (current) = ${latestVersion} (latest)`));

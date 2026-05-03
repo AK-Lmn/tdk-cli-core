@@ -69,7 +69,6 @@ const TYPE_SPECIFIC: Record<CreatableResourceType, Record<string, unknown>> = {
 function createServiceJson(name: string, type: CreatableResourceType, stack: string, port: number) {
   const typeSpecific = TYPE_SPECIFIC[type];
 
-  // Deep merge base template with type-specific overrides
   const base = JSON.parse(JSON.stringify(BASE_TEMPLATE));
   for (const [key, value] of Object.entries(typeSpecific)) {
     if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
@@ -222,7 +221,6 @@ function getFrontendIndexTemplate(name: string) {
 `;
 }
 
-// Frontend main.tsx template
 const FRONTEND_MAIN_TEMPLATE = `import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';

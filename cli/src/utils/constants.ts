@@ -38,12 +38,23 @@ export const OPTIONAL_INFRA_SERVICES = [
 
 /**
  * Port range configuration by resource type
- * Centralized from resource.ts and platform-standards.ts
+ * Single source of truth for all port assignments
+ * Used by: resource.ts, platform-standards.ts, template-engine.ts
  */
 export const PORT_RANGES = {
-  frontend: { base: 3000, min: 3000, max: 3999 },
-  backend: { base: 4000, min: 4000, max: 4999 },
-  worker: { base: 6000, min: 6000, max: 6999 },
+  frontend: { base: 3000, min: 3000, max: 3999, range: "3000-3999" as const },
+  backend: { base: 4000, min: 4000, max: 4999, range: "4000-4999" as const },
+  worker: { base: 6000, min: 6000, max: 6999, range: "6000-6999" as const },
+  health: { base: 5000, min: 5000, max: 5999, range: "5000-5999" as const },
+  migrator: { base: 7000, min: 7000, max: 7999, range: "7000-7999" as const },
+} as const;
+
+/**
+ * Standard service ports (non-range)
+ */
+export const STANDARD_PORTS = {
+  tiltUi: 10350,
+  traefik: 8080,
 } as const;
 
 /**

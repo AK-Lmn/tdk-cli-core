@@ -45,7 +45,6 @@ function execSafe(command: string, args: string[], options: { encoding?: string;
   });
 }
 
-// Standard box width for network display output
 const BOX_WIDTH = 62;
 
 function determineDefaultDomain(): string {
@@ -58,7 +57,6 @@ function determineDefaultDomain(): string {
     }
   }
 
-  // Collect all unique domains from Traefik containers
   const domains = new Set<string>();
   try {
     const traefikLabels = execSync(
@@ -66,7 +64,6 @@ function determineDefaultDomain(): string {
       { encoding: 'utf-8' }
     );
 
-    // Extract all Host() domains from all containers
     // Use a simplified regex to avoid ReDoS - limit pattern length and use fixed patterns
     const domainRegex = /traefik\.http\.routers\.[a-zA-Z0-9_-]{1,50}\.rule=Host\(`([a-zA-Z0-9_.-]{1,100})`\)/g;
     let match;
@@ -129,7 +126,6 @@ async function checkServiceStatus(serviceName: string, port?: number, url?: stri
         return 'stopped';
       }
 
-      // Quick curl to check if service is up (silent, follow redirects, timeout 2s)
       const statusCode = await execSafe('curl', [
         '-s', '-o', '/dev/null',
         '-w', '%{http_code}',
@@ -256,8 +252,7 @@ export const networksCommand = new Command('networks')
     console.log(chalk.cyan('├' + formatBoxLine('─', BOX_WIDTH - 2) + '┤'));
     console.log(chalk.cyan('│') + chalk.gray(formatCentered(`Domain: http://${baseDomain}`, BOX_WIDTH - 2)) + chalk.cyan('│'));
     console.log(chalk.cyan('╰' + formatBoxLine('─', BOX_WIDTH - 2) + '╯'));
-    
-    // Group by stack
+
     const stacks = new Map<string, ServiceUrl[]>();
     for (const service of filteredServices) {
       const stackName = service.stack || 'default';
@@ -281,7 +276,6 @@ export const networksCommand = new Command('networks')
       console.log(chalk.gray(formatBoxLine('━', BOX_WIDTH - 4)));
       
       for (const service of stackServices) {
-        // Use consolidated status display functions from formatting.ts
         const statusSymbol = getStatusIcon(service.status);
         const statusEmoji = colorizeByStatus(statusSymbol, service.status);
 

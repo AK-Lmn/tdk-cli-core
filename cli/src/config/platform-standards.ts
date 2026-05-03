@@ -10,6 +10,8 @@
  * For project-specific configuration, see .tdk/project.yaml
  */
 
+import { PORT_RANGES, STANDARD_PORTS } from '../utils/constants.js';
+
 const PLATFORM_VERSION = "1.0.0";
 
 const TECH_STACK = {
@@ -24,39 +26,43 @@ const TECH_STACK = {
   testing: "vitest",
 } as const;
 
+/**
+ * Port configuration derived from constants.ts single source of truth
+ * This ensures consistency between runtime port allocation and generated configs
+ */
 const PORTS = {
   frontend: {
-    base: 3000,
-    range: "3000-3999" as const,
-    start: 3000,
-    end: 3999,
+    base: PORT_RANGES.frontend.base,
+    range: PORT_RANGES.frontend.range,
+    start: PORT_RANGES.frontend.min,
+    end: PORT_RANGES.frontend.max,
   },
   backend: {
-    base: 4000,
-    range: "4000-4999" as const,
-    start: 4000,
-    end: 4999,
+    base: PORT_RANGES.backend.base,
+    range: PORT_RANGES.backend.range,
+    start: PORT_RANGES.backend.min,
+    end: PORT_RANGES.backend.max,
   },
   health: {
-    base: 5000,
-    range: "5000-5999" as const,
-    start: 5000,
-    end: 5999,
+    base: PORT_RANGES.health.base,
+    range: PORT_RANGES.health.range,
+    start: PORT_RANGES.health.min,
+    end: PORT_RANGES.health.max,
   },
   worker: {
-    base: 6000,
-    range: "6000-6999" as const,
-    start: 6000,
-    end: 6999,
+    base: PORT_RANGES.worker.base,
+    range: PORT_RANGES.worker.range,
+    start: PORT_RANGES.worker.min,
+    end: PORT_RANGES.worker.max,
   },
   migrator: {
-    base: 7000,
-    range: "7000-7999" as const,
-    start: 7000,
-    end: 7999,
+    base: PORT_RANGES.migrator.base,
+    range: PORT_RANGES.migrator.range,
+    start: PORT_RANGES.migrator.min,
+    end: PORT_RANGES.migrator.max,
   },
-  tiltUi: 10350,
-  traefik: 8080,
+  tiltUi: STANDARD_PORTS.tiltUi,
+  traefik: STANDARD_PORTS.traefik,
 } as const;
 
 const HEALTH_CHECKS = {
