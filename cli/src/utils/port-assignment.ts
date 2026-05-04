@@ -1,6 +1,6 @@
 import { createConnection } from 'node:net';
 import { spawn } from 'node:child_process';
-import type { DiscoveredResource, CreatableResourceType } from '../types/index.js';
+import type { DiscoveredResource, PortAssignableResourceType } from '../types/index.js';
 import { PORT_RANGES } from './constants.js';
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -56,8 +56,6 @@ export async function findAvailablePort(
   }
   return null;
 }
-
-type PortAssignableResourceType = Extract<CreatableResourceType, 'backend' | 'frontend' | 'worker' | 'migrator'>;
 
 export function getUsedPorts(resources: DiscoveredResource[]): Set<number> {
   const usedPorts = new Set<number>();

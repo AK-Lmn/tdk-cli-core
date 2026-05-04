@@ -133,11 +133,9 @@ def initialize_discovery(cache, second_pass=False):
     # Scan for resources from JSON manifests (source of truth)
     # YAML files are only for Tilt resource tracking, not data parsing
     if second_pass:
-        print("📄 Pass 2/2: Preparing Tilt resources...")
-        print("  └─ Re-loading from cache and creating local resources")
+        print("  1.2 Preparing Tilt resources...")
     else:
-        print("📄 Pass 1/2: Building resource registry from service.json...")
-        print("  └─ Scanning, validating, and caching resource definitions")
+        print("  1.1 Scanning service manifests...")
     
     resources = _scan_resources()
     
@@ -172,15 +170,6 @@ def initialize_discovery(cache, second_pass=False):
         cache["second_pass"] = True
     if cache.get("initialized"):
         return
-    
-    # Scan for services from JSON manifests (source of truth)
-    # YAML files are only for Tilt resource tracking, not data parsing
-    if second_pass:
-        print("📄 Pass 2/2: Preparing Tilt resources...")
-        print("  └─ Re-loading from cache and creating local resources")
-    else:
-        print("📄 Pass 1/2: Building service registry from service.json...")
-        print("  └─ Scanning, validating, and caching service definitions")
     
     resources = _scan_resources()
     
@@ -238,9 +227,8 @@ def _scan_resources():
     # Phase 2: Scan all root directories and collect manifest paths
     all_manifest_paths = []  # Collect from all roots
     
-    # Show consolidated loading message
+    # Scan all root directories (quiet unless verbose)
     total_roots = len(DISCOVERY_SCAN_ROOTS)
-    print("📦 Loading from {} scan roots...".format(total_roots))
     
     for root in DISCOVERY_SCAN_ROOTS:
         # Use json_manifest_scanner.discover_json_manifests() to find all manifest files

@@ -9,8 +9,6 @@
 #   load('ext://tdk-cli', 'Utils', 'Manifest', ...)
 # =============================================================================
 
-print("🚀 Loading TDK CLI (unified)")
-
 # =============================================================================
 # ENGINE (Core orchestration)
 # =============================================================================
@@ -19,15 +17,13 @@ load('./discovery/loading.star', _Manifest='Manifest')
 load('./engine/topologies/tilt/config/global.star', _Config='Config')
 load('./discovery/registry.star',
     _GLOBAL_CONFIG_EXPORT='GLOBAL_CONFIG_EXPORT',
-    _APP_RESOURCES='APP_RESOURCES',
     _INFRA_RESOURCES_EXPORT='INFRA_RESOURCES_EXPORT',
     _DDD_LIBS_EXPORT='DDD_LIBS_EXPORT',
     _DEFAULTS_EXPORT='DEFAULTS_EXPORT',
-    _RESOURCE_ALIASES='RESOURCE_ALIASES',
-    _RESOURCE_PATH_MAP='RESOURCE_PATH_MAP',
     _get_platform_libs_export='get_platform_libs_export',
     _get_product_libs_export='get_product_libs_export',
     _Registry='Registry',
+    _APP_RESOURCES='APP_RESOURCES',
 )
 load('./engine/topologies/tilt/generators/vite_config.star', _Vite='Vite')
 load('./engine/topologies/tilt/generators/tsconfig.star', _TSConfig='TSConfig')
@@ -67,12 +63,7 @@ def load_ui_enhancements(config):
     enable_icons = config.get('enable_icons', True)
     enable_help_panel = config.get('enable_help_panel', True)
     enable_cron_jobs_tab = config.get('enable_cron_jobs_tab', True)
-    
-    print("✨ UI Enhancements configured")
-    print("   - Tooltips: " + ("enabled" if enable_tooltips else "disabled"))
-    print("   - Icons: " + ("enabled" if enable_icons else "disabled"))
-    print("   - Help Panel: " + ("enabled" if enable_help_panel else "disabled"))
-    print("   - Cron Jobs Tab: " + ("enabled" if enable_cron_jobs_tab else "disabled"))
+
 
 def get_ide_components_path():
     """Return the path to IDE components."""
@@ -112,12 +103,10 @@ Config = _Config
 
 # Registry Data
 GLOBAL_CONFIG_EXPORT = _GLOBAL_CONFIG_EXPORT
-APP_RESOURCES = _APP_RESOURCES
 INFRA_RESOURCES_EXPORT = _INFRA_RESOURCES_EXPORT
 DDD_LIBS_EXPORT = _DDD_LIBS_EXPORT
 DEFAULTS_EXPORT = _DEFAULTS_EXPORT
-RESOURCE_ALIASES = _RESOURCE_ALIASES
-RESOURCE_PATH_MAP = _RESOURCE_PATH_MAP
+APP_RESOURCES = _APP_RESOURCES
 Registry = _Registry
 
 def get_platform_libs_export(autodiscover=False):
@@ -153,5 +142,3 @@ get_resource_snapshot_path = _get_resource_snapshot_path
 
 # Determinism Utilities
 Determinism = _Determinism
-
-print("✅ TDK CLI loaded: engine + discovery + specs + ext + determinism")

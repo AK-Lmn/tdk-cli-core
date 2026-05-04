@@ -1,11 +1,4 @@
-export interface CacheEntry<T> {
-  value: T;
-  timestamp: number;
-}
-
-export interface CacheOptions {
-  ttlMs: number;
-}
+import type { CacheEntry, CacheOptions } from '../types/index.js';
 
 export class Cache<T> {
   private data: Map<string, CacheEntry<T>>;

@@ -9,7 +9,7 @@
 # Run 'tdk project' to regenerate
 # =============================================================================
 
-print("🚀 {{project.name}} - Loading TDK Landscape")
+print("🚀 Loading {{project.name}}...")
 
 # =============================================================================
 # 📦 REGISTER TDK EXTENSION
@@ -22,11 +22,9 @@ _use_local = str(local(_check_local_cmd, quiet=True, echo_off=True)).strip() == 
 if _use_local:
     v1alpha1.extension_repo(name='tdk-cli-local', url='file://' + _local_tdk_path)
     v1alpha1.extension(name='tdk-cli', repo_name='tdk-cli-local', repo_path='')
-    print("📦 TDK CLI (local: " + _local_tdk_path + ")")
 else:
     v1alpha1.extension_repo(name='tdk-cli', url='https://github.com/tdk-landscape/tdk-cli')
     v1alpha1.extension(name='tdk-cli', repo_name='tdk-cli', repo_path='')
-    print("📦 TDK CLI (github.com/tdk-landscape/tdk-cli)")
 
 # =============================================================================
 # 📍 PROJECT CONFIGURATION
@@ -72,16 +70,12 @@ load('ext://tdk-cli',
 # =============================================================================
 # 🏗️ VALIDATE & INITIALIZE
 # =============================================================================
-print("🏗️ Validating tech stack...")
 assert_tech_stack({
-"bundler": TECH_STACK['bundler'],
-"runtime": TECH_STACK['runtime'],
-"orm": TECH_STACK['orm'],
-"messaging": TECH_STACK['messaging'],
+    "bundler": TECH_STACK['bundler'],
+    "runtime": TECH_STACK['runtime'],
+    "orm": TECH_STACK['orm'],
+    "messaging": TECH_STACK['messaging'],
 })
-print("✅ Tech stack: {} / {} / {}".format(
-TECH_STACK['bundler'], TECH_STACK['runtime'], TECH_STACK['testing']
-))
 
 # =============================================================================
 # 🎨 UI ENHANCEMENTS
@@ -115,8 +109,8 @@ _AUTO_DISCOVER_ENABLED = os.environ.get('AUTO_DISCOVER', 'true').lower() == 'tru
 _DISCOVERY_SCAN_INTERVAL = int(os.environ.get('DISCOVERY_SCAN_INTERVAL', '5'))
 _AUTO_INIT_NEW_RESOURCES = not cfg.get('no-auto-init-new', False)
 
-if _AUTO_DISCOVER_ENABLED:
-    print("🔮 Auto-discovery: {}s interval".format(_DISCOVERY_SCAN_INTERVAL))
+# Auto-discovery enabled ({{discovery.interval}}s interval)
+_AUTO_DISCOVER_ENABLED = _AUTO_DISCOVER_ENABLED
 
 # =============================================================================
 # 📝 LOGGING
@@ -132,7 +126,6 @@ def is_verbose():
 os.environ['TILT_LOG_LEVEL'] = _LOG_LEVEL
 if _LOG_LEVEL == "verbose":
     os.environ['VERBOSE'] = 'true'
-    print("📝 Verbose logging enabled")
 
 # =============================================================================
 # 🌍 ENVIRONMENT SETUP
@@ -166,14 +159,12 @@ print("🚀 Initializing TDK...")
 # Registry.reinitialize() is only needed if we want to force a fresh discovery
 _app_resources_list = APP_RESOURCES
 
-# If empty (shouldn't happen), fall back to reinitialize
+# First run or cache cleared — build registry from manifests
 if len(_app_resources_list) == 0:
-    print(" ⚠️ APP_RESOURCES empty, reinitializing registry...")
     _app_resources_list = Registry.reinitialize()
 
-# If still empty, fall back to direct manifest loading
+# If still empty, load directly from manifest files
 if len(_app_resources_list) == 0:
-    print(" ⚠️ Registry empty, loading via Manifest...")
     _app_resources_list = Manifest.load_all(PROJECT_ROOT)
 
 print("📦 Loaded {} services".format(len(_app_resources_list)))
@@ -220,6 +211,6 @@ if _AUTO_DISCOVER_ENABLED:
         links=[link('file:///snapshots/resource-snapshot.json', 'Resource Snapshot')]
     )
     
-    print("\n👁️ Discovery daemon running")
+
 
 print("\n✅ {{project.name}} Tilt ready!")

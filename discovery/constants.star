@@ -61,18 +61,12 @@ def _get_project_discovery_roots():
                                     pattern = line[key_start+1:key_end]
                                     patterns.append(pattern)
                         if patterns:
-                            print("📍 Using project-specific discovery patterns: " + str(patterns))
+
                             return patterns
     return []
 
 # Get project-specific roots or fall back to defaults
 _PROJECT_DISCOVERY_ROOTS = _get_project_discovery_roots()
-
-# Debug: Show what patterns are being used
-if _PROJECT_DISCOVERY_ROOTS:
-    print("📍 Discovery patterns: " + str(_PROJECT_DISCOVERY_ROOTS))
-else:
-    print("📍 Using default discovery patterns")
 
 # Phase 2: Universal Discovery - Scan roots configuration
 # Each root is scanned for service.json files

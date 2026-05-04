@@ -8,11 +8,11 @@ import { CREATABLE_RESOURCE_TYPES, isCreatableResourceType } from '../types/inde
 import { discoverResources } from '../utils/services.js';
 import { requireProjectRoot, runCommand, errorFactories } from '../utils/errors.js';
 import { validateResourceName, createKebabCaseValidator } from '../utils/validation.js';
-import { formatCount, showCancelled, showCommandHeader } from '../utils/formatting.js';
+import { formatCount, showCommandHeader } from '../utils/formatting.js';
 import { PORT_RANGES } from '../utils/constants.js';
 import { assignPort } from '../utils/port-assignment.js';
 import { writeJsonFileInDir, writeTextFileInDir, writeFilesWithProgress } from '../utils/file-helpers.js';
-import { assertValid } from '../utils/command-helpers.js';
+import { assertValid, confirmOrCancel } from '../utils/command-helpers.js';
 
 export const BASE_TEMPLATE = {
   port: 0, // Will be assigned
@@ -318,14 +318,19 @@ describe('${name}', () => {
 `;}
 
 export const resourceCommand = new Command('resource')
-  .description('Create a new resource (service) from scratch')
+  .description('Create a new resource (service) from scratch, or register an existing one')
   .argument('[name]', 'Resource name (kebab-case)')
-  .option('-t, --type <type>', 'Resource type: backend, frontend, worker', 'backend')
+  .option('-t, --type <type>', 'Resource type: backend, frontend, worker, sdk', 'backend')
   .option('-s, --stack <stack>', 'Stack to assign resource to', 'default')
   .option('-p, --path <path>', 'Custom path for resource directory')
+  .option('--resource-path <path>', 'Alias for --path (for backward compatibility)')
+  .option('--register-existing', 'Register an existing resource without creating templates')
   .action(async (name, options) => {
     await runCommand(async () => {
       const projectRoot = requireProjectRoot();
+
+      // Support --resource-path as alias for --path
+      const resourcePath = options.resourcePath || options.path;
 
       showCommandHeader('Resource Creation');
 
@@ -344,8 +349,10 @@ export const resourceCommand = new Command('resource')
         assertValid(validateResourceName(resourceName));
       }
 
-      let resourceType: CreatableResourceType;
-      if (!isCreatableResourceType(options.type)) {
+      // Support sdk type for registering existing SDKs
+      let resourceType: CreatableResourceType | 'sdk';
+      const validTypes = [...CREATABLE_RESOURCE_TYPES, 'sdk'] as const;
+      if (!validTypes.includes(options.type)) {
         const { selectedType } = await inquirer.prompt([{
           type: 'list',
           name: 'selectedType',
@@ -354,6 +361,7 @@ export const resourceCommand = new Command('resource')
             { name: 'backend - API service with HTTP endpoints', value: 'backend' },
             { name: 'frontend - Web application/UI', value: 'frontend' },
             { name: 'worker - Background job processor', value: 'worker' },
+            { name: 'sdk - Library/SDK (register existing)', value: 'sdk' },
           ]
         }]);
         resourceType = selectedType;
@@ -404,64 +412,93 @@ export const resourceCommand = new Command('resource')
         }
       }
 
-      let resourcePath = options.path;
-      if (!resourcePath) {
-        const defaultPaths: Record<CreatableResourceType, string> = {
+      let finalResourcePath = resourcePath;
+      if (!finalResourcePath) {
+        const defaultPaths: Record<CreatableResourceType | 'sdk', string> = {
           backend: `services/${stackName}/${resourceName}`,
           frontend: `apps/${resourceName}`,
           worker: `workers/${resourceName}`,
+          sdk: `packages/${resourceName}`,
         };
-        resourcePath = defaultPaths[resourceType];
+        finalResourcePath = defaultPaths[resourceType];
       }
 
-      const fullPath = resolve(projectRoot, resourcePath);
+      const fullPath = resolve(projectRoot, finalResourcePath);
 
       // Prevent path traversal attacks
-      const relativePath = relative(projectRoot, fullPath);
-      if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
+      const relativePathResult = relative(projectRoot, fullPath);
+      if (relativePathResult.startsWith('..') || isAbsolute(relativePathResult)) {
         errorFactories.invalidPath(fullPath).display();
         process.exit(1);
       }
 
-      if (resourcePath.includes('\0') || /[<>:"|?*]/.test(resourcePath)) {
-        errorFactories.invalidPath(resourcePath).display();
+      if (finalResourcePath.includes('\0') || /[<>:"|?*]/.test(finalResourcePath)) {
+        errorFactories.invalidPath(finalResourcePath).display();
         process.exit(1);
       }
 
-      if (existsSync(fullPath)) {
+      // Check if resource already exists
+      const isExistingResource = existsSync(fullPath);
+      const hasServiceJson = existsSync(resolve(fullPath, 'service.json'));
+      const shouldRegisterExisting = options.registerExisting || resourceType === 'sdk' || (isExistingResource && hasServiceJson);
+
+      if (isExistingResource && !shouldRegisterExisting) {
         errorFactories.directoryExists(fullPath).display();
         process.exit(1);
       }
 
-      const assignedPort = assignPort(resourceType, allResources);
+      const assignedPort = resourceType === 'sdk' ? 0 : assignPort(resourceType as CreatableResourceType, allResources);
 
       console.log(chalk.gray('\nResource details:'));
       console.log(chalk.gray(`  Name:  ${resourceName}`));
       console.log(chalk.gray(`  Type:  ${resourceType}`));
       console.log(chalk.gray(`  Stack: ${stackName}`));
-      console.log(chalk.gray(`  Port:  ${assignedPort}`));
-      console.log(chalk.gray(`  Path:  ${resourcePath}`));
+      console.log(chalk.gray(`  Port:  ${assignedPort || 'N/A (SDK)'}`));
+      console.log(chalk.gray(`  Path:  ${finalResourcePath}`));
 
-      const { confirm } = await inquirer.prompt([{
-        type: 'confirm',
-        name: 'confirm',
-        message: '\nCreate resource?',
-        default: true
-      }]);
+      if (shouldRegisterExisting && hasServiceJson) {
+        console.log(chalk.yellow('\n⚠️  Existing resource detected - will update service.json only'));
+      }
 
-      if (!confirm) {
-        showCancelled();
+      const confirmed = await confirmOrCancel(shouldRegisterExisting && hasServiceJson ? '\nRegister existing resource?' : '\nCreate resource?');
+      if (!confirmed) return;
+
+      // Handle existing resource registration
+      if (shouldRegisterExisting && hasServiceJson) {
+        // Read existing service.json
+        const { readFileSync } = await import('node:fs');
+        const existingServiceJsonPath = resolve(fullPath, 'service.json');
+        const existingContent = readFileSync(existingServiceJsonPath, 'utf-8');
+        const existingServiceJson = JSON.parse(existingContent);
+
+        // Update with new values while preserving existing fields
+        const updatedServiceJson = {
+          ...existingServiceJson,
+          appName: resourceName,
+          appType: resourceType === 'sdk' ? 'sdk' : existingServiceJson.appType || resourceType,
+          stack: stackName,
+          ...(assignedPort > 0 && { port: assignedPort }),
+        };
+
+        // Write updated service.json
+        const { writeFileSync } = await import('node:fs');
+        writeFileSync(existingServiceJsonPath, JSON.stringify(updatedServiceJson, null, 2));
+
+        console.log(chalk.green('\n✅ Existing resource registered successfully!'));
+        console.log(chalk.gray(`\nLocation: ${fullPath}`));
+        console.log(chalk.gray(`\nNext steps:`));
+        console.log(chalk.gray(`  tdk up ${stackName}`));
         return;
       }
 
-      // Create directory structure
+      // Create directory structure for new resources
       console.log(chalk.blue('\n📁 Creating directory structure...'));
       mkdirSync(fullPath, { recursive: true });
       mkdirSync(resolve(fullPath, 'src'), { recursive: true });
       mkdirSync(resolve(fullPath, 'tests'), { recursive: true });
 
       // Prepare file generation tasks
-      const serviceJson = createServiceJson(resourceName, resourceType, stackName, assignedPort);
+      const serviceJson = createServiceJson(resourceName, resourceType as CreatableResourceType, stackName, assignedPort);
       const packageJson = createPackageJson(resourceName, resourceType);
 
       const tasks: FileGenerationTask[] = [
@@ -492,7 +529,7 @@ export const resourceCommand = new Command('resource')
       console.log(chalk.green('\n✅ Resource created successfully!'));
       console.log(chalk.gray(`\nLocation: ${fullPath}`));
       console.log(chalk.gray(`\nNext steps:`));
-      console.log(chalk.gray(`  cd ${resourcePath}`));
+      console.log(chalk.gray(`  cd ${finalResourcePath}`));
       console.log(chalk.gray(`  bun install`));
       console.log(chalk.gray(`  tdk up ${stackName}`));
     });

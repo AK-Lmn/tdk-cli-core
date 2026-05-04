@@ -32,13 +32,57 @@ function createExecCheck(
   };
 }
 
-const checkDocker = createExecCheck(
-  "Docker",
-  "docker ps",
-  "Docker daemon is running",
-  "Docker is not running",
-  "Start Docker Desktop or run: open -a Docker (macOS) or sudo systemctl start docker (Linux)"
-);
+function checkDockerRuntime(): CheckResult {
+  // Check for Docker
+  try {
+    execSync("docker ps", { stdio: "pipe" });
+    return {
+      name: "Container Runtime",
+      didPass: true,
+      message: "Docker daemon is running",
+    };
+  } catch {
+    // Docker not running, check for Colima
+    try {
+      execSync("colima status", { stdio: "pipe" });
+      // Colima is running
+      return {
+        name: "Container Runtime",
+        didPass: true,
+        message: "Colima (Docker runtime) is running",
+      };
+    } catch {
+      // Check if Colima is installed but not running
+      try {
+        execSync("which colima", { stdio: "pipe" });
+        return {
+          name: "Container Runtime",
+          didPass: false,
+          message: "Colima is installed but not running",
+          fix: "Start Colima: colima start",
+        };
+      } catch {
+        // Check for Podman
+        try {
+          execSync("podman ps", { stdio: "pipe" });
+          return {
+            name: "Container Runtime",
+            didPass: true,
+            message: "Podman is running",
+          };
+        } catch {
+          // No container runtime found
+          return {
+            name: "Container Runtime",
+            didPass: false,
+            message: "No container runtime (Docker/Colima/Podman) is running",
+            fix: "Start: colima start (recommended) OR open -a Docker (macOS) OR sudo systemctl start docker (Linux)",
+          };
+        }
+      }
+    }
+  }
+}
 
 const checkDockerCompose = createExecCheck(
   "Docker Compose",
@@ -90,7 +134,7 @@ export const doctorCommand = new Command('doctor')
     console.log("Checking environment...\n");
 
     const checks = [
-      checkDocker,
+      checkDockerRuntime,
       checkTilt,
       checkDockerCompose,
       checkMasterConfigs,

@@ -3,18 +3,8 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import chalk from 'chalk';
-import type { ProjectConfig, JsonValue } from '../types/index.js';
-
-/**
- * Serialize ProjectConfig to JSON-safe value.
- * ProjectConfig is guaranteed to be JSON-serializable (all properties are primitive or plain objects).
- * This wrapper documents the type relationship that TypeScript cannot infer.
- */
-function serializeProjectConfig(config: ProjectConfig): JsonValue {
-  // ProjectConfig has no index signature but is structurally compatible with JsonValue
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-  return config as unknown as JsonValue;
-}
+import type { ProjectConfig, MasterConfigFileName } from '../types/index.js';
+import { isMasterConfigFileName } from '../types/index.js';
 import { requireProjectRoot, runCommand } from '../utils/errors.js';
 import { assertValid } from '../utils/command-helpers.js';
 import { generateMasterConfigs, verifyMasterConfigs, readProjectConfig, TemplateEngine } from '../generator/template-engine.js';
@@ -22,6 +12,18 @@ import { MASTER_CONFIG_FILES } from '../utils/constants.js';
 import { validateOptionalInfraService } from '../utils/validation.js';
 import { showCommandHeader } from '../utils/formatting.js';
 import { writeJsonFile } from '../utils/file-helpers.js';
+import type { JsonValue } from '../types/index.js';
+
+/**
+ * Serialize ProjectConfig to JSON-safe value.
+ * ProjectConfig is guaranteed to be JSON-serializable (all properties are primitive or plain objects).
+ * This wrapper documents the type relationship that TypeScript cannot infer.
+ */
+function serializeProjectConfig(config: unknown): JsonValue {
+  // ProjectConfig has no index signature but is structurally compatible with JsonValue
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+  return config as JsonValue;
+}
 
 export const configCommand = new Command('config')
   .description('Manage project configuration and regenerate master files')
@@ -42,15 +44,6 @@ export const configCommand = new Command('config')
 
             const outputDir = join(projectRoot, '.tdk', '.tdk-out');
             const filesToCheck = MASTER_CONFIG_FILES;
-            type MasterConfigFileName = typeof MASTER_CONFIG_FILES[number];
-
-            /**
-             * Type guard to validate filename is a known master config file.
-             * Eliminates the need for 'as MasterConfigFileName' assertion.
-             */
-            function isMasterConfigFileName(filename: string): filename is MasterConfigFileName {
-              return (MASTER_CONFIG_FILES as readonly string[]).includes(filename);
-            }
 
             let hasChanges = false;
 
@@ -232,7 +225,8 @@ async function toggleInfraService(service: string, enabled: boolean): Promise<vo
   config.optional_infra[service] = enabled;
 
   const projectJsonPath = join(projectRoot, '.tdk', 'project.json');
-  writeJsonFile(projectJsonPath, serializeProjectConfig(config));
+  // ProjectConfig is guaranteed to be JSON-serializable
+  writeJsonFile(projectJsonPath, config as unknown);
 
   const action = enabled ? 'Enabled' : 'Disabled';
   console.log(chalk.green(`✓ ${action}: ${service}`));

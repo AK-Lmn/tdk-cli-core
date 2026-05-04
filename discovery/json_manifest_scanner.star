@@ -47,8 +47,4 @@ def discover_json_manifests(root_path):
             if line and MANIFEST_FILENAME in line:
                 manifests.append(line)
     
-    # Debug output
-    if manifests:
-        print("  🔍 Found {} manifests in {}".format(len(manifests), root_path))
-    
     return manifests

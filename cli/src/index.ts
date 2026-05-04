@@ -43,18 +43,11 @@ export type {
   StatusCategory,
   FileGenerationTask,
   ResourceFileType,
-  // Consolidated types
-  CacheEntry,
-  CacheOptions,
-  PackageInfo,
-  PortAssignableResourceType,
-  MasterConfigFileName,
 } from './types/index.js';
 
 export {
   CREATABLE_RESOURCE_TYPES,
   isCreatableResourceType,
-  isMasterConfigFileName,
 } from './types/index.js';
 
 export {
@@ -91,30 +84,14 @@ export {
 
 export {
   confirmAction,
+  confirmOrCancel,
   assertValid,
   handleDryRun,
 } from './utils/command-helpers.js';
 
 export {
-  formatBoxLine,
-  formatCentered,
-  formatPadded,
-  truncate,
-} from './utils/formatting.js';
-
-export {
-  errorFactories,
-} from './utils/errors.js';
-
-export {
-  clearDiscoveryCache,
-} from './utils/discovery-context.js';
-
-export {
   Cache,
   createCacheValidator,
-  type CacheEntry,
-  type CacheOptions,
 } from './utils/cache.js';
 
 export {
@@ -124,3 +101,5 @@ export {
 export {
   checkPortStatus,
 } from './utils/port-assignment.js';
+
+

@@ -14,7 +14,7 @@ export interface ResourceConfig {
   stack?: string;
   port?: number;
   replicas?: number;
-  runtime: string;
+  runtime?: string;
   features?: string[];
   internalDependencies?: string[];
   enabled?: boolean;
@@ -266,4 +266,48 @@ export interface ErrorScreenProps {
 
 export interface HelpPanelProps {
   onClose: () => void;
+}
+
+// ============================================================================
+// Cache Types (consolidated from utils/cache.ts)
+// ============================================================================
+
+export interface CacheEntry<T> {
+  value: T;
+  timestamp: number;
+}
+
+export interface CacheOptions {
+  ttlMs: number;
+}
+
+// ============================================================================
+// Package Types (consolidated from utils/paths.ts)
+// ============================================================================
+
+export interface PackageInfo {
+  name: string;
+  version: string;
+  fullPackage: JsonObject;
+}
+
+// ============================================================================
+// Port Assignment Types (consolidated from utils/port-assignment.ts)
+// ============================================================================
+
+export type PortAssignableResourceType = Extract<CreatableResourceType, 'backend' | 'frontend' | 'worker' | 'migrator'>;
+
+// ============================================================================
+// Config Types (consolidated from commands/config.ts)
+// ============================================================================
+
+export type MasterConfigFileName = 'TILT_TECH_STACK.star' | 'TILT_RESOURCE_DEFAULTS.star' | 'spec.master';
+
+/**
+ * Type guard to validate filename is a known master config file.
+ * Eliminates the need for 'as MasterConfigFileName' assertion.
+ */
+export function isMasterConfigFileName(filename: string): filename is MasterConfigFileName {
+  const validNames: readonly string[] = ['TILT_TECH_STACK.star', 'TILT_RESOURCE_DEFAULTS.star', 'spec.master'];
+  return validNames.includes(filename);
 }

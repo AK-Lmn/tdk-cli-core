@@ -49,7 +49,9 @@ function shouldSkipDirectory(name: string): boolean {
 function isValidResourceConfig(value: unknown): value is ResourceConfig {
   if (!value || typeof value !== 'object') return false;
   const config = value as Record<string, unknown>;
-  return typeof config.appName === 'string' && typeof config.runtime === 'string';
+  // Accept either runtime or appType (for backward compatibility with existing service.json files)
+  const hasRuntimeOrAppType = typeof config.runtime === 'string' || typeof config.appType === 'string';
+  return typeof config.appName === 'string' && hasRuntimeOrAppType;
 }
 
 function parseResource(serviceJsonPath: string): DiscoveredResource {
@@ -57,7 +59,7 @@ function parseResource(serviceJsonPath: string): DiscoveredResource {
   const parsed: unknown = JSON.parse(content);
 
   if (!isValidResourceConfig(parsed)) {
-    throw new Error(`Invalid service.json at ${serviceJsonPath}: missing required fields (appName, runtime)`);
+    throw new Error(`Invalid service.json at ${serviceJsonPath}: missing required fields (appName, runtime or appType)`);
   }
 
   const config: ResourceConfig = parsed;

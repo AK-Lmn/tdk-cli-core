@@ -236,7 +236,7 @@ ManifestConstants = struct(
     VALIDATION_THRESHOLDS=VALIDATION_THRESHOLDS,
 )
 
-print("✅ Manifest constants loaded (self-contained for ext://)")
+
 
 CONSTANTS = {}
 

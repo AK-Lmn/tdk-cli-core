@@ -6,7 +6,7 @@ import { createDiscoveryContext, clearDiscoveryCache } from '../utils/discovery-
 import { requireProjectRoot, runCommand } from '../utils/errors.js';
 import { createKebabCaseValidator } from '../utils/validation.js';
 import { formatCount, showCommandHeader, showAllSatisfyCondition, showSuccess, showDetail } from '../utils/formatting.js';
-import { confirmAction } from '../utils/command-helpers.js';
+import { confirmOrCancel } from '../utils/command-helpers.js';
 import { writeJsonFile } from '../utils/file-helpers.js';
 
 export const stackCommand = new Command('stack')
@@ -91,10 +91,8 @@ export const stackCommand = new Command('stack')
 
       showDetail(`\nWill add "stack": "${targetStack}" to ${formatCount(selectedResources.length, 'resource')}.`, 0);
 
-      const confirmed = await confirmAction('Proceed?', true);
-      if (!confirmed) {
-        return;
-      }
+      const confirmed = await confirmOrCancel('Proceed?');
+      if (!confirmed) return;
 
       // Clear cache since we're about to modify resources
       clearDiscoveryCache();

@@ -7,7 +7,7 @@ import { readProjectConfig } from '../generator/template-engine.js';
 import { sanitizeForShell, isValidPort } from '../utils/validation.js';
 import { requireProjectRoot, logVerbose } from '../utils/errors.js';
 import { getUsedPorts, checkPortStatus } from '../utils/port-assignment.js';
-import { formatPadded, getStatusIcon, colorizeByStatus, printBoxedHeader, DEFAULT_BOX_WIDTH } from '../utils/formatting.js';
+import { formatPadded, formatBoxLine, getStatusIcon, colorizeByStatus, printBoxedHeader, DEFAULT_BOX_WIDTH } from '../utils/formatting.js';
 import { getStackEmoji } from '../utils/constants.js';
 import type { ServiceUrl } from '../types/index.js';
 
@@ -273,7 +273,7 @@ export const networksCommand = new Command('networks')
 
       console.log();
       console.log(chalk.bold.white(stackTitle));
-      console.log(chalk.gray(formatBoxLine('━', BOX_WIDTH - 4)));
+      console.log(chalk.gray(formatBoxLine('━', DEFAULT_BOX_WIDTH - 4)));
       
       for (const service of stackServices) {
         const statusSymbol = getStatusIcon(service.status);
@@ -292,7 +292,7 @@ export const networksCommand = new Command('networks')
       }
     }
     console.log();
-    console.log(chalk.gray(formatBoxLine('─', BOX_WIDTH - 2)));
+    console.log(chalk.gray(formatBoxLine('─', DEFAULT_BOX_WIDTH - 2)));
     console.log(chalk.gray('🖱️  Click any URL above to open in browser'));
     console.log(chalk.gray('📊 Status: ') + chalk.green('✓ Running') + ' | ' + chalk.red('✗ Stopped') + ' | ' + chalk.gray('? Unknown'));
     

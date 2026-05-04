@@ -120,7 +120,8 @@ export function showAllSatisfyCondition(items: string, condition: string): void 
   console.log(chalk.green(`All ${items} are ${condition}!`));
 }
 
-const DEFAULT_BOX_WIDTH = 62;
+/** Default width for ASCII boxes */
+export const DEFAULT_BOX_WIDTH = 62;
 
 export function formatBoxLine(char: string = '─', width: number = DEFAULT_BOX_WIDTH): string {
   return char.repeat(width);
@@ -145,54 +146,6 @@ export function truncate(str: string, maxLength: number): string {
   return str.slice(0, maxLength - 3) + '...';
 }
 
-function formatAsciiBox(
-  title: string,
-  lines: string[],
-  width: number = DEFAULT_BOX_WIDTH
-): string[] {
-  const innerWidth = width - 2;
-  const result: string[] = [];
-
-  const centeredTitle = formatCentered(title, innerWidth);
-  result.push(chalk.cyan('╭' + formatBoxLine('─', innerWidth) + '╮'));
-  result.push(chalk.cyan('│') + chalk.bold.white(centeredTitle) + chalk.cyan('│'));
-  result.push(chalk.cyan('├' + formatBoxLine('─', innerWidth) + '┤'));
-
-  for (const line of lines) {
-    const padded = formatPadded(line, innerWidth);
-    result.push(chalk.cyan('│') + padded + chalk.cyan('│'));
-  }
-
-  result.push(chalk.cyan('╰' + formatBoxLine('─', innerWidth) + '╯'));
-
-  return result;
-}
-
-function printAsciiBox(title: string, lines: string[], width?: number): void {
-  const formatted = formatAsciiBox(title, lines, width);
-  formatted.forEach(line => console.log(line));
-}
-
-function formatSeparator(
-  label?: string,
-  width: number = DEFAULT_BOX_WIDTH,
-  char: string = '─'
-): string {
-  if (!label) {
-    return char.repeat(width);
-  }
-
-  const labelWithSpaces = ` ${label} `;
-  const padding = width - labelWithSpaces.length;
-  if (padding <= 0) {
-    return labelWithSpaces;
-  }
-
-  const left = Math.floor(padding / 2);
-  const right = padding - left;
-  return char.repeat(left) + labelWithSpaces + char.repeat(right);
-}
-
 export function showSuccess(message: string): void {
   console.log(chalk.green(`✓ ${message}`));
 }
@@ -210,9 +163,6 @@ export function formatBytes(bytes: number): string {
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }
-
-/** Default width for ASCII boxes */
-export const DEFAULT_BOX_WIDTH = 62;
 
 /**
  * Print a boxed header with title and optional subtitle.

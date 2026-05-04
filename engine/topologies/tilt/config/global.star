@@ -5,8 +5,8 @@
 load("./profiles.star", "Focus")
 load(
     "../../../../discovery/registry.star",
-    "GLOBAL_CONFIG_EXPORT",
     "APP_RESOURCES",
+    "GLOBAL_CONFIG_EXPORT",
     "INFRA_RESOURCES_EXPORT",
     "DDD_LIBS_EXPORT",
     "DEFAULTS_EXPORT",

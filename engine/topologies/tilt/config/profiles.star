@@ -10,8 +10,6 @@ load(
     "INFRA_STACK_MAP_EXPORT",
     "OPTIONAL_INFRA_EXPORT",
     "DEFAULTS_EXPORT",
-    "RESOURCE_DEPENDENCIES",
-    "RESOURCE_ALIASES",
     "get_app_resources",
 )
 load("../../../../discovery/config.star", "Config")
@@ -47,7 +45,7 @@ def _get_resources_for_domain(domain_name):
     Library resources (appType == 'library') only return YAML resources.
     """
     resources = []
-    for service in APP_RESOURCES:
+    for service in get_app_resources_ref():
         if service.get("name") == domain_name:
             for res in service.get("resources", []):
                 res_name = res.get("name", "")
@@ -71,9 +69,9 @@ def get_all_needed_services(targets, skip_frontend = False):
     visited = {}
 
     def _resolve_alias(resource_name):
-        if resource_name in RESOURCE_ALIASES:
-            alias_value = RESOURCE_ALIASES[resource_name]
-            # RESOURCE_ALIASES maps names to paths (strings), not to resource lists
+        if resource_name in get_resource_aliases_ref():
+            alias_value = get_resource_aliases_ref()[resource_name]
+            # get_resource_aliases_ref() maps names to paths (strings), not to resource lists
             # Only return alias_value if it's a list (of resource names)
             if type(alias_value) == "list":
                 return alias_value
@@ -102,7 +100,7 @@ def get_all_needed_services(targets, skip_frontend = False):
 
         needed[service] = True
 
-        deps = RESOURCE_DEPENDENCIES.get(service, [])
+        deps = get_resource_dependencies_ref().get(service, [])
         for dep in deps:
             for resolved in resolve_dependency(dep):
                 discover(resolved)
@@ -127,23 +125,14 @@ def get_all_needed_services(targets, skip_frontend = False):
 
 def apply_focus_filter(cfg):
     # Ensure discovery is complete before applying focus filter
-    # This is needed because APP_RESOURCES might be empty during initial load
-    if len(APP_RESOURCES) == 0:
-        print("🔄 Triggering discovery before focus filter...")
+    if len(get_app_resources_ref()) == 0:
         get_app_resources()
-    
-    print("DEBUG: APP_RESOURCES has {} services".format(len(APP_RESOURCES)))
-    for svc in APP_RESOURCES:
-        print("DEBUG:   - {}".format(svc.get("name", "unknown")))
-    
+
     focus_targets = cfg.get("focus", [])
 
     # Default to pre-alpha if no focus targets specified
     if not focus_targets:
-        print("🎯 ═══════════════════════════════════════════════════════════════")
-        print("🎯  DEFAULTING TO PRE-ALPHA MODE")
-        print("🎯  Use --focus alpha or --focus beta for other phases")
-        print("🎯 ═══════════════════════════════════════════════════════════════")
+        print("🎯 Mode: pre-alpha (use --focus for alpha/beta)")
         focus_targets = ["pre-alpha"]
 
     parsed_targets = []
@@ -186,7 +175,7 @@ def apply_focus_filter(cfg):
             needed[svc] = True
 
     for target in parsed_targets:
-        if target in RESOURCE_ALIASES:
+        if target in get_resource_aliases_ref():
             needed[target] = True
 
     all_needed = needed.keys()
@@ -207,7 +196,7 @@ def apply_focus_filter(cfg):
     # config.set_enabled_resources accepts only concrete Tilt resources.
     # Service alias keys (e.g. "booking-domain") and domain names (e.g. "identity") must be filtered out.
     # Real Tilt resources always have hyphens (e.g., "identity-management-backend-yaml")
-    resource_only_needed = [r for r in all_needed if r not in logic_toggles and r not in RESOURCE_ALIASES and '-' in r]
+    resource_only_needed = [r for r in all_needed if r not in logic_toggles and r not in get_resource_aliases_ref() and '-' in r]
 
     print("🎯 Discovered " + str(len(all_needed)) + " entities via dependency graph:")
 
@@ -238,9 +227,9 @@ def create_should_enable_wrapper(focus_mode, focus_enabled_all, cfg, defaults):
             for domain in focus_enabled_all:
                 if resource_name.startswith(domain + "-"):
                     return True
-            # Check RESOURCE_ALIASES (if it maps to resource lists)
-            if resource_name in RESOURCE_ALIASES:
-                alias_value = RESOURCE_ALIASES[resource_name]
+            # Check get_resource_aliases_ref() (if it maps to resource lists)
+            if resource_name in get_resource_aliases_ref():
+                alias_value = get_resource_aliases_ref()[resource_name]
                 if type(alias_value) == "list":
                     return any([res in focus_enabled_all for res in alias_value])
             return False

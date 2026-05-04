@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { resolve, join, dirname } from 'node:path';
 import { cwd } from 'node:process';
 import { fileURLToPath } from 'node:url';
-import type { JsonObject } from '../types/index.js';
+import type { JsonObject, PackageInfo } from '../types/index.js';
 
 export function findProjectRoot(startDir: string = cwd()): string | null {
   let currentDir = resolve(startDir);
@@ -21,12 +21,6 @@ export function findProjectRoot(startDir: string = cwd()): string | null {
   }
 
   return null;
-}
-
-interface PackageInfo {
-  name: string;
-  version: string;
-  fullPackage: JsonObject;
 }
 
 let packageCache: PackageInfo | null = null;

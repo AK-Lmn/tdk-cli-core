@@ -22,7 +22,7 @@ def load_ui_enhancements(config):
     enable_help_panel = config.get('enable_help_panel', True)
     enable_cron_jobs_tab = config.get('enable_cron_jobs_tab', True)
     
-    print("✨ UI Enhancements configured")
+
     print("   - Tooltips: " + ("enabled" if enable_tooltips else "disabled"))
     print("   - Icons: " + ("enabled" if enable_icons else "disabled"))
     print("   - Help Panel: " + ("enabled" if enable_help_panel else "disabled"))
