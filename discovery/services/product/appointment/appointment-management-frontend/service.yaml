@@ -1,0 +1,8 @@
+appName: appointment-management-frontend
+appType: frontend
+stack: appointment
+port: 5002
+backendName: appointment-management-backend
+basePath: /appointments
+playwright: True
+runtime: bun

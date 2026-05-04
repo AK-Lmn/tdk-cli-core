@@ -1,0 +1,15 @@
+appName: staff-management-backend
+appType: backend
+stack: staff
+port: 4003
+apiPath: /api/staff-management
+features:
+  - nats
+  - prisma
+infisicalSecretPath: /services/staff
+internalDependencies:
+  - identity-management-backend
+params:
+  IDENTITY_SERVICE_URL: http://identity-management-backend:3000
+replicas: 1
+runtime: bun

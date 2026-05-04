@@ -1,0 +1,16 @@
+appName: salon-management-backend
+appType: backend
+stack: salon
+port: 4000
+apiPath: /api/salon-management
+features:
+  - nats
+  - prisma
+  - maintenance
+infisicalSecretPath: /services/salon
+internalDependencies:
+  - identity-management-backend
+params:
+  IDENTITY_SERVICE_URL: http://identity-management-backend:3000
+replicas: 1
+runtime: bun

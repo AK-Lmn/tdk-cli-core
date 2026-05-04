@@ -1,0 +1,8 @@
+appName: treatment-management-frontend
+appType: frontend
+stack: treatment
+port: 5008
+backendName: treatment-management-backend
+basePath: /treatments
+playwright: True
+runtime: bun

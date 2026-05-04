@@ -1,0 +1,10 @@
+appName: appointment-planner-builder-backend
+appType: backend
+stack: appointment-planner
+port: 4001
+apiPath: /api/appointment-planner-builder
+features:
+  - nats
+  - prisma
+replicas: 1
+runtime: bun

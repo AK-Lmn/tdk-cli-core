@@ -1,0 +1,7 @@
+appName: salon-management-frontend
+appType: frontend
+stack: salon
+port: 3000
+backendName: salon-management-backend
+basePath: /salons
+runtime: bun

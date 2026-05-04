@@ -10,9 +10,14 @@ load(
     "INFRA_STACK_MAP_EXPORT",
     "OPTIONAL_INFRA_EXPORT",
     "DEFAULTS_EXPORT",
+    "FOCUS_PRE_ALPHA_EXPORT",
+    "FOCUS_ALPHA_EXPORT",
+    "FOCUS_BETA_EXPORT",
     "get_app_resources",
+    "get_app_resources_ref",
+    "get_resource_aliases_ref",
+    "get_resource_dependencies_ref",
 )
-load("../../../../discovery/config.star", "Config")
 
 # =============================================================================
 # 🎯 RELEASE PHASE MAPPINGS
@@ -20,9 +25,9 @@ load("../../../../discovery/config.star", "Config")
 # Map release phase names to service lists from spec.master
 
 RELEASE_PHASES = {
-    "pre-alpha": Config.FOCUS_PRE_ALPHA,
-    "alpha": Config.FOCUS_ALPHA,
-    "beta": Config.FOCUS_BETA,
+    "pre-alpha": FOCUS_PRE_ALPHA_EXPORT,
+    "alpha": FOCUS_ALPHA_EXPORT,
+    "beta": FOCUS_BETA_EXPORT,
 }
 
 def expand_release_targets(targets):
@@ -43,10 +48,15 @@ def _get_resources_for_domain(domain_name):
     
     Returns both the actual service resources and YAML tracking resources.
     Library resources (appType == 'library') only return YAML resources.
+    
+    Matches by stack name (domain) which is the canonical service identifier.
     """
     resources = []
     for service in get_app_resources_ref():
-        if service.get("name") == domain_name:
+        # Match by stack name (domain) - this is the canonical identifier in spec.master
+        service_stack = service.get("stack", "")
+        service_name = service.get("name", "")
+        if service_stack == domain_name or service_name == domain_name:
             for res in service.get("resources", []):
                 res_name = res.get("name", "")
                 if res_name:
@@ -123,6 +133,93 @@ def get_all_needed_services(targets, skip_frontend = False):
     return expanded_needed.keys()
 
 
+def _load_focus_lists():
+    """Load focus lists from project spec.master directly."""
+    project_root = os.environ.get('TDK_PROJECT_ROOT', '')
+    if not project_root:
+        return ([], [], [])
+    
+    # Load from spec.master
+    spec_paths = [
+        project_root + "/.tdk/.tdk-out/spec.master",
+        project_root + "/spec.master",
+    ]
+    
+    for spec_path in spec_paths:
+        check_cmd = "test -f '{}' && echo 'yes' || echo 'no'".format(spec_path)
+        exists = str(local(check_cmd, quiet=True, echo_off=True)).strip() == 'yes'
+        if exists:
+            # Parse PRE_ALPHA_RESOURCES from spec.master
+            pre_alpha = []
+            alpha = []
+            beta = []
+            
+            content = str(local("cat '" + spec_path + "' 2>/dev/null || true", quiet=True, echo_off=True))
+            
+            # Simple parsing for PRE_ALPHA_RESOURCES = {"key": True, ...}
+            if "PRE_ALPHA_RESOURCES" in content:
+                start = content.find("PRE_ALPHA_RESOURCES = {")
+                if start != -1:
+                    start = content.find("{", start)
+                    end = content.find("}", start)
+                    if start != -1 and end != -1:
+                        dict_content = content[start+1:end]
+                        for line in dict_content.split("\n"):
+                            line = line.strip()
+                            if line and not line.startswith("#"):
+                                # Extract key from "key": True format
+                                if '"' in line or "'" in line:
+                                    quote_char = '"' if '"' in line else "'"
+                                    key_start = line.find(quote_char)
+                                    key_end = line.find(quote_char, key_start + 1)
+                                    if key_start != -1 and key_end != -1:
+                                        key = line[key_start+1:key_end]
+                                        if "True" in line:
+                                            pre_alpha.append(key)
+            
+            if "ALPHA_RESOURCES" in content:
+                start = content.find("ALPHA_RESOURCES = {")
+                if start != -1:
+                    start = content.find("{", start)
+                    end = content.find("}", start)
+                    if start != -1 and end != -1:
+                        dict_content = content[start+1:end]
+                        for line in dict_content.split("\n"):
+                            line = line.strip()
+                            if line and not line.startswith("#"):
+                                if '"' in line or "'" in line:
+                                    quote_char = '"' if '"' in line else "'"
+                                    key_start = line.find(quote_char)
+                                    key_end = line.find(quote_char, key_start + 1)
+                                    if key_start != -1 and key_end != -1:
+                                        key = line[key_start+1:key_end]
+                                        if "True" in line:
+                                            alpha.append(key)
+            
+            if "BETA_RESOURCES" in content:
+                start = content.find("BETA_RESOURCES = {")
+                if start != -1:
+                    start = content.find("{", start)
+                    end = content.find("}", start)
+                    if start != -1 and end != -1:
+                        dict_content = content[start+1:end]
+                        for line in dict_content.split("\n"):
+                            line = line.strip()
+                            if line and not line.startswith("#"):
+                                if '"' in line or "'" in line:
+                                    quote_char = '"' if '"' in line else "'"
+                                    key_start = line.find(quote_char)
+                                    key_end = line.find(quote_char, key_start + 1)
+                                    if key_start != -1 and key_end != -1:
+                                        key = line[key_start+1:key_end]
+                                        if "True" in line:
+                                            beta.append(key)
+            
+            return (pre_alpha, alpha, beta)
+    
+    return ([], [], [])
+
+
 def apply_focus_filter(cfg):
     # Ensure discovery is complete before applying focus filter
     if len(get_app_resources_ref()) == 0:
@@ -140,8 +237,27 @@ def apply_focus_filter(cfg):
         parsed_targets.extend(target.split(","))
     parsed_targets = [t.strip() for t in parsed_targets if t.strip()]
     
+    # Load focus lists directly from spec.master (since env var is set after module load)
+    pre_alpha_list, alpha_list, beta_list = _load_focus_lists()
+    
+    # Temporarily override RELEASE_PHASES with loaded values
+    dynamic_phases = {
+        "pre-alpha": pre_alpha_list if pre_alpha_list else FOCUS_PRE_ALPHA_EXPORT,
+        "alpha": alpha_list if alpha_list else FOCUS_ALPHA_EXPORT,
+        "beta": beta_list if beta_list else FOCUS_BETA_EXPORT,
+    }
+    
     # Expand release phase targets (pre-alpha, alpha, beta) to service lists
-    parsed_targets = expand_release_targets(parsed_targets)
+    expanded = []
+    for target in parsed_targets:
+        target_lower = target.lower()
+        if target_lower in dynamic_phases:
+            phase_services = dynamic_phases[target_lower]
+            for svc in phase_services:
+                expanded.append(svc)
+        else:
+            expanded.append(target)
+    parsed_targets = expanded
 
     if not parsed_targets:
         return (False, None, None)

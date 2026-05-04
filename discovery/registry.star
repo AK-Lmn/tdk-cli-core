@@ -159,11 +159,11 @@ def remove_resource_from_cache(resource_path):
     # Remove from aliases
     resource_name = RESOURCE_PATH_MAP.get(resource_path, "")
     if resource_name in RESOURCE_ALIASES:
-        del RESOURCE_ALIASES[resource_name]
+        RESOURCE_ALIASES.pop(resource_name, None)
     if resource_path in RESOURCE_PATH_MAP:
-        del RESOURCE_PATH_MAP[resource_path]
+        RESOURCE_PATH_MAP.pop(resource_path, None)
     if resource_name in RESOURCE_DEPENDENCIES:
-        del RESOURCE_DEPENDENCIES[resource_name]
+        RESOURCE_DEPENDENCIES.pop(resource_name, None)
 
 def has_resource_in_cache(resource_path):
     """Check if a resource path exists in cache."""
@@ -192,13 +192,9 @@ def get_cache_stats():
 
 def reinitialize():
     """Force re-discovery by clearing and re-running."""
-    global APP_RESOURCES, RESOURCE_DEPENDENCIES, RESOURCE_ALIASES, RESOURCE_PATH_MAP
+    # Note: Module-level variables are mutable, no global keyword needed in Starlark
     results = _run_discovery()
-    APP_RESOURCES = results["app_resources"]
-    RESOURCE_DEPENDENCIES = results["resource_dependencies"]
-    RESOURCE_ALIASES = results["resource_aliases"]
-    RESOURCE_PATH_MAP = results["resource_path_map"]
-    return APP_RESOURCES
+    return results["app_resources"]
 
 CacheOps = struct(
     add=add_resource_to_cache,
@@ -296,11 +292,8 @@ def _render_product_stacks_index(resources):
 
 def _write_file_if_changed(path, content):
     """Write file only if content changed. Returns True if written."""
-    existing = ""
-    try:
-        existing = str(local("cat " + path, quiet=True, echo_off=True))
-    except:
-        pass
+    # Read existing file (returns empty string on error via shell)
+    existing = str(local("cat " + path + " 2>/dev/null || echo ''", quiet=True, echo_off=True))
     
     if existing != content:
         local("mkdir -p $(dirname " + path + ") && echo '" + content + "' > " + path, quiet=True)
@@ -403,18 +396,34 @@ def _json_to_yaml(json_data, indent=0):
     
     return "\n".join(yaml_lines)
 
+def _find_manifest_files(root, manifest_filename):
+    """Find manifest files, handling glob patterns in root paths."""
+    files = []
+    
+    # Check if root contains glob patterns
+    if '*' in root or '?' in root:
+        # Use bash to expand glob and find files
+        project_root = os.environ.get('TDK_PROJECT_ROOT', '.')
+        cmd = "cd " + project_root + " && bash -c 'for dir in " + root + "; do if [ -d \"$dir\" ]; then find \"$dir\" -maxdepth 2 -type f -name \"" + manifest_filename + "\" 2>/dev/null; fi; done'"
+        result = str(local(cmd, quiet=True, echo_off=True)).strip()
+    else:
+        # Use simple find for non-glob paths
+        cmd = "find " + root + " -type f -name '" + manifest_filename + "' 2>/dev/null"
+        result = str(local(cmd, quiet=True, echo_off=True)).strip()
+    
+    if result:
+        for f in result.split("\n"):
+            f = f.strip()
+            if f and f not in files:
+                files.append(f)
+    
+    return files
+
 def _generate_yaml_from_json_manifests():
     """Generate YAML manifests from JSON manifests."""
     generated_count = 0
     for root in DISCOVERY_SCAN_ROOTS:
-        json_files = []
-        cmd = "find " + root + " -type f -name '" + MANIFEST_FILENAME + "' 2>/dev/null"
-        result = str(local(cmd, quiet=True, echo_off=True)).strip()
-        if result:
-            for f in result.split("\n"):
-                f = f.strip()
-                if f and f not in json_files:
-                    json_files.append(f)
+        json_files = _find_manifest_files(root, MANIFEST_FILENAME)
         
         for json_file in json_files:
             yaml_file = json_file.replace(MANIFEST_FILENAME, MANIFEST_FILENAME_YAML)
@@ -433,13 +442,10 @@ def load_yaml_manifests_as_resources():
     
     yaml_files = []
     for root in DISCOVERY_SCAN_ROOTS:
-        cmd = "find " + root + " -type f -name '" + MANIFEST_FILENAME_YAML + "' 2>/dev/null"
-        result = str(local(cmd, quiet=True, echo_off=True)).strip()
-        if result:
-            for f in result.split("\n"):
-                f = f.strip()
-                if f and f not in yaml_files:
-                    yaml_files.append(f)
+        files = _find_manifest_files(root, MANIFEST_FILENAME_YAML)
+        for f in files:
+            if f not in yaml_files:
+                yaml_files.append(f)
     
     if not yaml_files:
         return
@@ -515,6 +521,11 @@ GLOBAL_CONFIG_EXPORT = GLOBAL_CONFIG
 INFRA_RESOURCES_EXPORT = INFRA_RESOURCES
 PLATFORM_LIBS_FRONTEND_EXPORT = PLATFORM_LIBS_FRONTEND
 PRODUCT_LIBS_FRONTEND_EXPORT = PRODUCT_LIBS_FRONTEND
+
+# Export focus lists (populated from project spec.master)
+FOCUS_PRE_ALPHA_EXPORT = Config.FOCUS_PRE_ALPHA
+FOCUS_ALPHA_EXPORT = Config.FOCUS_ALPHA
+FOCUS_BETA_EXPORT = Config.FOCUS_BETA
 
 def get_platform_libs_export(autodiscover=False):
     return get_platform_libs(autodiscover)

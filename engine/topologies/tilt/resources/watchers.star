@@ -31,14 +31,23 @@ def setup_package_json_watchers(services, should_enable):
     watched_paths = []
     
     for app_service in services:
-        if not should_enable(app_service['name']):
+        service_name = app_service.get('name', '')
+        if not service_name:
             continue
-            
-        resource_path = app_service['path']
+        if not should_enable(service_name):
+            continue
+        
+        resource_path = app_service.get('path', '')
+        if not resource_path:
+            # Skip services without path (libraries or incomplete manifests)
+            continue
         
         for resource in app_service.get('resources', []):
-            resource_path = resource_path + '/' + resource['name']
-            pkg_json_path = resource_path + '/package.json'
+            resource_name = resource.get('name', '')
+            if not resource_name:
+                continue
+            full_resource_path = resource_path + '/' + resource_name
+            pkg_json_path = full_resource_path + '/package.json'
             
             if pkg_json_path not in watched_paths:
                 watched_paths.append(pkg_json_path)

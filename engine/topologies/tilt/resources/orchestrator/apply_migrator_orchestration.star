@@ -15,7 +15,9 @@ load('../../../platform/docker/generators/golden_docker_generator_v2.star', 'L4_
 
 
 def _find_backend_resource_path(resource_config):
-    resource_path = resource_config['path']
+    resource_path = resource_config.get('path', '')
+    if not resource_path:
+        return None
     backend_resource_path = None
 
     for res in resource_config.get('resources', []):
@@ -39,8 +41,16 @@ def _find_backend_resource_path(resource_config):
 def register_migrators(resource_config, ctx, runtime_flags, compose_project_name):
     should_enable = ctx['should_enable']
     write_file = ctx['write_file']
-    resource_name = resource_config['name']
-    resource_path = resource_config['path']
+    resource_name = resource_config.get('name', '')
+    resource_path = resource_config.get('path', '')
+
+    if not resource_name:
+        print("⚠️  Skipping migrator registration for service without name")
+        return
+    
+    if not resource_path:
+        print("⚠️  Skipping migrator registration for '" + resource_name + "' without path")
+        return
 
     if not resource_config.get('has_migrator', False):
         return
