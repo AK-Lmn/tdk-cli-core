@@ -5,15 +5,6 @@ import { existsSync } from "fs";
 import { resolve } from "path";
 import type { CheckResult } from '../types/index.js';
 
-/**
- * Creates a check function that validates a command can be executed successfully
- * @param name - Display name for the check
- * @param command - Command to execute
- * @param successMessage - Message when check passes
- * @param failureMessage - Message when check fails
- * @param fixInstructions - Instructions to fix the issue
- * @returns CheckResult function
- */
 function createExecCheck(
   name: string,
   command: string,

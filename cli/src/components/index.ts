@@ -9,11 +9,4 @@ export { ResourceSelectInput } from './ResourceSelectInput.js';
 // Component prop types are re-exported from types/index.js
 export type {
   TabId,
-  Tab,
-  TabBarProps,
-  DetailPanelProps,
-  ResourceTableProps,
-  ResourceSelectInputProps,
-  TooltipProps,
-  FileNode,
 } from '../types/index.js';

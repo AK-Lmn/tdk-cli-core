@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { discoverStacks, discoverResources, getAllStacks } from '../utils/services.js';
+import { createDiscoveryContext } from '../utils/discovery-context.js';
 import { runCommand } from '../utils/errors.js';
 import { formatCount, showEmptyState } from '../utils/formatting.js';
 
@@ -11,21 +11,19 @@ export const stacksCommand = new Command('stacks')
   .option('--services', 'Include list of services in each stack', false)
   .action(async (options) => {
     await runCommand(async () => {
-      const services = discoverResources();
-      const stackNames = getAllStacks(services);
+      // Single discovery call for all resources and stacks
+      const discovery = createDiscoveryContext();
 
-      if (stackNames.length === 0) {
+      if (discovery.stackNames.length === 0) {
         showEmptyState('stacks');
         return;
       }
 
       if (options.verbose || options.services) {
         // Detailed output
-        const stacks = discoverStacks();
+        console.log(chalk.blue(`Found ${formatCount(discovery.stacks.length, 'stack')}:\n`));
 
-        console.log(chalk.blue(`Found ${formatCount(stacks.length, 'stack')}:\n`));
-
-        for (const stack of stacks) {
+        for (const stack of discovery.stacks) {
           console.log(chalk.bold(`${stack.name}`));
           console.log(chalk.gray(`  ${stack.description}`));
 
@@ -39,17 +37,10 @@ export const stacksCommand = new Command('stacks')
           console.log(); // Empty line between stacks
         }
       } else {
-        console.log(chalk.blue(`Found ${formatCount(stackNames.length, 'stack')}:\n`));
+        console.log(chalk.blue(`Found ${formatCount(discovery.stackNames.length, 'stack')}:\n`));
 
-        const stackServiceMap = new Map<string, number>();
-        for (const s of services) {
-          if (s.stack) {
-            stackServiceMap.set(s.stack, (stackServiceMap.get(s.stack) || 0) + 1);
-          }
-        }
-
-        for (const name of stackNames) {
-          const serviceCount = stackServiceMap.get(name) || 0;
+        for (const name of discovery.stackNames) {
+          const serviceCount = discovery.resourcesByStack.get(name)?.length || 0;
           console.log(chalk.bold(`  ${name}`));
           console.log(chalk.gray(`    ${formatCount(serviceCount, 'service')}`));
         }

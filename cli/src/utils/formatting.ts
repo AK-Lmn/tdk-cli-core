@@ -151,32 +151,14 @@ export function showEmptyState(
   }
 }
 
-/**
- * Display a cancellation message to the user.
- * Used when user cancels an interactive operation.
- *
- * @param message - Optional custom message (defaults to 'Cancelled.')
- */
 export function showCancelled(message?: string): void {
   console.log(chalk.yellow(message || 'Cancelled.'));
 }
 
-/**
- * Display a command header with consistent formatting.
- * Standard blue color with TDK prefix and trailing newline.
- *
- * @param title - The command title (e.g., 'Resource Creation')
- */
 export function showCommandHeader(title: string): void {
   console.log(chalk.blue(`TDK ${title}\n`));
 }
 
-/**
- * Display a success message when all items satisfy a condition.
- *
- * @param items - The item type name (e.g., 'resources')
- * @param condition - The condition they satisfy (e.g., 'assigned to a stack')
- */
 export function showAllSatisfyCondition(items: string, condition: string): void {
   console.log(chalk.green(`All ${items} are ${condition}!`));
 }

@@ -81,14 +81,6 @@ export async function runCommand<T>(
   }
 }
 
-/**
- * Wrapper that combines runCommand with Tilt availability check.
- * Consolidates the common pattern of checking Tilt before running a command.
- *
- * @param action - The async action to execute
- * @param options - Optional configuration for verbose output
- * @returns The result of the action, or never if an error occurs
- */
 export async function withTiltCheck<T>(
   action: () => Promise<T>,
   options?: { verbose?: boolean }
@@ -100,13 +92,6 @@ export async function withTiltCheck<T>(
   return runCommand(action, options);
 }
 
-/**
- * Display an error message and exit with a specific code.
- * Consolidates the common pattern of error display + process exit.
- *
- * @param message - The error message to display
- * @param exitCode - The exit code (defaults to 1)
- */
 export function showErrorAndExit(message: string, exitCode: number = 1): never {
   console.error(chalk.red(`Error: ${message}`));
   process.exit(exitCode);

@@ -13,6 +13,33 @@ export type {
   TiltBuildStatus,
   TiltResourceStatus,
   TiltCommandResult,
+  CreatableResourceType,
+  JsonValue,
+  JsonArray,
+  JsonObject,
+  ProjectConfig,
+  ProjectStackDefinition,
+  ProjectOptionalInfra,
+  ProjectDiscovery,
+  ServiceUrl,
+  SelectItem,
+  ValidationResult,
+  CheckResult,
+  TabId,
+  Tab,
+  TabBarProps,
+  FileNode,
+  DetailPanelProps,
+  ResourceTableProps,
+  ResourceSelectInputProps,
+  TooltipProps,
+  StatusValue,
+  StatusCategory,
+} from './types/index.js';
+
+export {
+  CREATABLE_RESOURCE_TYPES,
+  isCreatableResourceType,
 } from './types/index.js';
 
 export {

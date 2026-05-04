@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import chalk from 'chalk';
@@ -8,6 +8,7 @@ import { generateMasterConfigs, verifyMasterConfigs, readProjectConfig, Template
 import { MASTER_CONFIG_FILES } from '../utils/constants.js';
 import { validateOptionalInfraService } from '../utils/validation.js';
 import { showCommandHeader } from '../utils/formatting.js';
+import { writeJsonFile } from '../utils/file-helpers.js';
 
 export const configCommand = new Command('config')
   .description('Manage project configuration and regenerate master files')
@@ -28,13 +29,12 @@ export const configCommand = new Command('config')
 
             const outputDir = join(projectRoot, '.tdk', '.tdk-out');
             const filesToCheck = MASTER_CONFIG_FILES;
+            type MasterConfigFileName = typeof MASTER_CONFIG_FILES[number];
 
             let hasChanges = false;
 
             for (const filename of filesToCheck) {
-              // Type-safe access to generated files using const assertion type
-              type GeneratedFileName = keyof typeof newFiles;
-              const newContent = newFiles[filename as GeneratedFileName];
+              const newContent = newFiles[filename as MasterConfigFileName];
               const filePath = join(outputDir, filename);
 
               if (!existsSync(filePath)) {
@@ -195,7 +195,7 @@ async function toggleInfraService(service: string, enabled: boolean): Promise<vo
   config.optional_infra[service as OptionalInfraKey] = enabled;
 
   const projectJsonPath = join(projectRoot, '.tdk', 'project.json');
-  writeFileSync(projectJsonPath, JSON.stringify(config, null, 2), 'utf-8');
+  writeJsonFile(projectJsonPath, config);
 
   const action = enabled ? 'Enabled' : 'Disabled';
   console.log(chalk.green(`✓ ${action}: ${service}`));

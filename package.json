@@ -26,7 +26,6 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "knip": "^6.9.0",
-    "madge": "^8.0.0"
+    "knip": "^6.9.0"
   }
 }

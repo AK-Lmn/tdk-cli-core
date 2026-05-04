@@ -1,11 +1,12 @@
 import { Command } from 'commander';
-import { writeFileSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import { discoverResources, getAllStacks } from '../utils/services.js';
+import { createDiscoveryContext, stackExistsInContext } from '../utils/discovery-context.js';
 import { requireProjectRoot, runCommand, showErrorAndExit } from '../utils/errors.js';
 import { createKebabCaseValidator } from '../utils/validation.js';
 import { formatCount, showCancelled, showCommandHeader, showAllSatisfyCondition } from '../utils/formatting.js';
+import { writeJsonFile } from '../utils/file-helpers.js';
 
 export const stackCommand = new Command('stack')
   .description('Organize resources into stacks (groups)')
@@ -17,35 +18,33 @@ export const stackCommand = new Command('stack')
 
       showCommandHeader('Stack Management');
 
-      const allResources = discoverResources();
+      // Single discovery call for all resources and stacks
+      const discovery = createDiscoveryContext();
 
-      if (allResources.length === 0) {
+      if (discovery.resources.length === 0) {
         console.log(chalk.yellow('No resources discovered. Make sure you\'re in a project with service.json files.'));
         return;
       }
 
-      console.log(chalk.gray(`Found ${formatCount(allResources.length, 'resource')}\n`));
+      console.log(chalk.gray(`Found ${formatCount(discovery.resources.length, 'resource')}\n`));
 
-      const existingStacks = getAllStacks(allResources);
-      if (existingStacks.length > 0) {
+      if (discovery.stackNames.length > 0) {
         console.log(chalk.bold('Existing stacks:'));
-        existingStacks.forEach(name => {
-          const count = allResources.filter(r => r.stack === name).length;
+        for (const name of discovery.stackNames) {
+          const count = discovery.resourcesByStack.get(name)?.length || 0;
           console.log(chalk.gray(`  - ${name} (${formatCount(count, 'resource')})`));
-        });
+        }
         console.log();
       }
 
-      const resourcesWithoutStack = allResources.filter(r => !r.stack);
-
       if (options.list) {
-        if (resourcesWithoutStack.length === 0) {
+        if (discovery.unassignedResources.length === 0) {
           showAllSatisfyCondition('resources', 'already assigned to a stack');
           return;
         }
 
-        console.log(chalk.bold(`${resourcesWithoutStack.length} resources without a stack:`));
-        for (const resource of resourcesWithoutStack) {
+        console.log(chalk.bold(`${discovery.unassignedResources.length} resources without a stack:`));
+        for (const resource of discovery.unassignedResources) {
           console.log(chalk.gray(`  - ${resource.name}`));
           console.log(chalk.gray(`    ${resource.configPath}`));
         }
@@ -63,7 +62,7 @@ export const stackCommand = new Command('stack')
         targetStack = name;
       }
 
-      let resourcesToUpdate = resourcesWithoutStack;
+      let resourcesToUpdate = discovery.unassignedResources;
 
       if (resourcesToUpdate.length === 0) {
         console.log(chalk.yellow('\nNo resources available to add to this stack.'));
@@ -109,8 +108,7 @@ export const stackCommand = new Command('stack')
         const content = readFileSync(configPath, 'utf-8');
         const config = JSON.parse(content);
         config.stack = targetStack;
-        const updatedContent = JSON.stringify(config, null, 2) + '\n';
-        writeFileSync(configPath, updatedContent, 'utf-8');
+        writeJsonFile(configPath, config);
 
         updated++;
         console.log(chalk.green(`  ✓ ${config.appName || configPath}`));

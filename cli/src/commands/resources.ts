@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { discoverResources } from '../utils/services.js';
+import { createDiscoveryContext } from '../utils/discovery-context.js';
 import { requireProjectRoot, runCommand } from '../utils/errors.js';
 import { formatCount, showEmptyState, showAllSatisfyCondition } from '../utils/formatting.js';
 
@@ -14,17 +14,18 @@ export const resourcesCommand = new Command('resources')
     await runCommand(async () => {
       requireProjectRoot();
 
-      const allResources = discoverResources();
+      // Single discovery call for all resources and stacks
+      const discovery = createDiscoveryContext();
 
-      if (allResources.length === 0) {
+      if (discovery.resources.length === 0) {
         showEmptyState('resources');
         return;
       }
 
-      let resources = allResources;
+      let resources = discovery.resources;
 
       if (options.stack) {
-        resources = resources.filter(r => r.stack === options.stack);
+        resources = discovery.resourcesByStack.get(options.stack) || [];
         if (resources.length === 0) {
           showEmptyState('stack-services', ` in stack "${options.stack}"`);
           return;
@@ -32,7 +33,7 @@ export const resourcesCommand = new Command('resources')
       }
 
       if (options.noStack) {
-        resources = resources.filter(r => !r.stack);
+        resources = discovery.unassignedResources;
         if (resources.length === 0) {
           showAllSatisfyCondition('resources', 'assigned to a stack');
           return;
@@ -71,9 +72,12 @@ export const resourcesCommand = new Command('resources')
         console.log(chalk.gray('\nRun with --verbose for more details or --ports to see port assignments.'));
       }
 
-      const withoutStack = resources.filter((r: {stack?: string}) => !r.stack).length;
-      if (withoutStack > 0 && !options.noStack) {
-        console.log(chalk.yellow(`\n${formatCount(withoutStack, 'resource')} not assigned to any stack.`));
+      const withoutStackCount = options.stack
+        ? resources.filter((r: {stack?: string}) => !r.stack).length
+        : discovery.unassignedResources.length;
+
+      if (withoutStackCount > 0 && !options.noStack && !options.stack) {
+        console.log(chalk.yellow(`\n${formatCount(withoutStackCount, 'resource')} not assigned to any stack.`));
         console.log(chalk.gray('Run "tdk resources --no-stack" to see them, or "tdk stack" to assign them.'));
       }
     });

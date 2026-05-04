@@ -1,7 +1,3 @@
-/**
- * Tests for error handling and edge cases
- */
-
 import { describe, it, expect } from 'vitest';
 import { validateResourceName, createKebabCaseValidator, isValidPort } from '../../utils/validation.js';
 

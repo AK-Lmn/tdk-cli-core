@@ -18,19 +18,13 @@ function detectInstallation(): InstallInfo {
   try {
     const tdkPath = execSync('which tdk', { encoding: 'utf-8' }).trim();
     
-    try {
-      const realPath = execSync('readlink -f ' + tdkPath, { encoding: 'utf-8' }).trim();
-      // If the real path contains tdk-cli and has .git, it's a linked git install
-      if (realPath.includes('tdk-cli')) {
-        const possibleGitRoot = resolve(realPath, '..', '..', '..');
-        if (existsSync(join(possibleGitRoot, '.git'))) {
-          return { method: 'git', path: possibleGitRoot };
-        }
+    const realPath = execSync('readlink -f ' + tdkPath, { encoding: 'utf-8' }).trim();
+    // If the real path contains tdk-cli and has .git, it's a linked git install
+    if (realPath.includes('tdk-cli')) {
+      const possibleGitRoot = resolve(realPath, '..', '..', '..');
+      if (existsSync(join(possibleGitRoot, '.git'))) {
+        return { method: 'git', path: possibleGitRoot };
       }
-    } catch (err: unknown) {
-      // readlink -f fails when the path is not a symlink (e.g., direct binary from npm/bun global install)
-      // This is expected behavior for non-git installations - safe to ignore
-      logVerbose('readlink -f failed (expected for non-symlinks)', err);
     }
     
     if (tdkPath.includes('node_modules') || tdkPath.includes('.npm') || tdkPath.includes('.bun')) {
@@ -46,21 +40,15 @@ function detectInstallation(): InstallInfo {
     }
     
     return { method: 'unknown', path: tdkPath };
-  } catch (err: unknown) {
-    logVerbose('Installation detection failed', err);
+  } catch {
     return { method: 'unknown' };
   }
 }
 
 function getCurrentVersion(): string {
-  try {
-    const packagePath = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', 'package.json');
-    const pkg = JSON.parse(readFileSync(packagePath, 'utf-8'));
-    return pkg.version;
-  } catch (err: unknown) {
-    logVerbose('Could not read package.json', err);
-    return 'unknown';
-  }
+  const packagePath = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', 'package.json');
+  const pkg = JSON.parse(readFileSync(packagePath, 'utf-8'));
+  return pkg.version;
 }
 
 async function getLatestVersion(): Promise<string | null> {

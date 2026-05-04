@@ -10,11 +10,7 @@ import type { JsonValue } from '../types/index.js';
  * @param data - Data to serialize as JSON
  * @param space - Indentation spaces (default: 2)
  */
-function writeJsonFile(
-  filePath: string,
-  data: JsonValue,
-  space: number = 2
-): void {
+export function writeJsonFile(filePath: string, data: unknown, space: number = 2): void {
   const content = JSON.stringify(data, null, space) + '\n';
   writeFileSync(filePath, content, 'utf-8');
 }
@@ -31,7 +27,7 @@ function writeJsonFile(
 export function writeJsonFileInDir(
   dir: string,
   filename: string,
-  data: JsonValue,
+  data: unknown,
   space: number = 2
 ): void {
   const filePath = resolve(dir, filename);
@@ -45,7 +41,7 @@ export function writeJsonFileInDir(
  * @param filePath - Path to the file
  * @param content - Text content to write
  */
-function writeTextFile(filePath: string, content: string): void {
+export function writeTextFile(filePath: string, content: string): void {
   writeFileSync(filePath, content, 'utf-8');
 }
 

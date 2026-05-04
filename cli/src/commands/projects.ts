@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { discoverResources, getAllStacks } from '../utils/services.js';
+import { createDiscoveryContext } from '../utils/discovery-context.js';
 import { runCommand, requireProjectRoot } from '../utils/errors.js';
 import { formatCount } from '../utils/formatting.js';
 
@@ -40,23 +40,22 @@ export const projectsCommand = new Command('projects')
       }
       console.log();
 
-      const resources = discoverResources();
-      const stackNames = getAllStacks(resources);
+      // Single discovery call for all resources and stacks
+      const discovery = createDiscoveryContext();
 
       console.log(chalk.bold('Project Stats:'));
-      console.log(chalk.gray(`  Resources: ${resources.length}`));
-      console.log(chalk.gray(`  Stacks:    ${stackNames.length}`));
+      console.log(chalk.gray(`  Resources: ${discovery.resources.length}`));
+      console.log(chalk.gray(`  Stacks:    ${discovery.stackNames.length}`));
 
-      const withoutStack = resources.filter(r => !r.stack).length;
-      if (withoutStack > 0) {
-        console.log(chalk.yellow(`  ⚠ Unassigned: ${formatCount(withoutStack, 'resource')}`));
+      if (discovery.unassignedResources.length > 0) {
+        console.log(chalk.yellow(`  ⚠ Unassigned: ${formatCount(discovery.unassignedResources.length, 'resource')}`));
       }
       console.log();
 
-      if (stackNames.length > 0) {
+      if (discovery.stackNames.length > 0) {
         console.log(chalk.bold('Stacks:'));
-        for (const name of stackNames.sort()) {
-          const count = resources.filter(r => r.stack === name).length;
+        for (const name of discovery.stackNames) {
+          const count = discovery.resourcesByStack.get(name)?.length || 0;
           console.log(chalk.gray(`  ${name} (${formatCount(count, 'resource')})`));
         }
         console.log();

@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { discoverStacks, discoverResources } from '../utils/services.js';
+import { createDiscoveryContext } from '../utils/discovery-context.js';
 import { isTiltAvailable, runTilt, getTiltfilePath } from '../utils/tilt.js';
 import { runCommand } from '../utils/errors.js';
 import { formatCount } from '../utils/formatting.js';
@@ -24,14 +24,13 @@ export const statusCommand = new Command('status')
 
       console.log();
 
-      const resources = discoverResources();
-      console.log(chalk.bold('Resources:'), `${resources.length} discovered`);
+      // Single discovery call for all resources and stacks
+      const discovery = createDiscoveryContext();
+      console.log(chalk.bold('Resources:'), `${discovery.resources.length} discovered`);
+      console.log(chalk.bold('Stacks:'), `${discovery.stacks.length} defined`);
 
-      const stacks = discoverStacks();
-      console.log(chalk.bold('Stacks:'), `${stacks.length} defined`);
-
-      if (stacks.length > 0) {
-        for (const stack of stacks) {
+      if (discovery.stacks.length > 0) {
+        for (const stack of discovery.stacks) {
           const resourcesInStack = stack.resources.length;
           console.log(chalk.gray(`  - ${stack.name}: ${formatCount(resourcesInStack, 'resource')}`));
 
@@ -43,13 +42,12 @@ export const statusCommand = new Command('status')
         }
       }
 
-      const resourcesWithoutStack = resources.filter(r => !r.stack);
-      if (resourcesWithoutStack.length > 0) {
+      if (discovery.unassignedResources.length > 0) {
         console.log();
-        console.log(chalk.yellow(`${formatCount(resourcesWithoutStack.length, 'resource')} not in any stack:`));
+        console.log(chalk.yellow(`${formatCount(discovery.unassignedResources.length, 'resource')} not in any stack:`));
 
         if (options.verbose) {
-          for (const resource of resourcesWithoutStack) {
+          for (const resource of discovery.unassignedResources) {
             console.log(chalk.gray(`  - ${resource.name}`));
           }
         }

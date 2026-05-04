@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-// Shared template definitions - single source of truth for template tests
+
 const EXPECTED_TEMPLATES = [
   'TILT_RESOURCE_DEFAULTS.star.hbs',
   'TILT_TECH_STACK.star.hbs',

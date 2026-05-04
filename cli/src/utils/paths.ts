@@ -1,10 +1,3 @@
- /**
- * Path utilities for TDK CLI
- * 
- * This module is a leaf-level utility to avoid circular dependencies.
- * It should not import from any other CLI modules.
- */
-
 import { existsSync } from 'node:fs';
 import { resolve, join, dirname } from 'node:path';
 import { cwd } from 'node:process';

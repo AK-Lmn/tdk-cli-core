@@ -11,10 +11,6 @@ import { formatBoxLine, formatCentered, formatPadded, getStatusIcon, colorizeByS
 import { getStackEmoji } from '../utils/constants.js';
 import type { ServiceUrl } from '../types/index.js';
 
-/**
- * Execute a shell command safely using spawn instead of execSync
- * to prevent shell injection vulnerabilities.
- */
 function execSafe(command: string, args: string[], options: { encoding?: string; timeout?: number } = {}): Promise<string> {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {

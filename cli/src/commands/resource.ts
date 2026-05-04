@@ -13,10 +13,6 @@ import { PORT_RANGES } from '../utils/constants.js';
 import { assignPort } from '../utils/port-assignment.js';
 import { writeJsonFileInDir, writeTextFileInDir } from '../utils/file-helpers.js';
 
-/**
- * Common base template for all resource types.
- * Contains fields shared across backend, frontend, and worker resources.
- */
 export const BASE_TEMPLATE = {
   port: 0, // Will be assigned
   dependencies: [],
@@ -436,12 +432,7 @@ export const resourceCommand = new Command('resource')
         process.exit(1);
       }
 
-      let assignedPort: number;
-      try {
-        assignedPort = assignPort(resourceType, allResources);
-      } catch (err: unknown) {
-        showErrorAndExit(err instanceof Error ? err.message : String(err));
-      }
+      const assignedPort = assignPort(resourceType, allResources);
 
       console.log(chalk.gray('\nResource details:'));
       console.log(chalk.gray(`  Name:  ${resourceName}`));

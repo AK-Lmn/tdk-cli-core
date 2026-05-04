@@ -15,7 +15,6 @@ export const MASTER_CONFIG_FILES = [
  * Aligned with ResourceType type from types/index.ts
  * Derived from ResourceType to ensure type safety and prevent drift
  */
-
 export const VALID_RESOURCE_TYPES: ResourceType[] = [
   'backend',
   'frontend',

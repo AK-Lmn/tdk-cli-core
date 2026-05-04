@@ -15,10 +15,6 @@ import { sanitizeForShell, includes } from './validation.js';
 import { findProjectRoot } from './paths.js';
 import { getErrorMessage } from './errors.js';
 
-/**
- * Type guard to check if an error is a NodeJS.ErrnoException
- * Safely checks for the `code` property that exists on Node.js system errors
- */
 function isNodeError(err: unknown): err is NodeJS.ErrnoException {
   return err instanceof Error && 'code' in err;
 }
@@ -144,6 +140,7 @@ export function stackExists(stackName: string): boolean {
   return resources.length > 0;
 }
 
+/** Metadata cache structure for resource and stack metadata */
 interface MetadataCache {
   resources: Map<string, ResourceMetadata>;
   stacks: Map<string, StackMetadata>;
@@ -226,7 +223,7 @@ export function getResourceMetadata(resource: DiscoveredResource): ResourceMetad
     port: resource.config?.port,
     createdAt,
     lastModified,
-    dependencies: resource.config?.dependencies || resource.config?.internalDependencies || [],
+    dependencies: resource.config?.internalDependencies ?? [],
     hasDockerfile,
     hasTiltfile,
     hasDockerCompose,

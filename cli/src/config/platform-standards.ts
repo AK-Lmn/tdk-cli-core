@@ -1,14 +1,5 @@
-/**
- * Platform Standards for TDK CLI
- *
- * These are hardcoded platform-wide standards that all projects
- * must follow. They are NOT configurable per-project.
- *
- * To change platform standards, update this file and release a new CLI version.
- * All projects will regenerate their config files with the new standards.
- *
- * For project-specific configuration, see .tdk/project.yaml
- */
+// Platform-wide standards (NOT configurable per-project)
+// Update this file and release new CLI version to change standards
 
 import { PORT_RANGES, STANDARD_PORTS } from '../utils/constants.js';
 
@@ -26,10 +17,6 @@ const TECH_STACK = {
   testing: "vitest",
 } as const;
 
-/**
- * Port configuration derived from constants.ts single source of truth
- * This ensures consistency between runtime port allocation and generated configs
- */
 const PORTS = {
   frontend: {
     base: PORT_RANGES.frontend.base,
@@ -204,5 +191,5 @@ export const PLATFORM_STANDARDS = {
   runtime: RUNTIME,
 } as const;
 
-// Type is used internally via typeof PLATFORM_STANDARDS
+/** Platform standards type derived from the const configuration */
 type PlatformStandards = typeof PLATFORM_STANDARDS;

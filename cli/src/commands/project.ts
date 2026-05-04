@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { cwd } from 'node:process';
 import chalk from 'chalk';
@@ -9,6 +9,7 @@ import { generateMasterConfigs, readProjectConfig } from '../generator/template-
 import { runCommand, showErrorAndExit } from '../utils/errors.js';
 import { MASTER_CONFIG_FILES } from '../utils/constants.js';
 import { showCancelled, showCommandHeader } from '../utils/formatting.js';
+import { writeJsonFile } from '../utils/file-helpers.js';
 
 const DEFAULT_PROJECT_JSON = {
   version: "1.0",
@@ -223,7 +224,7 @@ export const projectCommand = new Command('project')
       }
 
       console.log(chalk.blue('\n📋 Creating project configuration...\n'));
-      writeFileSync(projectJsonPath, JSON.stringify(projectConfig, null, 2), 'utf-8');
+      writeJsonFile(projectJsonPath, projectConfig);
       console.log(chalk.green(`✓ Created: .tdk/project.json`));
       console.log(chalk.gray(`  → Project: ${projectConfig.project.name}`));
 

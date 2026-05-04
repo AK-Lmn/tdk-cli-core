@@ -58,5 +58,5 @@ export function includes<T extends readonly string[]>(
   array: T,
   value: string
 ): value is T[number] {
-  return array.includes(value as T[number]);
+  return (array as readonly string[]).includes(value);
 }
