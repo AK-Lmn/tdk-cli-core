@@ -298,6 +298,21 @@ export function getStackMetadata(stack: DiscoveredStack): StackMetadata {
   const timestamps = resourcesMetadata.map(r => new Date(r.createdAt).getTime());
   const earliestTimestamp = Math.min(...timestamps);
   const latestTimestamp = Math.max(...timestamps);
+  const totalResources = resourcesMetadata.length;
+
+  // Calculate overall status based on resource statuses
+  let overallStatus: StackMetadata['overallStatus'] = 'unknown';
+  if (totalResources > 0) {
+    const readyCount = resourcesMetadata.filter(r => r.status === 'ready').length;
+    const ratio = readyCount / totalResources;
+    if (ratio > 0.9) {
+      overallStatus = 'healthy';
+    } else if (ratio > 0.5) {
+      overallStatus = 'degraded';
+    } else {
+      overallStatus = 'error';
+    }
+  }
 
   const metadata: StackMetadata = {
     name: stack.name,
@@ -305,7 +320,7 @@ export function getStackMetadata(stack: DiscoveredStack): StackMetadata {
     createdAt: new Date(earliestTimestamp).toISOString(),
     lastModified: new Date(latestTimestamp).toISOString(),
     resources: resourcesMetadata,
-    overallStatus: 'unknown',
+    overallStatus,
   };
 
   metadataCache.stacks.set(cacheKey, metadata);
