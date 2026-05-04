@@ -4,6 +4,17 @@ import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import chalk from 'chalk';
 import type { ProjectConfig, JsonValue } from '../types/index.js';
+
+/**
+ * Serialize ProjectConfig to JSON-safe value.
+ * ProjectConfig is guaranteed to be JSON-serializable (all properties are primitive or plain objects).
+ * This wrapper documents the type relationship that TypeScript cannot infer.
+ */
+function serializeProjectConfig(config: ProjectConfig): JsonValue {
+  // ProjectConfig has no index signature but is structurally compatible with JsonValue
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+  return config as unknown as JsonValue;
+}
 import { requireProjectRoot, runCommand } from '../utils/errors.js';
 import { assertValid } from '../utils/command-helpers.js';
 import { generateMasterConfigs, verifyMasterConfigs, readProjectConfig, TemplateEngine } from '../generator/template-engine.js';
@@ -221,10 +232,7 @@ async function toggleInfraService(service: string, enabled: boolean): Promise<vo
   config.optional_infra[service] = enabled;
 
   const projectJsonPath = join(projectRoot, '.tdk', 'project.json');
-  // Type assertion: ProjectConfig is JSON-serializable (all properties are primitive or object types)
-  // The interface doesn't have an index signature, but it's structurally compatible with JsonValue
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-  writeJsonFile(projectJsonPath, config as unknown as JsonValue);
+  writeJsonFile(projectJsonPath, serializeProjectConfig(config));
 
   const action = enabled ? 'Enabled' : 'Disabled';
   console.log(chalk.green(`✓ ${action}: ${service}`));
