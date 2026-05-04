@@ -28,6 +28,13 @@ _generate_env_file = EnvGenerators.generate_env_file
 def apply_all_services(services, ctx):
     """Apply all services in the list."""
     for resource_config in services:
+        # BUG FIX: Skip services without required 'name' field
+        if type(resource_config) != "dict":
+            print("⚠️  Skipping invalid service config (not a dict): " + str(resource_config))
+            continue
+        if "name" not in resource_config:
+            print("⚠️  Skipping service config without 'name' field: " + str(resource_config))
+            continue
         apply_app_service(resource_config, ctx)
 
 
