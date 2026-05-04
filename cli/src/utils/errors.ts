@@ -97,7 +97,12 @@ export async function withTiltCheck<T>(
   action: () => Promise<T>,
   options?: { verbose?: boolean }
 ): Promise<T | never> {
-  if (!await isTiltAvailable()) {
+  try {
+    if (!await isTiltAvailable()) {
+      errorFactories.tiltNotInstalled().display();
+      process.exit(1);
+    }
+  } catch (err) {
     errorFactories.tiltNotInstalled().display();
     process.exit(1);
   }
@@ -129,15 +134,7 @@ export function showError(
   }
 }
 
-export function showStatus(
-  label: string,
-  isAvailable: boolean,
-  suggestion?: string
-): void {
-  const status = isAvailable ? chalk.green('available') : chalk.red('not found');
-  console.log(chalk.bold(`${label}:`), status);
-
-  if (!isAvailable && suggestion) {
-    console.log(chalk.gray(`  ${suggestion}`));
-  }
+export function handleTiltFailure(command: 'up' | 'down', exitCode: number): never {
+  console.error(chalk.red(`\ntilt ${command} failed with exit code ${exitCode}`));
+  process.exit(exitCode);
 }

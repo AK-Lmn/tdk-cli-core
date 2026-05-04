@@ -6,12 +6,13 @@ import inquirer from 'inquirer';
 import type { CreatableResourceType, ResourceType, JsonValue, FileGenerationTask } from '../types/index.js';
 import { CREATABLE_RESOURCE_TYPES, isCreatableResourceType } from '../types/index.js';
 import { discoverResources } from '../utils/services.js';
-import { requireProjectRoot, runCommand, showErrorAndExit } from '../utils/errors.js';
+import { requireProjectRoot, runCommand, errorFactories } from '../utils/errors.js';
 import { validateResourceName, createKebabCaseValidator } from '../utils/validation.js';
 import { formatCount, showCancelled, showCommandHeader } from '../utils/formatting.js';
 import { PORT_RANGES } from '../utils/constants.js';
 import { assignPort } from '../utils/port-assignment.js';
 import { writeJsonFileInDir, writeTextFileInDir, writeFilesWithProgress } from '../utils/file-helpers.js';
+import { assertValid } from '../utils/command-helpers.js';
 
 export const BASE_TEMPLATE = {
   port: 0, // Will be assigned
@@ -340,10 +341,7 @@ export const resourceCommand = new Command('resource')
         }]);
         resourceName = inputName;
       } else {
-        const validation = validateResourceName(resourceName);
-        if (!validation.valid) {
-          showErrorAndExit(validation.error ?? 'Invalid resource name');
-        }
+        assertValid(validateResourceName(resourceName));
       }
 
       let resourceType: CreatableResourceType;
@@ -421,19 +419,17 @@ export const resourceCommand = new Command('resource')
       // Prevent path traversal attacks
       const relativePath = relative(projectRoot, fullPath);
       if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
-        console.error(chalk.red(`Error: Invalid path - must be within project directory`));
-        console.error(chalk.gray(`Resolved path: ${fullPath}`));
-        console.error(chalk.gray(`Project root: ${projectRoot}`));
+        errorFactories.invalidPath(fullPath).display();
         process.exit(1);
       }
 
       if (resourcePath.includes('\0') || /[<>:"|?*]/.test(resourcePath)) {
-        showErrorAndExit('Path contains invalid characters');
+        errorFactories.invalidPath(resourcePath).display();
+        process.exit(1);
       }
 
       if (existsSync(fullPath)) {
-        console.error(chalk.red(`Error: Directory already exists: ${fullPath}`));
-        console.error(chalk.gray('Use --path to specify a different location'));
+        errorFactories.directoryExists(fullPath).display();
         process.exit(1);
       }
 

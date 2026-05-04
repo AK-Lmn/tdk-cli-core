@@ -2,7 +2,7 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { createRequire } from 'node:module';
+import pkg from '../package.json' with { type: 'json' };
 import { stacksCommand } from './commands/stacks.js';
 import { resourcesCommand } from './commands/resources.js';
 import { projectsCommand } from './commands/projects.js';
@@ -20,9 +20,6 @@ import { completionCommand } from './commands/completion.js';
 import { upgradeCommand } from './commands/upgrade.js';
 import { networksCommand } from './commands/networks.js';
 import { showHelp } from './commands/help.js';
-
-const require = createRequire(import.meta.url);
-const pkg = require('../package.json');
 
 const program = new Command();
 

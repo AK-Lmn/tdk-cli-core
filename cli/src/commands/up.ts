@@ -4,7 +4,7 @@ import { execSync } from 'node:child_process';
 import { getResourcesForStack, stackExists, discoverResources, discoverStacks } from '../utils/services.js';
 import { runTilt, buildTiltUpArgs } from '../utils/tilt.js';
 import { findAvailablePort } from '../utils/port-assignment.js';
-import { withTiltCheck } from '../utils/errors.js';
+import { withTiltCheck, errorFactories, handleTiltFailure } from '../utils/errors.js';
 import { formatCount } from '../utils/formatting.js';
 import { handleDryRun } from '../utils/command-helpers.js';
 
@@ -23,13 +23,7 @@ export const upCommand = new Command('up')
 
       if (stackName) {
         if (!stackExists(stackName)) {
-          console.error(chalk.red(`Error: Stack "${stackName}" not found.`));
-          if (!options.quiet) {
-            console.error(chalk.gray('\nTo see available stacks, run:'));
-            console.error(chalk.gray('  tdk list'));
-            console.error(chalk.gray('\nTo add services to this stack, edit their service.json and add:'));
-            console.error(chalk.gray(`  "stack": "${stackName}"`));
-          }
+          errorFactories.stackNotFound(stackName).display();
           process.exit(1);
         }
 
@@ -100,8 +94,7 @@ export const upCommand = new Command('up')
       });
 
       if (result.exitCode !== 0) {
-        console.error(chalk.red(`\ntilt up failed with exit code ${result.exitCode}`));
-        process.exit(result.exitCode);
+        handleTiltFailure('up', result.exitCode);
       }
     });
   });

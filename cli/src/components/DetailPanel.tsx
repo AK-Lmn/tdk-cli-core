@@ -13,7 +13,6 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
     return <Box width={0} />;
   }
 
-  // Show service details if service is selected
   if (service) {
     return (
       <Box 
@@ -24,7 +23,7 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
         paddingX={1}
         paddingY={1}
       >
-  <Box marginBottom={1} justifyContent="center">
+        <Box marginBottom={1} justifyContent="center">
           <Text color="cyan" bold>
             ┌─ {service.name.toUpperCase()} ─┐
           </Text>
@@ -45,7 +44,7 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
           </Box>
         </Box>
         
-  <Box marginTop={2}>
+        <Box marginTop={2}>
           <Text color="gray" dimColor>
             Press <Text color="cyan">[Esc]</Text> to close
           </Text>
@@ -67,13 +66,13 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
         paddingX={1}
         paddingY={1}
       >
-  <Box marginBottom={1} justifyContent="center">
+        <Box marginBottom={1} justifyContent="center">
           <Text color="cyan" bold>
             ┌─ {stack.name.toUpperCase()} ─┐
           </Text>
         </Box>
         
-  <Box
+        <Box
           borderStyle="single"
           borderColor={statusColor}
           paddingX={1}
@@ -86,7 +85,7 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
           </Text>
         </Box>
         
-  <Box flexDirection="column" marginY={1}>
+        <Box flexDirection="column" marginY={1}>
           <Box>
             <Text color="gray">Created: </Text>
             <Text color="white">{formatDate(stackMetadata.createdAt)}</Text>
@@ -114,7 +113,6 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
           ))}
         </Box>
 
-        {/* Close hint */}
         <Box marginTop={2}>
           <Text color="gray" dimColor>
             Press <Text color="cyan">[Esc]</Text> to close

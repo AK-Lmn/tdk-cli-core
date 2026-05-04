@@ -16,7 +16,6 @@ export const ResourceTable: React.FC<ResourceTableProps> = ({ resources, maxWidt
 
   return (
     <Box flexDirection="column">
-      {/* Table Header */}
       <Box flexDirection="row" borderStyle="single" borderColor="gray" paddingX={1}>
         <Box width={narrowMode ? 20 : 25}>
           <Text bold>Logical ID</Text>
@@ -39,7 +38,6 @@ export const ResourceTable: React.FC<ResourceTableProps> = ({ resources, maxWidt
         )}
       </Box>
 
-      {/* Table Rows */}
       {resources.map((resource, index) => {
         const statusColor = getStatusColor(resource.status);
         const statusIcon = getStatusIcon(resource.status);

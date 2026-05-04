@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { runTilt, buildTiltDownArgs } from '../utils/tilt.js';
-import { withTiltCheck } from '../utils/errors.js';
+import { withTiltCheck, handleTiltFailure } from '../utils/errors.js';
 import { handleDryRun } from '../utils/command-helpers.js';
 
 export const downCommand = new Command('down')
@@ -31,8 +31,7 @@ export const downCommand = new Command('down')
       });
 
       if (result.exitCode !== 0) {
-        console.error(chalk.red(`\ntilt down failed with exit code ${result.exitCode}`));
-        process.exit(result.exitCode);
+        handleTiltFailure('down', result.exitCode);
       }
     });
   });

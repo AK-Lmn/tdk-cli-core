@@ -12,7 +12,7 @@ export function runTilt(
     inheritStdio?: boolean;
   } = {}
 ): Promise<TiltCommandResult> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const tiltArgs = [command, ...args];
     
     if (options.verbose) {
@@ -46,15 +46,7 @@ export function runTilt(
     });
 
     child.on('error', (err) => {
-      // Avoid unhandled rejection by resolving with error details
-      if (options.verbose) {
-        console.error('Failed to spawn tilt:', err);
-      }
-      resolve({
-        exitCode: 1,
-        stdout,
-        stderr: stderr || err.message
-      });
+      reject(new Error(`Failed to spawn tilt: ${err.message}`));
     });
   });
 }

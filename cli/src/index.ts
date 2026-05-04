@@ -91,11 +91,6 @@ export {
 } from './utils/command-helpers.js';
 
 export {
-  generateResourceFiles,
-  createResourceDirectories,
-} from './utils/resource-generator.js';
-
-export {
   formatAsciiBox,
   printAsciiBox,
   formatSeparator,
@@ -107,7 +102,6 @@ export {
 
 export {
   showError,
-  showStatus,
   errorFactories,
 } from './utils/errors.js';
 

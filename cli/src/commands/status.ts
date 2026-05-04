@@ -13,7 +13,13 @@ export const statusCommand = new Command('status')
   .option('--tilt', 'Show tilt resource status', false)
   .action(async (options) => {
     await runCommand(async () => {
-      const tiltAvailable = await isTiltAvailable();
+      let tiltAvailable = false;
+      try {
+        tiltAvailable = await isTiltAvailable();
+      } catch {
+        // Tilt not available (spawn error)
+        tiltAvailable = false;
+      }
 
       showStep('TDK Status\n');
       console.log(chalk.bold('Tilt:'), tiltAvailable ? chalk.green('available') : chalk.red('not found'));
