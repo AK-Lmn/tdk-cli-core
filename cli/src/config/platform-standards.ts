@@ -1,6 +1,3 @@
-// Platform-wide standards (NOT configurable per-project)
-// Update this file and release new CLI version to change standards
-
 import { PORT_RANGES, STANDARD_PORTS } from '../utils/constants.js';
 
 const PLATFORM_VERSION = "1.0.0";

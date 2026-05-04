@@ -69,7 +69,6 @@ export function getStatusIcon(status: StatusValue): string {
 
 export function colorizeByStatus(text: string, status: StatusValue): string {
   const category = getStatusCategory(status);
-  // Use category for type-safe chalk color mapping
   const colorMap = {
     success: chalk.green,
     error: chalk.red,
@@ -168,19 +167,16 @@ export function formatAsciiBox(
   const innerWidth = width - 2;
   const result: string[] = [];
 
-  // Top border with title
   const centeredTitle = formatCentered(title, innerWidth);
   result.push(chalk.cyan('╭' + formatBoxLine('─', innerWidth) + '╮'));
   result.push(chalk.cyan('│') + chalk.bold.white(centeredTitle) + chalk.cyan('│'));
   result.push(chalk.cyan('├' + formatBoxLine('─', innerWidth) + '┤'));
 
-  // Content lines
   for (const line of lines) {
     const padded = formatPadded(line, innerWidth);
     result.push(chalk.cyan('│') + padded + chalk.cyan('│'));
   }
 
-  // Bottom border
   result.push(chalk.cyan('╰' + formatBoxLine('─', innerWidth) + '╯'));
 
   return result;
@@ -211,26 +207,14 @@ export function formatSeparator(
   return char.repeat(left) + labelWithSpaces + char.repeat(right);
 }
 
-/**
- * Display a success message with checkmark icon.
- * Replaces: console.log(chalk.green(`✓ ${message}`))
- */
 export function showSuccess(message: string): void {
   console.log(chalk.green(`✓ ${message}`));
 }
 
-/**
- * Display a step/action message with blue color.
- * Replaces: console.log(chalk.blue(`📝 ${message}`))
- */
 export function showStep(message: string): void {
   console.log(chalk.blue(message));
 }
 
-/**
- * Display detailed information with indentation.
- * Replaces: console.log(chalk.gray(`  - ${message}`))
- */
 export function showDetail(message: string, indent = 2): void {
   console.log(chalk.gray(`${' '.repeat(indent)}${message}`));
 }

@@ -1,5 +1,5 @@
 import inquirer from 'inquirer';
-import type { DiscoveredResource, DiscoveredStack, ValidationResult } from '../types/index.js';
+import type { ValidationResult } from '../types/index.js';
 import { showCancelled } from './formatting.js';
 import { showErrorAndExit } from './errors.js';
 
@@ -25,43 +25,6 @@ export function assertValid(
   if (!validation.valid) {
     showErrorAndExit(validation.error ?? 'Validation failed', exitCode);
   }
-}
-
-export function filterResourcesByStack(
-  resources: DiscoveredResource[],
-  stackName: string
-): DiscoveredResource[] {
-  return resources.filter(r => r.stack === stackName);
-}
-
-export function extractStackNames(resources: DiscoveredResource[]): string[] {
-  const stacks = new Set<string>();
-  for (const resource of resources) {
-    if (resource.stack) {
-      stacks.add(resource.stack);
-    }
-  }
-  return Array.from(stacks).sort();
-}
-
-export function getUnassignedResources(resources: DiscoveredResource[]): DiscoveredResource[] {
-  return resources.filter(r => !r.stack);
-}
-
-export function groupResourcesByStack(
-  resources: DiscoveredResource[]
-): Map<string, DiscoveredResource[]> {
-  const groups = new Map<string, DiscoveredResource[]>();
-
-  for (const resource of resources) {
-    if (resource.stack) {
-      const stackResources = groups.get(resource.stack) || [];
-      stackResources.push(resource);
-      groups.set(resource.stack, stackResources);
-    }
-  }
-
-  return groups;
 }
 
 export function handleDryRun(

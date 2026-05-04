@@ -38,7 +38,7 @@ def check_drawtext() -> bool:
             check=True
         )
         return "drawtext" in result.stdout
-    except:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         return False
 
 

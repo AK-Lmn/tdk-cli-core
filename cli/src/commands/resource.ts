@@ -26,7 +26,6 @@ export const BASE_TEMPLATE = {
   },
 } as const;
 
-/** Type-specific configuration extensions for each creatable resource type */
 interface TypeSpecificConfig {
   healthCheck?: string;
   dev?: {

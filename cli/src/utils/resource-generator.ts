@@ -1,17 +1,8 @@
 import { mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import chalk from 'chalk';
+import type { FileGenerationTask } from '../types/index.js';
 import { writeJsonFileInDir, writeTextFileInDir } from './file-helpers.js';
-
-export type ResourceFileType = 'json' | 'text';
-
-export interface FileGenerationTask {
-  type: ResourceFileType;
-  filename: string;
-  content: unknown;
-  description: string;
-  emoji: string;
-}
 
 export function generateResourceFiles(
   basePath: string,

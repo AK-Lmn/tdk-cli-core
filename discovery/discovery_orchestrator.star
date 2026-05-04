@@ -215,18 +215,6 @@ def initialize_discovery(cache, second_pass=False):
         cache["second_pass"] = True
 
 
-def _scan_services_from_yaml():
-    """
-    DEPRECATED: Do not use for data loading. JSON is the source of truth.
-    
-    This function is kept only for Tilt resource tracking purposes.
-    YAML files are generated from JSON for local_resource() creation only.
-    For data loading, always use _scan_services() which loads JSON directly.
-    """
-    print("⚠️  WARNING: _scan_services_from_yaml is deprecated. Use _scan_services() for data loading.")
-    return []
-
-
 def _scan_resources():
     """
     FIRST PASS: Scan for all resources with JSON manifest files from multiple roots.

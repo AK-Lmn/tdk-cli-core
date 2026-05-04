@@ -29,18 +29,10 @@ class TdkError extends Error {
   }
 
   display(): void {
-    console.error(chalk.red(`❌ ${this.message}`));
-
-    if (this.suggestions.length > 0) {
-      console.error(chalk.yellow('\n💡 Suggestions:'));
-      this.suggestions.forEach(s => {
-        console.error(chalk.cyan(`   → ${s}`));
-      });
-    }
+    showError(this.message, undefined, this.suggestions);
   }
 }
 
-// Common error factories
 export const errorFactories = {
   tiltNotInstalled: () => new TdkError(
     'Tilt CLI is not installed',
@@ -117,10 +109,7 @@ export function showErrorAndExit(message: string, exitCode: number = 1): never {
   process.exit(exitCode);
 }
 
-/**
- * Display a formatted error message. Does NOT exit.
- * Use showErrorAndExit() for fatal errors.
- */
+/** Display a formatted error message. Does NOT exit. */
 export function showError(
   message: string,
   context?: string,

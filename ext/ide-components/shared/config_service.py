@@ -350,7 +350,7 @@ class ConfigService:
             if temp_file and temp_file.exists():
                 try:
                     temp_file.unlink()
-                except:
+                except (OSError, PermissionError):
                     pass  # Best effort cleanup
     
     @staticmethod

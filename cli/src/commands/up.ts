@@ -34,7 +34,6 @@ export const upCommand = new Command('up')
         servicesToStart = getResourcesForStack(stackName);
         stackDescription = `stack "${stackName}"`;
       } else {
-        // No stack specified - get all resources
         servicesToStart = discoverResources();
         const allStacks = discoverStacks();
         stackDescription = `all stacks (${formatCount(allStacks.length, 'stack')}, ${formatCount(servicesToStart.length, 'service')})`;
@@ -69,7 +68,6 @@ export const upCommand = new Command('up')
       const basePort = 10350;
       let port = basePort;
       
-      // If TILT_PORT is already set in env, use that
       if (process.env.TILT_PORT) {
         port = parseInt(process.env.TILT_PORT, 10);
       } else {
@@ -91,7 +89,6 @@ export const upCommand = new Command('up')
         force: options.force
       });
 
-      // Run tilt up
       if (!options.quiet) {
         console.log(chalk.gray('\nRunning tilt up...'));
         console.log(chalk.gray(`Using Tiltfile: .tdk/.tdk-out/Tiltfile`));

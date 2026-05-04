@@ -1,10 +1,9 @@
 import type { DiscoveredResource, DiscoveredStack, DiscoveryContext } from '../types/index.js';
 import { discoverResources, discoverStacks, getAllStacks } from './services.js';
 
-// Cache for memoizing discovery context within a session
 let cachedContext: DiscoveryContext | null = null;
 let cacheTimestamp = 0;
-const CACHE_TTL_MS = 1000; // 1 second TTL
+const CACHE_TTL_MS = 1000;
 
 export function clearDiscoveryCache(): void {
   cachedContext = null;
@@ -15,10 +14,6 @@ function isCacheValid(): boolean {
   return cachedContext !== null && (Date.now() - cacheTimestamp) < CACHE_TTL_MS;
 }
 
-/**
- * Create a discovery context with all resource and stack information.
- * Results are memoized for 1 second to avoid redundant filesystem scans.
- */
 export function createDiscoveryContext(forceRefresh = false): DiscoveryContext {
   if (!forceRefresh && isCacheValid() && cachedContext) {
     return cachedContext;
@@ -47,7 +42,6 @@ export function createDiscoveryContext(forceRefresh = false): DiscoveryContext {
     resourcesByStack,
   };
 
-  // Update cache
   cachedContext = context;
   cacheTimestamp = Date.now();
 

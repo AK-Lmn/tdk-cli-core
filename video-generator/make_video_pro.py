@@ -68,7 +68,7 @@ class VideoGenerator:
             fonts['body'] = ImageFont.truetype(font_path, 32)
             fonts['code'] = ImageFont.truetype(font_path, 28)
             fonts['small'] = ImageFont.truetype(font_path, 24)
-        except:
+        except (OSError, IOError):
             fonts['display'] = ImageFont.load_default()
             fonts['title'] = fonts['display']
             fonts['subtitle'] = fonts['display']

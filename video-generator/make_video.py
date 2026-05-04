@@ -30,7 +30,7 @@ def create_frame(width: int, height: int, title: str, subtitle: str = "",
         font_subtitle = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 48)
         font_chapter = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 36)
         font_detail = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 28)
-    except:
+    except (OSError, IOError):
         font_title = ImageFont.load_default()
         font_subtitle = font_title
         font_chapter = font_title

@@ -175,13 +175,7 @@ export const configCommand = new Command('config')
         });
       })
   )
-/**
- * Toggle an optional infrastructure service on or off.
- * Shared logic for enable-infra and disable-infra commands.
- *
- * @param service - The service name to toggle
- * @param enabled - Whether to enable (true) or disable (false) the service
- */
+
 async function toggleInfraService(service: string, enabled: boolean): Promise<void> {
   const projectRoot = requireProjectRoot();
 
@@ -189,7 +183,6 @@ async function toggleInfraService(service: string, enabled: boolean): Promise<vo
   assertValid(validation);
 
   const config = readProjectConfig(projectRoot);
-  // After validation, service is guaranteed to be a key of optional_infra
   type OptionalInfraKey = keyof typeof config.optional_infra;
   config.optional_infra[service as OptionalInfraKey] = enabled;
 

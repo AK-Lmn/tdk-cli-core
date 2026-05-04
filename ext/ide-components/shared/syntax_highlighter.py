@@ -40,16 +40,16 @@ class SyntaxHighlighter:
             if language:
                 try:
                     lexer = get_lexer_by_name(language)
-                except:
+                except (ValueError, TypeError):
                     lexer = None
             else:
                 lexer = None
-            
+
             # Try to guess from filename
             if not lexer and filename:
                 try:
                     lexer = guess_lexer_for_filename(filename, code)
-                except:
+                except (ValueError, TypeError):
                     lexer = None
             
             # Default to text lexer
@@ -90,7 +90,7 @@ class SyntaxHighlighter:
             from pygments.formatters import HtmlFormatter
             formatter = HtmlFormatter(style='monokai')
             return formatter.get_style_defs('.syntax-highlighted')
-        except:
+        except (ImportError, AttributeError):
             return ''
     
     @staticmethod

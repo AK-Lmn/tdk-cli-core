@@ -11,7 +11,6 @@ export const stacksCommand = new Command('stacks')
   .option('--services', 'Include list of services in each stack', false)
   .action(async (options) => {
     await runCommand(async () => {
-      // Single discovery call for all resources and stacks
       const discovery = createDiscoveryContext();
 
       if (discovery.stackNames.length === 0) {

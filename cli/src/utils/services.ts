@@ -212,7 +212,6 @@ export function getResourceMetadata(resource: DiscoveredResource): ResourceMetad
                           existsSync(join(resourceDir, 'docker-compose.yaml'));
 
   const configType = resource.config?.appType;
-  // Default to 'backend' when type not explicitly configured
   let type: ResourceType = configType || 'backend';
   if (!configType) {
     if (resource.name.includes('frontend')) {
@@ -299,7 +298,6 @@ export function getStackMetadata(stack: DiscoveredStack): StackMetadata {
   const latestTimestamp = Math.max(...timestamps);
   const totalResources = resourcesMetadata.length;
 
-  // Calculate overall status based on resource statuses
   let overallStatus: StackMetadata['overallStatus'] = 'unknown';
   if (totalResources > 0) {
     const readyCount = resourcesMetadata.filter(r => r.status === 'ready').length;

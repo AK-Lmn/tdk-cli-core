@@ -29,3 +29,7 @@ coverage/
 *.tmp
 *.temp
 .cache/
+
+# Generated reports
+.jscpd-report/
+.tdk/.tdk-out/

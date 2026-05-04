@@ -41,6 +41,8 @@ export type {
   DiscoveryContext,
   StatusValue,
   StatusCategory,
+  FileGenerationTask,
+  ResourceFileType,
 } from './types/index.js';
 
 export {
@@ -60,6 +62,11 @@ export {
   getStackMetadata,
 } from './utils/services.js';
 
+// Re-export discovery-context functions for resources-by-stack operations
+export {
+  createDiscoveryContext,
+} from './utils/discovery-context.js';
+
 export {
   findProjectRoot,
 } from './utils/paths.js';
@@ -77,21 +84,12 @@ export {
 export {
   confirmAction,
   assertValid,
-  filterResourcesByStack,
-  extractStackNames,
-  getUnassignedResources,
-  groupResourcesByStack,
   handleDryRun,
 } from './utils/command-helpers.js';
 
 export {
   generateResourceFiles,
   createResourceDirectories,
-} from './utils/resource-generator.js';
-
-export type {
-  FileGenerationTask,
-  ResourceFileType,
 } from './utils/resource-generator.js';
 
 export {

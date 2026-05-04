@@ -97,6 +97,11 @@ export function getTiltfilePath(): string {
   return join(projectRoot, '.tdk', '.tdk-out', 'Tiltfile');
 }
 
+function addTiltfilePath(args: string[]): void {
+  const tiltfilePath = getTiltfilePath();
+  args.push('-f', tiltfilePath);
+}
+
 export function buildTiltUpArgs(
   serviceNames: string[],
   options: {
@@ -107,18 +112,17 @@ export function buildTiltUpArgs(
   } = {}
 ): string[] {
   const args: string[] = [];
-  const tiltfilePath = getTiltfilePath();
-  args.push('-f', tiltfilePath);
+  addTiltfilePath(args);
   args.push(...serviceNames);
-  
+
   if (options.verbose && !options.quiet) {
     args.push('--verbose');
   }
-  
+
   if (options.watch) {
     args.push('--watch');
   }
-  
+
   return args;
 }
 
@@ -128,8 +132,7 @@ export function buildTiltDownArgs(
   } = {}
 ): string[] {
   const args: string[] = [];
-  const tiltfilePath = getTiltfilePath();
-  args.push('-f', tiltfilePath);
+  addTiltfilePath(args);
 
   if (options.force) {
     args.push('--force');
