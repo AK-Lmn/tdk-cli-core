@@ -22,9 +22,6 @@ export function findProjectRoot(startDir: string = cwd()): string | null {
   return null;
 }
 
-/**
- * Package info cache to avoid reading package.json multiple times
- */
 interface PackageInfo {
   name: string;
   version: string;
@@ -33,11 +30,6 @@ interface PackageInfo {
 
 let packageCache: PackageInfo | null = null;
 
-/**
- * Read and parse package.json from the CLI package
- *
- * @returns Parsed package.json content with name, version, and full package data
- */
 function getPackageInfo(): PackageInfo {
   if (packageCache) {
     return packageCache;
@@ -59,11 +51,6 @@ function getPackageInfo(): PackageInfo {
   return packageCache;
 }
 
-/**
- * Get the current CLI version from package.json
- *
- * @returns The version string (e.g., "1.1.0")
- */
 export function getPackageVersion(): string {
   return getPackageInfo().version;
 }

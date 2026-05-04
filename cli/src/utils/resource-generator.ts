@@ -3,14 +3,8 @@ import { resolve } from 'node:path';
 import chalk from 'chalk';
 import { writeJsonFileInDir, writeTextFileInDir } from './file-helpers.js';
 
-/**
- * Type of file to generate during resource creation.
- */
 export type ResourceFileType = 'json' | 'text';
 
-/**
- * Description of a file to generate.
- */
 export interface FileGenerationTask {
   type: ResourceFileType;
   filename: string;
@@ -19,12 +13,6 @@ export interface FileGenerationTask {
   emoji: string;
 }
 
-/**
- * Generate multiple files in a resource directory with consistent logging.
- *
- * @param basePath - Base directory path for the resource
- * @param tasks - Array of file generation tasks
- */
 export function generateResourceFiles(
   basePath: string,
   tasks: FileGenerationTask[]
@@ -40,12 +28,6 @@ export function generateResourceFiles(
   }
 }
 
-/**
- * Create standard directory structure for a new resource.
- *
- * @param basePath - Base directory for the resource
- * @param subdirectories - Additional subdirectories to create (default: ['src', 'tests'])
- */
 export function createResourceDirectories(
   basePath: string,
   subdirectories: string[] = ['src', 'tests']

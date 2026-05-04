@@ -20,9 +20,8 @@ function createExecCheck(
         didPass: true,
         message: successMessage,
       };
-    } catch (err: unknown) {
-      // Command failed - tool not installed or not running
-      // Error intentionally not used; failure message is sufficient for user
+    } catch {
+      // Error details not needed - failure message tells user what to fix
       return {
         name,
         didPass: false,

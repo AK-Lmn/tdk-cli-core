@@ -143,7 +143,6 @@ export function stackExists(stackName: string): boolean {
   return resources.length > 0;
 }
 
-/** Metadata cache structure for resource and stack metadata */
 interface MetadataCache {
   resources: Map<string, ResourceMetadata>;
   stacks: Map<string, StackMetadata>;

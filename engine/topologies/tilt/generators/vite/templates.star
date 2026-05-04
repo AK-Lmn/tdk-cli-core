@@ -735,13 +735,3 @@ def get_frontend_build_template(environment = 'production'):
     This is an alias for get_frontend_template since they serve the same purpose.
     """
     return get_frontend_template(environment)
-
-# Legacy template aliases for backward compatibility
-# These will be deprecated in favor of environment-specific functions
-def TEMPLATE_VITE_LIBRARY_LEGACY(environment = 'production'):
-    """Legacy function - use get_library_template instead"""
-    return get_library_template(environment)
-
-def TEMPLATE_VITE_FRONTEND_BUILD_LEGACY(environment = 'production'):
-    """Legacy function - use get_frontend_template instead"""
-    return get_frontend_template(environment)

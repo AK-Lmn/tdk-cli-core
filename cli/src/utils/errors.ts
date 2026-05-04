@@ -118,12 +118,8 @@ export function showErrorAndExit(message: string, exitCode: number = 1): never {
 }
 
 /**
- * Display a formatted error message with optional context and suggestions.
- * Does NOT exit - use showErrorAndExit() for fatal errors.
- *
- * @param message - Main error message
- * @param context - Additional context (shown in gray)
- * @param suggestions - Optional suggestions (shown as bullet points)
+ * Display a formatted error message. Does NOT exit.
+ * Use showErrorAndExit() for fatal errors.
  */
 export function showError(
   message: string,
@@ -144,13 +140,6 @@ export function showError(
   }
 }
 
-/**
- * Display a status indicator with consistent formatting.
- *
- * @param label - The status label (e.g., "Tilt", "Docker")
- * @param isAvailable - Whether the item is available/ready
- * @param suggestion - Optional help text when not available
- */
 export function showStatus(
   label: string,
   isAvailable: boolean,

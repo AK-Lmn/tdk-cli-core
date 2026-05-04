@@ -164,9 +164,9 @@ def _test_schema():
     assert_true(ManifestSchema.is_required('appType'), "appType should be required")
     
     # Test is_deprecated
-    # No deprecated fields yet, but function should work
-    is_dep = ManifestSchema.is_deprecated('apiBasePath')
-    assert_true(is_dep or not is_dep, "is_deprecated should return boolean")
+    # The 'dependencies' field is deprecated (replaced by 'internalDependencies')
+    is_dep = ManifestSchema.is_deprecated('dependencies')
+    assert_true(is_dep, "dependencies field should be marked as deprecated")
     
     # Test get_all_fields
     all_fields = ManifestSchema.get_all_fields()

@@ -26,23 +26,18 @@ export function formatShortDate(timestamp: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-
-
 function getStatusCategory(status: StatusValue): StatusCategory {
   if (!status) return 'unknown';
   const lowerStatus = status.toLowerCase();
 
-  // Success states
   if (lowerStatus === 'ready' || lowerStatus === 'healthy' || lowerStatus === 'active' || lowerStatus === 'running') {
     return 'success';
   }
 
-  // Error states
   if (lowerStatus === 'error' || lowerStatus === 'failed' || lowerStatus === 'critical' || lowerStatus === 'stopped') {
     return 'error';
   }
 
-  // Warning/pending states
   if (lowerStatus === 'pending' || lowerStatus === 'starting' || lowerStatus === 'building' || lowerStatus === 'degraded') {
     return 'warning';
   }
@@ -142,24 +137,10 @@ export function showAllSatisfyCondition(items: string, condition: string): void 
 
 const DEFAULT_BOX_WIDTH = 62;
 
-/**
- * Create a horizontal line for ASCII boxes.
- *
- * @param char - Character to repeat (default: '─')
- * @param width - Width of the line (default: 62)
- * @returns Repeated character string
- */
 export function formatBoxLine(char: string = '─', width: number = DEFAULT_BOX_WIDTH): string {
   return char.repeat(width);
 }
 
-/**
- * Center text within a specified width.
- *
- * @param text - Text to center
- * @param width - Total width (default: 60)
- * @returns Centered text string
- */
 export function formatCentered(text: string, width: number = DEFAULT_BOX_WIDTH - 2): string {
   const padding = Math.max(0, width - text.length);
   const left = Math.floor(padding / 2);
@@ -167,13 +148,6 @@ export function formatCentered(text: string, width: number = DEFAULT_BOX_WIDTH -
   return ' '.repeat(left) + text + ' '.repeat(right);
 }
 
-/**
- * Pad text to a specific width, truncating with ellipsis if too long.
- *
- * @param text - Text to pad
- * @param width - Target width
- * @returns Padded or truncated string
- */
 export function formatPadded(text: string, width: number): string {
   if (text.length > width) {
     return text.slice(0, width - 1) + '…';
@@ -181,26 +155,11 @@ export function formatPadded(text: string, width: number): string {
   return text.padEnd(width);
 }
 
-/**
- * Truncate text with ellipsis if it exceeds max length.
- *
- * @param str - String to truncate
- * @param maxLength - Maximum length
- * @returns Truncated string with "..." if needed
- */
 export function truncate(str: string, maxLength: number): string {
   if (str.length <= maxLength) return str;
   return str.slice(0, maxLength - 3) + '...';
 }
 
-/**
- * Format a complete ASCII box with title and content lines.
- *
- * @param title - Box title (shown at top)
- * @param lines - Content lines to display inside box
- * @param width - Box width (default: 62)
- * @returns Array of formatted strings (one per line)
- */
 export function formatAsciiBox(
   title: string,
   lines: string[],
@@ -227,26 +186,11 @@ export function formatAsciiBox(
   return result;
 }
 
-/**
- * Print an ASCII box directly to console.
- *
- * @param title - Box title
- * @param lines - Content lines
- * @param width - Box width
- */
 export function printAsciiBox(title: string, lines: string[], width?: number): void {
   const formatted = formatAsciiBox(title, lines, width);
   formatted.forEach(line => console.log(line));
 }
 
-/**
- * Format a simple separator line with optional label.
- *
- * @param label - Optional label to center in the separator
- * @param width - Separator width
- * @param char - Character to use
- * @returns Formatted separator string
- */
 export function formatSeparator(
   label?: string,
   width: number = DEFAULT_BOX_WIDTH,

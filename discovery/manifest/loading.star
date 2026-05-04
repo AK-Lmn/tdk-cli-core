@@ -11,7 +11,6 @@
 load('../../engine/topologies/tilt/manifest/constants.star',
      'MANIFEST_DEFAULTS',
      'DEFAULT_SYNCS',
-     'MANIFEST_FILENAME',
      'MANIFEST_FILENAME_NEW',
      'MANIFEST_SEARCH_ORDER',
      'BASE_PORT_FRONTEND',
@@ -19,10 +18,6 @@ load('../../engine/topologies/tilt/manifest/constants.star',
      'HEALTH_CHECK_PATH')
 load('../../engine/topologies/tilt/common/utils.star', 'Utils')
 load('../../engine/topologies/platform/docker/constants.star', 'PlatformDockerConstants')
-
-# Environment variables for loader behavior
-_LEGACY_LOADER_ONLY = os.environ.get('TDK_LEGACY_LOADER_ONLY', '') == 'true'
-
 
 def _check_prisma_folder(resource_path):
     """
@@ -101,7 +96,7 @@ def load_manifest(resource_path, persist_to_disk=False):
         base_path = resource_path
     
     # Try to load manifest file
-    manifest_full_path = base_path + '/' + MANIFEST_FILENAME
+    manifest_full_path = base_path + '/' + MANIFEST_FILENAME_NEW
     content = read_file(manifest_full_path, default='')
     
     if content and str(content).strip():
@@ -380,15 +375,10 @@ def get_manifest_filename(resource_path):
     Returns:
         Filename string or None if neither exists (synthesis will be used)
     """
-    # Check new filename first (silent)
-    new_path = resource_path + '/' + MANIFEST_FILENAME_NEW
-    if local("test -f '{path}' && echo 'yes' || echo 'no'".format(path=new_path), quiet=True, echo_off=True) == 'yes':
+    # Check for manifest file (service.json)
+    manifest_path = resource_path + '/' + MANIFEST_FILENAME_NEW
+    if local("test -f '{path}' && echo 'yes' || echo 'no'".format(path=manifest_path), quiet=True, echo_off=True) == 'yes':
         return MANIFEST_FILENAME_NEW
     
-    # Check legacy filename (silent)
-    legacy_path = resource_path + '/' + MANIFEST_FILENAME
-    if local("test -f '{path}' && echo 'yes' || echo 'no'".format(path=legacy_path), quiet=True, echo_off=True) == 'yes':
-        return MANIFEST_FILENAME
-    
-    # Neither exists - synthesis will be used
+    # Manifest not found - synthesis will be used
     return None

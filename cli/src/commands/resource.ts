@@ -178,9 +178,6 @@ app.get('/', (c) => {
   });
 });
 
-// Add routes here:
-// app.get('/api/resource', (c) => c.json({ data: [] }));
-
 const port = process.env.PORT || 3000;
 console.log('\n🚀 ${name} running on http://localhost:' + port);
 console.log('📊 Health check: http://localhost:' + port + '/health\n');
@@ -252,8 +249,7 @@ const CONFIG = {
 async function processJob(job: Job): Promise<void> {
   console.log('[Worker] Processing job:', job.id, 'type:', job.type);
 
-  // Add job processing logic here
-  // Access job.payload for job data
+  // Add job processing logic here using job.payload
 
   await new Promise(resolve => setTimeout(resolve, 1000));
   console.log('[Worker] Job completed:', job.id);

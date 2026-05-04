@@ -6,18 +6,11 @@ let cachedContext: DiscoveryContext | null = null;
 let cacheTimestamp = 0;
 const CACHE_TTL_MS = 1000; // 1 second TTL
 
-/**
- * Clear the discovery context cache.
- * Call this when you need fresh data (e.g., after making changes).
- */
 export function clearDiscoveryCache(): void {
   cachedContext = null;
   cacheTimestamp = 0;
 }
 
-/**
- * Check if the cached context is still valid.
- */
 function isCacheValid(): boolean {
   return cachedContext !== null && (Date.now() - cacheTimestamp) < CACHE_TTL_MS;
 }
@@ -25,9 +18,6 @@ function isCacheValid(): boolean {
 /**
  * Create a discovery context with all resource and stack information.
  * Results are memoized for 1 second to avoid redundant filesystem scans.
- *
- * @param forceRefresh - Force a fresh scan even if cache is valid
- * @returns DiscoveryContext with all discovery information
  */
 export function createDiscoveryContext(forceRefresh = false): DiscoveryContext {
   if (!forceRefresh && isCacheValid() && cachedContext) {
