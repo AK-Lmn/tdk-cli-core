@@ -57,7 +57,7 @@ MIGRATED_PACKAGES = {
 }
 
 # Import from canonical location to avoid duplication
-load("../manifest/constants.star", "MANIFEST_FILENAME_NEW")
+load("../manifest/constants.star", "MANIFEST_FILENAME")
 
 # List of all shared platform networks
 PLATFORM_NETWORKS = [
@@ -337,7 +337,7 @@ Utils = struct(
     INTERNAL_SCOPE = INTERNAL_SCOPE,
     LIBRARY_ROOTS = LIBRARY_ROOTS,
     DDD_LAYERS = DDD_LAYERS,
-    MANIFEST_FILENAME = MANIFEST_FILENAME_NEW,
+    MANIFEST_FILENAME = MANIFEST_FILENAME,
     PLATFORM_NETWORKS = PLATFORM_NETWORKS,
     MIGRATED_PACKAGES = MIGRATED_PACKAGES,
 )

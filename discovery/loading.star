@@ -1,4 +1,4 @@
-load("./manifest/constants.star", "MANIFEST_FILENAME_NEW", "MANIFEST_DEFAULTS", "VALID_APP_TYPES", "DEFAULT_SYNCS")
+load("./manifest/constants.star", "MANIFEST_FILENAME", "MANIFEST_DEFAULTS", "VALID_APP_TYPES", "DEFAULT_SYNCS")
 load("./manifest/loading.star", "load_manifest", "load_related_manifest", "get_default_syncs_for_type")
 load("./validation.star", _validate = "validate")
 load("./manifest/normalize.star", "load_and_normalize", "discover_manifests_in_path", "load_all_manifests", "get_port", "get_database_url", "print_summary", "generate_manifest_template")
@@ -16,7 +16,7 @@ Manifest = struct(
     get_default_syncs = get_default_syncs_for_type,
     print_summary = print_summary,
     generate_template = generate_manifest_template,
-    FILENAME = MANIFEST_FILENAME_NEW,
+    FILENAME = MANIFEST_FILENAME,
     DEFAULTS = MANIFEST_DEFAULTS,
     VALID_APP_TYPES = VALID_APP_TYPES,
     DEFAULT_SYNCS = DEFAULT_SYNCS,

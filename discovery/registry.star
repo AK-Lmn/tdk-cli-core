@@ -26,7 +26,7 @@ load(
     "PRODUCT_STACK_RESOURCES_FILE",
     "DISCOVERY_SCAN_ROOTS",
 )
-load("./manifest/constants.star", "MANIFEST_FILENAME", "MANIFEST_FILENAME_YAML", "MANIFEST_FILENAME_NEW", "MANIFEST_FILENAME_NEW_YAML")
+load("./manifest/constants.star", "MANIFEST_FILENAME", "MANIFEST_FILENAME_YAML")
 
 
 _DISCOVERY_CACHE = {
@@ -696,18 +696,18 @@ def _generate_yaml_from_json_manifests():
         json_files = []
 
         # Search for service.json manifests only
-        cmd = "find " + root + " -type f -name '" + MANIFEST_FILENAME_NEW + "' 2>/dev/null"
+        cmd = "find " + root + " -type f -name '" + MANIFEST_FILENAME + "' 2>/dev/null"
         result = str(local(cmd, quiet=True, echo_off=True)).strip()
         if result:
             for f in result.split("\n"):
                 f = f.strip()
-                if f and MANIFEST_FILENAME_NEW in f:
+                if f and MANIFEST_FILENAME in f:
                     json_files.append(f)
         
         # Generate YAML for each JSON manifest SYNCHRONOUSLY
         for json_file in json_files:
             # Determine the corresponding YAML file path (service.json -> service.yaml)
-            yaml_file = json_file.replace(MANIFEST_FILENAME_NEW, MANIFEST_FILENAME_NEW_YAML)
+            yaml_file = json_file.replace(MANIFEST_FILENAME, MANIFEST_FILENAME_YAML)
             
             # Check if regeneration is needed (silent - echo_off prevents log noise)
             check_cmd = "if [ ! -f " + yaml_file + " ] || [ " + json_file + " -nt " + yaml_file + " ]; then echo 'regenerate'; fi"

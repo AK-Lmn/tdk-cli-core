@@ -11,8 +11,7 @@
 load('../../engine/topologies/tilt/manifest/constants.star',
      'MANIFEST_DEFAULTS',
      'DEFAULT_SYNCS',
-     'MANIFEST_FILENAME_NEW',
-     'MANIFEST_SEARCH_ORDER',
+     'MANIFEST_FILENAME',
      'BASE_PORT_FRONTEND',
      'BASE_PORT_BACKEND',
      'HEALTH_CHECK_PATH')
@@ -96,7 +95,7 @@ def load_manifest(resource_path, persist_to_disk=False):
         base_path = resource_path
     
     # Try to load manifest file
-    manifest_full_path = base_path + '/' + MANIFEST_FILENAME_NEW
+    manifest_full_path = base_path + '/' + MANIFEST_FILENAME
     content = read_file(manifest_full_path, default='')
     
     if content and str(content).strip():
@@ -376,9 +375,9 @@ def get_manifest_filename(resource_path):
         Filename string or None if neither exists (synthesis will be used)
     """
     # Check for manifest file (service.json)
-    manifest_path = resource_path + '/' + MANIFEST_FILENAME_NEW
+    manifest_path = resource_path + '/' + MANIFEST_FILENAME
     if local("test -f '{path}' && echo 'yes' || echo 'no'".format(path=manifest_path), quiet=True, echo_off=True) == 'yes':
-        return MANIFEST_FILENAME_NEW
+        return MANIFEST_FILENAME
     
     # Manifest not found - synthesis will be used
     return None

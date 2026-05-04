@@ -6,7 +6,7 @@
 # NOTE: This is the "manual" scanner - it finds files in a specific folder.
 # For auto-discovery from Tilt's discovery system, use discovery.star instead.
 
-load("./manifest/constants.star", "MANIFEST_FILENAME_NEW")
+load("./manifest/constants.star", "MANIFEST_FILENAME")
 
 def discover_json_manifests(root_path):
     """
@@ -27,7 +27,7 @@ def discover_json_manifests(root_path):
     if '*' in root_path or '?' in root_path:
         # Use bash to expand glob and find files
         # The pattern like identity-* needs shell expansion
-        cmd = "cd " + project_root + " && bash -c 'for dir in " + root_path + "; do if [ -d \"$dir\" ]; then find \"$dir\" -maxdepth 1 -type f -name \"" + MANIFEST_FILENAME_NEW + "\" 2>/dev/null; fi; done'"
+        cmd = "cd " + project_root + " && bash -c 'for dir in " + root_path + "; do if [ -d \"$dir\" ]; then find \"$dir\" -maxdepth 1 -type f -name \"" + MANIFEST_FILENAME + "\" 2>/dev/null; fi; done'"
         result = str(local(cmd, quiet=True, echo_off=True))
     else:
         # Construct absolute path from project root
@@ -37,14 +37,14 @@ def discover_json_manifests(root_path):
             full_path = project_root + "/" + root_path
         
         # Search for service.json files (silent)
-        cmd = "find " + full_path + " -type f -name '" + MANIFEST_FILENAME_NEW + "' 2>/dev/null | sort"
+        cmd = "find " + full_path + " -type f -name '" + MANIFEST_FILENAME + "' 2>/dev/null | sort"
         result = str(local(cmd, quiet=True, echo_off=True))
     
     manifests = []
     if result:
         for line in result.strip().split("\n"):
             line = line.strip()
-            if line and MANIFEST_FILENAME_NEW in line:
+            if line and MANIFEST_FILENAME in line:
                 manifests.append(line)
     
     # Debug output
