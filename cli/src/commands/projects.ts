@@ -40,7 +40,6 @@ export const projectsCommand = new Command('projects')
       }
       console.log();
 
-      // Single discovery call for all resources and stacks
       const discovery = createDiscoveryContext();
 
       console.log(chalk.bold('Project Stats:'));

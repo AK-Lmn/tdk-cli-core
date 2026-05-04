@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import { readFileSync } from 'node:fs';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import { createDiscoveryContext, stackExistsInContext } from '../utils/discovery-context.js';
+import { createDiscoveryContext } from '../utils/discovery-context.js';
 import { requireProjectRoot, runCommand, showErrorAndExit } from '../utils/errors.js';
 import { createKebabCaseValidator } from '../utils/validation.js';
 import { formatCount, showCancelled, showCommandHeader, showAllSatisfyCondition } from '../utils/formatting.js';
@@ -18,7 +18,6 @@ export const stackCommand = new Command('stack')
 
       showCommandHeader('Stack Management');
 
-      // Single discovery call for all resources and stacks
       const discovery = createDiscoveryContext();
 
       if (discovery.resources.length === 0) {

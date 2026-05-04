@@ -191,5 +191,4 @@ export const PLATFORM_STANDARDS = {
   runtime: RUNTIME,
 } as const;
 
-/** Platform standards type derived from the const configuration */
 type PlatformStandards = typeof PLATFORM_STANDARDS;

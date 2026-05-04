@@ -14,7 +14,6 @@ export const resourcesCommand = new Command('resources')
     await runCommand(async () => {
       requireProjectRoot();
 
-      // Single discovery call for all resources and stacks
       const discovery = createDiscoveryContext();
 
       if (discovery.resources.length === 0) {

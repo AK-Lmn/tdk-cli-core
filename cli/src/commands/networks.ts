@@ -194,17 +194,19 @@ export const networksCommand = new Command('networks')
     const services = discoverResources();
     const servicesWithUrls: ServiceUrl[] = await Promise.all(
       services
-        .filter(s => s.config?.basePath)
+        .filter((s): s is typeof s & { config: { basePath: string } } => 
+          typeof s.config?.basePath === 'string'
+        )
         .map(async (s) => {
-          const basePath = s.config!.basePath!.replace(/^\//, '');
+          const basePath = s.config.basePath.replace(/^\//, '');
           const url = `http://${baseDomain}/${basePath}`;
-          const port = s.config?.port;
+          const port = s.config.port;
           const status = await checkServiceStatus(s.name, port, url);
 
           return {
             name: s.name,
             stack: s.stack,
-            basePath: s.config!.basePath!,
+            basePath: s.config.basePath,
             url,
             port,
             status,
@@ -248,10 +250,12 @@ export const networksCommand = new Command('networks')
     const stacks = new Map<string, ServiceUrl[]>();
     for (const service of filteredServices) {
       const stackName = service.stack || 'default';
-      if (!stacks.has(stackName)) {
-        stacks.set(stackName, []);
+      const stackServices = stacks.get(stackName);
+      if (stackServices) {
+        stackServices.push(service);
+      } else {
+        stacks.set(stackName, [service]);
       }
-      stacks.get(stackName)!.push(service);
     }
     let isFirstStack = true;
     for (const [stackName, stackServices] of stacks) {

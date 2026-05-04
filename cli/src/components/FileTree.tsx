@@ -1,12 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Text } from 'ink';
-import type { FileType, FileNode } from '../types/index.js';
-
-interface FileTreeProps {
-  nodes: FileNode[];
-  onSelect?: (node: FileNode) => void;
-  selectedPath?: string;
-}
+import type { FileType, FileNode, FileTreeProps } from '../types/index.js';
 
 const FILE_ICONS: Record<FileType, string> = {
   docker: '🐳',

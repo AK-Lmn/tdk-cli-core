@@ -24,7 +24,6 @@ export const statusCommand = new Command('status')
 
       console.log();
 
-      // Single discovery call for all resources and stacks
       const discovery = createDiscoveryContext();
       console.log(chalk.bold('Resources:'), `${discovery.resources.length} discovered`);
       console.log(chalk.bold('Stacks:'), `${discovery.stacks.length} defined`);

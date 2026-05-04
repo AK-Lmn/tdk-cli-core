@@ -227,3 +227,89 @@ export type StatusValue =
   | undefined;
 
 export type StatusCategory = 'success' | 'error' | 'warning' | 'unknown';
+
+// ============================================================================
+// UI Component Props
+// ============================================================================
+
+/**
+ * Props for the FileTree component
+ * @since 1.1.0
+ */
+export interface FileTreeProps {
+  /** Tree nodes to display */
+  nodes: FileNode[];
+  /** Callback when a node is selected */
+  onSelect?: (node: FileNode) => void;
+  /** Currently selected path for highlighting */
+  selectedPath?: string;
+}
+
+/**
+ * Props for the BaseTooltip component
+ * Provides full control over tooltip display
+ * @since 1.1.0
+ */
+export interface BaseTooltipProps {
+  /** Tooltip content text */
+  content: string;
+  /** Optional keyboard shortcut hint */
+  shortcut?: string;
+  /** Whether the tooltip is visible */
+  visible: boolean;
+  /** Maximum width before wrapping (default: 40) */
+  maxWidth?: number;
+  /** Whether to wrap text to multiple lines */
+  wrapText?: boolean;
+  /** Prefix text for each line */
+  prefix?: string;
+  /** Top margin in lines */
+  marginTop?: number;
+}
+
+/**
+ * Props for the simplified Tooltip component
+ * Uses BaseTooltip with opinionated defaults
+ * @since 1.1.0
+ */
+export interface TooltipProps {
+  /** Tooltip content text */
+  content: string;
+  /** Optional keyboard shortcut hint */
+  shortcut?: string;
+  /** Whether the tooltip is visible */
+  visible: boolean;
+  /** Maximum width before wrapping (default: 40) */
+  maxWidth?: number;
+}
+
+/**
+ * Props for the LoadingScreen component
+ * @since 1.1.0
+ */
+export interface LoadingScreenProps {
+  /** Progress percentage (0-100) */
+  progress: number;
+  /** Loading message to display */
+  message: string;
+}
+
+/**
+ * Props for the ErrorScreen component
+ * @since 1.1.0
+ */
+export interface ErrorScreenProps {
+  /** Error message to display */
+  error: string;
+  /** Callback when user requests retry */
+  onRetry: () => void;
+}
+
+/**
+ * Props for the HelpPanel component
+ * @since 1.1.0
+ */
+export interface HelpPanelProps {
+  /** Callback when user closes the help panel */
+  onClose: () => void;
+}

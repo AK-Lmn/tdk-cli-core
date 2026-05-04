@@ -9,7 +9,7 @@ import {
   clearMetadataCache,
 } from '../utils/services.js';
 import { findProjectRoot } from '../utils/paths.js';
-import type { DiscoveredResource, DiscoveredStack, ResourceMetadata, StackMetadata, ResourceType, SelectItem, FileNode } from '../types/index.js';
+import type { DiscoveredResource, DiscoveredStack, ResourceMetadata, StackMetadata, ResourceType, SelectItem, FileNode, LoadingScreenProps, ErrorScreenProps, HelpPanelProps } from '../types/index.js';
 import { isTiltAvailable } from '../utils/tilt.js';
 import { errorFactories, requireProjectRoot } from '../utils/errors.js';
 import {
@@ -17,8 +17,7 @@ import {
   AccessibleTooltip, TOOLTIPS, ResourceSelectInput
 } from '../components/index.js';
 
-// Help Panel Component
-const HelpPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => (
+const HelpPanel: React.FC<HelpPanelProps> = ({ onClose }) => (
   <Box 
     borderStyle="single" 
     borderColor="cyan"
@@ -54,7 +53,7 @@ const HelpPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => (
   </Box>
 );
 
-const LoadingScreen: React.FC<{ progress: number; message: string }> = ({ progress, message }) => (
+const LoadingScreen: React.FC<LoadingScreenProps> = ({ progress, message }) => (
   <Box flexDirection="column" padding={2}>
     <Text bold color="cyan">▓▒░ TDK NEON EDITION ░▒▓</Text>
     <Box marginY={1} />
@@ -68,7 +67,7 @@ const LoadingScreen: React.FC<{ progress: number; message: string }> = ({ progre
   </Box>
 );
 
-const ErrorScreen: React.FC<{ error: string; onRetry: () => void }> = ({ error, onRetry }) => (
+const ErrorScreen: React.FC<ErrorScreenProps> = ({ error, onRetry }) => (
   <Box flexDirection="column" padding={2} alignItems="center">
     <Text bold color="red">Connection Error</Text>
     <Box marginY={1} />
@@ -146,7 +145,6 @@ const TUIApp: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Memoize data fetching to prevent re-scanning on every render
   const { stacks, services } = useMemo(() => ({
     stacks: discoverStacks(),
     services: discoverResources(),
@@ -261,7 +259,6 @@ const TUIApp: React.FC = () => {
 
   const items = getItems();
 
-  // Clamp highlighted index when items change
   useEffect(() => {
     if (highlightedIndex >= items.length && items.length > 0) {
       setHighlightedIndex(items.length - 1);
@@ -315,7 +312,6 @@ const TUIApp: React.FC = () => {
     };
   }, [setRawMode, stdout]);
 
-  // Handle mouse clicks
   useEffect(() => {
     if (!mouseEnabled) return;
 
@@ -389,7 +385,6 @@ const TUIApp: React.FC = () => {
     };
   }, [stdout, handleResize]);
 
-  // Keyboard handling
   useInput((input, key) => {
     if (error) {
       if (input === 'r' || input === 'R') {
@@ -563,7 +558,6 @@ const TUIApp: React.FC = () => {
     }));
   }, [selectedServiceData, services]);
 
-  // Responsive layout
   const showSidebar = terminalWidth > 100;
   const compactTabBar = terminalWidth < 100;
   const compact = terminalWidth < 80;
@@ -580,14 +574,12 @@ const TUIApp: React.FC = () => {
     }} />;
   }
 
-  // Empty state
   if (services.length === 0) {
     return <EmptyState />;
   }
 
   return (
     <Box flexDirection="column" height={stdout.rows || 24}>
-      {/* Header - Single row, restrained */}
       <Box paddingX={1} paddingY={0}>
         <Text>
           <Text color="cyan" bold>▓▒░ TDK NEON EDITION ░▒▓</Text>
@@ -598,26 +590,22 @@ const TUIApp: React.FC = () => {
         </Text>
       </Box>
 
-      {/* Separator */}
       <Box paddingX={1}>
         <Text color="gray">{'─'.repeat(compact ? 60 : Math.min(terminalWidth - 4, 100))}</Text>
       </Box>
 
-      {/* Search indicator */}
       {isSearching && (
         <Box paddingX={1} height={1}>
           <Text color="yellow">Search: {searchQuery}_</Text>
         </Box>
       )}
 
-      {/* Message area */}
       {!isSearching && message && (
         <Box paddingX={1} height={1}>
           <Text color="cyan">▓▒░ {message} ░▒▓</Text>
         </Box>
       )}
 
-      {/* Contextual Tooltip */}
       {!isSearching && !message && showTooltips && !showHelp && (
         <Box paddingX={1} height={1}>
           <Text color="gray" dimColor>
@@ -641,17 +629,14 @@ const TUIApp: React.FC = () => {
         </Box>
       )}
 
-      {/* Help Panel */}
       {showHelp && (
         <Box paddingX={1} flexGrow={1}>
           <HelpPanel onClose={() => setShowHelp(false)} />
         </Box>
       )}
 
-      {/* Main Content */}
       {!showHelp && (
         <>
-          {/* Tab Bar */}
           <Box marginTop={1}>
             <TabBar 
               activeTab={activeTab} 
@@ -660,12 +645,9 @@ const TUIApp: React.FC = () => {
             />
           </Box>
 
-          {/* Content Area */}
           <Box flexDirection="row" paddingX={1} flexGrow={1}>
-            {/* Left: Main Content */}
             <Box flexDirection="column" flexGrow={1} width={showSidebar ? terminalWidth - 45 : terminalWidth - 4}>
               
-              {/* Overview Tab */}
               {activeTab === 'overview' && (
                 <>
                   <Box marginBottom={1}>
@@ -681,7 +663,6 @@ const TUIApp: React.FC = () => {
                 </>
               )}
 
-              {/* Resources Tab */}
               {activeTab === 'resources' && (
                 <>
                   <Box marginBottom={1}>
@@ -712,7 +693,6 @@ const TUIApp: React.FC = () => {
                 </>
               )}
 
-              {/* Events Tab */}
               {activeTab === 'events' && (
                 <>
                   <Box marginBottom={1}>
@@ -727,7 +707,6 @@ const TUIApp: React.FC = () => {
                 </>
               )}
 
-              {/* Files Tab */}
               {activeTab === 'files' && (
                 <>
                   <Box marginBottom={1}>
@@ -758,7 +737,6 @@ const TUIApp: React.FC = () => {
                 </>
               )}
 
-              {/* Config Tab */}
               {activeTab === 'config' && (
                 <>
                   <Box marginBottom={1}>
@@ -789,7 +767,6 @@ const TUIApp: React.FC = () => {
               )}
             </Box>
 
-            {/* Right: Detail Panel */}
             {showSidebar && (
               <Box marginLeft={2}>
                 <DetailPanel 
@@ -802,7 +779,6 @@ const TUIApp: React.FC = () => {
             )}
           </Box>
 
-          {/* Status Bar */}
           <Box 
             borderStyle="single" 
             borderColor="gray" 

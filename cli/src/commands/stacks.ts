@@ -20,7 +20,6 @@ export const stacksCommand = new Command('stacks')
       }
 
       if (options.verbose || options.services) {
-        // Detailed output
         console.log(chalk.blue(`Found ${formatCount(discovery.stacks.length, 'stack')}:\n`));
 
         for (const stack of discovery.stacks) {
@@ -34,7 +33,7 @@ export const stacksCommand = new Command('stacks')
             }
           }
 
-          console.log(); // Empty line between stacks
+          console.log();
         }
       } else {
         console.log(chalk.blue(`Found ${formatCount(discovery.stackNames.length, 'stack')}:\n`));

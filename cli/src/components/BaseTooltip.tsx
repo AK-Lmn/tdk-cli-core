@@ -1,8 +1,8 @@
 import React from 'react';
 import { Box, Text } from 'ink';
-import type { TooltipProps } from '../types/index.js';
+import type { BaseTooltipProps } from '../types/index.js';
 
-export const BaseTooltip: React.FC<TooltipProps> = ({
+export const BaseTooltip: React.FC<BaseTooltipProps> = ({
   content,
   shortcut,
   visible,

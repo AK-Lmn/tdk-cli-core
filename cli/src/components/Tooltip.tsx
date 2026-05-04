@@ -1,24 +1,3 @@
-import React from 'react';
-import { BaseTooltip } from './BaseTooltip.js';
-import type { TooltipProps } from '../types/index.js';
-
-const Tooltip: React.FC<TooltipProps> = ({
-  content,
-  shortcut,
-  visible,
-  maxWidth = 40
-}) => {
-  return (
-    <BaseTooltip
-      content={content}
-      shortcut={shortcut}
-      visible={visible}
-      maxWidth={maxWidth}
-      wrapText={true}
-    />
-  );
-};
-
 export const TOOLTIPS = {
   overviewTab: 'View all stacks and their resources',
   resourcesTab: 'Detailed resource list with metadata',

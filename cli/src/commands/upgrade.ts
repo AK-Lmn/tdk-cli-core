@@ -7,6 +7,7 @@ import chalk from 'chalk';
 import ora from 'ora';
 import { logVerbose, getErrorMessage, showErrorAndExit } from '../utils/errors.js';
 import { showCancelled } from '../utils/formatting.js';
+import { getPackageVersion } from '../utils/paths.js';
 
 interface InstallInfo {
   method: 'npm' | 'bun' | 'git' | 'unknown';
@@ -40,15 +41,14 @@ function detectInstallation(): InstallInfo {
     }
     
     return { method: 'unknown', path: tdkPath };
-  } catch {
+  } catch (err: unknown) {
+    logVerbose('Installation detection failed', err);
     return { method: 'unknown' };
   }
 }
 
 function getCurrentVersion(): string {
-  const packagePath = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', 'package.json');
-  const pkg = JSON.parse(readFileSync(packagePath, 'utf-8'));
-  return pkg.version;
+  return getPackageVersion();
 }
 
 async function getLatestVersion(): Promise<string | null> {

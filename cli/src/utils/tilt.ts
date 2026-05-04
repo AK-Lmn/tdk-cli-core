@@ -118,7 +118,6 @@ export function buildTiltUpArgs(
     args.push('--watch');
   }
   
-  // Note: Tilt doesn't have a native --quiet flag, but we suppress output via stdio
   return args;
 }
 

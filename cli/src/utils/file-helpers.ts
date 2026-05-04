@@ -1,13 +1,12 @@
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import type { JsonValue } from '../types/index.js';
 
 /**
  * Write a JSON object to a file with consistent formatting
  * Automatically adds trailing newline for POSIX compliance
  *
  * @param filePath - Absolute or relative path to the file
- * @param data - Data to serialize as JSON
+ * @param data - Data to serialize as JSON (must be JSON-serializable)
  * @param space - Indentation spaces (default: 2)
  */
 export function writeJsonFile(filePath: string, data: unknown, space: number = 2): void {
@@ -21,7 +20,7 @@ export function writeJsonFile(filePath: string, data: unknown, space: number = 2
  *
  * @param dir - Base directory
  * @param filename - File name
- * @param data - Data to serialize
+ * @param data - Data to serialize (must be JSON-serializable)
  * @param space - Indentation spaces (default: 2)
  */
 export function writeJsonFileInDir(

@@ -74,8 +74,8 @@ export async function runCommand<T>(
   try {
     return await action();
   } catch (err: unknown) {
-    if (options?.verbose && err instanceof Error) {
-      console.error(chalk.gray(err.stack || ''));
+    if (options?.verbose && err instanceof Error && err.stack) {
+      console.error(chalk.gray(err.stack));
     }
     return handleCommandError(err);
   }

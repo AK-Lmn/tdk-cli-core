@@ -203,6 +203,8 @@ const FRONTEND_MAIN_TEMPLATE = `import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 
+// TypeScript non-null assertion is safe here as the template guarantees
+// the element exists when this code executes in the browser
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />

@@ -82,15 +82,13 @@ export function showHelp(): void {
   console.log(chalk.bold.white('\n  Project → Stack → Resource (PSR) Model\n'));
   
   console.log(chalk.gray('  Usage: tdk [command] [options]\n'));
-  
-  // Global options
+
   console.log(chalk.bold.yellow('  Global Options:'));
   console.log(`  ${chalk.cyan('-v, --version'.padEnd(20))} ${chalk.white('Display version number')}`);
   console.log(`  ${chalk.cyan('--verbose'.padEnd(20))} ${chalk.white('Enable verbose output')}`);
   console.log(`  ${chalk.cyan('-h, --help'.padEnd(20))} ${chalk.white('Show help')}`);
   console.log();
-  
-  // Command groups
+
   for (const group of COMMAND_GROUPS) {
     console.log(group.color.bold(`${group.emoji} ${group.title}`));
     console.log(group.color('  ' + '─'.repeat(50)));
