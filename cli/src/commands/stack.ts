@@ -5,7 +5,7 @@ import inquirer from 'inquirer';
 import { createDiscoveryContext, clearDiscoveryCache } from '../utils/discovery-context.js';
 import { requireProjectRoot, runCommand } from '../utils/errors.js';
 import { createKebabCaseValidator } from '../utils/validation.js';
-import { formatCount, showCommandHeader, showAllSatisfyCondition } from '../utils/formatting.js';
+import { formatCount, showCommandHeader, showAllSatisfyCondition, showSuccess, showDetail } from '../utils/formatting.js';
 import { confirmAction } from '../utils/command-helpers.js';
 import { writeJsonFile } from '../utils/file-helpers.js';
 
@@ -26,13 +26,13 @@ export const stackCommand = new Command('stack')
         return;
       }
 
-      console.log(chalk.gray(`Found ${formatCount(discovery.resources.length, 'resource')}\n`));
+      showDetail(`Found ${formatCount(discovery.resources.length, 'resource')}\n`, 0);
 
       if (discovery.stackNames.length > 0) {
         console.log(chalk.bold('Existing stacks:'));
         for (const name of discovery.stackNames) {
           const count = discovery.resourcesByStack.get(name)?.length || 0;
-          console.log(chalk.gray(`  - ${name} (${formatCount(count, 'resource')})`));
+          showDetail(`${name} (${formatCount(count, 'resource')})`);
         }
         console.log();
       }
@@ -45,8 +45,8 @@ export const stackCommand = new Command('stack')
 
         console.log(chalk.bold(`${discovery.unassignedResources.length} resources without a stack:`));
         for (const resource of discovery.unassignedResources) {
-          console.log(chalk.gray(`  - ${resource.name}`));
-          console.log(chalk.gray(`    ${resource.configPath}`));
+          showDetail(`${resource.name}`);
+          showDetail(`${resource.configPath}`, 4);
         }
         return;
       }
@@ -89,7 +89,7 @@ export const stackCommand = new Command('stack')
         return;
       }
 
-      console.log(chalk.gray(`\nWill add "stack": "${targetStack}" to ${formatCount(selectedResources.length, 'resource')}.`));
+      showDetail(`\nWill add "stack": "${targetStack}" to ${formatCount(selectedResources.length, 'resource')}.`, 0);
 
       const confirmed = await confirmAction('Proceed?', true);
       if (!confirmed) {
@@ -107,11 +107,11 @@ export const stackCommand = new Command('stack')
         writeJsonFile(configPath, config);
 
         updated++;
-        console.log(chalk.green(`  ✓ ${config.appName || configPath}`));
+        showSuccess(`${config.appName || configPath}`);
       }
 
       console.log();
-      console.log(chalk.green(`Updated ${formatCount(updated, 'resource')}.`));
-      console.log(chalk.gray(`\nYou can now run: tdk up ${targetStack}`));
+      showSuccess(`Updated ${formatCount(updated, 'resource')}.`);
+      showDetail(`\nYou can now run: tdk up ${targetStack}`, 0);
     });
   });

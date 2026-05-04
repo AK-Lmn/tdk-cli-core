@@ -266,3 +266,27 @@ export function formatSeparator(
   const right = padding - left;
   return char.repeat(left) + labelWithSpaces + char.repeat(right);
 }
+
+/**
+ * Display a success message with checkmark icon.
+ * Replaces: console.log(chalk.green(`✓ ${message}`))
+ */
+export function showSuccess(message: string): void {
+  console.log(chalk.green(`✓ ${message}`));
+}
+
+/**
+ * Display a step/action message with blue color.
+ * Replaces: console.log(chalk.blue(`📝 ${message}`))
+ */
+export function showStep(message: string): void {
+  console.log(chalk.blue(message));
+}
+
+/**
+ * Display detailed information with indentation.
+ * Replaces: console.log(chalk.gray(`  - ${message}`))
+ */
+export function showDetail(message: string, indent = 2): void {
+  console.log(chalk.gray(`${' '.repeat(indent)}${message}`));
+}

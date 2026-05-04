@@ -1,4 +1,4 @@
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 /**
@@ -60,3 +60,17 @@ export function writeTextFileInDir(
   const filePath = resolve(dir, filename);
   writeTextFile(filePath, content);
 }
+
+/**
+ * Ensure a directory exists, creating it if necessary.
+ * Wraps mkdirSync with recursive option for consistent directory creation.
+ *
+ * @param dirPath - Directory path to ensure exists
+ */
+export function ensureDirectory(dirPath: string): void {
+  if (!existsSync(dirPath)) {
+    mkdirSync(dirPath, { recursive: true });
+  }
+}
+
+

@@ -124,3 +124,49 @@ export function handleDryRun(
   }
   return false;
 }
+
+// ============================================================================
+// Prompt Factory Functions
+// Standardized inquirer prompt patterns to reduce duplication
+// ============================================================================
+
+/**
+ * Create a confirmation prompt configuration.
+ * Use with inquirer.prompt([confirmPrompt(message, defaultValue)])
+ */
+export function confirmPrompt(message: string, defaultValue = true): inquirer.Question {
+  return {
+    type: 'confirm',
+    name: 'confirm',
+    message,
+    default: defaultValue
+  };
+}
+
+/**
+ * Create a text input prompt with kebab-case validation.
+ * Use with inquirer.prompt([kebabCasePrompt(message, context)])
+ */
+export function kebabCasePrompt(
+  message: string,
+  context: 'resource' | 'stack'
+): inquirer.Question {
+  return {
+    type: 'input',
+    name: 'inputName',
+    message,
+    validate: createKebabCaseValidator(context)
+  };
+}
+
+/**
+ * Prompt for confirmation with standardized cancellation handling.
+ * Returns true if confirmed, false if cancelled (and shows cancelled message).
+ */
+export async function promptConfirm(message: string, defaultValue = true): Promise<boolean> {
+  const { confirm } = await inquirer.prompt([confirmPrompt(message, defaultValue)]);
+  if (!confirm) {
+    showCancelled();
+  }
+  return confirm;
+}

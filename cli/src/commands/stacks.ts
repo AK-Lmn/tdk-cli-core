@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { createDiscoveryContext } from '../utils/discovery-context.js';
 import { runCommand } from '../utils/errors.js';
-import { formatCount, showEmptyState } from '../utils/formatting.js';
+import { formatCount, showEmptyState, showStep, showDetail } from '../utils/formatting.js';
 
 export const stacksCommand = new Command('stacks')
   .description('List all stacks and their resources')
@@ -20,31 +20,31 @@ export const stacksCommand = new Command('stacks')
       }
 
       if (options.verbose || options.services) {
-        console.log(chalk.blue(`Found ${formatCount(discovery.stacks.length, 'stack')}:\n`));
+        showStep(`Found ${formatCount(discovery.stacks.length, 'stack')}:\n`);
 
         for (const stack of discovery.stacks) {
           console.log(chalk.bold(`${stack.name}`));
-          console.log(chalk.gray(`  ${stack.description}`));
+          showDetail(`${stack.description}`);
 
           if (options.services) {
-            console.log(chalk.gray('  Services:'));
+            showDetail('Services:');
             for (const service of stack.resources) {
-              console.log(chalk.gray(`    - ${service.name}`));
+              showDetail(`${service.name}`, 4);
             }
           }
 
           console.log();
         }
       } else {
-        console.log(chalk.blue(`Found ${formatCount(discovery.stackNames.length, 'stack')}:\n`));
+        showStep(`Found ${formatCount(discovery.stackNames.length, 'stack')}:\n`);
 
         for (const name of discovery.stackNames) {
           const serviceCount = discovery.resourcesByStack.get(name)?.length || 0;
           console.log(chalk.bold(`  ${name}`));
-          console.log(chalk.gray(`    ${formatCount(serviceCount, 'service')}`));
+          showDetail(`${formatCount(serviceCount, 'service')}`, 4);
         }
 
-        console.log(chalk.gray('\nRun with --verbose for more details, or --services to see all services in each stack.'));
+        showDetail('\nRun with --verbose for more details, or --services to see all services in each stack.', 0);
       }
     });
   });

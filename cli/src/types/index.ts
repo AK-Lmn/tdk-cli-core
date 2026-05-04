@@ -148,15 +148,8 @@ export interface TabBarProps {
   compact?: boolean;
 }
 
-export interface TooltipProps {
-  content: string;
-  shortcut?: string;
-  visible: boolean;
-  maxWidth?: number;
-  wrapText?: boolean;
-  prefix?: string;
-  marginTop?: number;
-}
+// Reuse BaseTooltipProps instead of duplicating
+export type TooltipProps = BaseTooltipProps;
 
 export interface DetailPanelProps {
   stack: DiscoveredStack | null;
@@ -249,13 +242,6 @@ export interface BaseTooltipProps {
   wrapText?: boolean;
   prefix?: string;
   marginTop?: number;
-}
-
-export interface TooltipProps {
-  content: string;
-  shortcut?: string;
-  visible: boolean;
-  maxWidth?: number;
 }
 
 export interface LoadingScreenProps {

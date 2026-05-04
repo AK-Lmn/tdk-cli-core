@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { existsSync, mkdirSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { cwd } from 'node:process';
 import chalk from 'chalk';
@@ -8,8 +8,8 @@ import { findProjectRoot } from '../utils/paths.js';
 import { generateMasterConfigs, readProjectConfig } from '../generator/template-engine.js';
 import { runCommand, showErrorAndExit } from '../utils/errors.js';
 import { MASTER_CONFIG_FILES } from '../utils/constants.js';
-import { showCancelled, showCommandHeader } from '../utils/formatting.js';
-import { writeJsonFile } from '../utils/file-helpers.js';
+import { showCancelled, showCommandHeader, showSuccess, showStep, showDetail } from '../utils/formatting.js';
+import { writeJsonFile, ensureDirectory } from '../utils/file-helpers.js';
 
 const DEFAULT_PROJECT_JSON = {
   version: "1.0",
@@ -63,8 +63,8 @@ export const projectCommand = new Command('project')
 
       if (!projectRoot) {
         projectRoot = cwd();
-        console.log(chalk.blue('🚀 Initializing new TDK project...\n'));
-        console.log(chalk.gray(`Location: ${projectRoot}\n`));
+        showStep('🚀 Initializing new TDK project...\n');
+        showDetail(`Location: ${projectRoot}\n`, 0);
       }
 
       const tdkDir = join(projectRoot, '.tdk');
@@ -77,42 +77,42 @@ export const projectCommand = new Command('project')
 
       if (allFilesExist && projectJsonExists) {
         const projectConfig = readProjectConfig(projectRoot);
-        console.log(chalk.green('✅ Project configuration is valid'));
-        console.log(chalk.gray(`   Project: ${projectConfig.project.name}`));
-        console.log(chalk.gray(`   Stacks: ${Object.keys(projectConfig.stacks).join(', ')}`));
+        showSuccess('Project configuration is valid');
+        showDetail(`Project: ${projectConfig.project.name}`, 3);
+        showDetail(`Stacks: ${Object.keys(projectConfig.stacks).join(', ')}`, 3);
         process.exit(0);
       } else {
           console.log(chalk.yellow('⚠️  Project configuration incomplete:'));
-          if (!projectJsonExists) console.log(chalk.gray('   - .tdk/project.json (not found)'));
+          if (!projectJsonExists) showDetail('.tdk/project.json (not found)', 3);
           if (!allFilesExist) {
             MASTER_CONFIG_FILES
               .filter(f => !existsSync(join(projectRoot, '.tdk/.tdk-out', f)))
-              .forEach(f => console.log(chalk.gray(`   - .tdk/.tdk-out/${f} (not found)`)));
+              .forEach(f => showDetail(`.tdk/.tdk-out/${f} (not found)`, 3));
           }
-          console.log(chalk.gray('\nRun `tdk project` to create them.'));
+          showDetail('Run `tdk project` to create them.');
           process.exit(1);
         }
       }
 
       showCommandHeader('Project Configuration');
-      console.log(chalk.gray(`Project root: ${projectRoot}\n`));
+      showDetail(`Project root: ${projectRoot}\n`, 0);
 
       if (!existsSync(tdkDir)) {
-        mkdirSync(tdkDir, { recursive: true });
-        console.log(chalk.green('✓ Created: .tdk/ directory'));
+        ensureDirectory(tdkDir);
+        showSuccess('Created: .tdk/ directory');
       }
 
       const projectJsonExists = existsSync(projectJsonPath);
 
       if (projectJsonExists && !options.force) {
-        console.log(chalk.green('✓ .tdk/project.json exists'));
-        console.log(chalk.blue('\n📋 Regenerating master configuration files...\n'));
+        showSuccess('.tdk/project.json exists');
+        showStep('\n📋 Regenerating master configuration files...\n');
 
         generateMasterConfigs(projectRoot);
         console.log(chalk.green('\n✅ Project configuration regenerated!'));
-        console.log(chalk.gray('\nGenerated in .tdk/.tdk-out/:'));
+        showDetail('\nGenerated in .tdk/.tdk-out/:', 0);
         for (const file of MASTER_CONFIG_FILES) {
-          console.log(chalk.gray(`  - ${file}`));
+          showDetail(`- ${file}`);
         }
         return;
       }
@@ -140,13 +140,13 @@ export const projectCommand = new Command('project')
         }
         const configContent = await import('node:fs').then(fs => fs.readFileSync(configFilePath, 'utf-8'));
         projectConfig = JSON.parse(configContent);
-        console.log(chalk.green(`✓ Loaded config from: ${configFilePath}`));
+        showSuccess(`Loaded config from: ${configFilePath}`);
       } else if (options.yes) {
         projectConfig = JSON.parse(JSON.stringify(DEFAULT_PROJECT_JSON));
         projectConfig.project.name = projectRoot.split('/').pop() || 'my-project';
         console.log(chalk.gray('Using default configuration (non-interactive mode)'));
       } else {
-        console.log(chalk.blue('📝 Project Setup Wizard\n'));
+        showStep('📝 Project Setup Wizard\n');
 
         const answers = await inquirer.prompt([
           {
@@ -223,24 +223,24 @@ export const projectCommand = new Command('project')
         projectConfig.optional_infra.golden_image = answers.optionalInfra.includes('golden_image');
       }
 
-      console.log(chalk.blue('\n📋 Creating project configuration...\n'));
+      showStep('\n📋 Creating project configuration...\n');
       writeJsonFile(projectJsonPath, projectConfig);
-      console.log(chalk.green(`✓ Created: .tdk/project.json`));
-      console.log(chalk.gray(`  → Project: ${projectConfig.project.name}`));
+      showSuccess('Created: .tdk/project.json');
+      showDetail(`→ Project: ${projectConfig.project.name}`);
 
-      console.log(chalk.blue('\n📋 Generating master configuration files...\n'));
+      showStep('\n📋 Generating master configuration files...\n');
       generateMasterConfigs(projectRoot);
 
       console.log(chalk.green('\n✅ Project configuration complete!'));
-      console.log(chalk.gray('\nGenerated files in .tdk/.tdk-out/:'));
+      showDetail('\nGenerated files in .tdk/.tdk-out/:', 0);
       for (const file of MASTER_CONFIG_FILES) {
-        console.log(chalk.gray(`  - ${file}`));
+        showDetail(`- ${file}`);
       }
-      console.log(chalk.gray('\nSource file:'));
-      console.log(chalk.gray('  - .tdk/project.json (edit this to change project structure)'));
-      console.log(chalk.gray('\nNext steps:'));
-      console.log(chalk.gray('  1. Run `tdk config regenerate` after editing .tdk/project.json'));
-      console.log(chalk.gray('  2. Run `tdk stack` to manage services in stacks'));
-      console.log(chalk.gray('  3. Run `tdk up` to start development'));
+      showDetail('\nSource file:', 0);
+      showDetail('- .tdk/project.json (edit this to change project structure)');
+      showDetail('\nNext steps:', 0);
+      showDetail('1. Run `tdk config regenerate` after editing .tdk/project.json');
+      showDetail('2. Run `tdk stack` to manage services in stacks');
+      showDetail('3. Run `tdk up` to start development');
     });
   });

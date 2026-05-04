@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { createDiscoveryContext } from '../utils/discovery-context.js';
 import { requireProjectRoot, runCommand } from '../utils/errors.js';
-import { formatCount, showEmptyState, showAllSatisfyCondition } from '../utils/formatting.js';
+import { formatCount, showEmptyState, showAllSatisfyCondition, showStep, showDetail } from '../utils/formatting.js';
 
 export const resourcesCommand = new Command('resources')
   .description('List all resources (services) in the project')
@@ -39,7 +39,7 @@ export const resourcesCommand = new Command('resources')
         }
       }
 
-      console.log(chalk.blue(`Found ${formatCount(resources.length, 'resource')}:\n`));
+      showStep(`Found ${formatCount(resources.length, 'resource')}:\n`);
 
       if (options.verbose || options.ports) {
         for (const resource of resources) {
@@ -68,7 +68,7 @@ export const resourcesCommand = new Command('resources')
           console.log(`  ${resource.name}${stackInfo}`);
         }
 
-        console.log(chalk.gray('\nRun with --verbose for more details or --ports to see port assignments.'));
+        showDetail('\nRun with --verbose for more details or --ports to see port assignments.', 0);
       }
 
       const withoutStackCount = options.stack
@@ -77,7 +77,7 @@ export const resourcesCommand = new Command('resources')
 
       if (withoutStackCount > 0 && !options.noStack && !options.stack) {
         console.log(chalk.yellow(`\n${formatCount(withoutStackCount, 'resource')} not assigned to any stack.`));
-        console.log(chalk.gray('Run "tdk resources --no-stack" to see them, or "tdk stack" to assign them.'));
+        showDetail('Run "tdk resources --no-stack" to see them, or "tdk stack" to assign them.');
       }
     });
   });

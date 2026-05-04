@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import { createDiscoveryContext } from '../utils/discovery-context.js';
 import { isTiltAvailable, runTilt, getTiltfilePath } from '../utils/tilt.js';
 import { runCommand } from '../utils/errors.js';
-import { formatCount } from '../utils/formatting.js';
+import { formatCount, showStep, showDetail } from '../utils/formatting.js';
 
 export const statusCommand = new Command('status')
   .description('Show status of resources and stacks')
@@ -15,11 +15,11 @@ export const statusCommand = new Command('status')
     await runCommand(async () => {
       const tiltAvailable = await isTiltAvailable();
 
-      console.log(chalk.blue('TDK Status\n'));
+      showStep('TDK Status\n');
       console.log(chalk.bold('Tilt:'), tiltAvailable ? chalk.green('available') : chalk.red('not found'));
 
       if (!tiltAvailable) {
-        console.log(chalk.gray('  Install Tilt: https://docs.tilt.dev/install.html'));
+        showDetail('Install Tilt: https://docs.tilt.dev/install.html');
       }
 
       console.log();
@@ -31,11 +31,11 @@ export const statusCommand = new Command('status')
       if (discovery.stacks.length > 0) {
         for (const stack of discovery.stacks) {
           const resourcesInStack = stack.resources.length;
-          console.log(chalk.gray(`  - ${stack.name}: ${formatCount(resourcesInStack, 'resource')}`));
+          showDetail(`${stack.name}: ${formatCount(resourcesInStack, 'resource')}`);
 
           if (options.verbose) {
             for (const resource of stack.resources) {
-              console.log(chalk.gray(`      ${resource.name}`));
+              showDetail(`${resource.name}`, 6);
             }
           }
         }
@@ -47,14 +47,14 @@ export const statusCommand = new Command('status')
 
         if (options.verbose) {
           for (const resource of discovery.unassignedResources) {
-            console.log(chalk.gray(`  - ${resource.name}`));
+            showDetail(`${resource.name}`);
           }
         }
       }
 
       if (options.tilt && tiltAvailable) {
         console.log();
-        console.log(chalk.blue('Tilt Resources:'));
+        showStep('Tilt Resources:');
 
         const tiltfilePath = getTiltfilePath();
         const result = await runTilt('get', ['-f', tiltfilePath, 'resources'], { inheritStdio: false });
@@ -62,12 +62,12 @@ export const statusCommand = new Command('status')
         if (result.exitCode === 0) {
           console.log(result.stdout || chalk.gray('  No active tilt resources'));
         } else {
-          console.log(chalk.gray('  Could not retrieve tilt resource status'));
+          showDetail('Could not retrieve tilt resource status');
         }
       }
 
       console.log();
-      console.log(chalk.gray('Run "tdk list-stacks" to see all stacks.'));
-      console.log(chalk.gray('Run "tdk up <stack-name>" to start a stack.'));
+      showDetail('Run "tdk list-stacks" to see all stacks.');
+      showDetail('Run "tdk up <stack-name>" to start a stack.');
     });
   });

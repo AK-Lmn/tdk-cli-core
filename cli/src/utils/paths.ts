@@ -38,7 +38,7 @@ let packageCache: PackageInfo | null = null;
  *
  * @returns Parsed package.json content with name, version, and full package data
  */
-export function getPackageInfo(): PackageInfo {
+function getPackageInfo(): PackageInfo {
   if (packageCache) {
     return packageCache;
   }
