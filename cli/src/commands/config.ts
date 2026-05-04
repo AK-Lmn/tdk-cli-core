@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import chalk from 'chalk';
+import type { ProjectConfig, JsonValue } from '../types/index.js';
 import { requireProjectRoot, runCommand } from '../utils/errors.js';
 import { assertValid } from '../utils/command-helpers.js';
 import { generateMasterConfigs, verifyMasterConfigs, readProjectConfig, TemplateEngine } from '../generator/template-engine.js';
@@ -32,10 +33,22 @@ export const configCommand = new Command('config')
             const filesToCheck = MASTER_CONFIG_FILES;
             type MasterConfigFileName = typeof MASTER_CONFIG_FILES[number];
 
+            /**
+             * Type guard to validate filename is a known master config file.
+             * Eliminates the need for 'as MasterConfigFileName' assertion.
+             */
+            function isMasterConfigFileName(filename: string): filename is MasterConfigFileName {
+              return (MASTER_CONFIG_FILES as readonly string[]).includes(filename);
+            }
+
             let hasChanges = false;
 
             for (const filename of filesToCheck) {
-              const newContent = newFiles[filename as MasterConfigFileName];
+              // Runtime validation with type guard eliminates type assertion
+              if (!isMasterConfigFileName(filename)) {
+                continue; // Skip unknown files (shouldn't happen with const array)
+              }
+              const newContent = newFiles[filename];
               const filePath = join(outputDir, filename);
 
               if (!existsSync(filePath)) {
@@ -176,18 +189,42 @@ export const configCommand = new Command('config')
       })
   )
 
+/**
+ * Type guard for optional infrastructure service keys.
+ * Validates that a service name is a valid key of the optional_infra object.
+ */
+function isOptionalInfraKey(
+  service: string,
+  config: ProjectConfig
+): service is keyof ProjectConfig['optional_infra'] {
+  return service in config.optional_infra;
+}
+
 async function toggleInfraService(service: string, enabled: boolean): Promise<void> {
   const projectRoot = requireProjectRoot();
 
+  // Validates service is in OPTIONAL_INFRA_SERVICES array
   const validation = validateOptionalInfraService(service);
   assertValid(validation);
 
   const config = readProjectConfig(projectRoot);
-  type OptionalInfraKey = keyof typeof config.optional_infra;
-  config.optional_infra[service as OptionalInfraKey] = enabled;
+
+  // Runtime validation: ensure service is a valid key of optional_infra
+  if (!isOptionalInfraKey(service, config)) {
+    throw new Error(
+      `Invalid infrastructure service: "${service}". ` +
+      `Must be one of: ${Object.keys(config.optional_infra).join(', ')}`
+    );
+  }
+
+  // Type-safe assignment: service is now narrowed to OptionalInfraKey
+  config.optional_infra[service] = enabled;
 
   const projectJsonPath = join(projectRoot, '.tdk', 'project.json');
-  writeJsonFile(projectJsonPath, config);
+  // Type assertion: ProjectConfig is JSON-serializable (all properties are primitive or object types)
+  // The interface doesn't have an index signature, but it's structurally compatible with JsonValue
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+  writeJsonFile(projectJsonPath, config as unknown as JsonValue);
 
   const action = enabled ? 'Enabled' : 'Disabled';
   console.log(chalk.green(`✓ ${action}: ${service}`));

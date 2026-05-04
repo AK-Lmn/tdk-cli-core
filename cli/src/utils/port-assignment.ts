@@ -3,9 +3,6 @@ import { spawn } from 'node:child_process';
 import type { DiscoveredResource, CreatableResourceType } from '../types/index.js';
 import { PORT_RANGES } from './constants.js';
 
-/**
- * Check if a port is available (not in use) using TCP connection test
- */
 export function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
     const server = createConnection({ port, host: '127.0.0.1' }, () => {
@@ -19,10 +16,6 @@ export function isPortAvailable(port: number): Promise<boolean> {
   });
 }
 
-/**
- * Check if a port is in use by attempting to run lsof
- * Returns 'running' if port is in use, 'stopped' if available, 'unknown' if check failed
- */
 export async function checkPortStatus(port: number): Promise<'running' | 'stopped' | 'unknown'> {
   return new Promise((resolve) => {
     const child = spawn('lsof', ['-Pi', `:${port}`, '-sTCP:LISTEN'], {
@@ -51,9 +44,6 @@ export async function checkPortStatus(port: number): Promise<'running' | 'stoppe
   });
 }
 
-/**
- * Find an available port starting from basePort
- */
 export async function findAvailablePort(
   basePort: number,
   maxAttempts: number = 10

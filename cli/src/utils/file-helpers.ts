@@ -1,19 +1,12 @@
 import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import chalk from 'chalk';
-
-export interface FileWriteTask {
-  type: 'json' | 'text';
-  filename: string;
-  content: unknown;
-  description: string;
-  emoji: string;
-}
+import type { FileGenerationTask } from '../types/index.js';
 
 export function writeFilesWithProgress(
   basePath: string,
-  tasks: FileWriteTask[],
-  onProgress?: (task: FileWriteTask, index: number, total: number) => void
+  tasks: FileGenerationTask[],
+  onProgress?: (task: FileGenerationTask, index: number, total: number) => void
 ): void {
   for (let i = 0; i < tasks.length; i++) {
     const task = tasks[i];
@@ -32,6 +25,12 @@ export function writeFilesWithProgress(
   }
 }
 
+/**
+ * Write JSON data to a file.
+ * @param filePath - Path to the file
+ * @param data - JSON-serializable data
+ * @param space - Number of spaces for indentation (default: 2)
+ */
 export function writeJsonFile(filePath: string, data: unknown, space: number = 2): void {
   const content = JSON.stringify(data, null, space) + '\n';
   writeFileSync(filePath, content, 'utf-8');
@@ -65,5 +64,3 @@ export function ensureDirectory(dirPath: string): void {
     mkdirSync(dirPath, { recursive: true });
   }
 }
-
-

@@ -692,10 +692,10 @@ def _generate_yaml_from_json_manifests():
     
     generated_count = 0
     for root in DISCOVERY_SCAN_ROOTS:
-        # Find all JSON manifests (both legacy and new naming)
+        # Find all JSON manifests
         json_files = []
-        
-        # Search for service.json manifests only (migration complete)
+
+        # Search for service.json manifests only
         cmd = "find " + root + " -type f -name '" + MANIFEST_FILENAME_NEW + "' 2>/dev/null"
         result = str(local(cmd, quiet=True, echo_off=True)).strip()
         if result:

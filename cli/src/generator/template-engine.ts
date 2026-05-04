@@ -201,11 +201,21 @@ const ALL_GENERATED_FILES = [
 
 type GeneratedFileName = typeof ALL_GENERATED_FILES[number];
 
+/**
+ * Type guard to validate if an unknown value is a valid ProjectConfig.
+ *
+ * NOTE: The `as` assertions below are INTENTIONAL and SAFE:
+ * - We've already verified `typeof value === 'object'` and `value !== null`
+ * - TypeScript doesn't automatically narrow `{}` to `Record<string, unknown>`
+ * - Each assertion is immediately followed by property type checks
+ * - This pattern is standard for deep object validation in type guards
+ */
 function isProjectConfig(value: unknown): value is ProjectConfig {
   if (!value || typeof value !== "object") {
     return false;
   }
 
+  // Safe to assert as Record after null and object type checks
   const config = value as Record<string, unknown>;
 
   if (typeof config.version !== "string") {

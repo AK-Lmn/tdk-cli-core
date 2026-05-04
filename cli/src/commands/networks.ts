@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { execSync, spawn } from 'node:child_process';
-import { discoverResources } from '../utils/services.js';
+import { createDiscoveryContext } from '../utils/discovery-context.js';
 import { findProjectRoot } from '../utils/paths.js';
 import { readProjectConfig } from '../generator/template-engine.js';
 import { sanitizeForShell, isValidPort } from '../utils/validation.js';
@@ -189,9 +189,10 @@ export const networksCommand = new Command('networks')
   .option('--raw', 'Output raw URLs only')
   .action(async (options) => {
     const projectRoot = requireProjectRoot();
+    const discovery = createDiscoveryContext();
     
     const baseDomain = determineDefaultDomain();
-    const services = discoverResources();
+    const services = discovery.resources;
     const servicesWithUrls: ServiceUrl[] = await Promise.all(
       services
         .filter((s): s is typeof s & { config: { basePath: string } } => 
@@ -247,16 +248,20 @@ export const networksCommand = new Command('networks')
     console.log(chalk.cyan('│') + chalk.gray(formatCentered(`Domain: http://${baseDomain}`, BOX_WIDTH - 2)) + chalk.cyan('│'));
     console.log(chalk.cyan('╰' + formatBoxLine('─', BOX_WIDTH - 2) + '╯'));
 
+    // Group services by stack using discovery context's stack names for consistent ordering
     const stacks = new Map<string, ServiceUrl[]>();
-    for (const service of filteredServices) {
-      const stackName = service.stack || 'default';
-      const stackServices = stacks.get(stackName);
-      if (stackServices) {
-        stackServices.push(service);
-      } else {
-        stacks.set(stackName, [service]);
+    for (const stackName of discovery.stackNames) {
+      const stackServices = filteredServices.filter(s => s.stack === stackName);
+      if (stackServices.length > 0) {
+        stacks.set(stackName, stackServices);
       }
     }
+    // Add unstacked services to 'default' group
+    const unstackedServices = filteredServices.filter(s => !s.stack);
+    if (unstackedServices.length > 0) {
+      stacks.set('default', unstackedServices);
+    }
+    
     let isFirstStack = true;
     for (const [stackName, stackServices] of stacks) {
       if (!isFirstStack) {

@@ -7,7 +7,7 @@ General-purpose manifest parsing and loading system. Used across Tilt infrastruc
 ## Key Files
 
 ### Core
-- **`constants.star`** - `MANIFEST_FILENAME`, `MANIFEST_FILENAME_YAML`, validation constants
+- **`constants.star`** - `MANIFEST_FILENAME`, validation constants
 - **`loader.star`** - `ManifestLoader` struct with `load_from_file()` method
 - **`parser.star`** - Path parsing, stack extraction from paths
 - **`schema.star`** - JSON schema definitions for manifests
@@ -38,7 +38,7 @@ manifest = result.manifest
 ### Get constants
 ```starlark
 load("./constants.star", "MANIFEST_FILENAME")
-# Returns: "platform-computing-provisioner.manifest.json"
+# Returns: "service.json"
 ```
 
 ## Manifest Structure

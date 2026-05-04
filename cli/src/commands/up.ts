@@ -2,9 +2,11 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { execSync } from 'node:child_process';
 import { getResourcesForStack, stackExists, discoverResources, discoverStacks } from '../utils/services.js';
-import { runTilt, buildTiltUpArgs, findAvailablePort } from '../utils/tilt.js';
+import { runTilt, buildTiltUpArgs } from '../utils/tilt.js';
+import { findAvailablePort } from '../utils/port-assignment.js';
 import { withTiltCheck } from '../utils/errors.js';
 import { formatCount } from '../utils/formatting.js';
+import { handleDryRun } from '../utils/command-helpers.js';
 
 export const upCommand = new Command('up')
   .description('Start all services (optionally filtered by stack)')
@@ -52,9 +54,7 @@ export const upCommand = new Command('up')
         });
       }
 
-      if (options.dryRun) {
-        console.log(chalk.gray('\nDry run - not starting services.'));
-        console.log(chalk.gray(`Would run: tilt up ${serviceNames.join(' ')}`));
+      if (handleDryRun(options, 'not starting services', `tilt up ${serviceNames.join(' ')}`)) {
         return;
       }
 

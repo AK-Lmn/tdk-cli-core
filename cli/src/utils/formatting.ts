@@ -26,6 +26,13 @@ export function formatShortDate(timestamp: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+const STATUS_CATEGORY_CONFIG: Record<StatusCategory, { color: string; icon: string; chalkFn: (text: string) => string }> = {
+  success: { color: 'green', icon: '✓', chalkFn: chalk.green },
+  error: { color: 'red', icon: '✗', chalkFn: chalk.red },
+  warning: { color: 'yellow', icon: '○', chalkFn: chalk.yellow },
+  unknown: { color: 'gray', icon: '?', chalkFn: chalk.gray },
+};
+
 function getStatusCategory(status: StatusValue): StatusCategory {
   if (!status) return 'unknown';
   const lowerStatus = status.toLowerCase();
@@ -46,36 +53,15 @@ function getStatusCategory(status: StatusValue): StatusCategory {
 }
 
 export function getStatusColor(status: StatusValue): string {
-  const category = getStatusCategory(status);
-  const colorMap: Record<StatusCategory, string> = {
-    success: 'green',
-    error: 'red',
-    warning: 'yellow',
-    unknown: 'gray',
-  };
-  return colorMap[category];
+  return STATUS_CATEGORY_CONFIG[getStatusCategory(status)].color;
 }
 
 export function getStatusIcon(status: StatusValue): string {
-  const category = getStatusCategory(status);
-  const iconMap: Record<StatusCategory, string> = {
-    success: '✓',
-    error: '✗',
-    warning: '○',
-    unknown: '?',
-  };
-  return iconMap[category];
+  return STATUS_CATEGORY_CONFIG[getStatusCategory(status)].icon;
 }
 
 export function colorizeByStatus(text: string, status: StatusValue): string {
-  const category = getStatusCategory(status);
-  const colorMap = {
-    success: chalk.green,
-    error: chalk.red,
-    warning: chalk.yellow,
-    unknown: chalk.gray,
-  } as const;
-  return colorMap[category](text);
+  return STATUS_CATEGORY_CONFIG[getStatusCategory(status)].chalkFn(text);
 }
 
 const EMPTY_STATE_CONFIG: Record<string, { singular: string; command: string; context?: string }> = {
@@ -217,4 +203,10 @@ export function showStep(message: string): void {
 
 export function showDetail(message: string, indent = 2): void {
   console.log(chalk.gray(`${' '.repeat(indent)}${message}`));
+}
+
+export function formatBytes(bytes: number): string {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }

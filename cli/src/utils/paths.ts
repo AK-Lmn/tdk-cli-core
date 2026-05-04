@@ -41,7 +41,17 @@ function getPackageInfo(): PackageInfo {
   const packagePath = resolve(__dirname, '..', '..', 'package.json');
 
   const content = readFileSync(packagePath, 'utf-8');
-  const pkg = JSON.parse(content) as JsonObject;
+
+  // Parse with unknown type, then validate before asserting type
+  const parsed: unknown = JSON.parse(content);
+
+  // Runtime validation: package.json must be an object, not null, not an array
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error(`Invalid package.json at ${packagePath}: expected object`);
+  }
+
+  // Safe to cast after validation - we know it's a Record<string, unknown>
+  const pkg = parsed as JsonObject;
 
   packageCache = {
     name: String(pkg.name ?? '@tdk/cli'),

@@ -411,20 +411,19 @@ SPEC = struct(
 RESOURCE_PATTERNS = struct(
     # Manifest file names - EXPLICIT, no guessing
     MANIFEST_FILE = "service.json",
-    LEGACY_MANIFEST = "platform-computing-provisioner.manifest.json",
-    
+
     # Service structure - EXPLICIT expectations
     BACKEND_DIR = "backend",
     FRONTEND_DIR = "frontend",
     MIGRATOR_DIR = "migrator",
     SHARED_DIR = "shared",
-    
+
     # Config files - EXPLICIT
     PACKAGE_JSON = "package.json",
     BUN_LOCK = "bun.lock",
     DOCKERFILE = "Dockerfile",
     DOCKER_COMPOSE = "docker-compose.yml",
-    
+
     # Generated files - EXPLICIT outputs
     GENERATED_TSCONFIG = "tsconfig.json",
     GENERATED_VITE_CONFIG = "vite.config.ts",
@@ -453,7 +452,6 @@ DISCOVERY = struct(
     # Manifest patterns - EXPLICIT glob patterns
     MANIFEST_PATTERNS = [
         "**/service.json",
-        "**/platform-computing-provisioner.manifest.json",
     ],
     
     # Exclusion patterns - EXPLICIT (no hidden exclusions)

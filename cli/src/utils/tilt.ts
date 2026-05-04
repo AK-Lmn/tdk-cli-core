@@ -2,16 +2,6 @@ import { spawn } from 'node:child_process';
 import { join } from 'node:path';
 import type { TiltCommandResult } from '../types/index.js';
 import { findProjectRoot } from './paths.js';
-import { isPortAvailable, findAvailablePort as findAvailablePortInternal } from './port-assignment.js';
-
-export { isPortAvailable };
-
-/**
- * Find an available port for Tilt UI, starting from basePort
- */
-export async function findAvailablePort(basePort: number = 10350, maxAttempts: number = 10): Promise<number | null> {
-  return findAvailablePortInternal(basePort, maxAttempts);
-}
 
 export function runTilt(
   command: string,

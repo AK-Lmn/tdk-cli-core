@@ -3,7 +3,7 @@ import { existsSync, mkdirSync } from 'node:fs';
 import { resolve, relative, isAbsolute } from 'node:path';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import type { CreatableResourceType, ResourceType, JsonValue } from '../types/index.js';
+import type { CreatableResourceType, ResourceType, JsonValue, FileGenerationTask } from '../types/index.js';
 import { CREATABLE_RESOURCE_TYPES, isCreatableResourceType } from '../types/index.js';
 import { discoverResources } from '../utils/services.js';
 import { requireProjectRoot, runCommand, showErrorAndExit } from '../utils/errors.js';
@@ -11,7 +11,7 @@ import { validateResourceName, createKebabCaseValidator } from '../utils/validat
 import { formatCount, showCancelled, showCommandHeader } from '../utils/formatting.js';
 import { PORT_RANGES } from '../utils/constants.js';
 import { assignPort } from '../utils/port-assignment.js';
-import { writeJsonFileInDir, writeTextFileInDir, writeFilesWithProgress, type FileWriteTask } from '../utils/file-helpers.js';
+import { writeJsonFileInDir, writeTextFileInDir, writeFilesWithProgress } from '../utils/file-helpers.js';
 
 export const BASE_TEMPLATE = {
   port: 0, // Will be assigned
@@ -26,18 +26,10 @@ export const BASE_TEMPLATE = {
   },
 } as const;
 
-/**
- * Configuration extensions for specific resource types.
- * Defines type-specific settings merged into the base service.json template.
- */
 interface TypeSpecificConfig {
-  /** Health check endpoint path (for backend services) */
   healthCheck?: string;
-  /** Development command configuration override */
   dev?: {
-    /** Command to run in development mode */
     command: string;
-    /** File patterns to watch for changes */
     watch: string[];
   };
 }
@@ -236,6 +228,13 @@ function getFrontendAppTemplate(name: string) {
 export default App;
 `;}
 
+function getShutdownHandlerTemplate(signal: string): string {
+  return `process.on('${signal}', () => {
+  console.log('[Worker] ${signal} received, shutting down gracefully...');
+  process.exit(0);
+});`;
+}
+
 export function getWorkerIndexTemplate(name: string) {
   return `console.log('🚀 ${name} worker started');
 
@@ -296,15 +295,9 @@ async function main() {
   }
 }
 
-      process.on('SIGTERM', () => {
-        console.log('[Worker] SIGTERM received, shutting down gracefully...');
-        process.exit(0);
-      });
+${getShutdownHandlerTemplate('SIGTERM')}
 
-process.on('SIGINT', () => {
-  console.log('[Worker] SIGINT received, shutting down gracefully...');
-  process.exit(0);
-});
+${getShutdownHandlerTemplate('SIGINT')}
 
 main().catch((err) => {
   console.error('[Worker] Fatal error:', err);
@@ -475,7 +468,7 @@ export const resourceCommand = new Command('resource')
       const serviceJson = createServiceJson(resourceName, resourceType, stackName, assignedPort);
       const packageJson = createPackageJson(resourceName, resourceType);
 
-      const tasks: FileWriteTask[] = [
+      const tasks: FileGenerationTask[] = [
         { type: 'json', filename: 'service.json', content: serviceJson, description: 'Generating service.json', emoji: '📝' },
         { type: 'json', filename: 'package.json', content: packageJson, description: 'Generating package.json', emoji: '📦' },
         { type: 'json', filename: 'tsconfig.json', content: TSCONFIG_TEMPLATE, description: 'Generating tsconfig.json', emoji: '⚙️' },

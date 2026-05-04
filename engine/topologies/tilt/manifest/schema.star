@@ -153,17 +153,6 @@ MANIFEST_SCHEMA = {
         'description': 'Other resources this resource depends on',
         'default': [],
     },
-    'dependencies': {
-        'type': 'list',
-        'required': False,
-        'constraints': {
-            'item_type': 'string',
-            'max_length': VALIDATION_THRESHOLDS['max_dependencies'],
-        },
-        'description': 'Legacy field - use internalDependencies',
-        'deprecated': True,
-        'default': [],
-    },
     
     # Environment Configuration
     'envVars': {

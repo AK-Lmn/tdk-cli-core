@@ -99,11 +99,8 @@ def _load_and_normalize(manifest_path, warn_only=True):
     if app_type == 'frontend':
         normalized['frontend'] = True
     
-    # 🎯 EXTRACT dependencies for registry (supports both new and legacy fields)
-    manifest_deps = normalized.get('dependencies')
-    if manifest_deps == None:
-        manifest_deps = normalized.get('internalDependencies', [])
-    normalized['serviceDependencies'] = manifest_deps
+    # 🎯 EXTRACT dependencies for registry
+    normalized['serviceDependencies'] = normalized.get('internalDependencies', [])
 
     return normalized
 

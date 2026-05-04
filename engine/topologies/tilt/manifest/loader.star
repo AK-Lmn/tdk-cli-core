@@ -24,7 +24,6 @@ load("./constants.star",
     "MANIFEST_DEFAULTS",
     "VALID_APP_TYPES",
     "DEFAULT_SYNCS",
-    "MANIFEST_SEARCH_ORDER",
 )
 
 
@@ -202,9 +201,9 @@ def get_manifest_search_order():
     Get the priority order for manifest discovery.
     
     Returns:
-        List of filenames in search order
+        List of filenames in search order (currently only service.json)
     """
-    return MANIFEST_SEARCH_ORDER
+    return [MANIFEST_FILENAME]
 
 # Enhanced loader with synthesis support
 ManifestLoader = struct(

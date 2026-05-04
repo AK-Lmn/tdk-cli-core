@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Text } from 'ink';
 import type { FileType, FileNode, FileTreeProps } from '../types/index.js';
+import { formatBytes } from '../utils/formatting.js';
 
 const FILE_ICONS: Record<FileType, string> = {
   docker: '🐳',
@@ -84,9 +85,3 @@ export const FileTree: React.FC<FileTreeProps> = ({
     </Box>
   );
 };
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return bytes + ' B';
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-}

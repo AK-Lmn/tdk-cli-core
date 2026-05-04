@@ -6,5 +6,8 @@
   "project": [
     "src/**/*.ts",
     "src/**/*.tsx"
+  ],
+  "ignoreBinaries": [
+    "biome"
   ]
 }

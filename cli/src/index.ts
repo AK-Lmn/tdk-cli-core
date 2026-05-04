@@ -72,14 +72,17 @@ export {
 } from './utils/paths.js';
 
 export {
-  isPortAvailable,
-  findAvailablePort,
   runTilt,
   isTiltAvailable,
   getTiltfilePath,
   buildTiltUpArgs,
   buildTiltDownArgs,
 } from './utils/tilt.js';
+
+export {
+  isPortAvailable,
+  findAvailablePort,
+} from './utils/port-assignment.js';
 
 export {
   confirmAction,
@@ -121,7 +124,6 @@ export {
 
 export {
   writeFilesWithProgress,
-  type FileWriteTask,
 } from './utils/file-helpers.js';
 
 export {
