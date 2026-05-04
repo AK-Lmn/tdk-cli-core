@@ -59,7 +59,6 @@ export const FileTree: React.FC<FileTreeProps> = ({
       );
     }
 
-    // File node
     const icon = node.fileType ? FILE_ICONS[node.fileType] : FILE_ICONS.unknown;
     const color = node.fileType ? FILE_COLORS[node.fileType] : FILE_COLORS.unknown;
 

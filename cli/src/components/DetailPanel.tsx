@@ -39,12 +39,6 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
             <Text color="gray">Stack: </Text>
             <Text color="white">{service.stack || 'unknown'}</Text>
           </Box>
-          {service.stack && (
-            <Box>
-              <Text color="gray">Stack: </Text>
-              <Text color="cyan">{service.stack}</Text>
-            </Box>
-          )}
           <Box>
             <Text color="gray">Type: </Text>
             <Text color="yellow">{(service.stack || '') === 'platform' ? 'PLATFORM' : 'PRODUCT'}</Text>
@@ -130,11 +124,10 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
     );
   }
 
-  // Empty state
   return (
-    <Box 
-      width={40} 
-      borderStyle="single" 
+    <Box
+      width={40}
+      borderStyle="single"
       borderColor="gray"
       paddingX={2}
       paddingY={2}

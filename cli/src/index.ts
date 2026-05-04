@@ -111,3 +111,19 @@ export {
 export {
   clearDiscoveryCache,
 } from './utils/discovery-context.js';
+
+export {
+  Cache,
+  createCacheValidator,
+  type CacheEntry,
+  type CacheOptions,
+} from './utils/cache.js';
+
+export {
+  writeFilesWithProgress,
+  type FileWriteTask,
+} from './utils/file-helpers.js';
+
+export {
+  checkPortStatus,
+} from './utils/port-assignment.js';

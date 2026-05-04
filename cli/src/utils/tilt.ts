@@ -1,30 +1,16 @@
 import { spawn } from 'node:child_process';
-import { createConnection } from 'node:net';
 import { join } from 'node:path';
 import type { TiltCommandResult } from '../types/index.js';
 import { findProjectRoot } from './paths.js';
+import { isPortAvailable, findAvailablePort as findAvailablePortInternal } from './port-assignment.js';
 
-export function isPortAvailable(port: number): Promise<boolean> {
-  return new Promise((resolve) => {
-    const server = createConnection({ port, host: '127.0.0.1' }, () => {
-      server.destroy();
-      resolve(false);
-    });
+export { isPortAvailable };
 
-    server.on('error', () => {
-      resolve(true);
-    });
-  });
-}
-
+/**
+ * Find an available port for Tilt UI, starting from basePort
+ */
 export async function findAvailablePort(basePort: number = 10350, maxAttempts: number = 10): Promise<number | null> {
-  for (let i = 0; i < maxAttempts; i++) {
-    const port = basePort + i;
-    if (await isPortAvailable(port)) {
-      return port;
-    }
-  }
-  return null;
+  return findAvailablePortInternal(basePort, maxAttempts);
 }
 
 export function runTilt(
@@ -70,7 +56,7 @@ export function runTilt(
     });
 
     child.on('error', (err) => {
-      // Log error if verbose, but resolve with error info to avoid unhandled rejection
+      // Avoid unhandled rejection by resolving with error details
       if (options.verbose) {
         console.error('Failed to spawn tilt:', err);
       }

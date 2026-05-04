@@ -28,7 +28,7 @@ export const downCommand = new Command('down')
 
       const result = await runTilt('down', tiltArgs, {
         verbose: options.verbose,
-        inheritStdio: true  // Pass through tilt's output
+        inheritStdio: true,
       });
 
       if (result.exitCode !== 0) {

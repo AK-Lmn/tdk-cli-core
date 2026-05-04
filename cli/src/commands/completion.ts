@@ -248,7 +248,6 @@ export const completionCommand = new Command('completion')
     }
     
     if (options.install) {
-      // Auto-install to shell config
       const home = homedir();
       let installPath: string;
       let installInstructions: string;

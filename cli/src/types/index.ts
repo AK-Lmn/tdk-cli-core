@@ -55,7 +55,7 @@ export type ResourceFileType = 'json' | 'text';
 export interface FileGenerationTask {
   type: ResourceFileType;
   filename: string;
-  content: unknown;
+  content: JsonValue;
   description: string;
   emoji: string;
 }

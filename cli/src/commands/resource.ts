@@ -11,7 +11,7 @@ import { validateResourceName, createKebabCaseValidator } from '../utils/validat
 import { formatCount, showCancelled, showCommandHeader } from '../utils/formatting.js';
 import { PORT_RANGES } from '../utils/constants.js';
 import { assignPort } from '../utils/port-assignment.js';
-import { writeJsonFileInDir, writeTextFileInDir } from '../utils/file-helpers.js';
+import { writeJsonFileInDir, writeTextFileInDir, writeFilesWithProgress, type FileWriteTask } from '../utils/file-helpers.js';
 
 export const BASE_TEMPLATE = {
   port: 0, // Will be assigned
@@ -26,10 +26,18 @@ export const BASE_TEMPLATE = {
   },
 } as const;
 
+/**
+ * Configuration extensions for specific resource types.
+ * Defines type-specific settings merged into the base service.json template.
+ */
 interface TypeSpecificConfig {
+  /** Health check endpoint path (for backend services) */
   healthCheck?: string;
+  /** Development command configuration override */
   dev?: {
+    /** Command to run in development mode */
     command: string;
+    /** File patterns to watch for changes */
     watch: string[];
   };
 }
@@ -289,9 +297,9 @@ async function main() {
 }
 
       process.on('SIGTERM', () => {
-  console.log('[Worker] SIGTERM received, shutting down gracefully...');
-  process.exit(0);
-});
+        console.log('[Worker] SIGTERM received, shutting down gracefully...');
+        process.exit(0);
+      });
 
 process.on('SIGINT', () => {
   console.log('[Worker] SIGINT received, shutting down gracefully...');
@@ -457,39 +465,40 @@ export const resourceCommand = new Command('resource')
         return;
       }
 
+      // Create directory structure
       console.log(chalk.blue('\n📁 Creating directory structure...'));
       mkdirSync(fullPath, { recursive: true });
       mkdirSync(resolve(fullPath, 'src'), { recursive: true });
       mkdirSync(resolve(fullPath, 'tests'), { recursive: true });
 
-      console.log(chalk.blue('📝 Generating service.json...'));
+      // Prepare file generation tasks
       const serviceJson = createServiceJson(resourceName, resourceType, stackName, assignedPort);
-      writeJsonFileInDir(fullPath, 'service.json', serviceJson);
-
-      console.log(chalk.blue('📦 Generating package.json...'));
       const packageJson = createPackageJson(resourceName, resourceType);
-      writeJsonFileInDir(fullPath, 'package.json', packageJson);
 
-      console.log(chalk.blue('⚙️  Generating tsconfig.json...'));
-      writeJsonFileInDir(fullPath, 'tsconfig.json', TSCONFIG_TEMPLATE);
+      const tasks: FileWriteTask[] = [
+        { type: 'json', filename: 'service.json', content: serviceJson, description: 'Generating service.json', emoji: '📝' },
+        { type: 'json', filename: 'package.json', content: packageJson, description: 'Generating package.json', emoji: '📦' },
+        { type: 'json', filename: 'tsconfig.json', content: TSCONFIG_TEMPLATE, description: 'Generating tsconfig.json', emoji: '⚙️' },
+        { type: 'text', filename: 'Dockerfile', content: DOCKERFILE_TEMPLATE, description: 'Generating Dockerfile', emoji: '🐳' },
+      ];
 
-      console.log(chalk.blue('🐳 Generating Dockerfile...'));
-      writeTextFileInDir(fullPath, 'Dockerfile', DOCKERFILE_TEMPLATE);
-
-      console.log(chalk.blue('💻 Generating source files...'));
-
+      // Add source files based on resource type
       if (resourceType === 'backend') {
-        writeTextFileInDir(fullPath, 'src/index.ts', getBackendIndexTemplate(resourceName));
+        tasks.push({ type: 'text', filename: 'src/index.ts', content: getBackendIndexTemplate(resourceName), description: 'Generating backend source', emoji: '💻' });
       } else if (resourceType === 'frontend') {
-        writeTextFileInDir(fullPath, 'index.html', getFrontendIndexTemplate(resourceName));
-        writeTextFileInDir(fullPath, 'src/main.tsx', FRONTEND_MAIN_TEMPLATE);
-        writeTextFileInDir(fullPath, 'src/App.tsx', getFrontendAppTemplate(resourceName));
+        tasks.push({ type: 'text', filename: 'index.html', content: getFrontendIndexTemplate(resourceName), description: 'Generating HTML template', emoji: '💻' });
+        tasks.push({ type: 'text', filename: 'src/main.tsx', content: FRONTEND_MAIN_TEMPLATE, description: 'Generating React entry', emoji: '💻' });
+        tasks.push({ type: 'text', filename: 'src/App.tsx', content: getFrontendAppTemplate(resourceName), description: 'Generating React app', emoji: '💻' });
       } else if (resourceType === 'worker') {
-        writeTextFileInDir(fullPath, 'src/index.ts', getWorkerIndexTemplate(resourceName));
+        tasks.push({ type: 'text', filename: 'src/index.ts', content: getWorkerIndexTemplate(resourceName), description: 'Generating worker source', emoji: '💻' });
       }
 
-      console.log(chalk.blue('🧪 Generating test file...'));
-      writeTextFileInDir(fullPath, `tests/${resourceName}.test.ts`, getTestTemplate(resourceName));
+      // Add test file
+      tasks.push({ type: 'text', filename: `tests/${resourceName}.test.ts`, content: getTestTemplate(resourceName), description: 'Generating test file', emoji: '🧪' });
+
+      // Execute all file writes with progress
+      console.log(chalk.blue('💻 Generating source files...'));
+      writeFilesWithProgress(fullPath, tasks);
 
       console.log(chalk.green('\n✅ Resource created successfully!'));
       console.log(chalk.gray(`\nLocation: ${fullPath}`));

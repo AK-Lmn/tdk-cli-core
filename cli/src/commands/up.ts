@@ -61,7 +61,6 @@ export const upCommand = new Command('up')
       if (options.force && !options.quiet) {
         console.log(chalk.yellow('Force flag set - killing any existing Tilt processes...'));
         execSync('killall tilt 2>/dev/null || true', { shell: '/bin/sh', stdio: 'pipe' });
-        // Give it a moment to fully shut down
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
 

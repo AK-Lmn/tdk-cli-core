@@ -13,12 +13,9 @@ const TABS: Tab[] = [
 export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange, compact = false }) => {
   return (
     <Box flexDirection="column" paddingX={1}>
-      {/* Simple separator line */}
       <Box marginBottom={1}>
         <Text color="gray">{'─'.repeat(compact ? 60 : 80)}</Text>
       </Box>
-      
-      {/* Tabs */}
       <Box flexDirection="row" justifyContent="space-between" paddingX={1}>
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;
@@ -49,8 +46,6 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange, compact 
           );
         })}
       </Box>
-      
-      {/* Simple separator line */}
       <Box marginTop={1}>
         <Text color="gray">{'─'.repeat(compact ? 60 : 80)}</Text>
       </Box>

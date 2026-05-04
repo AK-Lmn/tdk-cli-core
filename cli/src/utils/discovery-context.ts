@@ -1,17 +1,17 @@
 import type { DiscoveredResource, DiscoveredStack, DiscoveryContext } from '../types/index.js';
 import { discoverResources, discoverStacks, getAllStacks } from './services.js';
+import { createCacheValidator } from './cache.js';
 
 let cachedContext: DiscoveryContext | null = null;
-let cacheTimestamp = 0;
-const CACHE_TTL_MS = 1000;
+const cacheValidator = createCacheValidator(1000);
 
 export function clearDiscoveryCache(): void {
   cachedContext = null;
-  cacheTimestamp = 0;
+  cacheValidator.reset();
 }
 
 function isCacheValid(): boolean {
-  return cachedContext !== null && (Date.now() - cacheTimestamp) < CACHE_TTL_MS;
+  return cachedContext !== null && cacheValidator.isValid();
 }
 
 export function createDiscoveryContext(forceRefresh = false): DiscoveryContext {
@@ -43,7 +43,7 @@ export function createDiscoveryContext(forceRefresh = false): DiscoveryContext {
   };
 
   cachedContext = context;
-  cacheTimestamp = Date.now();
+  cacheValidator.markUpdated();
 
   return context;
 }

@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { resolve, join, dirname } from 'node:path';
 import { cwd } from 'node:process';
 import { fileURLToPath } from 'node:url';
+import type { JsonObject } from '../types/index.js';
 
 export function findProjectRoot(startDir: string = cwd()): string | null {
   let currentDir = resolve(startDir);
@@ -25,7 +26,7 @@ export function findProjectRoot(startDir: string = cwd()): string | null {
 interface PackageInfo {
   name: string;
   version: string;
-  fullPackage: Record<string, unknown>;
+  fullPackage: JsonObject;
 }
 
 let packageCache: PackageInfo | null = null;
@@ -40,7 +41,7 @@ function getPackageInfo(): PackageInfo {
   const packagePath = resolve(__dirname, '..', '..', 'package.json');
 
   const content = readFileSync(packagePath, 'utf-8');
-  const pkg = JSON.parse(content) as Record<string, unknown>;
+  const pkg = JSON.parse(content) as JsonObject;
 
   packageCache = {
     name: String(pkg.name ?? '@tdk/cli'),

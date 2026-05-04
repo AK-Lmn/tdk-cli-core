@@ -5,12 +5,21 @@
  * consistent caching behavior across the codebase.
  */
 
+/**
+ * A single cache entry with value and timestamp.
+ * @template T The type of the cached value
+ */
 export interface CacheEntry<T> {
   value: T;
+  /** Unix timestamp when the entry was created */
   timestamp: number;
 }
 
+/**
+ * Configuration options for the Cache class.
+ */
 export interface CacheOptions {
+  /** Time-to-live in milliseconds before cache entries expire */
   ttlMs: number;
 }
 

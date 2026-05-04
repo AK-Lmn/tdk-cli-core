@@ -313,7 +313,6 @@ const TUIApp: React.FC = () => {
 
           if (listRow >= 0 && listRow < items.length) {
             setHighlightedIndex(listRow);
-            // Select the item
             const item = items[listRow];
             if (item) {
               handleSelect(item);
@@ -323,26 +322,6 @@ const TUIApp: React.FC = () => {
         return;
       }
 
-      // Fallback: Try X10 protocol (older terminals)
-      const x10Match = str.match(/\x1b\[M(.)(.)(.)/);
-      if (x10Match) {
-        const btn = x10Match[1].charCodeAt(0) - 32;
-        const x = x10Match[2].charCodeAt(0) - 32;
-        const y = x10Match[3].charCodeAt(0) - 32;
-
-        const isLeftClick = (btn & 0b11) === 0;
-
-        if (isLeftClick) {
-          const listRow = y - 7;
-          if (listRow >= 0 && listRow < items.length) {
-            setHighlightedIndex(listRow);
-            const item = items[listRow];
-            if (item) {
-              handleSelect(item);
-            }
-          }
-        }
-      }
     };
 
     stdin.on('data', handleMouseData);

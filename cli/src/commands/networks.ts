@@ -6,7 +6,7 @@ import { findProjectRoot } from '../utils/paths.js';
 import { readProjectConfig } from '../generator/template-engine.js';
 import { sanitizeForShell, isValidPort } from '../utils/validation.js';
 import { requireProjectRoot, logVerbose } from '../utils/errors.js';
-import { getUsedPorts } from '../utils/port-assignment.js';
+import { getUsedPorts, checkPortStatus } from '../utils/port-assignment.js';
 import { formatBoxLine, formatCentered, formatPadded, getStatusIcon, colorizeByStatus } from '../utils/formatting.js';
 import { getStackEmoji } from '../utils/constants.js';
 import type { ServiceUrl } from '../types/index.js';
@@ -152,12 +152,12 @@ async function checkServiceStatus(serviceName: string, port?: number, url?: stri
   }
 
   if (port && isValidPort(port)) {
-    try {
-      await execSafe('lsof', ['-Pi', `:${port}`, '-sTCP:LISTEN'], { timeout: 3000 });
+    const portStatus = await checkPortStatus(port);
+    if (portStatus === 'running') {
       return 'running';
-    } catch (err: unknown) {
+    }
+    if (portStatus === 'unknown') {
       console.warn(chalk.yellow(`⚠️ Could not check port ${port} (lsof unavailable)`));
-      logVerbose(`Port check error details for ${port}`, err);
     }
   }
 

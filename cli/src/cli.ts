@@ -44,7 +44,6 @@ program.helpCommand('help [command]', 'Show colorful help').on('--help', () => {
 
 program.addHelpText('before', '');
 
-// CLI commands
 program.addCommand(stacksCommand);
 program.addCommand(resourcesCommand);
 program.addCommand(projectsCommand);
