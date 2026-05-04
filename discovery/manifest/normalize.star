@@ -68,6 +68,31 @@ def _load_and_normalize(manifest_path, warn_only=True):
     
     # Extract service path from manifest path
     resource_path = manifest_path.rsplit('/', 1)[0]
+    print("DEBUG normalize: manifest_path=" + manifest_path)
+    print("DEBUG normalize: initial resource_path=" + resource_path)
+    
+    # BUG FIX: Normalize worktree paths to project-relative paths
+    # Worktrees create paths like .worktrees/task1-dry/services/platform/...
+    # These need to be converted to services/platform/... for correct Dockerfile resolution
+    if resource_path.startswith('.worktrees/'):
+        # Extract the part after the worktree name (e.g., .worktrees/task1-dry/services/platform/... -> services/platform/...)
+        parts = resource_path.split('/')
+        if len(parts) >= 3:
+            # Skip .worktrees/ and the worktree name
+            resource_path = '/'.join(parts[2:])
+        print("DEBUG normalize: after worktree strip (startswith)=" + resource_path)
+    elif '.worktrees/' in resource_path:
+        # Handle paths that include worktree somewhere in the middle
+        worktree_idx = resource_path.find('.worktrees/')
+        after_worktree = resource_path[worktree_idx:]
+        parts = after_worktree.split('/')
+        if len(parts) >= 3:
+            resource_path = '/'.join(parts[2:])
+        print("DEBUG normalize: after worktree strip (contains)=" + resource_path)
+    else:
+        print("DEBUG normalize: no worktree path detected")
+    
+    print("DEBUG normalize: final resource_path=" + resource_path)
     
     # Apply smart defaults
     normalized = apply_manifest_defaults(manifest, resource_path)

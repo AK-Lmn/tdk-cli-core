@@ -236,7 +236,18 @@ def _apply_manifest_defaults(manifest, resource_path):
     if 'dockerfile' in result:
         custom_dockerfile = result['dockerfile']
         dockerfile_path = resource_path + '/' + custom_dockerfile
-        dockerfile_exists = local("test -f '{path}' && echo 'yes' || echo 'no'".format(path=dockerfile_path), quiet=True, echo_off=True)
+        print("DEBUG loading: Checking Dockerfile: " + dockerfile_path)
+        # BUG FIX: Run check from project root since Tilt may run from .tdk/.tdk-out/
+        project_root = os.environ.get('TDK_PROJECT_ROOT', '')
+        print("DEBUG loading: Project root: " + project_root)
+        if project_root:
+            check_cmd = "cd '{root}' && test -f '{path}' && echo 'yes' || echo 'no'".format(root=project_root, path=dockerfile_path)
+            print("DEBUG loading: Check command: " + check_cmd)
+            dockerfile_exists = local(check_cmd, quiet=True, echo_off=True)
+            print("DEBUG loading: Result (from project root): " + str(dockerfile_exists).strip())
+        else:
+            dockerfile_exists = local("test -f '{path}' && echo 'yes' || echo 'no'".format(path=dockerfile_path), quiet=True, echo_off=True)
+            print("DEBUG loading: Result (from current dir): " + str(dockerfile_exists).strip())
         if str(dockerfile_exists).strip() != 'yes':
             fail("""
 ❌ ═══════════════════════════════════════════════════════════════════

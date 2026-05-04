@@ -357,6 +357,35 @@ def _scan_resources():
         if full_resource_path.startswith('/'):
             full_resource_path = full_resource_path[1:]
         
+        # BUG FIX: Normalize worktree paths to project-relative paths
+        # Worktrees create paths like .worktrees/task1-dry/services/platform/...
+        # These need to be converted to services/platform/... for correct Dockerfile resolution
+        if full_resource_path.startswith('.worktrees/'):
+            # Extract the part after the worktree name
+            parts = full_resource_path.split('/')
+            if len(parts) >= 3:
+                # Skip .worktrees/ and the worktree name
+                full_resource_path = '/'.join(parts[2:])
+        elif '.worktrees/' in full_resource_path:
+            # Handle paths that include worktree somewhere in the middle
+            worktree_idx = full_resource_path.find('.worktrees/')
+            after_worktree = full_resource_path[worktree_idx:]
+            parts = after_worktree.split('/')
+            if len(parts) >= 3:
+                full_resource_path = '/'.join(parts[2:])
+        
+        # Also normalize resource_path (base_path) if it has worktree
+        if resource_path.startswith('.worktrees/'):
+            parts = resource_path.split('/')
+            if len(parts) >= 3:
+                resource_path = '/'.join(parts[2:])
+        elif '.worktrees/' in resource_path:
+            worktree_idx = resource_path.find('.worktrees/')
+            after_worktree = resource_path[worktree_idx:]
+            parts = after_worktree.split('/')
+            if len(parts) >= 3:
+                resource_path = '/'.join(parts[2:])
+        
         app_name = manifest.get("appName", resource_dir)
         app_type = manifest.get("appType", "backend")
         stack = manifest.get("stack", stack_dir)
