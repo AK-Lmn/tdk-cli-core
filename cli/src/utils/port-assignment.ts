@@ -3,7 +3,7 @@ import { spawn } from 'node:child_process';
 import type { DiscoveredResource, CreatableResourceType } from '../types/index.js';
 import { PORT_RANGES } from './constants.js';
 
-export function isPortAvailable(port: number): Promise<boolean> {
+function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
     const server = createConnection({ port, host: '127.0.0.1' }, () => {
       server.destroy();

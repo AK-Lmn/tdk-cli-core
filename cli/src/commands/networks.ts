@@ -7,7 +7,7 @@ import { readProjectConfig } from '../generator/template-engine.js';
 import { sanitizeForShell, isValidPort } from '../utils/validation.js';
 import { requireProjectRoot, logVerbose } from '../utils/errors.js';
 import { getUsedPorts, checkPortStatus } from '../utils/port-assignment.js';
-import { formatBoxLine, formatCentered, formatPadded, getStatusIcon, colorizeByStatus } from '../utils/formatting.js';
+import { formatPadded, getStatusIcon, colorizeByStatus, printBoxedHeader, DEFAULT_BOX_WIDTH } from '../utils/formatting.js';
 import { getStackEmoji } from '../utils/constants.js';
 import type { ServiceUrl } from '../types/index.js';
 
@@ -42,7 +42,7 @@ function execSafe(command: string, args: string[], options: { encoding?: string;
   });
 }
 
-const BOX_WIDTH = 62;
+
 
 function determineDefaultDomain(): string {
   const projectRoot = findProjectRoot();
@@ -241,12 +241,11 @@ export const networksCommand = new Command('networks')
       }
       process.exit(0);
     }
-    console.log();
-    console.log(chalk.cyan('╭' + formatBoxLine('─', BOX_WIDTH - 2) + '╮'));
-    console.log(chalk.cyan('│') + chalk.bold.white(formatCentered('🌐  TRAEFIK NETWORKS', BOX_WIDTH - 2)) + chalk.cyan('│'));
-    console.log(chalk.cyan('├' + formatBoxLine('─', BOX_WIDTH - 2) + '┤'));
-    console.log(chalk.cyan('│') + chalk.gray(formatCentered(`Domain: http://${baseDomain}`, BOX_WIDTH - 2)) + chalk.cyan('│'));
-    console.log(chalk.cyan('╰' + formatBoxLine('─', BOX_WIDTH - 2) + '╯'));
+    printBoxedHeader(
+      '🌐  TRAEFIK NETWORKS',
+      `Domain: http://${baseDomain}`,
+      DEFAULT_BOX_WIDTH
+    );
 
     // Group services by stack using discovery context's stack names for consistent ordering
     const stacks = new Map<string, ServiceUrl[]>();

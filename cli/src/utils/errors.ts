@@ -97,12 +97,7 @@ export async function withTiltCheck<T>(
   action: () => Promise<T>,
   options?: { verbose?: boolean }
 ): Promise<T | never> {
-  try {
-    if (!await isTiltAvailable()) {
-      errorFactories.tiltNotInstalled().display();
-      process.exit(1);
-    }
-  } catch (err) {
+  if (!await isTiltAvailable()) {
     errorFactories.tiltNotInstalled().display();
     process.exit(1);
   }
@@ -115,7 +110,7 @@ export function showErrorAndExit(message: string, exitCode: number = 1): never {
 }
 
 /** Display a formatted error message. Does NOT exit. */
-export function showError(
+function showError(
   message: string,
   context?: string,
   suggestions?: string[]

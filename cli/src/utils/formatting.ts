@@ -145,7 +145,7 @@ export function truncate(str: string, maxLength: number): string {
   return str.slice(0, maxLength - 3) + '...';
 }
 
-export function formatAsciiBox(
+function formatAsciiBox(
   title: string,
   lines: string[],
   width: number = DEFAULT_BOX_WIDTH
@@ -168,12 +168,12 @@ export function formatAsciiBox(
   return result;
 }
 
-export function printAsciiBox(title: string, lines: string[], width?: number): void {
+function printAsciiBox(title: string, lines: string[], width?: number): void {
   const formatted = formatAsciiBox(title, lines, width);
   formatted.forEach(line => console.log(line));
 }
 
-export function formatSeparator(
+function formatSeparator(
   label?: string,
   width: number = DEFAULT_BOX_WIDTH,
   char: string = '─'
@@ -209,4 +209,34 @@ export function formatBytes(bytes: number): string {
   if (bytes < 1024) return bytes + ' B';
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+/** Default width for ASCII boxes */
+export const DEFAULT_BOX_WIDTH = 62;
+
+/**
+ * Print a boxed header with title and optional subtitle.
+ * Consolidates common box formatting patterns from networks.ts and other commands.
+ * @param title - The main title to display
+ * @param subtitle - Optional subtitle (e.g., domain info)
+ * @param width - Box width (defaults to DEFAULT_BOX_WIDTH)
+ */
+export function printBoxedHeader(
+  title: string,
+  subtitle?: string,
+  width: number = DEFAULT_BOX_WIDTH
+): void {
+  const innerWidth = width - 2;
+  const line = '─'.repeat(innerWidth);
+
+  console.log();
+  console.log(chalk.cyan('╭' + line + '╮'));
+  console.log(chalk.cyan('│') + chalk.bold.white(formatCentered(title, innerWidth)) + chalk.cyan('│'));
+
+  if (subtitle) {
+    console.log(chalk.cyan('├' + line + '┤'));
+    console.log(chalk.cyan('│') + chalk.gray(formatCentered(subtitle, innerWidth)) + chalk.cyan('│'));
+  }
+
+  console.log(chalk.cyan('╰' + line + '╯'));
 }

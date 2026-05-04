@@ -40,4 +40,24 @@ export function handleDryRun(
   return false;
 }
 
+/**
+ * Prompt for confirmation with cancellation handling.
+ * Displays a confirmation prompt and exits/cancels if user declines.
+ * @param message - The confirmation message to display
+ * @param onCancel - Optional callback when user cancels (defaults to returning false)
+ * @returns Promise<boolean> - true if confirmed, false if cancelled (with callback)
+ */
+export async function confirmOrCancel(
+  message: string,
+  onCancel?: () => void
+): Promise<boolean> {
+  const confirmed = await confirmAction(message, true);
+  if (!confirmed) {
+    if (onCancel) {
+      onCancel();
+    }
+    return false;
+  }
+  return true;
+}
 
