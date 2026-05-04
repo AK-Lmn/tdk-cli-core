@@ -3,7 +3,8 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import chalk from 'chalk';
-import { requireProjectRoot, runCommand, showErrorAndExit } from '../utils/errors.js';
+import { requireProjectRoot, runCommand } from '../utils/errors.js';
+import { assertValid } from '../utils/command-helpers.js';
 import { generateMasterConfigs, verifyMasterConfigs, readProjectConfig, TemplateEngine } from '../generator/template-engine.js';
 import { MASTER_CONFIG_FILES } from '../utils/constants.js';
 import { validateOptionalInfraService } from '../utils/validation.js';
@@ -184,10 +185,8 @@ export const configCommand = new Command('config')
 async function toggleInfraService(service: string, enabled: boolean): Promise<void> {
   const projectRoot = requireProjectRoot();
 
-          const validation = validateOptionalInfraService(service);
-          if (!validation.valid) {
-            showErrorAndExit(validation.error ?? 'Invalid service');
-          }
+  const validation = validateOptionalInfraService(service);
+  assertValid(validation);
 
   const config = readProjectConfig(projectRoot);
   // After validation, service is guaranteed to be a key of optional_infra

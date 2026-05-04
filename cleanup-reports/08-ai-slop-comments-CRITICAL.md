@@ -1,197 +1,306 @@
-# AI Slop, Stubs, and Comment Cleanup - CRITICAL ASSESSMENT
+# Critical Assessment: AI Slop, Comments & LARP Code
 
-**Date:** 2026-05-02  
-**Agent:** Subagent 8 - AI Slop Cleanup  
-**Scope:** TDK CLI (`cli/src/**/*.ts`)
-
----
-
-## Executive Summary
-
-Previous cleanup (Agent 4) successfully removed **39+ AI slop comments** from:
-- `platform-standards.ts` - inline JSDoc on constants
-- `types/index.ts` - obvious type documentation
-- `formatting.ts` - self-documenting function JSDoc
-- `paths.ts` - obvious function documentation
-- Component files - redundant header comments
-
-**Remaining Issues Found:** 24 comments across 3 files that need evaluation
+**Assessment Date:** 2026-05-04  
+**Scope:** TDK CLI Source Code (`cli/src/**/*.ts`, `cli/src/**/*.tsx`)  
+**Assessor:** Code Quality Specialist  
 
 ---
 
-## Category 1: Comments Describing "What" Not "Why"
+## 1. Executive Summary
 
-These comments state the obvious and add no value. They describe what the code does rather than why it does it.
+### Code Cleanliness Score: **7.5/10**
 
-### File: `cli/src/commands/resource.ts`
+The TDK CLI codebase is generally well-structured with consistent patterns and good TypeScript practices. However, several categories of AI-generated artifacts and unnecessary comments were identified that should be cleaned up to improve maintainability and professionalism.
 
-**Line 72:** `// Deep merge base template with type-specific overrides`
-- **Issue:** Describes what the code does (obvious from reading the for loop)
-- **Verdict:** REMOVE
-- **Rationale:** The code `for (const [key, value] of Object.entries(typeSpecific))` is self-documenting
+### Key Findings Summary
 
-**Line 225:** `// Frontend main.tsx template`
-- **Issue:** Labels a constant that is already clearly named `FRONTEND_MAIN_TEMPLATE`
-- **Verdict:** REMOVE
-- **Rationale:** The constant name already says exactly what this is
+| Category | Count | Severity |
+|----------|-------|----------|
+| Placeholder/stub text | 1 | Medium |
+| Fake progress/LARP code | 2 | Medium |
+| Unnecessary JSDoc comments | 12+ | Low |
+| Obvious explanatory comments | 3 | Low |
+| Decorative section headers | 3 | Low |
+| Console.log (CLI output - legitimate) | 331 | N/A |
 
-### File: `cli/src/commands/networks.ts`
-
-**Line 48:** `// Standard box width for network display output`
-- **Issue:** Describes a constant that's already clearly named `BOX_WIDTH`
-- **Verdict:** REMOVE
-- **Rationale:** The constant name and context make this obvious
-
-**Line 61:** `// Collect all unique domains from Traefik containers`
-- **Issue:** Describes what the next few lines do
-- **Verdict:** REMOVE
-- **Rationale:** The code `const domains = new Set<string>()` followed by Docker commands is self-documenting
-
-**Line 69:** `// Extract all Host() domains from all containers`
-- **Issue:** Describes the regex operation that follows
-- **Verdict:** REMOVE
-- **Rationale:** The regex pattern `traefik\.http\.routers\...` clearly shows what it's extracting
-
-**Line 260:** `// Group by stack`
-- **Issue:** Section divider comment that describes the loop that follows
-- **Verdict:** REMOVE
-- **Rationale:** `const stacks = new Map<string, ServiceUrl[]>()` followed by a for-loop is obvious
-
-**Line 284:** `// Use consolidated status display functions from formatting.ts`
-- **Issue:** States the obvious - the next line calls functions from formatting.ts
-- **Verdict:** REMOVE
-- **Rationale:** The code `getStatusIcon(service.status)` clearly shows where functions come from
-
-### File: `cli/src/commands/upgrade.ts`
-
-**Line 220:** `// For git installs, skip npm check and use git to check for updates`
-- **Issue:** Describes what the if-block does
-- **Verdict:** REMOVE
-- **Rationale:** The condition `if (installInfo.method === 'git')` already explains this
-
-**Line 251:** `// For npm/bun installs, check registry`
-- **Issue:** Describes what the else-block does
-- **Verdict:** REMOVE
-- **Rationale:** The else branch and `getLatestVersion()` call are self-documenting
-
-**Line 259:** `// Compare versions`
-- **Issue:** Section divider that describes the comparison logic
-- **Verdict:** REMOVE
-- **Rationale:** `if (currentVersion === latestVersion)` is obvious version comparison
+**Files Requiring Attention:** 8  
+**Estimated Cleanup Time:** 30 minutes  
+**Risk Level:** Low - changes are cosmetic and don't affect functionality
 
 ---
 
-## Category 2: Helpful Comments to KEEP
+## 2. AI Slop Inventory
 
-These comments explain WHY or provide valuable context that isn't obvious from the code.
+### 2.1 Placeholder/Stub Text
 
-### Security & Safety Comments
+**Location:** `cli/src/commands/ui.tsx:702-705`
 
-**Line 441 in resource.ts:** `// Prevent path traversal attacks`
-- **Verdict:** KEEP
-- **Rationale:** Explains the security purpose of the validation code that follows
+```tsx
+{activeTab === 'events' && (
+  <>
+    <Box marginBottom={1}>
+      <Text bold color="gray">┌─ Events ─</Text>
+    </Box>
+    <Box marginTop={1}>
+      <Text color="gray">Event timeline coming soon...</Text>
+      <Text color="gray" dimColor>
+        This tab will show service lifecycle events.
+      </Text>
+    </Box>
+  </>
+)}
+```
 
-**Line 305 in resource.ts:** `// Wait before retrying to avoid tight error loops`
-- **Verdict:** KEEP
-- **Rationale:** Explains WHY we wait - prevents tight loops during error conditions
+**Issue:** "Coming soon" text and explanatory paragraph for an unimplemented feature. This is classic AI slop - promising future functionality that may never arrive.
 
-### Template Code Guidance
-
-These comments are in generated template code that guides end users:
-
-**Lines 180-181, 195, 270-271, 278 in resource.ts:**
-- `// Add dependency checks here (database, cache, etc.)`
-- `// Add routes here:`
-- `// Add job processing logic here`
-- **Verdict:** KEEP ALL
-- **Rationale:** These are in template strings that get written to new resource files. They guide developers on how to use the generated code.
-
-### Technical Context Comments
-
-**Line 70 in networks.ts:** `// Use a simplified regex to avoid ReDoS`
-- **Verdict:** KEEP
-- **Rationale:** Explains WHY the regex is simplified - security consideration
-
-**Line 167 in resource.ts:** `// Health check endpoint (required by TILT_RESOURCE_DEFAULTS.star)`
-- **Verdict:** KEEP
-- **Rationale:** Explains external requirement - WHY this endpoint exists
-
-**Line 31 in upgrade.ts:** `// This is expected behavior for non-git installations - safe to ignore`
-- **Verdict:** KEEP
-- **Rationale:** Explains WHY we catch and ignore this specific error
-
-**Line 22 in upgrade.ts:** `// If the real path contains tdk-cli and has .git, it's a linked git install`
-- **Verdict:** KEEP
-- **Rationale:** Explains the logic for installation detection
+**Recommendation:** Replace with a concise placeholder or remove the tab until implemented.
 
 ---
 
-## Category 3: Context-Dependent Comments
+### 2.2 Fake Progress / LARP Code
 
-These provide context that might be helpful depending on the reader:
+**Location 1:** `cli/src/commands/ui.tsx:125-146`
 
-**Lines 77, 81-82, 85-86, 96, 98, 103, 110, 132, 150, 155, 166, 183 in networks.ts**
+```tsx
+useEffect(() => {
+  const loadSteps = [
+    { msg: 'Discovering services...', progress: 20 },
+    { msg: 'Loading stack metadata...', progress: 50 },
+    { msg: 'Initializing UI...', progress: 80 },
+    { msg: 'Ready!', progress: 100 },
+  ];
+  
+  let stepIndex = 0;
+  const interval = setInterval(() => {
+    if (stepIndex < loadSteps.length) {
+      const step = loadSteps[stepIndex];
+      setLoadingMessage(step.msg);
+      setLoadingProgress(step.progress);
+      stepIndex++;
+    } else {
+      setLoading(false);
+      clearInterval(interval);
+    }
+  }, 300);
+  
+  return () => clearInterval(interval);
+}, []);
+```
 
-These describe the algorithm steps for domain detection and service checking. While they describe "what," they provide context for a complex multi-step algorithm.
+**Issue:** Fake loading animation with arbitrary progress steps. No actual loading is happening - it's just animated for visual effect. The data is already available via `useMemo` that runs synchronously.
 
-**Recommendation:** Evaluate individually:
-- **Lines 77, 150, 155, 166, 183** (error handling): KEEP - explain what error conditions mean
-- **Lines 81-82, 85-86** (domain filtering logic): KEEP - algorithm explanation
-- **Lines 96, 98, 103, 110** (fallback logic): KEEP - explain complex heuristic
-- **Line 132** (curl flags): REMOVE - the curl command flags are self-documenting
+**Location 2:** `cli/src/commands/upgrade.ts:324-325`
 
----
+```tsx
+const verifySpinner = ora('Verifying upgrade...').start();
+// ...
+await new Promise(resolve => setTimeout(resolve, 1000));
+```
 
-## Summary Table
+**Issue:** Artificial 1-second delay before verification. The spinner already provides visual feedback; the delay serves no functional purpose.
 
-| File | Comments to Remove | Comments to Keep | Context-Dependent |
-|------|-------------------|------------------|-------------------|
-| resource.ts | 2 | 9 | 0 |
-| networks.ts | 4 | 11 | 1 |
-| upgrade.ts | 3 | 2 | 0 |
-| **TOTAL** | **9** | **22** | **1** |
-
----
-
-## Implementation Plan
-
-### Phase 1: Remove Obvious "What" Comments (9 comments)
-
-Files to modify:
-1. `cli/src/commands/resource.ts` - Remove lines 72, 225
-2. `cli/src/commands/networks.ts` - Remove lines 48, 61, 69, 260, 284
-3. `cli/src/commands/upgrade.ts` - Remove lines 220, 251, 259
-
-### Phase 2: Remove Over-Specific Detail (1 comment)
-
-1. `cli/src/commands/networks.ts` - Remove line 132 (curl flags explanation)
-
-### Phase 3: Verification
-
-1. Run `bun test` to ensure no functional changes
-2. Run `bun run build` to verify TypeScript compilation
-3. Review changes to ensure only comments removed
+**Recommendation:** Remove fake delays. If visual feedback is needed, use the spinner without the artificial timeout.
 
 ---
 
-## Risk Assessment
+### 2.3 Debug Code Leftovers
 
-**Risk Level:** Very Low  
-**Change Type:** Comment removal only  
-**Functional Impact:** None  
-**Test Impact:** None
+**Search Results:** 331 console.log/console.debug matches
 
-All changes are non-functional comment removals. The code behavior remains identical.
+**Analysis:** All `console.log` statements reviewed are legitimate CLI output for user feedback (not debug code). They follow a consistent pattern using chalk for colored output and provide useful command execution status.
 
----
-
-## Expected Outcome
-
-- **10 total comments removed**
-- **~20 lines of code reduced**
-- **Cleaner, more readable code**
-- **No functional changes**
+**Verdict:** No action needed - these are production-appropriate CLI outputs, not debug leftovers.
 
 ---
 
-**Status:** Ready for implementation
+## 3. Comment Quality Analysis
+
+### 3.1 Excessive JSDoc on Internal Types
+
+**Locations:** `cli/src/types/index.ts:230-336`
+
+Multiple interface definitions have JSDoc comments that restate the obvious:
+
+```typescript
+/**
+ * Context object containing all discovered resources and stacks
+ * Used by UI components and discovery utilities
+ * @since 1.1.0
+ */
+export interface DiscoveryContext {
+  /** All discovered resources */
+  resources: DiscoveredResource[];
+  /** All discovered stacks */
+  stacks: DiscoveredStack[];
+  // ...
+}
+
+/**
+ * Props for the LoadingScreen component
+ * @since 1.1.0
+ */
+export interface LoadingScreenProps {
+  /** Progress percentage (0-100) */
+  progress: number;
+  /** Loading message to display */
+  message: string;
+}
+```
+
+**Issue:** 
+- Property names like `resources`, `stacks`, `progress`, `message` are self-explanatory
+- `@since 1.1.0` tags add maintenance burden without value for internal types
+- 12+ interfaces have this pattern
+
+**Recommendation:** Remove redundant JSDoc from internal type definitions. Keep JSDoc only for public API exports.
+
+---
+
+### 3.2 Decorative Section Headers
+
+**Locations:** `cli/src/types/index.ts:230-254`
+
+```typescript
+// ============================================================================
+// Discovery Context
+// ============================================================================
+
+// ============================================================================
+// UI Component Props
+// ============================================================================
+```
+
+**Issue:** Decorative ASCII art headers that serve no functional purpose. Modern IDEs provide navigation; these add visual noise.
+
+**Recommendation:** Remove decorative headers. File organization should be self-evident from the code structure.
+
+---
+
+### 3.3 Comments That Restate the Obvious
+
+**Location 1:** `cli/src/commands/ui.tsx:151`
+
+```tsx
+}), [loading]); // Re-fetch only when loading refreshes
+```
+
+**Issue:** Comment restates what the code clearly shows - dependency array contains `loading`, so it re-fetches when `loading` changes.
+
+**Location 2:** `cli/src/commands/ui.tsx:120`
+
+```tsx
+const [showEnabledOnly, setShowEnabledOnly] = useState(true); // Default to enabled only for alpha
+```
+
+**Issue:** Comment contains stale contextual information ("alpha" phase) that may not be accurate.
+
+**Location 3:** `cli/src/commands/resource.ts:206-207`
+
+```tsx
+// TypeScript non-null assertion is safe here as the template guarantees
+// the element exists when this code executes in the browser
+ReactDOM.createRoot(document.getElementById('root')!).render(
+```
+
+**Issue:** Comment explains a common TypeScript pattern that any TS developer would understand. The `!` operator is standard for non-null assertions.
+
+---
+
+### 3.4 Version/Timestamp Comments
+
+**None found** - No TODOs, FIXMEs, or timestamp comments detected in production code.
+
+---
+
+## 4. Prioritized Cleanup List
+
+### HIGH Priority (Remove Immediately)
+
+1. **Fake loading animation** (`ui.tsx:125-146`)
+   - Remove arbitrary progress simulation
+   - Either load data synchronously or show actual loading state
+
+2. **Artificial delay in upgrade** (`upgrade.ts:324-325`)
+   - Remove `setTimeout(resolve, 1000)`
+   - Let verification happen immediately
+
+### MEDIUM Priority (Clean Up)
+
+3. **"Coming soon" placeholder** (`ui.tsx:702-705`)
+   - Replace with meaningful content or remove the events tab
+   - Or use a simpler placeholder: "Events tab not yet implemented"
+
+### LOW Priority (Refine)
+
+4. **Remove redundant JSDoc comments** (`types/index.ts:230-336`)
+   - Keep only non-obvious documentation
+   - Remove `@since` tags from internal types
+
+5. **Remove decorative section headers** (`types/index.ts:230-254`)
+   - Delete ASCII art separators
+
+6. **Clean up obvious comments**
+   - `ui.tsx:151` - remove dependency array comment
+   - `ui.tsx:120` - remove alpha reference
+   - `resource.ts:206-207` - remove non-null assertion explanation
+
+---
+
+## 5. Files to Modify
+
+| File | Lines | Changes |
+|------|-------|---------|
+| `cli/src/commands/ui.tsx` | 125-146, 151, 702-705 | Remove fake loading, cleanup comments |
+| `cli/src/commands/upgrade.ts` | 324-325 | Remove artificial delay |
+| `cli/src/types/index.ts` | 230-336 | Remove redundant JSDoc |
+| `cli/src/commands/resource.ts` | 206-207 | Remove obvious comment |
+
+---
+
+## 6. Preservation Guidelines
+
+### KEEP These Comments
+
+✅ **Error handling explanations** - `errors.ts:43` - "Common error factories"  
+✅ **JSDoc for public API** - Keep if the file has external consumers  
+✅ **Non-obvious logic** - Binary operations, complex algorithms  
+✅ **External references** - Links to specs, RFCs, documentation  
+✅ **Architectural decisions** - ADR references, design patterns  
+
+### REMOVE These Comments
+
+❌ **Property name restatements** - `/** All discovered resources */ resources:`  
+❌ **Version tags on internal code** - `@since 1.1.0` on non-exported types  
+❌ **ASCII art headers** - `// ==== Section ====`  
+❌ **Obvious code explanations** - `// Re-fetch when X changes` on dependency arrays  
+❌ **Feature promises** - "coming soon", "not yet implemented"  
+❌ **Placeholder explanations** - Long paragraphs about future features  
+
+---
+
+## 7. Success Criteria
+
+After cleanup:
+
+- [ ] No fake progress indicators or artificial delays
+- [ ] No "coming soon" or placeholder text in production UI
+- [ ] JSDoc comments only on public API exports
+- [ ] No decorative ASCII section headers
+- [ ] No comments that restate the obvious
+- [ ] All typecheck passes
+- [ ] No functional changes - only cosmetic cleanup
+
+---
+
+## 8. Implementation Notes
+
+1. **Type Safety:** All changes are comment/structure removals - no type signatures affected
+2. **Test Impact:** No test files will be modified
+3. **CLI Output:** Legitimate console.log outputs for user feedback will be preserved
+4. **Documentation:** `AGENTS.md` and `DESIGN.md` should not be modified
+5. **Verification:** Run `tsc --noEmit` after each file modification
+
+---
+
+**Assessment Complete**  
+**Ready for Phase 3: Implementation**

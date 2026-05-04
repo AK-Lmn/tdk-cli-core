@@ -68,8 +68,8 @@ function determineDefaultDomain(): string {
       domains.add(match[1]);
     }
   } catch (err: unknown) {
-    // Docker not running or no Traefik containers - domains set remains empty
-    logVerbose('Docker not available for Traefik label scan', err);
+    console.warn(chalk.yellow('⚠️ Could not scan Traefik domains (Docker unavailable)'));
+    logVerbose('Docker scan error details', err);
   }
 
   // Filter out service-specific domains (ones that look like individual services)
@@ -145,8 +145,8 @@ async function checkServiceStatus(serviceName: string, port?: number, url?: stri
         return 'stopped';
       }
     } catch (err: unknown) {
-      // HTTP check failed completely - service not accessible
-      logVerbose(`HTTP check failed for ${url}`, err);
+      console.warn(chalk.yellow(`⚠️ Could not reach ${url} (HTTP check failed)`));
+      logVerbose(`HTTP check error details for ${url}`, err);
       return 'stopped';
     }
   }
@@ -156,8 +156,8 @@ async function checkServiceStatus(serviceName: string, port?: number, url?: stri
       await execSafe('lsof', ['-Pi', `:${port}`, '-sTCP:LISTEN'], { timeout: 3000 });
       return 'running';
     } catch (err: unknown) {
-      // Port not listening or lsof not available
-      logVerbose(`Port check failed for ${port}`, err);
+      console.warn(chalk.yellow(`⚠️ Could not check port ${port} (lsof unavailable)`));
+      logVerbose(`Port check error details for ${port}`, err);
     }
   }
 
@@ -173,8 +173,8 @@ async function checkServiceStatus(serviceName: string, port?: number, url?: stri
       return 'running';
     }
   } catch (err: unknown) {
-    // Docker not available or container not found - service is stopped
-    logVerbose(`Docker check failed for ${serviceName}`, err);
+    console.warn(chalk.yellow(`⚠️ Could not check Docker for ${serviceName}`));
+    logVerbose(`Docker check error details for ${serviceName}`, err);
   }
 
   return 'stopped';

@@ -42,7 +42,8 @@ function detectInstallation(): InstallInfo {
     
     return { method: 'unknown', path: tdkPath };
   } catch (err: unknown) {
-    logVerbose('Installation detection failed', err);
+    console.warn(chalk.yellow('⚠️ Could not detect installation method'));
+    logVerbose('Installation detection error', err);
     return { method: 'unknown' };
   }
 }
@@ -320,10 +321,8 @@ export const upgradeCommand = new Command('upgrade')
     
     console.log();
     const verifySpinner = ora('Verifying upgrade...').start();
-    
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
       const newVersion = execSync('tdk version', { encoding: 'utf-8' }).trim();
       verifySpinner.succeed(`Verified: now running ${chalk.green(newVersion)}`);
       

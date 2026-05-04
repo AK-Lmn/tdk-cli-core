@@ -1,15 +1,39 @@
-import type { DiscoveredResource, DiscoveredStack } from '../types/index.js';
+import type { DiscoveredResource, DiscoveredStack, DiscoveryContext } from '../types/index.js';
 import { discoverResources, discoverStacks, getAllStacks } from './services.js';
 
-export interface DiscoveryContext {
-  resources: DiscoveredResource[];
-  stacks: DiscoveredStack[];
-  stackNames: string[];
-  unassignedResources: DiscoveredResource[];
-  resourcesByStack: Map<string, DiscoveredResource[]>;
+// Cache for memoizing discovery context within a session
+let cachedContext: DiscoveryContext | null = null;
+let cacheTimestamp = 0;
+const CACHE_TTL_MS = 1000; // 1 second TTL
+
+/**
+ * Clear the discovery context cache.
+ * Call this when you need fresh data (e.g., after making changes).
+ */
+export function clearDiscoveryCache(): void {
+  cachedContext = null;
+  cacheTimestamp = 0;
 }
 
-export function createDiscoveryContext(): DiscoveryContext {
+/**
+ * Check if the cached context is still valid.
+ */
+function isCacheValid(): boolean {
+  return cachedContext !== null && (Date.now() - cacheTimestamp) < CACHE_TTL_MS;
+}
+
+/**
+ * Create a discovery context with all resource and stack information.
+ * Results are memoized for 1 second to avoid redundant filesystem scans.
+ *
+ * @param forceRefresh - Force a fresh scan even if cache is valid
+ * @returns DiscoveryContext with all discovery information
+ */
+export function createDiscoveryContext(forceRefresh = false): DiscoveryContext {
+  if (!forceRefresh && isCacheValid() && cachedContext) {
+    return cachedContext;
+  }
+
   const resources = discoverResources();
   const stacks = discoverStacks();
   const stackNames = getAllStacks(resources);
@@ -25,11 +49,17 @@ export function createDiscoveryContext(): DiscoveryContext {
     }
   }
 
-  return {
+  const context: DiscoveryContext = {
     resources,
     stacks,
     stackNames,
     unassignedResources,
     resourcesByStack,
   };
+
+  // Update cache
+  cachedContext = context;
+  cacheTimestamp = Date.now();
+
+  return context;
 }

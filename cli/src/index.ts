@@ -29,10 +29,16 @@ export type {
   Tab,
   TabBarProps,
   FileNode,
+  FileTreeProps,
   DetailPanelProps,
   ResourceTableProps,
   ResourceSelectInputProps,
   TooltipProps,
+  BaseTooltipProps,
+  LoadingScreenProps,
+  ErrorScreenProps,
+  HelpPanelProps,
+  DiscoveryContext,
   StatusValue,
   StatusCategory,
 } from './types/index.js';
@@ -67,3 +73,43 @@ export {
   buildTiltUpArgs,
   buildTiltDownArgs,
 } from './utils/tilt.js';
+
+export {
+  confirmAction,
+  assertValid,
+  filterResourcesByStack,
+  extractStackNames,
+  getUnassignedResources,
+  groupResourcesByStack,
+  handleDryRun,
+} from './utils/command-helpers.js';
+
+export {
+  generateResourceFiles,
+  createResourceDirectories,
+} from './utils/resource-generator.js';
+
+export type {
+  FileGenerationTask,
+  ResourceFileType,
+} from './utils/resource-generator.js';
+
+export {
+  formatAsciiBox,
+  printAsciiBox,
+  formatSeparator,
+  formatBoxLine,
+  formatCentered,
+  formatPadded,
+  truncate,
+} from './utils/formatting.js';
+
+export {
+  showError,
+  showStatus,
+  errorFactories,
+} from './utils/errors.js';
+
+export {
+  clearDiscoveryCache,
+} from './utils/discovery-context.js';

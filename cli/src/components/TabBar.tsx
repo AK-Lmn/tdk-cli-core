@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Text } from 'ink';
-import type { Tab, TabBarProps, TabId } from '../types/index.js';
+import type { Tab, TabBarProps } from '../types/index.js';
 
 const TABS: Tab[] = [
   { id: 'overview', label: 'OVERVIEW', shortcut: '1' },

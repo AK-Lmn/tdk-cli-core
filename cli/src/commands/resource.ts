@@ -3,7 +3,7 @@ import { existsSync, mkdirSync } from 'node:fs';
 import { resolve, relative, isAbsolute } from 'node:path';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import type { CreatableResourceType, ResourceType } from '../types/index.js';
+import type { CreatableResourceType, ResourceType, JsonValue } from '../types/index.js';
 import { CREATABLE_RESOURCE_TYPES, isCreatableResourceType } from '../types/index.js';
 import { discoverResources } from '../utils/services.js';
 import { requireProjectRoot, runCommand, showErrorAndExit } from '../utils/errors.js';
@@ -26,7 +26,16 @@ export const BASE_TEMPLATE = {
   },
 } as const;
 
-export const TYPE_SPECIFIC: Record<CreatableResourceType, Record<string, unknown>> = {
+/** Type-specific configuration extensions for each creatable resource type */
+interface TypeSpecificConfig {
+  healthCheck?: string;
+  dev?: {
+    command: string;
+    watch: string[];
+  };
+}
+
+export const TYPE_SPECIFIC: Record<CreatableResourceType, TypeSpecificConfig> = {
   backend: {
     healthCheck: '/health',
   },
@@ -203,8 +212,6 @@ const FRONTEND_MAIN_TEMPLATE = `import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 
-// TypeScript non-null assertion is safe here as the template guarantees
-// the element exists when this code executes in the browser
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />
@@ -231,7 +238,7 @@ export function getWorkerIndexTemplate(name: string) {
 interface Job {
   id: string;
   type: string;
-  payload: Record<string, unknown>;
+  payload: Record<string, JsonValue>;
   priority?: number;
   timestamp?: string;
 }

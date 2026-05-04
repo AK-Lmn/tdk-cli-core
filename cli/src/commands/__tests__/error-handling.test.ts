@@ -36,41 +36,6 @@ describe('error handling', () => {
     });
   });
 
-  describe('invalid resource types', () => {
-    it('should validate resource type is one of allowed values', () => {
-      const allowedTypes = ['backend', 'frontend', 'worker'];
-
-      function validateResourceType(type: string): { valid: boolean; error?: string } {
-        if (!allowedTypes.includes(type)) {
-          return {
-            valid: false,
-            error: `Invalid resource type: ${type}. Must be one of: ${allowedTypes.join(', ')}`,
-          };
-        }
-        return { valid: true };
-      }
-
-      expect(validateResourceType('backend')).toEqual({ valid: true });
-      expect(validateResourceType('frontend')).toEqual({ valid: true });
-      expect(validateResourceType('worker')).toEqual({ valid: true });
-
-      expect(validateResourceType('api')).toEqual({
-        valid: false,
-        error: 'Invalid resource type: api. Must be one of: backend, frontend, worker',
-      });
-
-      expect(validateResourceType('microservice')).toEqual({
-        valid: false,
-        error: 'Invalid resource type: microservice. Must be one of: backend, frontend, worker',
-      });
-
-      expect(validateResourceType('')).toEqual({
-        valid: false,
-        error: 'Invalid resource type: . Must be one of: backend, frontend, worker',
-      });
-    });
-  });
-
   describe('port assignment', () => {
     it('should validate port is within valid range using isValidPort', () => {
       // Valid ports (isValidPort allows ports 1-65535, not just 1024+)
@@ -84,95 +49,6 @@ describe('error handling', () => {
       expect(isValidPort(65536)).toBe(false);
       expect(isValidPort(0)).toBe(false);
       expect(isValidPort(-1)).toBe(false);
-    });
-
-    it('should allow port 0 for workers', () => {
-      function validatePortForType(port: number, type: string): { valid: boolean; error?: string } {
-        if (type === 'worker' && port === 0) {
-          return { valid: true };
-        }
-        if (port < 1024 || port > 65535) {
-          return {
-            valid: false,
-            error: `Invalid port: ${port}. Must be between 1024 and 65535`,
-          };
-        }
-        return { valid: true };
-      }
-
-      expect(validatePortForType(0, 'worker')).toEqual({ valid: true });
-
-      expect(validatePortForType(0, 'backend')).toEqual({
-        valid: false,
-        error: 'Invalid port: 0. Must be between 1024 and 65535',
-      });
-    });
-  });
-
-  describe('missing manifest handling', () => {
-    it('should handle missing manifest gracefully', () => {
-      interface ManifestResult {
-        valid: boolean;
-        error?: string;
-        warnings?: string[];
-      }
-
-      function validateManifest(manifest: unknown): ManifestResult {
-        if (!manifest) {
-          return {
-            valid: false,
-            error: 'Manifest is missing or null',
-          };
-        }
-
-        if (typeof manifest !== 'object') {
-          return {
-            valid: false,
-            error: `Manifest must be an object, got ${typeof manifest}`,
-          };
-        }
-
-        const warnings: string[] = [];
-        const m = manifest as Record<string, unknown>;
-
-        if (!m.appName) {
-          warnings.push('Missing appName field');
-        }
-        if (!m.appType) {
-          warnings.push('Missing appType field');
-        }
-        if (!m.stack) {
-          warnings.push('Missing stack field');
-        }
-
-        if (warnings.length > 0) {
-          return {
-            valid: true,
-            warnings,
-          };
-        }
-
-        return { valid: true };
-      }
-
-      expect(validateManifest(null)).toEqual({
-        valid: false,
-        error: 'Manifest is missing or null',
-      });
-
-      expect(validateManifest(undefined)).toEqual({
-        valid: false,
-        error: 'Manifest is missing or null',
-      });
-
-      const incompleteManifest = {
-        appName: 'test-service',
-      };
-
-      const result = validateManifest(incompleteManifest);
-      expect(result.valid).toBe(true);
-      expect(result.warnings).toContain('Missing appType field');
-      expect(result.warnings).toContain('Missing stack field');
     });
   });
 

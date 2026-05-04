@@ -50,6 +50,26 @@ export const errorFactories = {
       'Verify with: `tilt version`'
     ]
   ),
+  stackNotFound: (name: string) => new TdkError(
+    `Stack "${name}" not found`,
+    ['Run `tdk stacks` to see available stacks', 'Run `tdk stack` to assign resources to a stack']
+  ),
+  resourceNotFound: (name: string) => new TdkError(
+    `Resource "${name}" not found`,
+    ['Run `tdk resources` to list all resources', 'Check the resource name spelling']
+  ),
+  directoryExists: (path: string) => new TdkError(
+    `Directory already exists: ${path}`,
+    ['Use `--path` to specify a different location', 'Remove the existing directory if no longer needed']
+  ),
+  invalidPath: (path: string) => new TdkError(
+    `Invalid path: ${path}`,
+    ['Path must be within the project directory', 'Path cannot contain special characters like <>:"|?*']
+  ),
+  notInProject: () => new TdkError(
+    'Could not find project root (no Tiltfile found)',
+    ['Run this from within a project that has a Tiltfile', 'Run `tdk project` to initialize a new project']
+  ),
 };
 
 export function requireProjectRoot(): string {
@@ -95,4 +115,51 @@ export async function withTiltCheck<T>(
 export function showErrorAndExit(message: string, exitCode: number = 1): never {
   console.error(chalk.red(`Error: ${message}`));
   process.exit(exitCode);
+}
+
+/**
+ * Display a formatted error message with optional context and suggestions.
+ * Does NOT exit - use showErrorAndExit() for fatal errors.
+ *
+ * @param message - Main error message
+ * @param context - Additional context (shown in gray)
+ * @param suggestions - Optional suggestions (shown as bullet points)
+ */
+export function showError(
+  message: string,
+  context?: string,
+  suggestions?: string[]
+): void {
+  console.error(chalk.red(`❌ ${message}`));
+
+  if (context) {
+    console.error(chalk.gray(`   ${context}`));
+  }
+
+  if (suggestions && suggestions.length > 0) {
+    console.error(chalk.yellow('\n💡 Suggestions:'));
+    suggestions.forEach(s => {
+      console.error(chalk.cyan(`   → ${s}`));
+    });
+  }
+}
+
+/**
+ * Display a status indicator with consistent formatting.
+ *
+ * @param label - The status label (e.g., "Tilt", "Docker")
+ * @param isAvailable - Whether the item is available/ready
+ * @param suggestion - Optional help text when not available
+ */
+export function showStatus(
+  label: string,
+  isAvailable: boolean,
+  suggestion?: string
+): void {
+  const status = isAvailable ? chalk.green('available') : chalk.red('not found');
+  console.log(chalk.bold(`${label}:`), status);
+
+  if (!isAvailable && suggestion) {
+    console.log(chalk.gray(`  ${suggestion}`));
+  }
 }

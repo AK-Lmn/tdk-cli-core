@@ -2,10 +2,11 @@ import { Command } from 'commander';
 import { readFileSync } from 'node:fs';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import { createDiscoveryContext } from '../utils/discovery-context.js';
-import { requireProjectRoot, runCommand, showErrorAndExit } from '../utils/errors.js';
+import { createDiscoveryContext, clearDiscoveryCache } from '../utils/discovery-context.js';
+import { requireProjectRoot, runCommand } from '../utils/errors.js';
 import { createKebabCaseValidator } from '../utils/validation.js';
-import { formatCount, showCancelled, showCommandHeader, showAllSatisfyCondition } from '../utils/formatting.js';
+import { formatCount, showCommandHeader, showAllSatisfyCondition } from '../utils/formatting.js';
+import { confirmAction } from '../utils/command-helpers.js';
 import { writeJsonFile } from '../utils/file-helpers.js';
 
 export const stackCommand = new Command('stack')
@@ -90,17 +91,13 @@ export const stackCommand = new Command('stack')
 
       console.log(chalk.gray(`\nWill add "stack": "${targetStack}" to ${formatCount(selectedResources.length, 'resource')}.`));
 
-      const { confirm } = await inquirer.prompt([{
-        type: 'confirm',
-        name: 'confirm',
-        message: 'Proceed?',
-        default: true
-      }]);
-
-      if (!confirm) {
-        showCancelled();
+      const confirmed = await confirmAction('Proceed?', true);
+      if (!confirmed) {
         return;
       }
+
+      // Clear cache since we're about to modify resources
+      clearDiscoveryCache();
 
       let updated = 0;
       for (const configPath of selectedResources) {

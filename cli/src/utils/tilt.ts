@@ -63,13 +63,14 @@ export function runTilt(
     
     child.on('close', (code) => {
       resolve({
-        exitCode: code ?? 0,
+        exitCode: code ?? 1,
         stdout,
         stderr
       });
     });
-    
+
     child.on('error', (err) => {
+      // Log error if verbose, but resolve with error info to avoid unhandled rejection
       if (options.verbose) {
         console.error('Failed to spawn tilt:', err);
       }

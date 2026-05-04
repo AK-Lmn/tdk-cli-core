@@ -9,11 +9,11 @@ import {
   clearMetadataCache,
 } from '../utils/services.js';
 import { findProjectRoot } from '../utils/paths.js';
-import type { DiscoveredResource, DiscoveredStack, ResourceMetadata, StackMetadata, ResourceType, SelectItem, FileNode, LoadingScreenProps, ErrorScreenProps, HelpPanelProps } from '../types/index.js';
+import type { DiscoveredResource, DiscoveredStack, ResourceMetadata, StackMetadata, SelectItem, FileNode, LoadingScreenProps, ErrorScreenProps, HelpPanelProps, TabId } from '../types/index.js';
 import { isTiltAvailable } from '../utils/tilt.js';
 import { errorFactories, requireProjectRoot } from '../utils/errors.js';
 import {
-  TabBar, type TabId, DetailPanel, ResourceTable, FileTree,
+  TabBar, DetailPanel, ResourceTable, FileTree,
   AccessibleTooltip, TOOLTIPS, ResourceSelectInput
 } from '../components/index.js';
 
@@ -113,42 +113,20 @@ const TUIApp: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [mouseEnabled, setMouseEnabled] = useState(true);
   const [loading, setLoading] = useState(true);
-  const [loadingProgress, setLoadingProgress] = useState(0);
-  const [loadingMessage, setLoadingMessage] = useState('Initializing...');
   const [error, setError] = useState<string | null>(null);
   const [showTooltips, setShowTooltips] = useState(true);
-  const [showEnabledOnly, setShowEnabledOnly] = useState(true); // Default to enabled only for alpha
+  const [showEnabledOnly, setShowEnabledOnly] = useState(true);
 
   const projectRoot = findProjectRoot() || 'unknown';
-  
-  useEffect(() => {
-    const loadSteps = [
-      { msg: 'Discovering services...', progress: 20 },
-      { msg: 'Loading stack metadata...', progress: 50 },
-      { msg: 'Initializing UI...', progress: 80 },
-      { msg: 'Ready!', progress: 100 },
-    ];
-    
-    let stepIndex = 0;
-    const interval = setInterval(() => {
-      if (stepIndex < loadSteps.length) {
-        const step = loadSteps[stepIndex];
-        setLoadingMessage(step.msg);
-        setLoadingProgress(step.progress);
-        stepIndex++;
-      } else {
-        setLoading(false);
-        clearInterval(interval);
-      }
-    }, 300);
-    
-    return () => clearInterval(interval);
-  }, []);
 
   const { stacks, services } = useMemo(() => ({
     stacks: discoverStacks(),
     services: discoverResources(),
-  }), [loading]); // Re-fetch only when loading refreshes
+  }), []);
+
+  useEffect(() => {
+    setLoading(false);
+  }, []);
   
   useEffect(() => {
     if (services.length === 0) {
@@ -390,7 +368,6 @@ const TUIApp: React.FC = () => {
       if (input === 'r' || input === 'R') {
         setError(null);
         setLoading(true);
-        setLoadingProgress(0);
         return;
       }
       if (input === 'q' || key.escape) {
@@ -563,14 +540,13 @@ const TUIApp: React.FC = () => {
   const compact = terminalWidth < 80;
 
   if (loading) {
-    return <LoadingScreen progress={loadingProgress} message={loadingMessage} />;
+    return <LoadingScreen progress={100} message="Initializing..." />;
   }
 
   if (error) {
     return <ErrorScreen error={error} onRetry={() => {
       setError(null);
       setLoading(true);
-      setLoadingProgress(0);
     }} />;
   }
 
@@ -699,10 +675,7 @@ const TUIApp: React.FC = () => {
                     <Text bold color="gray">┌─ Events ─</Text>
                   </Box>
                   <Box marginTop={1}>
-                    <Text color="gray">Event timeline coming soon...</Text>
-                    <Text color="gray" dimColor>
-                      This tab will show service lifecycle events.
-                    </Text>
+                    <Text color="gray">Events tab not yet implemented</Text>
                   </Box>
                 </>
               )}
