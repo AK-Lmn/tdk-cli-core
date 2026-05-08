@@ -18,7 +18,10 @@ def apply_app_service(resource_config, ctx):
     to a focused orchestration module.
     """
     resource_name = resource_config['name']
+    resource_path = resource_config.get('path', 'NO_PATH')
     should_enable = ctx['should_enable']
+
+    print("DEBUG: {} path={} enabled={}".format(resource_name, resource_path, should_enable(resource_name)))
 
     if not should_enable(resource_name):
         return

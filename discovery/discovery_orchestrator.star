@@ -427,14 +427,18 @@ def _scan_resources():
                 # Add resource to existing app resource
                 existing_app_resource["resources"].append(resource)
                 existing_app_resource["labels"].append("app." + app_name)
+                print("DEBUG: Adding '{}' to existing app_resource '{}' (path: {})".format(
+                    app_name, resource_key, existing_app_resource.get("path", "NO_PATH")))
         else:
             # Create new app resource entry
+            # Use full_resource_path (path to specific service) not resource_path (domain path)
             app_resource = {
                 "name": resource_key,
-                "path": resource_path,
+                "path": full_resource_path,
                 "labels": ["app." + app_name] if app_name else [],
                 "resources": [resource],
             }
+            print("DEBUG DISCOVERY: Created app_resource '{}' with path '{}'".format(resource_key, full_resource_path))
             resources.append(app_resource)
     
     # Phase 1.5: Print consolidated discovery summary

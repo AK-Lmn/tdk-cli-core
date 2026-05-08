@@ -273,11 +273,8 @@ def register_compose_resources(resource_config, ctx, runtime_flags, manifest_sta
         return {'compose_project_name': ''}
     
     if not resource_path:
-        # DEBUG: Show which services are being skipped
-        print("DEBUG: Skipping docker-compose for '{}' - no resource_path (appType: {})".format(
-            resource_name, 
-            resource_config.get('appType', 'unknown')
-        ))
+        # Silently skip services without paths - these may be library references
+        # or incomplete manifests
         return {'compose_project_name': ''}
     should_enable = ctx['should_enable']
     write_file = ctx['write_file']
