@@ -49,6 +49,7 @@ _DISCOVERY_STATE = [False]
 
 def _run_discovery():
     """Run two-pass discovery and return results."""
+    print("DEBUG: _run_discovery() called")
     # Only print header on first discovery
     if not _DISCOVERY_STATE[0]:
         print("")
