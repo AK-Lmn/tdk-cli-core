@@ -210,7 +210,9 @@ def _scan_resources():
     Phase 2: Multi-root discovery with validation, deduplication, and explicit stack extraction.
     Returns list of resource dictionaries.
     """
+    print("DEBUG: _scan_resources() START")
     resources = []
+    print("DEBUG: DISCOVERY_SCAN_ROOTS =", DISCOVERY_SCAN_ROOTS)
     
     # Phase 1.5: Track validation stats and skipped stacks for discovery summary
     validation_stats = {
@@ -253,8 +255,12 @@ def _scan_resources():
             seen_paths[path] = True
             manifest_paths.append(path)
     
+    print("DEBUG: Found {} manifest paths".format(len(manifest_paths)))
     if not manifest_paths:
+        print("DEBUG: No manifest paths, returning empty resources")
         return resources
+    
+    print("DEBUG: Processing first manifest: {}".format(manifest_paths[0] if len(manifest_paths) > 0 else "NONE"))
     
     for manifest_path in manifest_paths:
         # manifest_path already stripped by json_manifest_scanner
@@ -427,18 +433,20 @@ def _scan_resources():
                 # Add resource to existing app resource
                 existing_app_resource["resources"].append(resource)
                 existing_app_resource["labels"].append("app." + app_name)
-                print("DEBUG: Adding '{}' to existing app_resource '{}' (path: {})".format(
+                print("DEBUG MERGE: Added '{}' to existing '{}' (existing path: {})".format(
                     app_name, resource_key, existing_app_resource.get("path", "NO_PATH")))
         else:
             # Create new app resource entry
-            # Use full_resource_path (path to specific service) not resource_path (domain path)
+            # Use resource_path (domain path) for the app_resource - docker-compose goes here
+            # Individual resources have _resource_path for their specific paths
             app_resource = {
                 "name": resource_key,
-                "path": full_resource_path,
+                "appName": resource_key,
+                "path": resource_path,
                 "labels": ["app." + app_name] if app_name else [],
                 "resources": [resource],
             }
-            print("DEBUG DISCOVERY: Created app_resource '{}' with path '{}'".format(resource_key, full_resource_path))
+            print("DEBUG CREATE: '{}' with domain path '{}' (first resource: {})".format(resource_key, resource_path, app_name))
             resources.append(app_resource)
     
     # Phase 1.5: Print consolidated discovery summary
@@ -460,5 +468,9 @@ def _scan_resources():
         if skipped_stacks and os.environ.get('TILT_LOG_LEVEL') == 'verbose':
             skipped_list = ", ".join(["{} ({})".format(d, c) for d, c in skipped_stacks.items()])
             print("  📋 Focus mode skipped: {}".format(skipped_list))
+    
+    print("DEBUG: _scan_resources() END - returning {} app_resources".format(len(resources)))
+    for r in resources:
+        print("  - {} (path: {})".format(r.get("name"), r.get("path", "NO_PATH")))
     
     return resources

@@ -272,13 +272,17 @@ def write_file_if_changed(file_path, content):
     existing = str(existing_blob).rstrip()
 
     if existing == expected:
+        print("DEBUG WRITE: Skipping {} (no changes)".format(file_path))
         return
 
     dir_path = file_path.rsplit('/', 1)[0]
     if not dir_path:
         dir_path = '/'
     safe_content = (expected + '\n').replace("'", "'\\''")
-    local("mkdir -p '" + dir_path + "' && printf '%s' '" + safe_content + "' > '" + file_path + "'", quiet=True, echo_off=True)
+    cmd = "mkdir -p '" + dir_path + "' && printf '%s' '" + safe_content + "' > '" + file_path + "'"
+    print("DEBUG WRITE: Writing {} bytes to {}".format(len(expected), file_path))
+    local(cmd, quiet=True, echo_off=True)
+    print("DEBUG WRITE: Completed {}".format(file_path))
 
 
 # =============================================================================
