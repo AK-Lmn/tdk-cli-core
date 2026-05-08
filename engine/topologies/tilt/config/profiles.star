@@ -309,10 +309,27 @@ def apply_focus_filter(cfg):
         # No hardcoded domain names - all from platform-computing-provisioner.manifest.json
         "backends-only",
     ]
+    # Infrastructure resources that exist as Tilt local_resource or docker_compose
+    # These are handled separately and should not be in resource_only_needed
+    infra_resource_names = CORE_INFRA_EXPORT + ["infisical-db", "infisical-redis"]
+    for opt_infra_list in OPTIONAL_INFRA_EXPORT.values():
+        for res in opt_infra_list:
+            if res not in infra_resource_names:
+                infra_resource_names.append(res)
+    
     # config.set_enabled_resources accepts only concrete Tilt resources.
     # Service alias keys (e.g. "booking-domain") and domain names (e.g. "identity") must be filtered out.
-    # Real Tilt resources always have hyphens (e.g., "identity-management-backend-yaml")
-    resource_only_needed = [r for r in all_needed if r not in logic_toggles and r not in get_resource_aliases_ref() and '-' in r]
+    # Only include actual app service resources (backend, frontend, migrator, or -yaml tracking resources)
+    # Infrastructure resources are excluded because they may not exist as actual Tilt resources
+    # Only include actual app service resources (not infrastructure)
+    # App resources have backend, frontend, migrator, or -yaml in their names
+    resource_only_needed = []
+    for r in all_needed:
+        if r in logic_toggles or r in get_resource_aliases_ref() or r in infra_resource_names:
+            continue
+        if "-" in r:
+            if "backend" in r or "frontend" in r or "migrator" in r or "-yaml" in r:
+                resource_only_needed.append(r)
 
     print("🎯 Discovered " + str(len(all_needed)) + " entities via dependency graph:")
 

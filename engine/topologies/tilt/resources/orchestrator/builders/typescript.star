@@ -140,9 +140,7 @@ def _build_typescript_service(name, context, dockerfile, live_update_rules, deps
             ignore_patterns.append(pattern)
     
     only_paths = _get_resource_only_paths(resource_path)
-    print("DEBUG: Building " + name + " with resource_path: " + resource_path)
-    print("DEBUG: only_paths: " + str(only_paths))
-    
+
     # Build context must be the project root (.) so that COPY commands can reference
     # shared-platform-engineering/, shared-ddd-layers/, and services/ directories
     # BUT we use 'only' to dramatically reduce the context size (from 7.4GB to ~100MB)

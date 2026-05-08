@@ -26,8 +26,6 @@ def apply_app_service(resource_config, ctx):
     runtime_flags = RuntimeFlags.resolve()
     ctx['auto_init_config_gen'] = runtime_flags['auto_init_config_gen']
 
-    print("🚀 Loading " + resource_name + " services...")
-
     ResourceValidation.validate(resource_config)
 
     # Only provision database if service has a backend resource (not just frontend)

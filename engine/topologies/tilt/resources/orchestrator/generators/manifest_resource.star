@@ -279,8 +279,6 @@ def _generate_all_configs_for_resource(
     ctx = dict(ctx)
     ctx[recursion_key] = recursion_depth + 1
     
-    print("DEBUG _generate_all_configs: resource_name='{}', resource_path='{}'".format(resource_name, resource_path))
-    
     # Add resource_path to manifest so generators can access it
     manifest['_resource_path'] = resource_path
     

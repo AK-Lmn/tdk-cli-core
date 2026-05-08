@@ -47,9 +47,9 @@ def register_migrators(resource_config, ctx, runtime_flags, compose_project_name
     if not resource_name:
         print("⚠️  Skipping migrator registration for service without name")
         return
-    
+
     if not resource_path:
-        print("⚠️  Skipping migrator registration for '" + resource_name + "' without path")
+        # Silently skip migrator registration for services without paths
         return
 
     if not resource_config.get('has_migrator', False):

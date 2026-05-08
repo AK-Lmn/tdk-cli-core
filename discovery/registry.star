@@ -42,12 +42,18 @@ load("./manifest/constants.star", "MANIFEST_FILENAME", "MANIFEST_FILENAME_YAML")
 # =============================================================================
 # This runs discovery immediately when the module loads (before freeze).
 # The results are stored in module-level variables that get exported.
+# Use a list as a mutable container to track if header was printed
+_DISCOVERY_STATE = [False]
+
 # =============================================================================
 
 def _run_discovery():
     """Run two-pass discovery and return results."""
-    print("")
-    print("Phase 1: Discovering services...")
+    # Only print header on first discovery
+    if not _DISCOVERY_STATE[0]:
+        print("")
+        print("Phase 1: Discovering services...")
+        _DISCOVERY_STATE[0] = True
     
     # Create a working cache for both passes
     working_cache = {
@@ -296,7 +302,7 @@ def _write_file_if_changed(path, content):
     existing = str(local("cat " + path + " 2>/dev/null || echo ''", quiet=True, echo_off=True))
     
     if existing != content:
-        local("mkdir -p $(dirname " + path + ") && echo '" + content + "' > " + path, quiet=True)
+        local("mkdir -p $(dirname " + path + ") && echo '" + content + "' > " + path, quiet=True, echo_off=True)
         return True
     return False
 
