@@ -17,13 +17,13 @@ TDK CLI organizes your microservices using a clear **Project-Stack-Resource (PSR
 ├── 🔧 TILT_TECH_STACK.star          # Bun, Vite, Prisma, NATS
 │
 └── 📦 Stacks (deployment groups)
-    ├── 🔐 identity-stack
-    │   ├── ⚡ identity-backend      # Resource
-    │   └── 🎨 identity-frontend     # Resource
+    ├── 🔐 api-stack
+    │   ├── ⚡ api-backend      # Resource
+    │   └── 🎨 web-frontend     # Resource
     │
-    └── 📅 order-stack
-        ├── ⚡ order-backend    # Resource
-        └── 🎨 order-frontend   # Resource
+    └── 📅 worker-stack
+        ├── ⚡ worker-backend    # Resource
+        └── 🎨 web-frontend     # Resource
 ```
 
 ---
@@ -70,11 +70,11 @@ tdk stacks
 tdk stacks --services     # 🔍 Include resources in each stack
 
 # 🗂️  Organize resources into stacks (interactive)
-tdk stack identity
+tdk stack api
 tdk stack order
 
 # ▶️ Start/stop a stack
-tdk up identity           # 🚀 Start identity stack
+tdk up api           # 🚀 Start api stack
 tdk down                  # ⏹️  Stop all services
 ```
 
@@ -87,13 +87,13 @@ Create and manage individual services:
 ```bash
 # 📋 List all resources
 tdk resources
-tdk resources --stack identity     # 🔍 Filter by stack
+tdk resources --stack api     # 🔍 Filter by stack
 tdk resources --no-stack           # ⚠️ Show unassigned only
 tdk resources --ports              # 🔌 Show port assignments
 
 # 🆕 Create new resource (interactive)
-tdk resource my-api --type backend --stack identity
-tdk resource my-app --type frontend --stack identity
+tdk resource my-api --type backend --stack api
+tdk resource my-app --type frontend --stack api
 tdk resource my-worker --type worker --stack background
 ```
 
@@ -112,8 +112,8 @@ tdk resource my-worker --type worker --stack background
 | Command | Description | Example |
 |---------|-------------|---------|
 | `tdk up` | 🚀 Start all services | `tdk up` |
-| `tdk up <stack>` | 🚀 Start a stack | `tdk up identity` |
-| `tdk up <resource>` | 🚀 Start specific resource | `tdk up identity-backend` |
+| `tdk up <stack>` | 🚀 Start a stack | `tdk up api` |
+| `tdk up <resource>` | 🚀 Start specific resource | `tdk up api-backend` |
 | `tdk down` | ⏹️ Stop all services | `tdk down` |
 | `tdk status` | 📊 Show resource status | `tdk status` |
 
@@ -138,25 +138,25 @@ cd my-project
 tdk project
 
 # 2️⃣  Create resources
-tdk resource identity-api --type backend --stack identity
+tdk resource api-api --type backend --stack api
 # → Creates service.json with port 4000
 # → Generates src/index.ts with Hono starter
 # → Creates Dockerfile, tests/, package.json
 
-tdk resource identity-app --type frontend --stack identity
+tdk resource api-app --type frontend --stack api
 # → Creates service.json with port 3000
 # → Generates React starter with Vite
 
 # 3️⃣  Install dependencies
-cd identity-api && bun install
-cd ../identity-app && bun install
+cd api-api && bun install
+cd ../api-app && bun install
 
 # 4️⃣  Start development
-tdk up identity
+tdk up api
 
 # 5️⃣  Check status
 tdk status
-tdk resources --stack identity
+tdk resources --stack api
 ```
 
 ---
@@ -228,19 +228,19 @@ my-project/
 ├── 📄 Tiltfile
 │
 ├── services/
-│   └── identity/
-│       ├── identity-api/           # 🆕 Created by tdk resource
-│       │   ├── service.json      # Port 4000, stack: identity
+│   └── api/
+│       ├── api-api/           # 🆕 Created by tdk resource
+│       │   ├── service.json      # Port 4000, stack: api
 │       │   ├── package.json
 │       │   ├── tsconfig.json
 │       │   ├── Dockerfile
 │       │   ├── src/
 │       │   │   └── index.ts      # Hono starter
 │       │   └── tests/
-│       │       └── identity-api.test.ts
+│       │       └── api-api.test.ts
 │       │
-│       └── identity-app/         # 🆕 Created by tdk resource
-│           ├── service.json      # Port 3000, stack: identity
+│       └── api-app/         # 🆕 Created by tdk resource
+│           ├── service.json      # Port 3000, stack: api
 │           ├── package.json
 │           ├── tsconfig.json
 │           ├── Dockerfile

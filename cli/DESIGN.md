@@ -10,9 +10,9 @@
 ║                                                                      ║
 ║  ┌─ Stacks ───────────────────────────┐  ┌─ Stack Details ───────┐   ║
 ║  │                                      │  │                        │   ║
-║  │  ▸ order-planner (4 svcs)      │  │  identity              │   ║
+║  │  ▸ order-planner (4 svcs)      │  │  api              │   ║
 ║  │    order (3 svcs)              │  │  5 services • Ready    │   ║
-║  │  ▓▒░ identity (5 svcs) ░▒▓          │  │                        │   ║
+║  │  ▓▒░ api (5 svcs) ░▒▓          │  │                        │   ║
 ║  │    billing (1 svc)                   │  │  ├─ id-mgmt-backend    │   ║
 ║  │    platform (7 svcs)                 │  │  ├─ id-mgmt-frontend │   ║
 ║  │                                      │  │  ├─ id-sdk            │   ║
@@ -101,7 +101,7 @@ Full (120+ cols):
 │  ▓▒░ TDK NEON ░▒▓  │  /path/to/project  │  36 services ready              │
 │  [1] Overview  [2] Resources  [3] Events  [4] Files  [5] Config            │
 │  ┌─ Stacks ──────────────────────┐  ┌─ Details ──────────────────────┐     │
-│  │  identity (5 services)        │  │  Name: identity                  │     │
+│  │  api (5 services)        │  │  Name: api                  │     │
 │  │  order (3 services)     │  │  Status: ✓ Ready                 │     │
 │  │  platform (7 services)      │  │  Services: 5                     │     │
 │  └───────────────────────────────┘  └──────────────────────────────────┘     │
@@ -112,7 +112,7 @@ Compact (80-119 cols):
 │  ▓▒░ TDK ░▒▓  │  /path/to/project  │  36 svcs ready   │
 │  [1]Overview [2]Resources [3]Events [4]Files [5]Config  │
 │  ┌─ Stacks ───────────────────┐  ┌─ Details ───────┐   │
-│  │  identity (5 svcs)          │  │  identity       │   │
+│  │  api (5 svcs)          │  │  api       │   │
 │  │  order (3 svcs)     │  │  ✓ Ready        │   │
 │  └─────────────────────────────┘  └─────────────────┘   │
 └────────────────────────────────────────────────────────┘
@@ -122,12 +122,12 @@ Mobile (<80 cols):
 │  ▓▒░ TDK ░▒▓ │ 36 svcs ready    │
 │  [1][2][3][4][5]                │
 │  ┌─ Stacks ───────────────────┐
-│  │  identity (5 svcs)          │
+│  │  api (5 svcs)          │
 │  │  ▸ order (3 svcs)     │
 │  │  platform (7 svcs)         │
 │  └───────────────────────────────┘
 │  ┌─ Details ───────────────────┐
-│  │  identity                   │
+│  │  api                   │
 │  │  ✓ Ready                   │
 │  │  5 services                 │
 │  └───────────────────────────────┘
@@ -181,7 +181,7 @@ Correct:
 │                                      │
 │  order-planner (4 svcs)        │
 │  order (3 svcs)                │
-│  ▓▒░ identity (5 svcs) ░▒▓          │  ← Only selected has neon
+│  ▓▒░ api (5 svcs) ░▒▓          │  ← Only selected has neon
 │  billing (1 svc)                     │
 │  platform (7 svcs)                   │
 │                                      │
@@ -192,7 +192,7 @@ Wrong:
 │▒▓                                  ▓▒│
 │▓▒  order-planner (4 svcs)   ▒▓│
 │▒▓  order (3 svcs)           ▓▒│
-│▓▒  ▓▒░ identity (5 svcs) ░▒▓     ▒▓│
+│▓▒  ▓▒░ api (5 svcs) ░▒▓     ▒▓│
 │▒▓  billing (1 svc)                 ▓▒│
 │▓▒                                  ▒▓│
 │▒▓  order-planner (4 svcs)  ▓▒│
@@ -215,22 +215,22 @@ Building:  ◉  orange/yellow (rotating)
 Unknown:   ?  gray           (dim, not attention-grabbing)
 
 Correct:
-identity-backend      backend    ✓ ready      (green, simple)
-identity-frontend     frontend   ◐ pending    (yellow, spinning)
-identity-sdk          sdk        ✗ error      (red, subtle)
+api-backend      backend    ✓ ready      (green, simple)
+api-frontend     frontend   ◐ pending    (yellow, spinning)
+api-sdk          sdk        ✗ error      (red, subtle)
 
 Wrong:
-identity-backend      backend    ▓▒░✓▓▒░ READY ▓▒░   (overdone)
-identity-frontend     frontend   ▓▒░◐▓▒░ PENDING ▓▒░ (overdone)
+api-backend      backend    ▓▒░✓▓▒░ READY ▓▒░   (overdone)
+api-frontend     frontend   ▓▒░◐▓▒░ PENDING ▓▒░ (overdone)
 ```
 
 ### 5. Detail Panel (Sidebar)
 
 ```
 Correct:
-┌─ identity ─────────────────────┐
+┌─ api ─────────────────────┐
 │                                │
-│  Name: identity                │
+│  Name: api                │
 │  Services: 5                   │
 │  Status: ✓ Ready             │
 │                                │
@@ -247,9 +247,9 @@ Correct:
 Wrong:
 ┌▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░┐
 │▒▓                          ▓▒│
-│▓▒  [ STACK : identity ]   ▒▓│
+│▓▒  [ STACK : api ]   ▒▓│
 │▒▓                          ▓▒│
-│▓▒  Name: identity          ▒▓│
+│▓▒  Name: api          ▒▓│
 │▒▓  Status: ▓▒░✓▓▒░▓▒░     ▓▒│
 │▓▒                          ▒▓│
 └▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒┘
@@ -278,10 +278,10 @@ Rules:
 ```
 Selected item gets a quick cyan flash:
 
-Frame 1 (0ms):     identity (5 svcs)      ← normal
-Frame 2 (50ms):    ▓▒░identity▓▒░         ← flash bright
-Frame 3 (100ms):   ▓▒░identity▓▒░         ← hold
-Frame 4 (150ms):   ▓▒░identity (5 svcs)    ← back to normal with neon bg
+Frame 1 (0ms):     api (5 svcs)      ← normal
+Frame 2 (50ms):    ▓▒░api▓▒░         ← flash bright
+Frame 3 (100ms):   ▓▒░api▓▒░         ← hold
+Frame 4 (150ms):   ▓▒░api (5 svcs)    ← back to normal with neon bg
 ```
 
 Timing:
@@ -407,10 +407,10 @@ Focus Indicators:
 ARIA Labels for terminal (via text hints):
 
 Before:
-  ▸ identity (5 services)
+  ▸ api (5 services)
 
 After:
-  [SELECTED] identity, 5 services, stack, press Enter to view details
+  [SELECTED] api, 5 services, stack, press Enter to view details
 
 Implementation:
 - Prefix selected items with [SELECTED]
@@ -608,19 +608,19 @@ const FALLBACK_16 = {
 
 ```
 Full Unicode:
-▓▒░ TDK ░▒▓  │  identity (5 svcs)  │  ✓ ready
+▓▒░ TDK ░▒▓  │  api (5 svcs)  │  ✓ ready
 
 ASCII Fallback:
-[ TDK ]  |  identity (5 svcs)  |  [OK] ready
+[ TDK ]  |  api (5 svcs)  |  [OK] ready
 
 Border Unicode:
 ┌─ Stacks ─┐
-│ identity │
+│ api │
 └──────────┘
 
 Border ASCII:
 +- Stacks --+
-| identity |
+| api |
 +----------+
 ```
 
@@ -721,7 +721,7 @@ BEFORE (Visual Overload):
 
 AFTER (Restrained & Clear):
 ┌─ Stacks ───────────────────┐
-│  identity (5 svcs)         │
+│  api (5 svcs)         │
 │  ▓▒░ billing (1 svc) ░▒▓  │ ← Only selected glows
 │  platform (7 svcs)         │
 └────────────────────────────┘

@@ -20,8 +20,8 @@ Display Traefik-routed URLs for all services in a clean, modern CLI format.
 │                                                          │
 │  🔐 IDENTITY STACK                                       │
 │  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
-│  🟢 identity-api           localhost:4004 → /identity/api │
-│  🟢 identity-app           localhost:3000 → /identity     │
+│  🟢 api-api           localhost:4004 → /api/api │
+│  🟢 api-app           localhost:3000 → /api     │
 │                                                          │
 │  📅 ORDER STACK                                          │
 │  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
