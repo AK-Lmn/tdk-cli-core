@@ -74,8 +74,6 @@ def L4_generate_backend_runtime(res_path, port = BASE_PORT_BACKEND, cmd = 'bun r
     # Normalize res_path for Docker COPY (must be relative to build context)
     res_path_rel = normalize_res_path(res_path)
     
-    # Force golden images regardless of CLI/Tilt flags.
-    use_golden = True
     # Use golden L4-backend image if enabled (production-optimized backend runtime)
     base_image = GOLDEN_L4_BACKEND_IMAGE if use_golden else BUN_BASE
     
@@ -165,8 +163,6 @@ def L4_generate_frontend_runtime(res_path, target_path = '/usr/share/nginx/html'
     # Normalize res_path for Docker COPY (must be relative to build context)
     res_path_rel = normalize_res_path(res_path)
     
-    # Force golden images regardless of CLI/Tilt flags.
-    use_golden = True
     if use_nginx:
         # Use golden L4-frontend image if enabled (Nginx pre-configured)
         base_image = GOLDEN_L4_FRONTEND_IMAGE if use_golden else "nginx:alpine"

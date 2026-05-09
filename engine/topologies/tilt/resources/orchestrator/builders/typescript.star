@@ -146,7 +146,7 @@ def _build_typescript_service(name, context, dockerfile, live_update_rules, deps
     # BUT we use 'only' to dramatically reduce the context size (from 7.4GB to ~100MB)
     docker_build(
         name,
-        '.',
+        context,
         dockerfile=dockerfile,
         target='production',
         live_update=live_update_rules,

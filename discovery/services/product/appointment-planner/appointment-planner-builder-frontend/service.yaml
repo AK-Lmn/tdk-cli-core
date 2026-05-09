@@ -1,7 +1,0 @@
-appName: appointment-planner-builder-frontend
-appType: frontend
-stack: appointment-planner
-port: 3001
-backendName: appointment-planner-builder-backend
-basePath: /appointment-planner-builder
-runtime: bun

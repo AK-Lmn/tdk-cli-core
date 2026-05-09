@@ -1,6 +1,0 @@
-appName: inventory-management-frontend
-appType: frontend
-stack: inventory
-port: 5004
-backendName: inventory-management-backend
-runtime: bun

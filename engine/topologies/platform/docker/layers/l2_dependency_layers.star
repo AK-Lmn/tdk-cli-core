@@ -67,13 +67,11 @@ def L2_generate_dependency_manifest(res_path, manager = RUNTIME, use_golden = Tr
     """
     # Normalize res_path for Docker COPY (must be relative to build context)
     res_path_rel = normalize_res_path(res_path)
-    
-    # Force golden images regardless of CLI/Tilt flags.
-    use_golden = True
+
     lockfile = "bun.lock*"
 
-    # Prefer golden L2 image when defined; fall back to plain Bun image.
-    base_image = GOLDEN_L2_IMAGE if GOLDEN_L2_IMAGE else BUN_BASE
+    # Prefer golden L2 image when enabled and defined; fall back to plain Bun image.
+    base_image = GOLDEN_L2_IMAGE if (use_golden and GOLDEN_L2_IMAGE) else BUN_BASE
     use_golden_for_manifest = base_image == GOLDEN_L2_IMAGE
     debug_tools_install = "" if use_golden_for_manifest else "# Install debugging tools for troubleshooting\nRUN echo '🔧 Installing debug tools...' && apk add --no-cache curl netcat-openbsd jq bind-tools vim && echo '✅ Debug tools installed'\n"
 
@@ -124,8 +122,6 @@ RUN echo '🔍 DEPENDENCY INSTALLATION DIAGNOSTICS (debug)' && \\
 
 
 def L2_generate_dependency_resolver(use_golden = True):
-    # Force golden images regardless of CLI/Tilt flags.
-    use_golden = True
     """
     Generate the dependency resolver layer that consolidates cached dependencies.
     

@@ -40,8 +40,6 @@ def L1_generate_os_base(base_image = None, maintainer = None, use_golden = True)
     Returns:
         Dockerfile content string for the l1_os_base stage
     """
-    # Force golden images regardless of CLI/Tilt flags.
-    use_golden = True
     if base_image == None:
         base_image = GOLDEN_L1_IMAGE if use_golden else ALPINE_BASE
 

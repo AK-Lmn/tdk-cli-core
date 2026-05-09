@@ -254,8 +254,31 @@ def _scan_resources():
         if path not in seen_paths:
             seen_paths[path] = True
             manifest_paths.append(path)
-    
-    print("DEBUG: Found {} manifest paths".format(len(manifest_paths)))
+
+    # CRITICAL FIX: Filter out tdk-cli internal paths to prevent self-scanning
+    # This prevents tdk-cli from discovering its own internal test stubs
+    def _is_tdk_cli_internal_path(path):
+        """Check if path is within tdk-cli's own directory structure."""
+        internal_markers = [
+            "tdk-cli/discovery/services/",
+            "tdk-cli/discovery/identity-",
+        ]
+        for marker in internal_markers:
+            if marker in path:
+                return True
+        return False
+
+    filtered_manifest_paths = []
+    for path in manifest_paths:
+        if _is_tdk_cli_internal_path(path):
+            print("⚠️  Skipping tdk-cli internal stub: {}".format(path))
+            continue
+        filtered_manifest_paths.append(path)
+
+    manifest_paths = filtered_manifest_paths
+
+    print("DEBUG: Found {} manifest paths ({} after filtering tdk-cli internals)".format(
+        len(seen_paths), len(manifest_paths)))
     if not manifest_paths:
         print("DEBUG: No manifest paths, returning empty resources")
         return resources
