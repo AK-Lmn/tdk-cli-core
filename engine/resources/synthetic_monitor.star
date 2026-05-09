@@ -7,11 +7,12 @@
 
 def deploy_synthetic_monitor(ctx):
     """Deploy synthetic monitoring container to Tilt"""
-    
+    project_root = ctx.get('project_root', '.')
+
     # Build and deploy the monitor container
     docker_build(
         'alpha-synthetic-monitor',
-        '.',
+        project_root,
         dockerfile='docker/Dockerfile.synthetic-monitor',
         only=['scripts/alpha-synthetic-monitor.sh'],
         live_update=[

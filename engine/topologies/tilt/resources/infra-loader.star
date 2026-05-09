@@ -77,8 +77,9 @@ def _load_verdaccio(should_enable, root_prefix="", env_file=None):
     if root_prefix:
         compose_file = root_prefix + 'docker-compose.verdaccio.yml'
     else:
-        # When running from .tdk/.tdk-out/, need absolute path
-        compose_file = '/private/var/www/2025/ollamar1/beauty-crm/docker-compose.verdaccio.yml'
+        # Use project root from environment or relative path
+        project_root = os.environ.get('TDK_PROJECT_ROOT', '.')
+        compose_file = project_root + '/docker-compose.verdaccio.yml'
     print("DEBUG INFRA: Loading Verdaccio from {} with env_file={}".format(compose_file, env_file))
     docker_compose(compose_file, env_file=env_file)
     print("DEBUG INFRA: Calling dc_resource for verdaccio")

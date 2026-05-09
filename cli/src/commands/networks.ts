@@ -73,7 +73,7 @@ function determineDefaultDomain(): string {
   }
 
   // Filter out service-specific domains (ones that look like individual services)
-  // Service domains typically contain the full service name like "identity-management-frontend.localhost"
+  // Service domains typically contain the full service name like "myapp-api-frontend.localhost"
   const domainList = Array.from(domains);
   const projectDomains = domainList.filter(domain => {
     // Skip domains that look like specific service instances
@@ -95,14 +95,14 @@ function determineDefaultDomain(): string {
   }
 
   // If only service-specific domains found, extract base from first one
-  // e.g., "identity-management-frontend.localhost" -> try to find "beauty-crm.localhost"
+  // e.g., "myapp-api-frontend.localhost" -> try to find "myapp.localhost"
   if (domainList.length > 0) {
     const firstDomain = domainList[0];
     const localhostMatch = firstDomain.match(/([\w-]+)\.localhost$/);
     if (localhostMatch) {
       const prefix = localhostMatch[1];
       // If it looks like a service domain, try common project names
-      const commonProjects = ['beauty-crm', 'tdk', 'project', 'app', 'api'];
+      const commonProjects = ['tdk', 'project', 'app', 'api', 'myapp'];
       for (const project of commonProjects) {
         const testDomain = `${project}.localhost`;
         if (domainList.includes(testDomain)) {

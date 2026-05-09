@@ -60,23 +60,26 @@ def build_synthetic_monitor(ctx):
     _project_name = _load_project_name()
     image_name = _project_name + '/synthetic-monitor:latest'
     
+    # Get service path from context, with fallback to default
+    service_path = ctx.get('service_path', './services/platform/synthetic-monitor')
+    
     # Use docker_build_with_restart for live update support
     # This allows the container to restart when code changes
     docker_build_with_restart(
         image_name,
-        './services/platform/synthetic-monitor',
+        service_path,
         entrypoint=['bun', 'run', 'start'],
         build_args={'NODE_ENV': 'development'},
         live_update=[
-            sync('./services/platform/synthetic-monitor/src', '/app/src'),
-            sync('./services/platform/synthetic-monitor/config', '/app/config'),
-            run('cd /app && bun install', trigger=['./services/platform/synthetic-monitor/package.json']),
+            sync(service_path + '/src', '/app/src'),
+            sync(service_path + '/config', '/app/config'),
+            run('cd /app && bun install', trigger=[service_path + '/package.json']),
         ],
         only=[
-            './services/platform/synthetic-monitor/src',
-            './services/platform/synthetic-monitor/config',
-            './services/platform/synthetic-monitor/package.json',
-            './services/platform/synthetic-monitor/bun.lock',
+            service_path + '/src',
+            service_path + '/config',
+            service_path + '/package.json',
+            service_path + '/bun.lock',
         ],
     )
     

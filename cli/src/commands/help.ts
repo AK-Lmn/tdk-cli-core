@@ -114,7 +114,7 @@ export function showHelp(): void {
   ${chalk.cyan('$')} tdk resource api --type backend      # Create backend service
   ${chalk.cyan('$')} tdk resource app --type frontend       # Create frontend app
   ${chalk.cyan('$')} tdk stacks --services                  # List stacks with resources
-  ${chalk.cyan('$')} tdk up identity                        # Start identity stack
+  ${chalk.cyan('$')} tdk up my-stack                        # Start a stack
   ${chalk.cyan('$')} tdk doctor                           # Check environment
   ${chalk.cyan('$')} tdk upgrade                          # Self-update
   `));

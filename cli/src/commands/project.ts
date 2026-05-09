@@ -21,7 +21,7 @@ const DEFAULT_PROJECT_JSON = {
     pre_alpha: {
       name: "Pre-Alpha",
       description: "Core infrastructure and MVP services",
-      services: ["identity"]
+      services: []
     },
     alpha: {
       name: "Alpha",
@@ -167,12 +167,9 @@ export const projectCommand = new Command('project')
             name: 'preAlphaServices',
             message: 'Select Pre-Alpha services (core infrastructure):',
             choices: [
-              { name: 'identity (Authentication)', value: 'identity', checked: true },
               { name: 'proxy (Traefik)', value: 'proxy' },
               { name: 'verdaccio (NPM registry)', value: 'verdaccio' },
-              { name: 'infisical (Secrets)', value: 'infisical' },
-              { name: 'database-management (PostgreSQL)', value: 'database-management' },
-              { name: 'mdblaster (Docs)', value: 'mdblaster' }
+              { name: 'database-management (PostgreSQL)', value: 'database-management' }
             ]
           },
           {
@@ -180,10 +177,8 @@ export const projectCommand = new Command('project')
             name: 'alphaServices',
             message: 'Select Alpha services (core business):',
             choices: [
-              { name: 'order', value: 'order' },
-              { name: 'order-planner', value: 'order-planner' },
-              { name: 'user', value: 'user' },
-              { name: 'gdpr', value: 'gdpr' }
+              { name: 'api (Backend API)', value: 'api' },
+              { name: 'app (Frontend app)', value: 'app' }
             ]
           },
           {
@@ -191,11 +186,8 @@ export const projectCommand = new Command('project')
             name: 'betaServices',
             message: 'Select Beta services (extended features):',
             choices: [
-              { name: 'accounting', value: 'accounting' },
-              { name: 'website', value: 'website' },
-              { name: 'payment', value: 'payment' },
-              { name: 'reporting', value: 'reporting' },
-              { name: 'billing', value: 'billing' }
+              { name: 'worker (Background jobs)', value: 'worker' },
+              { name: 'migrator (Database migrations)', value: 'migrator' }
             ]
           },
           {

@@ -33,25 +33,12 @@ interface GeneratorContext {
   infraDescriptions: Record<string, string>;
 }
 
+// Generic resource descriptions - no hardcoded service names
+// Users define their own service descriptions in project.json
 const RESOURCE_DESCRIPTIONS: Record<string, string> = {
-  identity: "Authentication & user management",
-  mdblaster: "Documentation site",
-  "database-management": "PostgreSQL database",
   proxy: "Traefik reverse proxy",
   verdaccio: "Private npm registry",
-  infisical: "Secret management",
-  order: "Order management",
-  "order-planner": "Order planner UI",
-  user: "User management",
-  gdpr: "GDPR compliance",
-  accounting: "Accounting system",
-  website: "Website builder",
-  payment: "Payment processing",
-  reporting: "Reporting & analytics",
-  billing: "Billing management",
-  inventory: "Inventory tracking - future release",
-  staff: "Staff scheduling - future release",
-  treatment: "Treatment catalog - future release",
+  "database-management": "PostgreSQL database",
 };
 
 const INFRA_DESCRIPTIONS: Record<string, string> = {
