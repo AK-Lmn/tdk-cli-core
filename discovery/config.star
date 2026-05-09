@@ -242,7 +242,6 @@ PLATFORM_LIBS_EXPLICIT = [
     "platform-computing-runtime",
     "platform-computing-provisioner",
     "platform-eventing",
-    "platform-identity-client",
     "platform-shell-lifecycle",
     "platform-prisma-toolkit",
 ]
@@ -264,8 +263,6 @@ PRODUCT_LIBS_FRONTEND = [
 PRODUCT_LIBS_EXPLICIT = [
     "product-domain-types",
     "product-constants",
-    "product-identity-unified",
-    "product-order-unified",
 ]
 
 # Export DEFAULTS and focus filters for use by other modules via Config struct
