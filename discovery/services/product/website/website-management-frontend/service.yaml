@@ -1,0 +1,7 @@
+appName: website-management-frontend
+appType: frontend
+stack: website
+port: 5177
+backendName: website-management-backend
+basePath: /website
+runtime: bun

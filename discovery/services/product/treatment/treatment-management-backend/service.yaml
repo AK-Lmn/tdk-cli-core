@@ -1,0 +1,20 @@
+appName: treatment-management-backend
+appType: backend
+stack: treatment
+port: 4008
+apiPath: /api/treatment-management
+features:
+  - nats
+  - prisma
+infisicalSecretPath: /services/treatment
+internalDependencies:
+params:
+  IDENTITY_SERVICE_URL: http://identity-management-backend:3000
+replicas: 1
+runtime: bun
+sablier:
+  displayName: Treatment Management Service
+  enable: True
+  refreshFrequency: 5s
+  sessionDuration: 5m
+  theme: hacker-terminal

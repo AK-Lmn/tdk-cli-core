@@ -1,0 +1,13 @@
+appName: appointment-planner-backend
+appType: backend
+stack: appointment-planner
+port: 4006
+apiPath: /api/appointment-planner
+databaseName: beauty_crm_planner
+features:
+  - nats
+  - prisma
+  - vite-node
+infisicalSecretPath: /services/appointment-planner
+replicas: 2
+runtime: bun

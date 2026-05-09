@@ -1,0 +1,8 @@
+appName: staff-management-frontend
+appType: frontend
+stack: staff
+port: 5003
+backendName: staff-management-backend
+basePath: /staff
+playwright: True
+runtime: bun

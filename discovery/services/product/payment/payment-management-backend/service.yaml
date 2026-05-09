@@ -1,0 +1,15 @@
+appName: payment-management-backend
+appType: backend
+stack: payment
+port: 4012
+apiPath: /api/payment-management
+features:
+  - nats
+  - prisma
+infisicalSecretPath: /services/payment
+internalDependencies:
+  - salon-management-backend
+params:
+  IDENTITY_SERVICE_URL: http://identity-management-backend:3000
+replicas: 1
+runtime: bun

@@ -1,0 +1,20 @@
+appName: website-management-backend
+appType: backend
+stack: website
+port: 4007
+apiPath: /api/website-management
+features:
+  - nats
+  - prisma
+infisicalSecretPath: /services/website
+internalDependencies:
+params:
+  IDENTITY_SERVICE_URL: http://identity-management-backend:3000
+replicas: 1
+runtime: bun
+sablier:
+  displayName: Website Management Service
+  enable: True
+  refreshFrequency: 5s
+  sessionDuration: 5m
+  theme: hacker-terminal

@@ -1,0 +1,15 @@
+appName: appointment-management-backend
+appType: backend
+stack: appointment
+port: 4002
+apiPath: /api/appointment-management
+features:
+  - nats
+  - prisma
+  - maintenance
+infisicalSecretPath: /services/appointment
+internalDependencies:
+params:
+  IDENTITY_SERVICE_URL: http://identity-management-backend:3000
+replicas: 1
+runtime: bun

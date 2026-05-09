@@ -1,0 +1,8 @@
+appName: payment-management-frontend
+appType: frontend
+stack: payment
+port: 5173
+backendName: payment-management-backend
+basePath: /payments
+playwright: True
+runtime: bun

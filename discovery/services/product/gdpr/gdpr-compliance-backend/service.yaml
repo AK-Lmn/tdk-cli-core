@@ -1,0 +1,24 @@
+appName: gdpr-compliance-backend
+appType: backend
+stack: gdpr
+port: 4006
+apiPath: /api/gdpr-compliance
+features:
+  - nats
+  - prisma
+infisicalSecretPath: /services/gdpr
+internalDependencies:
+  - appointment-management-backend
+  - salon-management-backend
+params:
+  APPOINTMENT_SERVICE_URL: http://appointment-management-backend:3000
+  IDENTITY_SERVICE_URL: http://identity-management-backend:3000
+  SALON_SERVICE_URL: http://salon-management-backend:3000
+replicas: 1
+runtime: bun
+sablier:
+  displayName: GDPR Compliance Service
+  enable: True
+  refreshFrequency: 5s
+  sessionDuration: 5m
+  theme: hacker-terminal
