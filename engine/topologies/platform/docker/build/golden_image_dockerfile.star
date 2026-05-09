@@ -3,7 +3,7 @@
 # =============================================================================
 
 # === INLINED CONSTANTS for pure extension loading ===
-get_docker_healthcheck_config = lambda: {"path": "/health", "interval": "10s", "timeout": "5s"}
+get_docker_healthcheck_config = lambda: {"path": "/health", "interval_seconds": 10, "timeout_seconds": 5, "start_period_seconds": 30, "retries": 3, "frontend_start_period_seconds": 30}
 # === END INLINED CONSTANTS ===
 
 
