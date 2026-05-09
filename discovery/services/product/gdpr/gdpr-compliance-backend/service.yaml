@@ -8,7 +8,6 @@ features:
   - prisma
 infisicalSecretPath: /services/gdpr
 internalDependencies:
-  - identity-management-backend
   - appointment-management-backend
   - salon-management-backend
 params:

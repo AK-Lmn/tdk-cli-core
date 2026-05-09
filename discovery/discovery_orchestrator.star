@@ -342,7 +342,13 @@ def _scan_resources():
             stack_dir = path_parts[-2] if len(path_parts) >= 2 else ""  # Fallback to parent
         
         # Build paths relative to project root (for use by other modules)
-        base_path = "/".join(path_parts[:-2])  # e.g., "services/product/users"
+        # Handle both nested paths (services/product/stack/service) and flat paths (identity-*)
+        if len(path_parts) >= 3:
+            base_path = "/".join(path_parts[:-2])  # e.g., "services/product/users"
+        elif len(path_parts) == 2:
+            base_path = path_parts[0]  # e.g., "identity-management-backend"
+        else:
+            base_path = path_parts[0] if path_parts else ""
         resource_path = base_path  # This is the DOMAIN path
         full_resource_path = project_relative_path.rsplit("/", 1)[0]  # Full path to service
         

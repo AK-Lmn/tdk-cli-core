@@ -201,7 +201,7 @@ def validate_dependency_graph(resource_path, manifest, all_services):
             missing_deps.append({
                 "name": dep,
                 "type": "service",
-                "source": "manifest.json internalDependencies",
+                "source": "service.json internalDependencies",
             })
     
     is_valid = len(missing_deps) == 0
@@ -266,7 +266,7 @@ def validate_database_readiness(resource_name, db_name, db_config):
         errors.append({
             "field": "databaseName",
             "error": "No database name specified in manifest",
-            "fix": "Add 'databaseName' to platform-computing-provisioner.manifest.json",
+            "fix": "Add 'databaseName' to service.json",
         })
     
     # Validate database config

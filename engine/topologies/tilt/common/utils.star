@@ -264,9 +264,19 @@ def write_file_if_changed(file_path, content):
     """
     Writes content to file only if it differs from existing content.
     Uses Tilt's native read_file() - fast and silent.
+    
+    If file_path is relative (doesn't start with /), it will be written relative
+    to the project root (TDK_PROJECT_ROOT env var) instead of Tilt working dir.
     """
     if content == None:
         content = ""
+
+    # For relative paths, prepend project root to ensure files go to correct location
+    if not file_path.startswith('/'):
+        project_root = os.environ.get('TDK_PROJECT_ROOT', '.')
+        # Remove leading ./ if present in file_path
+        clean_file_path = file_path[2:] if file_path.startswith('./') else file_path
+        file_path = project_root + '/' + clean_file_path
 
     expected = str(content).rstrip()
     existing_blob = read_file(file_path, default='')

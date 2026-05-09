@@ -9,6 +9,5 @@ features:
 infisicalSecretPath: /services/billing
 internalDependencies:
   - payment-management-backend
-  - identity-management-backend
 replicas: 1
 runtime: bun

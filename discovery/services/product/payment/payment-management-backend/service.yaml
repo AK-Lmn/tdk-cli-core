@@ -8,7 +8,6 @@ features:
   - prisma
 infisicalSecretPath: /services/payment
 internalDependencies:
-  - identity-management-backend
   - salon-management-backend
 params:
   IDENTITY_SERVICE_URL: http://identity-management-backend:3000

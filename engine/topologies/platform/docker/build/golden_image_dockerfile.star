@@ -69,7 +69,7 @@ FROM oven/bun:1.3.11-alpine AS l1_golden
 
 LABEL layer="l1" \
       description="OS base with runtime environment" \
-      maintainer="" + prefix + ""
+      maintainer="{prefix}"
 
 # System dependencies for all services
 RUN apk add --no-cache \
@@ -97,7 +97,7 @@ FROM l1_golden AS l2_golden
 
 LABEL layer="l2" \
       description="Base with common dependencies installed" \
-      maintainer="" + prefix + ""
+      maintainer="{prefix}"
 
 # Install minimal debugging tools (removed: vim, python3, make, g++ = -67MB)
 RUN apk add --no-cache \
@@ -120,7 +120,7 @@ FROM l2_golden AS l3_backend_golden
 
 LABEL layer="l3-backend" \
       description="Backend build tools with Prisma" \
-      maintainer="" + prefix + ""
+      maintainer="{prefix}"
 
 # Install Prisma CLI globally (pinned for deterministic builds)
 RUN bun add -g prisma@7.5.0 @prisma/client@7.5.0
@@ -142,7 +142,7 @@ FROM l2_golden AS l3_frontend_golden
 
 LABEL layer="l3-frontend" \
       description="Frontend build tools without Prisma" \
-      maintainer="" + prefix + ""
+      maintainer="{prefix}"
 
 # Frontend doesn't need Prisma, just verify Bun
 RUN echo "Bun version: $(bun --version)"
@@ -155,7 +155,7 @@ FROM l2_golden AS l3_migrator_golden
 
 LABEL layer="l3-migrator" \
       description="Migrator build tools with Prisma" \
-      maintainer="" + prefix + ""
+      maintainer="{prefix}"
 
 # Install Prisma CLI globally (required for migrations, pinned)
 RUN bun add -g prisma@7.5.0 @prisma/client@7.5.0
@@ -177,7 +177,7 @@ FROM l1_golden AS l4_backend_bun
 
 LABEL layer="l4-backend-bun" \
       description="Backend production runtime (Bun)" \
-      maintainer="" + prefix + ""
+      maintainer="{prefix}"
 
 ENV NODE_ENV=production
 
@@ -205,7 +205,7 @@ FROM node:22-alpine AS l4_backend_node
 
 LABEL layer="l4-backend-node" \
       description="Backend production runtime (Node.js - lightweight)" \
-      maintainer="" + prefix + ""
+      maintainer="{prefix}"
 
 ENV NODE_ENV=production
 
@@ -238,7 +238,7 @@ FROM nginx:alpine AS l4_frontend_golden
 
 LABEL layer="l4-frontend" \
       description="Frontend production runtime with Nginx" \
-      maintainer="" + prefix + ""
+      maintainer="{prefix}"
 
 ENV NODE_ENV=production
 
@@ -259,7 +259,7 @@ FROM l1_golden AS l4_migrator_golden
 
 LABEL layer="l4-migrator" \
       description="Migrator runtime with Prisma" \
-      maintainer="" + prefix + ""
+      maintainer="{prefix}"
 
 ENV NODE_ENV=production
 
@@ -287,4 +287,5 @@ WORKDIR /app
     start_period=_docker_health["start_period_seconds"],
     retries=_docker_health["retries"],
     frontend_start_period=_docker_health["frontend_start_period_seconds"],
+    prefix=_GOLDEN_PREFIX,
 )

@@ -9,7 +9,6 @@ features:
   - maintenance
 infisicalSecretPath: /services/salon
 internalDependencies:
-  - identity-management-backend
 params:
   IDENTITY_SERVICE_URL: http://identity-management-backend:3000
 replicas: 1

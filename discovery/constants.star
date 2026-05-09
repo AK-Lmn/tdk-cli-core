@@ -71,12 +71,30 @@ _PROJECT_DISCOVERY_ROOTS = _get_project_discovery_roots()
 # Phase 2: Universal Discovery - Scan roots configuration
 # Each root is scanned for service.json files
 # Paths are relative to PROJECT_ROOT (where Tiltfile is located)
-DISCOVERY_SCAN_ROOTS = _PROJECT_DISCOVERY_ROOTS if _PROJECT_DISCOVERY_ROOTS else [
+_DISCOVERY_ROOTS_RAW = _PROJECT_DISCOVERY_ROOTS if _PROJECT_DISCOVERY_ROOTS else [
     RESOURCES_ROOT,                           # services/product/*/*/
     "services/platform",                     # services/platform/*/*/
     "shared-product-engineering",            # shared-product-engineering/*/
     "cli-platform-engineering",              # cli-platform-engineering/*/
 ]
+
+# SAFETY: Filter out tdk-cli's own directories to prevent self-modification
+# The CLI should never scan or write to its own installation directory
+def _filter_cli_dirs(roots):
+    """Remove tdk-cli internal directories from scan roots."""
+    filtered = []
+    for root in roots:
+        # Skip if path contains tdk-cli internal paths
+        if "tdk-cli" in root and "discovery" in root:
+            print("⚠️  Skipping tdk-cli internal directory: {}".format(root))
+            continue
+        if root.startswith("discovery/") or root == "discovery":
+            print("⚠️  Skipping discovery directory: {}".format(root))
+            continue
+        filtered.append(root)
+    return filtered
+
+DISCOVERY_SCAN_ROOTS = _filter_cli_dirs(_DISCOVERY_ROOTS_RAW)
 
 # Phase 2: Explicit stack extraction patterns for each root type
 # Documents HOW to extract stack from different directory structures
