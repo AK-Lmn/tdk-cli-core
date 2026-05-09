@@ -27,6 +27,7 @@ interface GeneratorContext {
   runtime: typeof PLATFORM_STANDARDS.runtime;
   project: ProjectConfig["project"];
   stacks: ProjectConfig["stacks"];
+  alwaysEnabledInfra: string[];
   optionalInfra: ProjectConfig["optional_infra"];
   serviceDescriptions: Record<string, string>;
   infraDescriptions: Record<string, string>;
@@ -150,6 +151,7 @@ export class TemplateEngine {
       runtime: PLATFORM_STANDARDS.runtime,
       project: projectConfig.project,
       stacks: projectConfig.stacks,
+      alwaysEnabledInfra: projectConfig.always_enabled_infra ?? ['verdaccio', 'database-management', 'proxy', 'infisical'],
       optionalInfra: projectConfig.optional_infra,
       serviceDescriptions: RESOURCE_DESCRIPTIONS,
       infraDescriptions: INFRA_DESCRIPTIONS,

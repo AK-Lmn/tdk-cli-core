@@ -137,7 +137,8 @@ Utils.load_dotenv()
 # 🎯 FOCUS MODE
 # =============================================================================
 FOCUS_MODE, FOCUS_ENABLED_ALL, FOCUS_ENABLED_RESOURCES = Config.apply_focus(cfg)
-ALWAYS_ENABLED_INFRA = ['verdaccio', 'database-management', 'proxy', 'infisical']
+# Load ALWAYS_ENABLED_INFRA from project.json (falls back to defaults if not specified)
+ALWAYS_ENABLED_INFRA = {{starlarkArray alwaysEnabledInfra}}
 
 def should_enable(resource_name):
     if FOCUS_MODE and resource_name in ALWAYS_ENABLED_INFRA:

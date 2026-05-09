@@ -12,7 +12,7 @@ def _resolve_bool_env(env_name, default_value):
 
 
 def resolve_runtime_flags():
-    trigger_mode = os.environ.get('TILT_TRIGGER_MODE', 'manual').lower()
+    trigger_mode = os.environ.get('TILT_TRIGGER_MODE', 'auto').lower()
 
     # Match trigger mode semantics by default:
     # - auto mode: boot app resources automatically

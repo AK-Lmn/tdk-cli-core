@@ -206,8 +206,6 @@ CORE_INFRA = [
     "golden-layers-build",
     "postgres",
     "nats",
-    "verdaccio",
-    "verdaccio-connect-network",
     "traefik",
 ]
 

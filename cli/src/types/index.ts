@@ -139,6 +139,7 @@ export interface ProjectConfig {
     beta: ProjectStackDefinition;
     out_of_scope: ProjectStackDefinition;
   };
+  always_enabled_infra?: string[];
   optional_infra: ProjectOptionalInfra;
   discovery: ProjectDiscovery;
   overrides?: Record<string, JsonValue>;
