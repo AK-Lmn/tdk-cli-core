@@ -24,6 +24,11 @@ load("../../platform/docker/constants.star", "PlatformDockerConstants")
 # 🗃️ DATABASE MANAGEMENT
 # =============================================================================
 
+def _file_exists(path):
+    """Check if a file exists."""
+    result = str(local("test -f '{path}' && echo 'yes' || echo 'no'".format(path=path), quiet=True, echo_off=True)).strip()
+    return result == 'yes'
+
 def _load_database_management(should_enable, root_prefix="", env_file=None):
     """Load database and messaging infrastructure."""
     if not should_enable('database-management'):
@@ -31,16 +36,31 @@ def _load_database_management(should_enable, root_prefix="", env_file=None):
         return
     
     print("🗃️  Loading database management services...")
-    print("DEBUG INFRA: Loading postgres compose from {}".format(root_prefix + 'services/platform/database-management/docker-compose.yml'))
-    docker_compose(root_prefix + 'services/platform/database-management/docker-compose.yml', env_file=env_file)
-    print("DEBUG INFRA: Loading nats compose from {}".format(root_prefix + 'services/platform/messaging/docker-compose.yml'))
-    docker_compose(root_prefix + 'services/platform/messaging/docker-compose.yml', env_file=env_file)
-    dc_resource('postgres', labels=['infra.tools'], resource_deps=['init-networks'], auto_init=True)
-    dc_resource('redis', labels=['infra.messaging'], auto_init=False)
-    dc_resource('nats', labels=['infra.messaging'], auto_init=True)
+    
+    # Load postgres if compose file exists
+    postgres_compose = root_prefix + 'services/platform/database-management/docker-compose.yml'
+    if _file_exists(postgres_compose):
+        print("DEBUG INFRA: Loading postgres compose from {}".format(postgres_compose))
+        docker_compose(postgres_compose, env_file=env_file)
+        dc_resource('postgres', labels=['infra.tools'], resource_deps=['init-networks'], auto_init=True)
+    else:
+        print("DEBUG INFRA: Skipping postgres (compose file not found)")
+    
+    # Load messaging if compose file exists
+    messaging_compose = root_prefix + 'services/platform/messaging/docker-compose.yml'
+    if _file_exists(messaging_compose):
+        print("DEBUG INFRA: Loading messaging compose from {}".format(messaging_compose))
+        docker_compose(messaging_compose, env_file=env_file)
+        dc_resource('redis', labels=['infra.messaging'], auto_init=False)
+        dc_resource('nats', labels=['infra.messaging'], auto_init=True)
+    else:
+        print("DEBUG INFRA: Skipping messaging (compose file not found)")
+    
+    # Only create kafka resources if debezium is enabled AND messaging exists
     cdc_enabled = should_enable('debezium')
-    dc_resource('kafka', labels=['cdc'], resource_deps=['zookeeper'], auto_init=cdc_enabled)
-    dc_resource('zookeeper', labels=['cdc'], auto_init=cdc_enabled)
+    if cdc_enabled and _file_exists(messaging_compose):
+        dc_resource('kafka', labels=['cdc'], resource_deps=['zookeeper'], auto_init=True)
+        dc_resource('zookeeper', labels=['cdc'], auto_init=True)
 
 
 # =============================================================================
@@ -234,7 +254,7 @@ def _generate_golden_dockerfile(should_enable, docker_provider, write_fn):
 # 🎯 MAIN LOADER
 # =============================================================================
 
-def load_all_infrastructure(should_enable, fix_docker_networks_fn=None, docker_provider=None, write_fn=None, project_root=None):
+def load_all_infrastructure(should_enable, fix_docker_networks_fn=None, docker_provider=None, write_fn=None, project_root=None, env_file=None):
     """
     Load all infrastructure services based on configuration.
 
@@ -244,6 +264,7 @@ def load_all_infrastructure(should_enable, fix_docker_networks_fn=None, docker_p
         docker_provider: Docker provider struct (optional, for golden image)
         write_fn: File writing function (optional, for golden image)
         project_root: Path to project root from TDK working directory (optional, e.g., "../../")
+        env_file: Path to .env file for docker-compose (optional, defaults to project_root + '.env')
     """
     # Initialize networks first
     if fix_docker_networks_fn:
@@ -271,7 +292,9 @@ def load_all_infrastructure(should_enable, fix_docker_networks_fn=None, docker_p
         root_prefix = root_prefix + '/'
 
     # Load environment file for docker-compose variables
-    env_file = root_prefix + '.env' if root_prefix else '.env'
+    # Use provided env_file or construct default from root_prefix
+    if env_file == None:
+        env_file = root_prefix + '.env' if root_prefix else '.env'
 
     # Load infrastructure in order
     _load_database_management(should_enable, root_prefix, env_file)
