@@ -56,6 +56,8 @@ def generate_npmrc(resource_path, registry_url, is_docker, write_fn):
     content = """{header}
 registry=https://registry.npmjs.org/
 @{npm_scope}:registry={registry_url}/
+@tdk-landscape:registry={registry_url}/
+@identity:registry={registry_url}/
 //{registry_host}/:username=admin
 //{registry_host}/:_password=YWRtaW4=
 //{registry_host}/:email=admin@example.com
@@ -90,6 +92,8 @@ registry = "https://registry.npmjs.org"
 
 [install.scopes]
 "@{npm_scope}" = {{ url = "{registry_url}/" }}
+"@tdk-landscape" = {{ url = "{registry_url}/" }}
+"@identity" = {{ url = "{registry_url}/" }}
 
 """.format(header=header, registry_url=registry_url, npm_scope=_NPM_SCOPE)
 
