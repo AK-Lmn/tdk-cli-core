@@ -93,7 +93,7 @@ RUN echo '🔍 DEPENDENCY INSTALLATION DIAGNOSTICS (debug)' && \\
         + "WORKDIR /app\n"
         + "\n"
         + "# Cache-busting mechanism - change this value to force dependency reinstall\n"
-        + "ARG CACHE_BUSTER=2026-04-09-v12\n"
+        + "ARG CACHE_BUSTER=2026-06-25-v1\n"
         + "RUN echo \"Cache buster: ${CACHE_BUSTER}\"\n"
         + "\n"
         + debug_tools_install
