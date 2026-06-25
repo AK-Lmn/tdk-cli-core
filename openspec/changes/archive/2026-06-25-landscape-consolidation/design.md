@@ -42,11 +42,11 @@ Most contain overlapping project context (tech stack, architecture, conventions)
 
 ## Decisions
 
-### Decision 1: Symlink, Not Remove
-**Path**: `beauty-crm/cli/` → symlink to `../tdk-cli/cli/`
-**Rationale**: A symlink provides backward compatibility for any scripts or tooling that reference `beauty-crm/cli/`. The symlink is obvious in `ls -la` and prevents future divergence. Removing without a symlink risks breaking CI/CD or developer workflows.
+### Decision 1: Remove Completely (No Symlink)
+**Path**: `git rm -r beauty-crm/cli/` — deleted from git and disk, no replacement.
+**Rationale**: A symlink breaks `git add pathspec` resolution (git treats symlinked directories as single blobs and cannot traverse them). Since no scripts, workspaces, or CI pipelines reference `beauty-crm/cli/`, there's nothing to break. Removing entirely is the cleanest solution.
 **Alternatives considered**:
-- Remove entirely and update all references — Higher risk, more touchpoints
+- Symlink to `../tdk-cli/cli/` — Rejected: breaks `git add` and other git operations
 - Keep as-is (do nothing) — Drift will continue to grow
 
 ### Decision 2: Canonical AI Config = `.claude/` + `CLAUDE.md`

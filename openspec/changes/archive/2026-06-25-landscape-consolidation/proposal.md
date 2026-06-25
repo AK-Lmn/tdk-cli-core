@@ -11,9 +11,8 @@ Fixing both reduces maintenance burden, clarifies the canonical source of truth,
 ## What Changes
 
 ### Workstream A: CLI Duplicate Removal
-- Remove `beauty-crm/cli/` entirely
-- Update `beauty-crm/` to reference `tdk-cli/` as the canonical CLI source
-- Add a symlink at `beauty-crm/cli/ → ../tdk-cli/cli/` for backward compatibility
+- Remove `beauty-crm/cli/` entirely via `git rm`
+- No symlink — symlinks break `git add` pathspec resolution
 - Update any `beauty-crm/` scripts/build pipelines that reference the old path
 
 ### Workstream B: AI Config Consolidation
