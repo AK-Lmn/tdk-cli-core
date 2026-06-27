@@ -102,13 +102,16 @@ def get_app_resources():
     """Get discovered app resources."""
     if len(APP_RESOURCES) > 0:
         return APP_RESOURCES
-    # If empty, run discovery now
+    if _DISCOVERY_STATE[0]:
+        return APP_RESOURCES
     results = _run_discovery()
     return results["app_resources"]
 
 def get_resource_dependencies():
     """Get resource dependency graph."""
     if len(RESOURCE_DEPENDENCIES) > 0:
+        return RESOURCE_DEPENDENCIES
+    if _DISCOVERY_STATE[0]:
         return RESOURCE_DEPENDENCIES
     results = _run_discovery()
     return results["resource_dependencies"]
@@ -117,12 +120,16 @@ def get_resource_aliases():
     """Get resource name to path aliases."""
     if len(RESOURCE_ALIASES) > 0:
         return RESOURCE_ALIASES
+    if _DISCOVERY_STATE[0]:
+        return RESOURCE_ALIASES
     results = _run_discovery()
     return results["resource_aliases"]
 
 def get_resource_path_map():
     """Get resource path to name mapping."""
     if len(RESOURCE_PATH_MAP) > 0:
+        return RESOURCE_PATH_MAP
+    if _DISCOVERY_STATE[0]:
         return RESOURCE_PATH_MAP
     results = _run_discovery()
     return results["resource_path_map"]
