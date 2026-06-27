@@ -21,10 +21,7 @@ def apply_app_service(resource_config, ctx):
     resource_path = resource_config.get('path', 'NO_PATH')
     should_enable = ctx['should_enable']
 
-    print("DEBUG ORCH: {} path={} enabled={}".format(resource_name, resource_path, should_enable(resource_name)))
-
     if not should_enable(resource_name):
-        print("DEBUG ORCH: {} SKIPPED (not enabled)".format(resource_name))
         return
 
     runtime_flags = RuntimeFlags.resolve()

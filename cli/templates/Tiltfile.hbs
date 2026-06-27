@@ -197,11 +197,14 @@ if FOCUS_MODE and FOCUS_ENABLED_RESOURCES:
 if _AUTO_DISCOVER_ENABLED:
     watch_file('snapshots/resource-snapshot.json')
     
-    # Get extension install path
-    discovery_path = str(local("echo $HOME/Library/Application Support/tilt-dev/tilt_modules/github.com/tdk-landscape/tdk-cli/discovery", quiet=True)).strip()
-    if str(local('uname -s', quiet=True)).strip() == 'Linux':
-        discovery_path = str(local("echo $HOME/.local/share/tilt-dev/tilt_modules/github.com/tdk-landscape/tdk-cli/discovery", quiet=True)).strip()
-    
+    # Get extension install path (local if available, otherwise tilt_modules cache)
+    if _use_local:
+        discovery_path = _local_tdk_path + "/discovery"
+    else:
+        discovery_path = str(local("echo $HOME/Library/Application Support/tilt-dev/tilt_modules/github.com/tdk-landscape/tdk-cli/discovery", quiet=True)).strip()
+        if str(local('uname -s', quiet=True)).strip() == 'Linux':
+            discovery_path = str(local("echo $HOME/.local/share/tilt-dev/tilt_modules/github.com/tdk-landscape/tdk-cli/discovery", quiet=True)).strip()
+
     daemon_script = discovery_path + '/resource_snapshot.py'
     daemon_cmd = "cd " + config.main_dir + " && python3 \"" + daemon_script + "\" watch"
     

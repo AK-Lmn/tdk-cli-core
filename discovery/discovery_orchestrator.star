@@ -168,40 +168,6 @@ def initialize_discovery(cache, second_pass=False):
     cache["initialized"] = True
     if second_pass:
         cache["second_pass"] = True
-    if cache.get("initialized"):
-        return
-    
-    resources = _scan_resources()
-    
-    # Build dependency graph and aliases
-    dependencies = {}
-    aliases = {}
-    path_map = {}
-    
-    for resource in resources:
-        name = resource.get("name", "")
-        path = resource.get("path", "")
-        
-        # Map name to path
-        if name:
-            aliases[name] = path
-            path_map[path] = name
-            
-            # Extract dependencies from manifest
-            manifest = resource.get("_manifest", {})
-            deps = manifest.get("internalDependencies", [])
-            if deps:
-                dependencies[name] = deps
-    
-    # Populate cache
-    cache["app_resources"] = resources
-    cache["resource_dependencies"] = dependencies
-    cache["resource_aliases"] = aliases
-    cache["resource_path_map"] = path_map
-    cache["stack_configs"] = {}
-    cache["initialized"] = True
-    if second_pass:
-        cache["second_pass"] = True
 
 
 def _scan_resources():
@@ -210,9 +176,7 @@ def _scan_resources():
     Phase 2: Multi-root discovery with validation, deduplication, and explicit stack extraction.
     Returns list of resource dictionaries.
     """
-    print("DEBUG: _scan_resources() START")
     resources = []
-    print("DEBUG: DISCOVERY_SCAN_ROOTS =", DISCOVERY_SCAN_ROOTS)
     
     # Phase 1.5: Track validation stats and skipped stacks for discovery summary
     validation_stats = {
@@ -277,13 +241,8 @@ def _scan_resources():
 
     manifest_paths = filtered_manifest_paths
 
-    print("DEBUG: Found {} manifest paths ({} after filtering tdk-cli internals)".format(
-        len(seen_paths), len(manifest_paths)))
     if not manifest_paths:
-        print("DEBUG: No manifest paths, returning empty resources")
         return resources
-    
-    print("DEBUG: Processing first manifest: {}".format(manifest_paths[0] if len(manifest_paths) > 0 else "NONE"))
     
     for manifest_path in manifest_paths:
         # manifest_path already stripped by json_manifest_scanner
@@ -462,8 +421,7 @@ def _scan_resources():
                 # Add resource to existing app resource
                 existing_app_resource["resources"].append(resource)
                 existing_app_resource["labels"].append("app." + app_name)
-                print("DEBUG MERGE: Added '{}' to existing '{}' (existing path: {})".format(
-                    app_name, resource_key, existing_app_resource.get("path", "NO_PATH")))
+                pass  # Service merged into existing domain
         else:
             # Create new app resource entry
             # Use resource_path (domain path) for the app_resource - docker-compose goes here
@@ -475,7 +433,7 @@ def _scan_resources():
                 "labels": ["app." + app_name] if app_name else [],
                 "resources": [resource],
             }
-            print("DEBUG CREATE: '{}' with domain path '{}' (first resource: {})".format(resource_key, resource_path, app_name))
+            pass  # New domain group created
             resources.append(app_resource)
     
     # Phase 1.5: Print consolidated discovery summary
@@ -498,8 +456,5 @@ def _scan_resources():
             skipped_list = ", ".join(["{} ({})".format(d, c) for d, c in skipped_stacks.items()])
             print("  📋 Focus mode skipped: {}".format(skipped_list))
     
-    print("DEBUG: _scan_resources() END - returning {} app_resources".format(len(resources)))
-    for r in resources:
-        print("  - {} (path: {})".format(r.get("name"), r.get("path", "NO_PATH")))
     
     return resources
