@@ -42,15 +42,17 @@ def validate(manifest):
 
     port = manifest.get("port")
     if port == None:
-        issues.append("Missing required field: port")
+        if app_type != "infra":
+            issues.append("Missing required field: port")
     elif type(port) != "int":
         issues.append("Invalid port: " + str(port) + ". Must be an integer")
-    elif port < 3000 or port > 9999:
-        issues.append("Invalid port: " + str(port) + ". Must be integer 3000-9999")
-    elif app_type and app_type in PORT_RANGES:
-        port_range = PORT_RANGES[app_type]
-        if port < port_range["min"] or port > port_range["max"]:
-            issues.append("Port " + str(port) + " out of range for " + app_type)
+    elif app_type != "infra":
+        if port < 3000 or port > 9999:
+            issues.append("Invalid port: " + str(port) + ". Must be integer 3000-9999")
+        elif app_type and app_type in PORT_RANGES:
+            port_range = PORT_RANGES[app_type]
+            if port < port_range["min"] or port > port_range["max"]:
+                issues.append("Port " + str(port) + " out of range for " + app_type)
 
     features = manifest.get("features", [])
     if type(features) != "list":

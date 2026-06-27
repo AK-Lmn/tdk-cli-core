@@ -187,9 +187,33 @@ for app_service in _app_resources_list:
 Watchers.setup_package_json(_app_resources_list, should_enable)
 
 # Apply focus mode filter
+# Build known Tilt resource names from discovered services to filter focus list
+_KNOWN_TILT_RESOURCES = set()
+_KNOWN_TILT_RESOURCES.add('service-discovery-daemon')
+for _KNOWN_SVC in _app_resources_list:
+    _KNOWN_SVC_NAME = _KNOWN_SVC.get('name', '')
+    if _KNOWN_SVC_NAME:
+        _KNOWN_TILT_RESOURCES.add(_KNOWN_SVC_NAME + '-yaml')
+        for _KNOWN_RES in _KNOWN_SVC.get('resources', []):
+            _KNOWN_RES_NAME = _KNOWN_RES.get('name', '')
+            if _KNOWN_RES_NAME:
+                _KNOWN_TILT_RESOURCES.add(_KNOWN_RES_NAME)
+                _KNOWN_TILT_RESOURCES.add(_KNOWN_RES_NAME + '-run-only')
+                _KNOWN_TILT_RESOURCES.add(_KNOWN_RES_NAME + '-config-gen')
 if FOCUS_MODE and FOCUS_ENABLED_RESOURCES:
-    config.set_enabled_resources(list(FOCUS_ENABLED_RESOURCES))
-    print("🎯 Focus mode: {} resources".format(len(FOCUS_ENABLED_RESOURCES)))
+    _FILTERED_RESOURCES = []
+    for _R in FOCUS_ENABLED_RESOURCES:
+        if _R in _KNOWN_TILT_RESOURCES:
+            _FILTERED_RESOURCES.append(_R)
+        else:
+            _MATCHED = [kr for kr in _KNOWN_TILT_RESOURCES if kr != 'service-discovery-daemon' and kr.startswith(_R + '-')]
+            _FILTERED_RESOURCES.extend(_MATCHED)
+    _FILTERED_RESOURCES = sorted(set(_FILTERED_RESOURCES))
+    if _FILTERED_RESOURCES:
+        config.set_enabled_resources(_FILTERED_RESOURCES)
+        print("🎯 Focus mode: {} resources".format(len(_FILTERED_RESOURCES)))
+    else:
+        print("⚠️  No known resources matched focus targets:", ", ".join(FOCUS_ENABLED_RESOURCES))
 
 # =============================================================================
 # 👁️ AUTO-DISCOVERY DAEMON

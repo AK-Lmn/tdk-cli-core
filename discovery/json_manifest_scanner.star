@@ -27,7 +27,7 @@ def discover_json_manifests(root_path):
     if '*' in root_path or '?' in root_path:
         # Use bash to expand glob and find files
         # The pattern like identity-* needs shell expansion
-        cmd = "cd " + project_root + " && bash -c 'for dir in " + root_path + "; do if [ -d \"$dir\" ]; then find \"$dir\" -maxdepth 2 -type f -name \"" + MANIFEST_FILENAME + "\" 2>/dev/null; fi; done'"
+        cmd = "cd " + project_root + " && bash -c 'for dir in " + root_path + "; do if [ -d \"$dir\" ]; then find \"$dir\" -maxdepth 3 -type f -name \"" + MANIFEST_FILENAME + "\" 2>/dev/null; fi; done'"
         result = str(local(cmd, quiet=True, echo_off=True))
     else:
         # Construct absolute path from project root

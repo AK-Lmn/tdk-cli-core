@@ -1,0 +1,11 @@
+appName: mdblaster-server
+appType: frontend
+stack: mdblaster
+port: 5173
+description: Static file server for MDBlaster downloads
+features:
+healthCheck: True
+runtime: docker
+traefik:
+  host: mdblaster.beauty-crm.localhost
+  pathPrefix: /

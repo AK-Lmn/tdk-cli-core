@@ -414,14 +414,18 @@ def _find_manifest_files(root, manifest_filename):
     files = []
     
     # Check if root contains glob patterns
+    project_root = os.environ.get('TDK_PROJECT_ROOT', '.')
     if '*' in root or '?' in root:
         # Use bash to expand glob and find files
-        project_root = os.environ.get('TDK_PROJECT_ROOT', '.')
-        cmd = "cd " + project_root + " && bash -c 'for dir in " + root + "; do if [ -d \"$dir\" ]; then find \"$dir\" -maxdepth 2 -type f -name \"" + manifest_filename + "\" 2>/dev/null; fi; done'"
+        cmd = "cd " + project_root + " && bash -c 'for dir in " + root + "; do if [ -d \"$dir\" ]; then find \"$dir\" -maxdepth 3 -type f -name \"" + manifest_filename + "\" 2>/dev/null; fi; done'"
         result = str(local(cmd, quiet=True, echo_off=True)).strip()
     else:
-        # Use simple find for non-glob paths
-        cmd = "find " + root + " -type f -name '" + manifest_filename + "' 2>/dev/null"
+        # Resolve relative paths against project root (non-glob)
+        if root.startswith('/'):
+            full_path = root
+        else:
+            full_path = project_root + "/" + root
+        cmd = "find " + full_path + " -type f -name '" + manifest_filename + "' 2>/dev/null"
         result = str(local(cmd, quiet=True, echo_off=True)).strip()
     
     if result:

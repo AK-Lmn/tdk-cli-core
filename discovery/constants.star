@@ -45,21 +45,10 @@ def _get_project_discovery_roots():
                     if start != -1 and end != -1:
                         array_content = spec_content[start+1:end]
                         patterns = []
-                        for line in array_content.split("\n"):
-                            line = line.strip()
-                            if line and not line.startswith("#"):
-                                # Find quoted strings
-                                if '"' in line:
-                                    quote_char = '"'
-                                elif "'" in line:
-                                    quote_char = "'"
-                                else:
-                                    continue
-                                key_start = line.find(quote_char)
-                                key_end = line.find(quote_char, key_start + 1)
-                                if key_start != -1 and key_end != -1:
-                                    pattern = line[key_start+1:key_end]
-                                    patterns.append(pattern)
+                        for part in array_content.split(","):
+                            part = part.strip().strip("'").strip('"').strip()
+                            if part and not part.startswith("#"):
+                                patterns.append(part)
                         if patterns:
 
                             return patterns

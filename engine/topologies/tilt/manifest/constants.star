@@ -60,6 +60,7 @@ VALID_RESOURCE_TYPES = [
     "migrator",
     "sdk",
     "worker",
+    "infra",
 ]
 
 VALID_FEATURES = [

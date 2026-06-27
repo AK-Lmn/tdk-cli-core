@@ -61,18 +61,20 @@ def validate_manifest(manifest):
         # Only validate against list if VALID_STACKS is not empty
         issues.append("Invalid stack: " + str(stack) + ". Must be one of: " + ', '.join(VALID_STACKS))
     
-    # 4. port validation with appType-specific ranges
+    # 4. port validation with appType-specific ranges (skip for infra services)
     port = manifest.get('port')
     if port == None:
-        issues.append("Missing required field: port")
+        if app_type != 'infra':
+            issues.append("Missing required field: port")
     elif type(port) != 'int':
         issues.append("Invalid port: " + str(port) + ". Must be an integer")
-    elif port < 3000 or port > 9999:
-        issues.append("Invalid port: " + str(port) + ". Must be integer 3000-9999")
-    elif app_type and app_type in PORT_RANGES:
-        port_range = PORT_RANGES[app_type]
-        if port < port_range['min'] or port > port_range['max']:
-            issues.append("Port " + str(port) + " out of range for " + app_type + ". Expected " + str(port_range['min']) + "-" + str(port_range['max']))
+    elif app_type != 'infra':
+        if port < 3000 or port > 9999:
+            issues.append("Invalid port: " + str(port) + ". Must be integer 3000-9999")
+        elif app_type and app_type in PORT_RANGES:
+            port_range = PORT_RANGES[app_type]
+            if port < port_range['min'] or port > port_range['max']:
+                issues.append("Port " + str(port) + " out of range for " + app_type + ". Expected " + str(port_range['min']) + "-" + str(port_range['max']))
     
     # 5. Validate features array
     features = manifest.get('features', [])

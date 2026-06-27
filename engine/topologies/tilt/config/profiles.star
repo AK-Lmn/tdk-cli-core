@@ -318,18 +318,20 @@ def apply_focus_filter(cfg):
                 infra_resource_names.append(res)
     
     # config.set_enabled_resources accepts only concrete Tilt resources.
-    # Service alias keys (e.g. "booking-domain") and domain names (e.g. "identity") must be filtered out.
-    # Only include actual app service resources (backend, frontend, migrator, or -yaml tracking resources)
-    # Infrastructure resources are excluded because they may not exist as actual Tilt resources
-    # Only include actual app service resources (not infrastructure)
-    # App resources have backend, frontend, migrator, or -yaml in their names
+    # Logic toggles (e.g. "golden-image", "database-management") are excluded since they're config flags, not resources.
+    # Infrastructure resources (postgres, nats, traefik, etc.) are loaded via Infra.load_all()
+    # and excluded here since they may not be available in all projects.
+    # Only include resources that exist as discovered services (in resource aliases).
+    resource_aliases = get_resource_aliases_ref()
     resource_only_needed = []
     for r in all_needed:
-        if r in logic_toggles or r in get_resource_aliases_ref() or r in infra_resource_names:
+        if r in logic_toggles:
             continue
-        if "-" in r:
-            if "backend" in r or "frontend" in r or "migrator" in r or "-yaml" in r:
-                resource_only_needed.append(r)
+        if r in infra_resource_names:
+            continue
+        if r not in resource_aliases:
+            continue
+        resource_only_needed.append(r)
 
     print("🎯 Discovered " + str(len(all_needed)) + " entities via dependency graph:")
 
