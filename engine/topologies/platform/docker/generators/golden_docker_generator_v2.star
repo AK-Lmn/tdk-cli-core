@@ -12,7 +12,7 @@ load('../../../tilt/manifest/constants.star', 'GENERATED_CONFIG_FILENAMES')
 
 # Load layer generators from dedicated modules
 load('../layers/l1_base_layers.star', 'L1_generate_os_base', 'L1_generate_runtime_env')
-load('../layers/l2_dependency_layers.star', 'L2_generate_dependency_manifest', 'L2_generate_dependency_resolver')
+load('../layers/l2_dependency_layers.star', 'L2_generate_dependency_manifest')
 load('../layers/l3_builder_layers.star', 
     'L3_generate_backend_compiler', 
     'L3_generate_frontend_builder',
@@ -36,7 +36,6 @@ def L4_generate_orchestrator(res_path, res_type = 'backend', resource_name = 'se
     parts.append(L1_generate_os_base(use_golden=use_golden))
     parts.append(L1_generate_runtime_env(None))
     parts.append(L2_generate_dependency_manifest(res_path, use_golden=use_golden))
-    parts.append(L2_generate_dependency_resolver())
 
     if res_type == 'migrator' or (res_type == 'backend' and migrator_name_match):
         # For migrators, skip backend_compiler and production_purger.

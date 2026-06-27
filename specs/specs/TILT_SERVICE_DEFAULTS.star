@@ -113,7 +113,8 @@ def get_build_config():
     return {
         "dockerfile": "Dockerfile",
         "context": ".",
-        "platform": "linux/amd64",
+        # Auto-detect native arch (arm64 on Apple Silicon, amd64 elsewhere)
+        # "platform": "linux/amd64",
         "cache_from": [],
     }
 

@@ -156,7 +156,8 @@ const DISCOVERY = {
 const DOCKER = {
   dockerfile: "Dockerfile",
   context: ".",
-  platform: "linux/amd64",
+  // Auto-detect native arch (arm64 on Apple Silicon, amd64 elsewhere)
+  // platform: "linux/amd64",
 } as const;
 
 const RUNTIME = {

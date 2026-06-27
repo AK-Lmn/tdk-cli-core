@@ -120,30 +120,6 @@ RUN echo '🔍 DEPENDENCY INSTALLATION DIAGNOSTICS (debug)' && \\
         + "/usr/local/bin/install-deps.sh && end_ts=$(date +%s) && echo \"install-deps duration: $((end_ts-start_ts))s\"\n"
     )
 
-
-def L2_generate_dependency_resolver(use_golden = True):
-    """
-    Generate the dependency resolver layer that consolidates cached dependencies.
-    
-    Args:
-        use_golden: Whether to use golden L2 image (default: True)
-    
-    Returns:
-        Dockerfile content string for the l2_resolver stage
-    """
-    # Use golden L2 image if enabled (Bun + system deps pre-installed)
-    base_image = GOLDEN_L2_IMAGE if use_golden else BUN_BASE
-    
-    return (
-        "# ---- L2: dependency_resolver ----\n"
-        + "FROM " + base_image + " AS l2_resolver\n"
-        + "WORKDIR /app\n"
-        + "# Copy node_modules and cached files from manifest stage to preserve cache\n"
-        + "COPY --from=l2_deps_manifest /cache/bun /cache/bun\n"
-        + "COPY --from=l2_deps_manifest /app /app\n"
-        + "WORKDIR /app\n"
-    )
-
 DEBUG = {}
 
 GLOBAL_CONFIG = {}
