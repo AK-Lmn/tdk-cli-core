@@ -1,8 +1,0 @@
-appName: mdblaster-docs
-appType: frontend
-stack: mdblaster
-port: 5173
-basePath: /docs
-dockerfile: Dockerfile.custom
-healthCheck: True
-runtime: bun

@@ -228,19 +228,15 @@ def generate_dependency_topology_updates(missing_deps, write_fn=None):
             "product_libs_additions": product_libs,
             "platform_libs_additions": platform_libs,
         },
-        "code_snippets": {
-            "config_star": "\n" + \
-"# Add to PRODUCT_LIBS_EXPLICIT or PLATFORM_LIBS_EXPLICIT in discovery/config.star:\n" + \
-"\n" + \
-"# Auto-generated additions for missing dependencies\n" + \
-"PRODUCT_LIBS_EXPLICIT.extend([\n" + \
-"    " + (",\n    ".join(product_libs) if product_libs else "# None") + "\n" + \
-"])\n" + \
-"\n" + \
-"PLATFORM_LIBS_EXPLICIT.extend([\n" + \
-"    " + (",\n    ".join(platform_libs) if platform_libs else "# None") + "\n" + \
-"])\n",
-        }
+            "code_snippets": {
+                "config_star": "\n" + \
+                "# Libraries are auto-discovered from the filesystem (libraries.star).\n" + \
+                "# No manual config.star additions needed for new platform-* or product-* libs.\n" + \
+                "\n" + \
+                "# Detected dependencies that need explicit paths in package.json:\n" + \
+                "product_libs_detected: " + str(product_libs) + "\n" + \
+                "platform_libs_detected: " + str(platform_libs) + "\n",
+            }
     }
     
     if write_fn:

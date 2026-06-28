@@ -229,40 +229,15 @@ OPTIONAL_INFRA = {
 # -----------------------------------------------------------------------------
 # 📚 LIBRARY DEFINITIONS
 # -----------------------------------------------------------------------------
+# Libraries are auto-discovered from the filesystem in libraries.star.
+# Only non-auto-discoverable definitions (e.g. DDD layer paths) live here.
+# -----------------------------------------------------------------------------
 
 DDD_LIBS = [
     {"name": "domain", "path": "shared-ddd-layers/domain"},
     {"name": "infrastructure", "path": "shared-ddd-layers/infrastructure"},
     {"name": "application", "path": "shared-ddd-layers/application"},
     {"name": "presentation", "path": "shared-ddd-layers/presentation"},
-]
-
-PLATFORM_LIBS_EXPLICIT = [
-    "platform-logger",
-    "platform-computing-runtime",
-    "platform-computing-provisioner",
-    "platform-eventing",
-    "platform-shell-lifecycle",
-    "platform-prisma-toolkit",
-]
-
-PLATFORM_CLI_TOOLS = [
-    "platform-test-runner",
-    "platform-roadmap-generator",
-    "platform-tsconfig-generator",
-    "platform-mdblaster",
-]
-
-PLATFORM_LIBS_FRONTEND = [
-]
-
-PRODUCT_LIBS_FRONTEND = [
-    "introvertic/ui",
-]
-
-PRODUCT_LIBS_EXPLICIT = [
-    "product-domain-types",
-    "product-constants",
 ]
 
 # Export DEFAULTS and focus filters for use by other modules via Config struct
@@ -279,9 +254,5 @@ Config = struct(
     INFRA_STACK_MAP = INFRA_STACK_MAP,
     OPTIONAL_INFRA = OPTIONAL_INFRA,
     DDD_LIBS = DDD_LIBS,
-    PLATFORM_LIBS_EXPLICIT = PLATFORM_LIBS_EXPLICIT,
-    PLATFORM_CLI_TOOLS = PLATFORM_CLI_TOOLS,
-    PLATFORM_LIBS_FRONTEND = PLATFORM_LIBS_FRONTEND,
-    PRODUCT_LIBS_FRONTEND = PRODUCT_LIBS_FRONTEND,
-    PRODUCT_LIBS_EXPLICIT = PRODUCT_LIBS_EXPLICIT,
+
 )

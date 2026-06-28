@@ -19,8 +19,6 @@ load(
     "OPTIONAL_INFRA",
     "Config",
     "DDD_LIBS",
-    "PLATFORM_LIBS_FRONTEND",
-    "PRODUCT_LIBS_FRONTEND"
 )
 load("./discovery_orchestrator.star", "initialize_discovery")
 load("../engine/topologies/tilt/manifest/loader.star", "ManifestLoader")
@@ -521,11 +519,7 @@ if project_root:
             INFRA_STACK_MAP=Config.INFRA_STACK_MAP,
             OPTIONAL_INFRA=Config.OPTIONAL_INFRA,
             DDD_LIBS=Config.DDD_LIBS,
-            PLATFORM_LIBS_EXPLICIT=Config.PLATFORM_LIBS_EXPLICIT,
-            PLATFORM_CLI_TOOLS=Config.PLATFORM_CLI_TOOLS,
-            PLATFORM_LIBS_FRONTEND=Config.PLATFORM_LIBS_FRONTEND,
-            PRODUCT_LIBS_FRONTEND=Config.PRODUCT_LIBS_FRONTEND,
-            PRODUCT_LIBS_EXPLICIT=Config.PRODUCT_LIBS_EXPLICIT,
+
         )
 
 # Export config data
@@ -536,16 +530,15 @@ DEFAULTS_EXPORT = Config.DEFAULTS
 DDD_LIBS_EXPORT = DDD_LIBS
 GLOBAL_CONFIG_EXPORT = GLOBAL_CONFIG
 INFRA_RESOURCES_EXPORT = INFRA_RESOURCES
-PLATFORM_LIBS_FRONTEND_EXPORT = PLATFORM_LIBS_FRONTEND
-PRODUCT_LIBS_FRONTEND_EXPORT = PRODUCT_LIBS_FRONTEND
+
 
 # Export focus lists (populated from project spec.master)
 FOCUS_PRE_ALPHA_EXPORT = Config.FOCUS_PRE_ALPHA
 FOCUS_ALPHA_EXPORT = Config.FOCUS_ALPHA
 FOCUS_BETA_EXPORT = Config.FOCUS_BETA
 
-def get_platform_libs_export(autodiscover=False):
-    return get_platform_libs(autodiscover)
+def get_platform_libs_export():
+    return get_platform_libs()
 
-def get_product_libs_export(autodiscover=False):
-    return get_product_libs(autodiscover)
+def get_product_libs_export():
+    return get_product_libs()

@@ -109,11 +109,11 @@ DEFAULTS_EXPORT = _DEFAULTS_EXPORT
 APP_RESOURCES = _APP_RESOURCES
 Registry = _Registry
 
-def get_platform_libs_export(autodiscover=False):
-    return _get_platform_libs_export(autodiscover)
+def get_platform_libs_export():
+    return _get_platform_libs_export()
 
-def get_product_libs_export(autodiscover=False):
-    return _get_product_libs_export(autodiscover)
+def get_product_libs_export():
+    return _get_product_libs_export()
 
 # Providers
 Vite = _Vite

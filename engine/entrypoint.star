@@ -49,11 +49,11 @@ DEFAULTS_EXPORT = _DEFAULTS_EXPORT
 RESOURCE_ALIASES = _RESOURCE_ALIASES
 RESOURCE_PATH_MAP = _RESOURCE_PATH_MAP
 
-def get_platform_libs_export(autodiscover = False):
-    return _get_platform_libs_export(autodiscover)
+def get_platform_libs_export():
+    return _get_platform_libs_export()
 
-def get_product_libs_export(autodiscover = False):
-    return _get_product_libs_export(autodiscover)
+def get_product_libs_export():
+    return _get_product_libs_export()
 
 Vite = _Vite
 TSConfig = _TSConfig
