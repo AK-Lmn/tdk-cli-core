@@ -33,9 +33,9 @@ def _resolve_dependency_to_resource(dep_name, all_services_map):
     
     The discovery registry creates YAML resources with names like:
     - 'identity-management-backend-yaml' for identity backend
-    - 'mdblaster-docs-yaml' for mdblaster docs
+    - 'api-gateway-yaml' for api-gateway
     
-    But manifests reference them as short names like 'identity' or 'mdblaster'.
+    But manifests reference them as short names like 'identity' or 'api-gateway'.
     """
     # Check if already a full YAML resource name
     if dep_name in all_services_map:
