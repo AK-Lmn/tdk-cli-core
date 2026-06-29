@@ -327,8 +327,6 @@ def apply_focus_filter(cfg):
     for r in all_needed:
         if r in logic_toggles:
             continue
-        if r in infra_resource_names:
-            continue
         if r not in resource_aliases:
             continue
         resource_only_needed.append(r)

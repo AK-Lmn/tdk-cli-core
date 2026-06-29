@@ -61,6 +61,8 @@ load('ext://tdk-cli',
 'Config',
 'Orchestrator',
 'Watchers',
+'Infra',
+'Docker',
 'load_ui_enhancements',
 'APP_RESOURCES',
 'GLOBAL_CONFIG_EXPORT',
@@ -152,6 +154,33 @@ def should_enable(resource_name):
     return Utils.should_enable(resource_name, cfg, RESOURCE_DEFAULTS)
 
 # =============================================================================
+# 🏗️ INFRASTRUCTURE SERVICES
+# =============================================================================
+
+def _fix_docker_networks():
+    _project_name = os.environ.get('TDK_PROJECT_ROOT', '').split('/')[-1].replace('-', '_')
+    _networks = [
+        _project_name + '_traefik-public',
+        _project_name + '_backend',
+        _project_name + '_database',
+        _project_name + '_infisical-network',
+        _project_name + '_proxy',
+    ]
+    _cmds = []
+    for _n in _networks:
+        _cmds.append("docker network inspect {n} >/dev/null 2>&1 || docker network create --driver bridge {n}".format(n=_n))
+    return " && ".join(_cmds)
+
+print("🏗️  Loading infrastructure services...")
+Infra.load_all(
+    should_enable=should_enable,
+    fix_docker_networks_fn=_fix_docker_networks,
+    docker_provider=Docker,
+    write_fn=Utils.write_file_if_changed,
+    project_root=PROJECT_ROOT,
+)
+
+# =============================================================================
 # 📚 INITIALIZE TDK
 # =============================================================================
 print("🚀 Initializing TDK...")
@@ -190,6 +219,15 @@ Watchers.setup_package_json(_app_resources_list, should_enable)
 # Build known Tilt resource names from discovered services to filter focus list
 _KNOWN_TILT_RESOURCES = set()
 _KNOWN_TILT_RESOURCES.add('service-discovery-daemon')
+_KNOWN_TILT_RESOURCES.add('init-networks')
+_KNOWN_TILT_RESOURCES.add('postgres')
+_KNOWN_TILT_RESOURCES.add('nats')
+_KNOWN_TILT_RESOURCES.add('infisical')
+_KNOWN_TILT_RESOURCES.add('infisical-db')
+_KNOWN_TILT_RESOURCES.add('infisical-redis')
+_KNOWN_TILT_RESOURCES.add('traefik')
+_KNOWN_TILT_RESOURCES.add('verdaccio')
+_KNOWN_TILT_RESOURCES.add('golden-layers-build')
 for _KNOWN_SVC in _app_resources_list:
     _KNOWN_SVC_NAME = _KNOWN_SVC.get('name', '')
     if _KNOWN_SVC_NAME:
