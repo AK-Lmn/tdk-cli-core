@@ -13,6 +13,9 @@ import {
 } from "../utils/services.js";
 import { buildTiltUpArgs, runTilt } from "../utils/tilt.js";
 
+/** Base domain Traefik routes frontends on. Override with TDK_SERVICE_BASE_URL. */
+const SERVICE_BASE_URL = process.env.TDK_SERVICE_BASE_URL ?? "http://beauty-crm.localhost";
+
 export const upCommand = new Command("up")
   .description("Start all services (optionally filtered by stack)")
   .alias("deploy")
@@ -59,6 +62,27 @@ export const upCommand = new Command("up")
         serviceNames.forEach((name) => {
           console.log(chalk.gray(`  - ${name}`));
         });
+
+        const baseUrl = SERVICE_BASE_URL;
+        const frontends = servicesToStart.filter((s) => s.config?.appType === "frontend");
+        const backends = servicesToStart.filter((s) => s.config?.appType === "backend");
+
+        if (frontends.length > 0) {
+          console.log(chalk.blue("\n🌍 Frontend URLs:"));
+          frontends.forEach((svc) => {
+            const basePath = svc.config?.basePath ?? `/${svc.name}`;
+            console.log(chalk.gray(`  - ${svc.name}: ${baseUrl}${chalk.cyan(basePath)}`));
+          });
+        }
+
+        if (backends.length > 0) {
+          console.log(chalk.blue("\n🔧 Backend API URLs:"));
+          backends.forEach((svc) => {
+            console.log(
+              chalk.gray(`  - ${svc.name}: ${baseUrl}${chalk.cyan(`/api/${svc.name}`)}`),
+            );
+          });
+        }
       }
 
       if (handleDryRun(options, "not starting services", `tilt up ${serviceNames.join(" ")}`)) {
@@ -98,7 +122,7 @@ export const upCommand = new Command("up")
       if (!options.quiet) {
         console.log(chalk.gray("\nRunning tilt up..."));
         console.log(chalk.gray(`Using Tiltfile: .tdk/.tdk-out/Tiltfile`));
-        console.log(chalk.gray(`Tilt UI: http://localhost:${port}/\n`));
+        console.log(chalk.blue(`📊 Tilt UI: http://localhost:${port}/\n`));
       }
       const result = await runTilt("up", tiltArgs, {
         verbose: options.verbose,
