@@ -1,7 +1,7 @@
-import React from 'react';
-import { Box, Text } from 'ink';
-import type { ResourceMetadata, ResourceTableProps } from '../types/index.js';
-import { truncate, formatShortDate, getStatusColor, getStatusIcon } from '../utils/formatting.js';
+import { Box, Text } from "ink";
+import type React from "react";
+import type { ResourceTableProps } from "../types/index.js";
+import { formatShortDate, getStatusColor, getStatusIcon, truncate } from "../utils/formatting.js";
 
 export const ResourceTable: React.FC<ResourceTableProps> = ({ resources, maxWidth = 100 }) => {
   if (resources.length === 0) {
@@ -41,24 +41,19 @@ export const ResourceTable: React.FC<ResourceTableProps> = ({ resources, maxWidt
       {resources.map((resource, index) => {
         const statusColor = getStatusColor(resource.status);
         const statusIcon = getStatusIcon(resource.status);
-        const isEven = index % 2 === 0;
-        
+        const _isEven = index % 2 === 0;
+
         return (
-          <Box 
-            key={resource.name} 
-            flexDirection="row" 
-            paddingX={1}
-          >
+          <Box key={resource.name} flexDirection="row" paddingX={1}>
             <Box width={narrowMode ? 20 : 25}>
               <Text>{truncate(resource.name, narrowMode ? 18 : 23)}</Text>
             </Box>
             {!narrowMode && (
               <Box width={20}>
                 <Text color="gray">
-                  {resource.stack && resource.stack !== 'unknown' 
-                    ? truncate(resource.stack + '/' + resource.name, 18)
-                    : truncate(resource.name, 18)
-                  }
+                  {resource.stack && resource.stack !== "unknown"
+                    ? truncate(`${resource.stack}/${resource.name}`, 18)
+                    : truncate(resource.name, 18)}
                 </Text>
               </Box>
             )}
@@ -66,7 +61,9 @@ export const ResourceTable: React.FC<ResourceTableProps> = ({ resources, maxWidt
               <Text color="cyan">{resource.type}</Text>
             </Box>
             <Box width={15}>
-              <Text color={statusColor}>{statusIcon} {resource.status}</Text>
+              <Text color={statusColor}>
+                {statusIcon} {resource.status}
+              </Text>
             </Box>
             {!narrowMode && (
               <Box width={20}>

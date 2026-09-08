@@ -1,21 +1,26 @@
-import { Command } from 'commander';
-import chalk from 'chalk';
-import { execSync } from 'node:child_process';
-import { getResourcesForStack, stackExists, discoverResources, discoverStacks } from '../utils/services.js';
-import { runTilt, buildTiltUpArgs } from '../utils/tilt.js';
-import { findAvailablePort } from '../utils/port-assignment.js';
-import { withTiltCheck, errorFactories, handleTiltFailure } from '../utils/errors.js';
-import { formatCount } from '../utils/formatting.js';
-import { handleDryRun } from '../utils/command-helpers.js';
+import { execSync } from "node:child_process";
+import chalk from "chalk";
+import { Command } from "commander";
+import { handleDryRun } from "../utils/command-helpers.js";
+import { errorFactories, handleTiltFailure, withTiltCheck } from "../utils/errors.js";
+import { formatCount } from "../utils/formatting.js";
+import { findAvailablePort } from "../utils/port-assignment.js";
+import {
+  discoverResources,
+  discoverStacks,
+  getResourcesForStack,
+  stackExists,
+} from "../utils/services.js";
+import { buildTiltUpArgs, runTilt } from "../utils/tilt.js";
 
-export const upCommand = new Command('up')
-  .description('Start all services (optionally filtered by stack)')
-  .alias('deploy')
-  .argument('[stack-name]', 'Name of the stack to start (optional - runs all if omitted)')
-  .option('-v, --verbose', 'Enable verbose output', false)
-  .option('-q, --quiet', 'Suppress non-essential output', false)
-  .option('--dry-run', 'Show what would be started without starting', false)
-  .option('-f, --force', 'Kill existing Tilt process before starting', false)
+export const upCommand = new Command("up")
+  .description("Start all services (optionally filtered by stack)")
+  .alias("deploy")
+  .argument("[stack-name]", "Name of the stack to start (optional - runs all if omitted)")
+  .option("-v, --verbose", "Enable verbose output", false)
+  .option("-q, --quiet", "Suppress non-essential output", false)
+  .option("--dry-run", "Show what would be started without starting", false)
+  .option("-f, --force", "Kill existing Tilt process before starting", false)
   .action(async (stackName, options) => {
     await withTiltCheck(async () => {
       let servicesToStart: Awaited<ReturnType<typeof discoverResources>>;
@@ -32,35 +37,43 @@ export const upCommand = new Command('up')
       } else {
         servicesToStart = discoverResources();
         const allStacks = discoverStacks();
-        stackDescription = `all stacks (${formatCount(allStacks.length, 'stack')}, ${formatCount(servicesToStart.length, 'service')})`;
+        stackDescription = `all stacks (${formatCount(allStacks.length, "stack")}, ${formatCount(servicesToStart.length, "service")})`;
       }
 
       if (options.verbose && !options.quiet) {
-        console.log(chalk.gray(`Found ${formatCount(servicesToStart.length, 'service')} in ${stackDescription}`));
+        console.log(
+          chalk.gray(
+            `Found ${formatCount(servicesToStart.length, "service")} in ${stackDescription}`,
+          ),
+        );
       }
 
-      const serviceNames = servicesToStart.map(s => s.name);
+      const serviceNames = servicesToStart.map((s) => s.name);
 
       if (!options.quiet) {
-        console.log(chalk.blue(`Starting ${formatCount(serviceNames.length, 'service')} from ${stackDescription}...`));
-        serviceNames.forEach(name => {
+        console.log(
+          chalk.blue(
+            `Starting ${formatCount(serviceNames.length, "service")} from ${stackDescription}...`,
+          ),
+        );
+        serviceNames.forEach((name) => {
           console.log(chalk.gray(`  - ${name}`));
         });
       }
 
-      if (handleDryRun(options, 'not starting services', `tilt up ${serviceNames.join(' ')}`)) {
+      if (handleDryRun(options, "not starting services", `tilt up ${serviceNames.join(" ")}`)) {
         return;
       }
 
       if (options.force && !options.quiet) {
-        console.log(chalk.yellow('Force flag set - killing any existing Tilt processes...'));
-        execSync('killall tilt 2>/dev/null || true', { shell: '/bin/sh', stdio: 'pipe' });
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        console.log(chalk.yellow("Force flag set - killing any existing Tilt processes..."));
+        execSync("killall tilt 2>/dev/null || true", { shell: "/bin/sh", stdio: "pipe" });
+        await new Promise((resolve) => setTimeout(resolve, 2000));
       }
 
       const basePort = 10350;
       let port = basePort;
-      
+
       if (process.env.TILT_PORT) {
         port = parseInt(process.env.TILT_PORT, 10);
       } else {
@@ -73,28 +86,28 @@ export const upCommand = new Command('up')
           }
         }
       }
-      
+
       process.env.TILT_PORT = port.toString();
 
       const tiltArgs = buildTiltUpArgs(serviceNames, {
         verbose: options.verbose,
         quiet: options.quiet,
-        force: options.force
+        force: options.force,
       });
 
       if (!options.quiet) {
-        console.log(chalk.gray('\nRunning tilt up...'));
+        console.log(chalk.gray("\nRunning tilt up..."));
         console.log(chalk.gray(`Using Tiltfile: .tdk/.tdk-out/Tiltfile`));
         console.log(chalk.gray(`Tilt UI: http://localhost:${port}/\n`));
       }
-      const result = await runTilt('up', tiltArgs, {
+      const result = await runTilt("up", tiltArgs, {
         verbose: options.verbose,
         quiet: options.quiet,
-        inheritStdio: !options.quiet  // Suppress tilt output in quiet mode
+        inheritStdio: !options.quiet, // Suppress tilt output in quiet mode
       });
 
       if (result.exitCode !== 0) {
-        handleTiltFailure('up', result.exitCode);
+        handleTiltFailure("up", result.exitCode);
       }
     });
   });

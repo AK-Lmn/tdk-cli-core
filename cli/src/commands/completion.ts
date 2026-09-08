@@ -1,8 +1,8 @@
-import { Command } from 'commander';
-import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
-import { homedir } from 'node:os';
-import { join } from 'node:path';
-import chalk from 'chalk';
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
+import chalk from "chalk";
+import { Command } from "commander";
 
 const BASH_COMPLETION = `# TDK CLI Bash Completion
 _tdk_completions() {
@@ -217,79 +217,83 @@ complete -c tdk -n '__fish_seen_subcommand_from upgrade' -l force -d 'Force upgr
 complete -c tdk -n '__fish_seen_subcommand_from upgrade' -l dry-run -d 'Show what would be upgraded'
 `;
 
-export const completionCommand = new Command('completion')
-  .description('Generate shell completion scripts')
-  .option('-s, --shell <shell>', 'Target shell (bash, zsh, fish)', 'bash')
-  .option('-o, --output <path>', 'Output file path (default: stdout)')
-  .option('--install', 'Install to shell config automatically')
+export const completionCommand = new Command("completion")
+  .description("Generate shell completion scripts")
+  .option("-s, --shell <shell>", "Target shell (bash, zsh, fish)", "bash")
+  .option("-o, --output <path>", "Output file path (default: stdout)")
+  .option("--install", "Install to shell config automatically")
   .action((options) => {
     const shell = options.shell.toLowerCase();
-    
+
     let completionScript: string;
     let filename: string;
-    
+
     switch (shell) {
-      case 'bash':
+      case "bash":
         completionScript = BASH_COMPLETION;
-        filename = 'tdk-completion.bash';
+        filename = "tdk-completion.bash";
         break;
-      case 'zsh':
+      case "zsh":
         completionScript = ZSH_COMPLETION;
-        filename = '_tdk';
+        filename = "_tdk";
         break;
-      case 'fish':
+      case "fish":
         completionScript = FISH_COMPLETION;
-        filename = 'tdk.fish';
+        filename = "tdk.fish";
         break;
       default:
-        console.error(chalk.red('❌ Unsupported shell: ' + shell));
-        console.log(chalk.gray('Supported shells: bash, zsh, fish'));
+        console.error(chalk.red(`❌ Unsupported shell: ${shell}`));
+        console.log(chalk.gray("Supported shells: bash, zsh, fish"));
         process.exit(1);
     }
-    
+
     if (options.install) {
       const home = homedir();
       let installPath: string;
       let installInstructions: string;
-      
+
       switch (shell) {
-        case 'bash':
-          installPath = join(home, '.bash_completion.d', filename);
-          const bashDir = join(home, '.bash_completion.d');
+        case "bash": {
+          installPath = join(home, ".bash_completion.d", filename);
+          const bashDir = join(home, ".bash_completion.d");
           if (!existsSync(bashDir)) {
             mkdirSync(bashDir, { recursive: true });
           }
-          installInstructions = '\n# Add to ~/.bashrc:\nsource ~/.bash_completion.d/' + filename;
+          installInstructions = `\n# Add to ~/.bashrc:\nsource ~/.bash_completion.d/${filename}`;
           break;
-        case 'zsh':
-          installPath = join(home, '.zsh', 'completions', filename);
-          const zshDir = join(home, '.zsh', 'completions');
+        }
+        case "zsh": {
+          installPath = join(home, ".zsh", "completions", filename);
+          const zshDir = join(home, ".zsh", "completions");
           if (!existsSync(zshDir)) {
             mkdirSync(zshDir, { recursive: true });
           }
-          installInstructions = '\n# Add to ~/.zshrc:\nfpath+=(~/.zsh/completions)\nautoload -U compinit && compinit';
+          installInstructions =
+            "\n# Add to ~/.zshrc:\nfpath+=(~/.zsh/completions)\nautoload -U compinit && compinit";
           break;
-        case 'fish':
-          installPath = join(home, '.config', 'fish', 'completions', filename);
-          const fishDir = join(home, '.config', 'fish', 'completions');
+        }
+        case "fish": {
+          installPath = join(home, ".config", "fish", "completions", filename);
+          const fishDir = join(home, ".config", "fish", "completions");
           if (!existsSync(fishDir)) {
             mkdirSync(fishDir, { recursive: true });
           }
-          installInstructions = '\n# Fish completions loaded automatically';
+          installInstructions = "\n# Fish completions loaded automatically";
           break;
+        }
         default:
-          installPath = '';
-          installInstructions = '';
+          installPath = "";
+          installInstructions = "";
       }
-      
-      writeFileSync(installPath, completionScript, 'utf-8');
-      console.log(chalk.green('✅ Installed ' + shell + ' completion to:'));
-      console.log(chalk.cyan('   ' + installPath));
+
+      writeFileSync(installPath, completionScript, "utf-8");
+      console.log(chalk.green(`✅ Installed ${shell} completion to:`));
+      console.log(chalk.cyan(`   ${installPath}`));
       console.log(chalk.yellow(installInstructions));
     } else if (options.output) {
-      writeFileSync(options.output, completionScript, 'utf-8');
-      console.log(chalk.green('✅ Written ' + shell + ' completion to:'));
-      console.log(chalk.cyan('   ' + options.output));
+      writeFileSync(options.output, completionScript, "utf-8");
+      console.log(chalk.green(`✅ Written ${shell} completion to:`));
+      console.log(chalk.cyan(`   ${options.output}`));
     } else {
       console.log(completionScript);
     }

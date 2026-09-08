@@ -1,15 +1,21 @@
-import { Command } from 'commander';
-import chalk from 'chalk';
-import { createDiscoveryContext } from '../utils/discovery-context.js';
-import { requireProjectRoot, runCommand } from '../utils/errors.js';
-import { formatCount, showEmptyState, showAllSatisfyCondition, showStep, showDetail } from '../utils/formatting.js';
+import chalk from "chalk";
+import { Command } from "commander";
+import { createDiscoveryContext } from "../utils/discovery-context.js";
+import { requireProjectRoot, runCommand } from "../utils/errors.js";
+import {
+  formatCount,
+  showAllSatisfyCondition,
+  showDetail,
+  showEmptyState,
+  showStep,
+} from "../utils/formatting.js";
 
-export const resourcesCommand = new Command('resources')
-  .description('List all resources (services) in the project')
-  .option('-v, --verbose', 'Show detailed information about each resource', false)
-  .option('-s, --stack <stack>', 'Filter resources by stack name')
-  .option('--no-stack', 'Show only resources without a stack')
-  .option('--ports', 'Show port assignments', false)
+export const resourcesCommand = new Command("resources")
+  .description("List all resources (services) in the project")
+  .option("-v, --verbose", "Show detailed information about each resource", false)
+  .option("-s, --stack <stack>", "Filter resources by stack name")
+  .option("--no-stack", "Show only resources without a stack")
+  .option("--ports", "Show port assignments", false)
   .action(async (options) => {
     await runCommand(async () => {
       requireProjectRoot();
@@ -17,7 +23,7 @@ export const resourcesCommand = new Command('resources')
       const discovery = createDiscoveryContext();
 
       if (discovery.resources.length === 0) {
-        showEmptyState('resources');
+        showEmptyState("resources");
         return;
       }
 
@@ -26,7 +32,7 @@ export const resourcesCommand = new Command('resources')
       if (options.stack) {
         resources = discovery.resourcesByStack.get(options.stack) || [];
         if (resources.length === 0) {
-          showEmptyState('stack-services', ` in stack "${options.stack}"`);
+          showEmptyState("stack-services", ` in stack "${options.stack}"`);
           return;
         }
       }
@@ -34,12 +40,12 @@ export const resourcesCommand = new Command('resources')
       if (options.noStack) {
         resources = discovery.unassignedResources;
         if (resources.length === 0) {
-          showAllSatisfyCondition('resources', 'assigned to a stack');
+          showAllSatisfyCondition("resources", "assigned to a stack");
           return;
         }
       }
 
-      showStep(`Found ${formatCount(resources.length, 'resource')}:\n`);
+      showStep(`Found ${formatCount(resources.length, "resource")}:\n`);
 
       if (options.verbose || options.ports) {
         for (const resource of resources) {
@@ -56,7 +62,7 @@ export const resourcesCommand = new Command('resources')
           }
 
           if (options.verbose) {
-            console.log(chalk.gray(`  Type: ${resource.type || 'unknown'}`));
+            console.log(chalk.gray(`  Type: ${resource.type || "unknown"}`));
             console.log(chalk.gray(`  Path: ${resource.configPath}`));
           }
 
@@ -64,19 +70,25 @@ export const resourcesCommand = new Command('resources')
         }
       } else {
         for (const resource of resources) {
-          const stackInfo = resource.stack ? chalk.gray(` [${resource.stack}]`) : chalk.yellow(' [no stack]');
+          const stackInfo = resource.stack
+            ? chalk.gray(` [${resource.stack}]`)
+            : chalk.yellow(" [no stack]");
           console.log(`  ${resource.name}${stackInfo}`);
         }
 
-        showDetail('\nRun with --verbose for more details or --ports to see port assignments.', 0);
+        showDetail("\nRun with --verbose for more details or --ports to see port assignments.", 0);
       }
 
       const withoutStackCount = options.stack
-        ? resources.filter((r: {stack?: string}) => !r.stack).length
+        ? resources.filter((r: { stack?: string }) => !r.stack).length
         : discovery.unassignedResources.length;
 
       if (withoutStackCount > 0 && !options.noStack && !options.stack) {
-        console.log(chalk.yellow(`\n${formatCount(withoutStackCount, 'resource')} not assigned to any stack.`));
+        console.log(
+          chalk.yellow(
+            `\n${formatCount(withoutStackCount, "resource")} not assigned to any stack.`,
+          ),
+        );
         showDetail('Run "tdk resources --no-stack" to see them, or "tdk stack" to assign them.');
       }
     });

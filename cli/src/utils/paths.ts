@@ -1,15 +1,15 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { resolve, join, dirname } from 'node:path';
-import { cwd } from 'node:process';
-import { fileURLToPath } from 'node:url';
-import type { JsonObject, PackageInfo } from '../types/index.js';
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { cwd } from "node:process";
+import { fileURLToPath } from "node:url";
+import type { JsonObject, PackageInfo } from "../types/index.js";
 
 export function findProjectRoot(startDir: string = cwd()): string | null {
   let currentDir = resolve(startDir);
-  const root = resolve('/');
+  const root = resolve("/");
 
   while (currentDir !== root) {
-    if (existsSync(join(currentDir, '.tdk', 'project.json'))) {
+    if (existsSync(join(currentDir, ".tdk", "project.json"))) {
       return currentDir;
     }
 
@@ -32,15 +32,15 @@ function getPackageInfo(): PackageInfo {
 
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = dirname(__filename);
-  const packagePath = resolve(__dirname, '..', '..', 'package.json');
+  const packagePath = resolve(__dirname, "..", "..", "package.json");
 
-  const content = readFileSync(packagePath, 'utf-8');
+  const content = readFileSync(packagePath, "utf-8");
 
   // Parse with unknown type, then validate before asserting type
   const parsed: unknown = JSON.parse(content);
 
   // Runtime validation: package.json must be an object, not null, not an array
-  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
     throw new Error(`Invalid package.json at ${packagePath}: expected object`);
   }
 
@@ -48,8 +48,8 @@ function getPackageInfo(): PackageInfo {
   const pkg = parsed as JsonObject;
 
   packageCache = {
-    name: String(pkg.name ?? '@tdk/cli'),
-    version: String(pkg.version ?? '0.0.0'),
+    name: String(pkg.name ?? "@tdk/cli"),
+    version: String(pkg.version ?? "0.0.0"),
     fullPackage: pkg,
   };
 

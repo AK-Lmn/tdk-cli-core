@@ -1,6 +1,6 @@
-import type { DiscoveredResource, DiscoveredStack, DiscoveryContext } from '../types/index.js';
-import { discoverResources, discoverStacks, getAllStacks } from './services.js';
-import { createCacheValidator } from './cache.js';
+import type { DiscoveredResource, DiscoveryContext } from "../types/index.js";
+import { createCacheValidator } from "./cache.js";
+import { discoverResources, discoverStacks, getAllStacks } from "./services.js";
 
 let cachedContext: DiscoveryContext | null = null;
 const cacheValidator = createCacheValidator(1000);
@@ -23,7 +23,7 @@ export function createDiscoveryContext(forceRefresh = false): DiscoveryContext {
   const stacks = discoverStacks();
   const stackNames = getAllStacks(resources);
 
-  const unassignedResources = resources.filter(r => !r.stack);
+  const unassignedResources = resources.filter((r) => !r.stack);
 
   const resourcesByStack = new Map<string, DiscoveredResource[]>();
   for (const resource of resources) {

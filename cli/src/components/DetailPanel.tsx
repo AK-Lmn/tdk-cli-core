@@ -1,13 +1,13 @@
-import React from 'react';
-import { Box, Text } from 'ink';
-import type { DiscoveredStack, DiscoveredResource, StackMetadata, ResourceMetadata, DetailPanelProps } from '../types/index.js';
-import { formatDate, getStatusColor, getStatusIcon } from '../utils/formatting.js';
+import { Box, Text } from "ink";
+import type React from "react";
+import type { DetailPanelProps } from "../types/index.js";
+import { formatDate, getStatusColor, getStatusIcon } from "../utils/formatting.js";
 
-export const DetailPanel: React.FC<DetailPanelProps> = ({ 
-  stack, 
-  service, 
+export const DetailPanel: React.FC<DetailPanelProps> = ({
+  stack,
+  service,
   stackMetadata,
-  visible 
+  visible,
 }) => {
   if (!visible) {
     return <Box width={0} />;
@@ -15,8 +15,8 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
 
   if (service) {
     return (
-      <Box 
-        width={40} 
+      <Box
+        width={40}
         flexDirection="column"
         borderStyle="single"
         borderColor="gray"
@@ -28,7 +28,7 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
             ┌─ {service.name.toUpperCase()} ─┐
           </Text>
         </Box>
-        
+
         <Box flexDirection="column" marginY={1}>
           <Box>
             <Text color="gray">Name: </Text>
@@ -36,14 +36,16 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
           </Box>
           <Box>
             <Text color="gray">Stack: </Text>
-            <Text color="white">{service.stack || 'unknown'}</Text>
+            <Text color="white">{service.stack || "unknown"}</Text>
           </Box>
           <Box>
             <Text color="gray">Type: </Text>
-            <Text color="yellow">{(service.stack || '') === 'platform' ? 'PLATFORM' : 'PRODUCT'}</Text>
+            <Text color="yellow">
+              {(service.stack || "") === "platform" ? "PLATFORM" : "PRODUCT"}
+            </Text>
           </Box>
         </Box>
-        
+
         <Box marginTop={2}>
           <Text color="gray" dimColor>
             Press <Text color="cyan">[Esc]</Text> to close
@@ -58,8 +60,8 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
     const statusIcon = getStatusIcon(stackMetadata.overallStatus);
 
     return (
-      <Box 
-        width={40} 
+      <Box
+        width={40}
         flexDirection="column"
         borderStyle="single"
         borderColor="gray"
@@ -71,7 +73,7 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
             ┌─ {stack.name.toUpperCase()} ─┐
           </Text>
         </Box>
-        
+
         <Box
           borderStyle="single"
           borderColor={statusColor}
@@ -84,7 +86,7 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
             {statusIcon} {stackMetadata.overallStatus.toUpperCase()}
           </Text>
         </Box>
-        
+
         <Box flexDirection="column" marginY={1}>
           <Box>
             <Text color="gray">Created: </Text>
@@ -101,13 +103,11 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
             Resources
           </Text>
         </Box>
-        
+
         <Box flexDirection="column">
-          {stack.resources.map((svc: {name: string}, index: number) => (
+          {stack.resources.map((svc: { name: string }, index: number) => (
             <Box key={svc.name}>
-              <Text color="gray">
-                {index === stack.resources.length - 1 ? '└─ ' : '├─ '}
-              </Text>
+              <Text color="gray">{index === stack.resources.length - 1 ? "└─ " : "├─ "}</Text>
               <Text color="white">{svc.name}</Text>
             </Box>
           ))}

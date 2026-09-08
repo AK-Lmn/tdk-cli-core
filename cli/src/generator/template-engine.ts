@@ -2,14 +2,8 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import Handlebars from "handlebars";
 import { PLATFORM_STANDARDS } from "../config/platform-standards.js";
+import type { JsonValue, ProjectConfig } from "../types/index.js";
 import { writeTextFile } from "../utils/file-helpers.js";
-import type {
-  ProjectConfig,
-  JsonValue,
-  ProjectStackDefinition,
-  ProjectOptionalInfra,
-  ProjectDiscovery,
-} from "../types/index.js";
 
 interface GeneratorContext {
   version: string;
@@ -64,7 +58,7 @@ const ALL_GENERATED_FILES = [
  * Type representing valid generated file names.
  * Derived from ALL_GENERATED_FILES const array for type safety.
  */
-type GeneratedFileName = typeof ALL_GENERATED_FILES[number];
+type GeneratedFileName = (typeof ALL_GENERATED_FILES)[number];
 
 export class TemplateEngine {
   private templatesDir: string;
@@ -138,7 +132,12 @@ export class TemplateEngine {
       runtime: PLATFORM_STANDARDS.runtime,
       project: projectConfig.project,
       stacks: projectConfig.stacks,
-      alwaysEnabledInfra: projectConfig.always_enabled_infra ?? ['verdaccio', 'database-management', 'proxy', 'infisical'],
+      alwaysEnabledInfra: projectConfig.always_enabled_infra ?? [
+        "verdaccio",
+        "database-management",
+        "proxy",
+        "infisical",
+      ],
       optionalInfra: projectConfig.optional_infra,
       serviceDescriptions: RESOURCE_DESCRIPTIONS,
       infraDescriptions: INFRA_DESCRIPTIONS,
@@ -186,7 +185,7 @@ export class TemplateEngine {
       "TILT_TECH_STACK.star": this.generateTechStack(context),
       "TILT_RESOURCE_DEFAULTS.star": this.generateServiceDefaults(context),
       "spec.master": this.generateSpecMaster(context),
-      "Tiltfile": this.generateTiltfile(context),
+      Tiltfile: this.generateTiltfile(context),
       ".tiltignore": this.generateTiltIgnore(context),
     };
   }
@@ -225,10 +224,12 @@ function isProjectConfig(value: unknown): value is ProjectConfig {
     return false;
   }
   const stacks = config.stacks as Record<string, unknown>;
-  if (typeof stacks.pre_alpha !== "object" ||
-      typeof stacks.alpha !== "object" ||
-      typeof stacks.beta !== "object" ||
-      typeof stacks.out_of_scope !== "object") {
+  if (
+    typeof stacks.pre_alpha !== "object" ||
+    typeof stacks.alpha !== "object" ||
+    typeof stacks.beta !== "object" ||
+    typeof stacks.out_of_scope !== "object"
+  ) {
     return false;
   }
 
@@ -236,10 +237,12 @@ function isProjectConfig(value: unknown): value is ProjectConfig {
     return false;
   }
   const optionalInfra = config.optional_infra as Record<string, unknown>;
-  if (typeof optionalInfra.monitoring !== "boolean" ||
-      typeof optionalInfra.elk !== "boolean" ||
-      typeof optionalInfra.debezium !== "boolean" ||
-      typeof optionalInfra.golden_image !== "boolean") {
+  if (
+    typeof optionalInfra.monitoring !== "boolean" ||
+    typeof optionalInfra.elk !== "boolean" ||
+    typeof optionalInfra.debezium !== "boolean" ||
+    typeof optionalInfra.golden_image !== "boolean"
+  ) {
     return false;
   }
 
@@ -267,10 +270,10 @@ export function readProjectConfig(projectRoot: string): ProjectConfig {
   if (!isProjectConfig(parsed)) {
     throw new Error(
       "Invalid project.json: missing or invalid required fields. " +
-      "Expected: version (string), project (object with name/version), " +
-      "stacks (object with pre_alpha/alpha/beta/out_of_scope), " +
-      "optional_infra (object with boolean flags), " +
-      "discovery (object with paths array)"
+        "Expected: version (string), project (object with name/version), " +
+        "stacks (object with pre_alpha/alpha/beta/out_of_scope), " +
+        "optional_infra (object with boolean flags), " +
+        "discovery (object with paths array)",
     );
   }
 

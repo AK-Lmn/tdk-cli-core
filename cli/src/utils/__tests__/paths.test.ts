@@ -1,80 +1,80 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync } from 'node:fs';
-import { join, resolve } from 'node:path';
-import { tmpdir } from 'node:os';
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { findProjectRoot } from '../paths.js';
+import { findProjectRoot } from "../paths.js";
 
-describe('findProjectRoot', () => {
+describe("findProjectRoot", () => {
   let tmpDir: string;
 
   beforeEach(() => {
-    tmpDir = mkdtempSync(join(tmpdir(), 'tdk-test-'));
+    tmpDir = mkdtempSync(join(tmpdir(), "tdk-test-"));
   });
 
   afterEach(() => {
     rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('should find project root when .tdk/project.json exists', () => {
-    mkdirSync(join(tmpDir, '.tdk'), { recursive: true });
-    writeFileSync(join(tmpDir, '.tdk', 'project.json'), JSON.stringify({ version: '2' }));
+  it("should find project root when .tdk/project.json exists", () => {
+    mkdirSync(join(tmpDir, ".tdk"), { recursive: true });
+    writeFileSync(join(tmpDir, ".tdk", "project.json"), JSON.stringify({ version: "2" }));
 
     const root = findProjectRoot(tmpDir);
     expect(root).toBe(tmpDir);
   });
 
-  it('should find project root from a nested subdirectory', () => {
-    mkdirSync(join(tmpDir, '.tdk'), { recursive: true });
-    writeFileSync(join(tmpDir, '.tdk', 'project.json'), JSON.stringify({ version: '2' }));
-    const subDir = join(tmpDir, 'services', 'product', 'my-service', 'backend');
+  it("should find project root from a nested subdirectory", () => {
+    mkdirSync(join(tmpDir, ".tdk"), { recursive: true });
+    writeFileSync(join(tmpDir, ".tdk", "project.json"), JSON.stringify({ version: "2" }));
+    const subDir = join(tmpDir, "services", "product", "my-service", "backend");
     mkdirSync(subDir, { recursive: true });
 
     const root = findProjectRoot(subDir);
     expect(root).toBe(tmpDir);
   });
 
-  it('should return null when no .tdk/project.json exists', () => {
-    mkdirSync(join(tmpDir, 'services'), { recursive: true });
+  it("should return null when no .tdk/project.json exists", () => {
+    mkdirSync(join(tmpDir, "services"), { recursive: true });
 
     const root = findProjectRoot(tmpDir);
     expect(root).toBeNull();
   });
 
-  it('should return null when .tdk directory exists but no project.json inside', () => {
-    mkdirSync(join(tmpDir, '.tdk'), { recursive: true });
+  it("should return null when .tdk directory exists but no project.json inside", () => {
+    mkdirSync(join(tmpDir, ".tdk"), { recursive: true });
 
     const root = findProjectRoot(tmpDir);
     expect(root).toBeNull();
   });
 
-  it('should return null from empty directory', () => {
+  it("should return null from empty directory", () => {
     const root = findProjectRoot(tmpDir);
     expect(root).toBeNull();
   });
 
-  it('should stop at filesystem root and not loop infinitely', () => {
-    const root = findProjectRoot('/');
+  it("should stop at filesystem root and not loop infinitely", () => {
+    const root = findProjectRoot("/");
     expect(root).toBeNull();
   });
 
-  it('should handle very deep paths correctly', () => {
-    mkdirSync(join(tmpDir, '.tdk'), { recursive: true });
-    writeFileSync(join(tmpDir, '.tdk', 'project.json'), JSON.stringify({ version: '2' }));
+  it("should handle very deep paths correctly", () => {
+    mkdirSync(join(tmpDir, ".tdk"), { recursive: true });
+    writeFileSync(join(tmpDir, ".tdk", "project.json"), JSON.stringify({ version: "2" }));
 
-    const deepDir = join(tmpDir, 'a', 'b', 'c', 'd', 'e', 'f', 'g');
+    const deepDir = join(tmpDir, "a", "b", "c", "d", "e", "f", "g");
     mkdirSync(deepDir, { recursive: true });
 
     const root = findProjectRoot(deepDir);
     expect(root).toBe(tmpDir);
   });
 
-  it('should handle paths with symlinks (resolve to real path)', () => {
-    mkdirSync(join(tmpDir, '.tdk'), { recursive: true });
-    writeFileSync(join(tmpDir, '.tdk', 'project.json'), JSON.stringify({ version: '2' }));
-    const realDir = join(tmpDir, 'real');
+  it("should handle paths with symlinks (resolve to real path)", () => {
+    mkdirSync(join(tmpDir, ".tdk"), { recursive: true });
+    writeFileSync(join(tmpDir, ".tdk", "project.json"), JSON.stringify({ version: "2" }));
+    const realDir = join(tmpDir, "real");
     mkdirSync(realDir, { recursive: true });
-    const linkDir = join(tmpDir, 'link');
+    const linkDir = join(tmpDir, "link");
 
     try {
       symlinkSync(realDir, linkDir);
@@ -85,11 +85,11 @@ describe('findProjectRoot', () => {
     }
   });
 
-  it('should not confuse .tdk directory outside project root', () => {
-    const outerDir = mkdtempSync(join(tmpdir(), 'tdk-outer-'));
+  it("should not confuse .tdk directory outside project root", () => {
+    const outerDir = mkdtempSync(join(tmpdir(), "tdk-outer-"));
     try {
-      mkdirSync(join(outerDir, '.tdk'), { recursive: true });
-      writeFileSync(join(outerDir, '.tdk', 'project.json'), JSON.stringify({ version: '2' }));
+      mkdirSync(join(outerDir, ".tdk"), { recursive: true });
+      writeFileSync(join(outerDir, ".tdk", "project.json"), JSON.stringify({ version: "2" }));
 
       const root = findProjectRoot(tmpDir);
       expect(root).toBeNull();
@@ -98,28 +98,28 @@ describe('findProjectRoot', () => {
     }
   });
 
-  it('should return resolved path (no trailing separators or dot segments)', () => {
-    mkdirSync(join(tmpDir, '.tdk'), { recursive: true });
-    writeFileSync(join(tmpDir, '.tdk', 'project.json'), JSON.stringify({ version: '2' }));
+  it("should return resolved path (no trailing separators or dot segments)", () => {
+    mkdirSync(join(tmpDir, ".tdk"), { recursive: true });
+    writeFileSync(join(tmpDir, ".tdk", "project.json"), JSON.stringify({ version: "2" }));
 
-    const root = findProjectRoot(join(tmpDir, '.', 'services', '..'));
+    const root = findProjectRoot(join(tmpDir, ".", "services", ".."));
     expect(root).toBe(tmpDir);
   });
 
-  it('should find project root with trailing slash in startDir', () => {
-    mkdirSync(join(tmpDir, '.tdk'), { recursive: true });
-    writeFileSync(join(tmpDir, '.tdk', 'project.json'), JSON.stringify({ version: '2' }));
+  it("should find project root with trailing slash in startDir", () => {
+    mkdirSync(join(tmpDir, ".tdk"), { recursive: true });
+    writeFileSync(join(tmpDir, ".tdk", "project.json"), JSON.stringify({ version: "2" }));
 
-    const root = findProjectRoot(tmpDir + '/');
+    const root = findProjectRoot(`${tmpDir}/`);
     expect(root).toBe(tmpDir);
   });
 
-  it('should handle startDir being a non-existent path (resolves to cwd parent)', () => {
-    mkdirSync(join(tmpDir, '.tdk'), { recursive: true });
-    writeFileSync(join(tmpDir, '.tdk', 'project.json'), JSON.stringify({ version: '2' }));
+  it("should handle startDir being a non-existent path (resolves to cwd parent)", () => {
+    mkdirSync(join(tmpDir, ".tdk"), { recursive: true });
+    writeFileSync(join(tmpDir, ".tdk", "project.json"), JSON.stringify({ version: "2" }));
 
     // A non-existent path - resolve will still produce something based on cwd
-    const root = findProjectRoot(resolve(tmpDir, 'nonexistent', 'dir'));
+    const root = findProjectRoot(resolve(tmpDir, "nonexistent", "dir"));
 
     // Since we have .tdk/project.json in tmpDir and the resolved path
     // starts with tmpDir, walking up should find it
@@ -129,14 +129,14 @@ describe('findProjectRoot', () => {
     expect(root).toBe(tmpDir);
   });
 
-  it('should work when .tdk is a symlink to another directory', () => {
-    const realTdkDir = join(tmpDir, 'real-tdk');
+  it("should work when .tdk is a symlink to another directory", () => {
+    const realTdkDir = join(tmpDir, "real-tdk");
     mkdirSync(realTdkDir, { recursive: true });
-    writeFileSync(join(realTdkDir, 'project.json'), JSON.stringify({ version: '2' }));
-    mkdirSync(join(tmpDir, 'services'), { recursive: true });
+    writeFileSync(join(realTdkDir, "project.json"), JSON.stringify({ version: "2" }));
+    mkdirSync(join(tmpDir, "services"), { recursive: true });
 
     try {
-      symlinkSync(realTdkDir, join(tmpDir, '.tdk'));
+      symlinkSync(realTdkDir, join(tmpDir, ".tdk"));
       const root = findProjectRoot(tmpDir);
       expect(root).toBe(tmpDir);
     } catch {
@@ -144,35 +144,35 @@ describe('findProjectRoot', () => {
     }
   });
 
-  it('should find project root even when there are multiple .tdk directories in the path', () => {
+  it("should find project root even when there are multiple .tdk directories in the path", () => {
     // Create a .tdk/project.json in a parent and child
-    mkdirSync(join(tmpDir, '.tdk'), { recursive: true });
-    writeFileSync(join(tmpDir, '.tdk', 'project.json'), JSON.stringify({ version: '2' }));
-    mkdirSync(join(tmpDir, 'subdir', '.tdk'), { recursive: true });
-    writeFileSync(join(tmpDir, 'subdir', '.tdk', 'project.json'), JSON.stringify({ version: '2' }));
+    mkdirSync(join(tmpDir, ".tdk"), { recursive: true });
+    writeFileSync(join(tmpDir, ".tdk", "project.json"), JSON.stringify({ version: "2" }));
+    mkdirSync(join(tmpDir, "subdir", ".tdk"), { recursive: true });
+    writeFileSync(join(tmpDir, "subdir", ".tdk", "project.json"), JSON.stringify({ version: "2" }));
 
     // Starting from the child, it should find the child first
-    const root = findProjectRoot(join(tmpDir, 'subdir'));
-    expect(root).toBe(join(tmpDir, 'subdir'));
+    const root = findProjectRoot(join(tmpDir, "subdir"));
+    expect(root).toBe(join(tmpDir, "subdir"));
   });
 });
 
-describe('getPackageVersion', () => {
-  it('should return a non-empty string version', async () => {
-    const { getPackageVersion } = await import('../paths.js');
+describe("getPackageVersion", () => {
+  it("should return a non-empty string version", async () => {
+    const { getPackageVersion } = await import("../paths.js");
     const version = getPackageVersion();
-    expect(version).toBeTypeOf('string');
+    expect(version).toBeTypeOf("string");
     expect(version.length).toBeGreaterThan(0);
   });
 
-  it('should return version matching semver pattern', async () => {
-    const { getPackageVersion } = await import('../paths.js');
+  it("should return version matching semver pattern", async () => {
+    const { getPackageVersion } = await import("../paths.js");
     const version = getPackageVersion();
     expect(version).toMatch(/^\d+\.\d+\.\d+/);
   });
 
-  it('should return cached value on repeated calls', async () => {
-    const { getPackageVersion } = await import('../paths.js');
+  it("should return cached value on repeated calls", async () => {
+    const { getPackageVersion } = await import("../paths.js");
     const v1 = getPackageVersion();
     const v2 = getPackageVersion();
     expect(v1).toBe(v2);

@@ -1,7 +1,7 @@
-export { TabBar } from './TabBar.js';
-export { DetailPanel } from './DetailPanel.js';
-export { ResourceTable } from './ResourceTable.js';
-export { FileTree } from './FileTree.js';
-export { AccessibleTooltip } from './Accessible.js';
-export { TOOLTIPS } from './Tooltip.js';
-export { ResourceSelectInput } from './ResourceSelectInput.js';
+export { AccessibleTooltip } from "./Accessible.js";
+export { DetailPanel } from "./DetailPanel.js";
+export { FileTree } from "./FileTree.js";
+export { ResourceSelectInput } from "./ResourceSelectInput.js";
+export { ResourceTable } from "./ResourceTable.js";
+export { TabBar } from "./TabBar.js";
+export { TOOLTIPS } from "./Tooltip.js";

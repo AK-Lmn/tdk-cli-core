@@ -1,7 +1,7 @@
-import React from 'react';
-import { Text } from 'ink';
-import SelectInput from 'ink-select-input';
-import type { ResourceSelectInputProps, SelectItem } from '../types/index.js';
+import { Text } from "ink";
+import SelectInput from "ink-select-input";
+import type React from "react";
+import type { ResourceSelectInputProps } from "../types/index.js";
 
 export const ResourceSelectInput: React.FC<ResourceSelectInputProps> = ({
   items,
@@ -14,15 +14,13 @@ export const ResourceSelectInput: React.FC<ResourceSelectInputProps> = ({
       onSelect={onSelect}
       initialIndex={highlightedIndex}
       indicatorComponent={({ isSelected }) => (
-        <Text color={isSelected ? 'cyan' : undefined}>
-          {isSelected ? '▓▒░ ' : '    '}
-        </Text>
+        <Text color={isSelected ? "cyan" : undefined}>{isSelected ? "▓▒░ " : "    "}</Text>
       )}
       itemComponent={({ isSelected, label }) => (
         <Text
-          color={isSelected ? 'cyan' : 'white'}
+          color={isSelected ? "cyan" : "white"}
           bold={isSelected}
-          backgroundColor={isSelected ? 'black' : undefined}
+          backgroundColor={isSelected ? "black" : undefined}
         >
           {label}
         </Text>

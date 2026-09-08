@@ -1,29 +1,28 @@
-import { Command } from 'commander';
-import { existsSync, mkdirSync } from 'node:fs';
-import { resolve, relative, isAbsolute } from 'node:path';
-import chalk from 'chalk';
-import inquirer from 'inquirer';
-import type { CreatableResourceType, ResourceType, JsonValue, FileGenerationTask } from '../types/index.js';
-import { CREATABLE_RESOURCE_TYPES, isCreatableResourceType } from '../types/index.js';
-import { discoverResources } from '../utils/services.js';
-import { requireProjectRoot, runCommand, errorFactories } from '../utils/errors.js';
-import { validateResourceName, createKebabCaseValidator } from '../utils/validation.js';
-import { formatCount, showCommandHeader } from '../utils/formatting.js';
-import { PORT_RANGES } from '../utils/constants.js';
-import { assignPort } from '../utils/port-assignment.js';
-import { writeJsonFileInDir, writeTextFileInDir, writeFilesWithProgress } from '../utils/file-helpers.js';
-import { assertValid, confirmOrCancel } from '../utils/command-helpers.js';
+import { existsSync, mkdirSync } from "node:fs";
+import { isAbsolute, relative, resolve } from "node:path";
+import chalk from "chalk";
+import { Command } from "commander";
+import inquirer from "inquirer";
+import type { CreatableResourceType, FileGenerationTask } from "../types/index.js";
+import { CREATABLE_RESOURCE_TYPES } from "../types/index.js";
+import { assertValid, confirmOrCancel } from "../utils/command-helpers.js";
+import { errorFactories, requireProjectRoot, runCommand } from "../utils/errors.js";
+import { writeFilesWithProgress } from "../utils/file-helpers.js";
+import { showCommandHeader } from "../utils/formatting.js";
+import { assignPort } from "../utils/port-assignment.js";
+import { discoverResources } from "../utils/services.js";
+import { createKebabCaseValidator, validateResourceName } from "../utils/validation.js";
 
 export const BASE_TEMPLATE = {
   port: 0, // Will be assigned
   dependencies: [],
   build: {
-    dockerfile: 'Dockerfile',
-    context: '.',
+    dockerfile: "Dockerfile",
+    context: ".",
   },
   dev: {
-    command: 'bun run dev',
-    watch: ['src/**/*'],
+    command: "bun run dev",
+    watch: ["src/**/*"],
   },
 } as const;
 
@@ -37,28 +36,33 @@ interface TypeSpecificConfig {
 
 export const TYPE_SPECIFIC: Record<CreatableResourceType, TypeSpecificConfig> = {
   backend: {
-    healthCheck: '/health',
+    healthCheck: "/health",
   },
   frontend: {
     dev: {
-      command: 'bun run dev',
-      watch: ['src/**/*', 'public/**/*'],
+      command: "bun run dev",
+      watch: ["src/**/*", "public/**/*"],
     },
   },
   worker: {
     dev: {
-      command: 'bun run worker',
-      watch: ['src/**/*'],
+      command: "bun run worker",
+      watch: ["src/**/*"],
     },
   },
 };
 
-export function createServiceJson(name: string, type: CreatableResourceType, stack: string, port: number) {
+export function createServiceJson(
+  name: string,
+  type: CreatableResourceType,
+  stack: string,
+  port: number,
+) {
   const typeSpecific = TYPE_SPECIFIC[type];
 
   const base = JSON.parse(JSON.stringify(BASE_TEMPLATE));
   for (const [key, value] of Object.entries(typeSpecific)) {
-    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+    if (typeof value === "object" && value !== null && !Array.isArray(value)) {
       base[key] = { ...base[key], ...value };
     } else {
       base[key] = value;
@@ -75,49 +79,49 @@ export function createServiceJson(name: string, type: CreatableResourceType, sta
 }
 
 export function createPackageJson(name: string, type: string) {
-  const isFrontend = type === 'frontend';
+  const isFrontend = type === "frontend";
 
   return {
     name: `@project/${name}`,
-    version: '0.0.1',
-    type: 'module',
+    version: "0.0.1",
+    type: "module",
     scripts: {
-      dev: isFrontend ? 'vite' : 'bun run --watch src/index.ts',
-      build: isFrontend ? 'tsc && vite build' : 'tsc',
-      test: 'vitest',
-      lint: 'biome check .',
-      'lint:fix': 'biome check . --write',
+      dev: isFrontend ? "vite" : "bun run --watch src/index.ts",
+      build: isFrontend ? "tsc && vite build" : "tsc",
+      test: "vitest",
+      lint: "biome check .",
+      "lint:fix": "biome check . --write",
     },
     dependencies: {
-      ...(isFrontend ? {} : { hono: '^4.0.0' }),
+      ...(isFrontend ? {} : { hono: "^4.0.0" }),
     },
     devDependencies: {
-      '@types/bun': 'latest',
-      typescript: '^5.0.0',
-      vitest: '^1.0.0',
-      '@biomejs/biome': '^1.5.0',
-      ...(isFrontend ? { vite: '^5.0.0' } : {}),
+      "@types/bun": "latest",
+      typescript: "^5.0.0",
+      vitest: "^1.0.0",
+      "@biomejs/biome": "^1.5.0",
+      ...(isFrontend ? { vite: "^5.0.0" } : {}),
     },
   };
 }
 
 export const TSCONFIG_TEMPLATE = {
   compilerOptions: {
-    target: 'ES2022',
-    module: 'ESNext',
-    moduleResolution: 'bundler',
+    target: "ES2022",
+    module: "ESNext",
+    moduleResolution: "bundler",
     strict: true,
     esModuleInterop: true,
     skipLibCheck: true,
     forceConsistentCasingInFileNames: true,
-    outDir: './dist',
-    rootDir: './src',
+    outDir: "./dist",
+    rootDir: "./src",
     declaration: true,
     declarationMap: true,
     sourceMap: true,
   },
-  include: ['src/**/*'],
-  exclude: ['node_modules', 'dist'],
+  include: ["src/**/*"],
+  exclude: ["node_modules", "dist"],
 };
 
 export const DOCKERFILE_TEMPLATE = `FROM oven/bun:1.2
@@ -227,7 +231,8 @@ function getFrontendAppTemplate(name: string) {
 }
 
 export default App;
-`;}
+`;
+}
 
 function getShutdownHandlerTemplate(signal: string): string {
   return `process.on('${signal}', () => {
@@ -296,9 +301,9 @@ async function main() {
   }
 }
 
-${getShutdownHandlerTemplate('SIGTERM')}
+${getShutdownHandlerTemplate("SIGTERM")}
 
-${getShutdownHandlerTemplate('SIGINT')}
+${getShutdownHandlerTemplate("SIGINT")}
 
 main().catch((err) => {
   console.error('[Worker] Fatal error:', err);
@@ -315,16 +320,17 @@ describe('${name}', () => {
     expect(true).toBe(true);
   });
 });
-`;}
+`;
+}
 
-export const resourceCommand = new Command('resource')
-  .description('Create a new resource (service) from scratch, or register an existing one')
-  .argument('[name]', 'Resource name (kebab-case)')
-  .option('-t, --type <type>', 'Resource type: backend, frontend, worker, sdk', 'backend')
-  .option('-s, --stack <stack>', 'Stack to assign resource to', 'default')
-  .option('-p, --path <path>', 'Custom path for resource directory')
-  .option('--resource-path <path>', 'Alias for --path (for backward compatibility)')
-  .option('--register-existing', 'Register an existing resource without creating templates')
+export const resourceCommand = new Command("resource")
+  .description("Create a new resource (service) from scratch, or register an existing one")
+  .argument("[name]", "Resource name (kebab-case)")
+  .option("-t, --type <type>", "Resource type: backend, frontend, worker, sdk", "backend")
+  .option("-s, --stack <stack>", "Stack to assign resource to", "default")
+  .option("-p, --path <path>", "Custom path for resource directory")
+  .option("--resource-path <path>", "Alias for --path (for backward compatibility)")
+  .option("--register-existing", "Register an existing resource without creating templates")
   .action(async (name, options) => {
     await runCommand(async () => {
       const projectRoot = requireProjectRoot();
@@ -332,45 +338,49 @@ export const resourceCommand = new Command('resource')
       // Support --resource-path as alias for --path
       const resourcePath = options.resourcePath || options.path;
 
-      showCommandHeader('Resource Creation');
+      showCommandHeader("Resource Creation");
 
       const allResources = discoverResources();
 
       let resourceName = name;
       if (!resourceName) {
-        const { inputName } = await inquirer.prompt([{
-          type: 'input',
-          name: 'inputName',
-          message: 'Resource name (kebab-case):',
-          validate: createKebabCaseValidator('resource')
-        }]);
+        const { inputName } = await inquirer.prompt([
+          {
+            type: "input",
+            name: "inputName",
+            message: "Resource name (kebab-case):",
+            validate: createKebabCaseValidator("resource"),
+          },
+        ]);
         resourceName = inputName;
       } else {
         assertValid(validateResourceName(resourceName));
       }
 
       // Support sdk type for registering existing SDKs
-      let resourceType: CreatableResourceType | 'sdk';
-      const validTypes = [...CREATABLE_RESOURCE_TYPES, 'sdk'] as const;
+      let resourceType: CreatableResourceType | "sdk";
+      const validTypes = [...CREATABLE_RESOURCE_TYPES, "sdk"] as const;
       if (!validTypes.includes(options.type)) {
-        const { selectedType } = await inquirer.prompt([{
-          type: 'list',
-          name: 'selectedType',
-          message: 'Resource type:',
-          choices: [
-            { name: 'backend - API service with HTTP endpoints', value: 'backend' },
-            { name: 'frontend - Web application/UI', value: 'frontend' },
-            { name: 'worker - Background job processor', value: 'worker' },
-            { name: 'sdk - Library/SDK (register existing)', value: 'sdk' },
-          ]
-        }]);
+        const { selectedType } = await inquirer.prompt([
+          {
+            type: "list",
+            name: "selectedType",
+            message: "Resource type:",
+            choices: [
+              { name: "backend - API service with HTTP endpoints", value: "backend" },
+              { name: "frontend - Web application/UI", value: "frontend" },
+              { name: "worker - Background job processor", value: "worker" },
+              { name: "sdk - Library/SDK (register existing)", value: "sdk" },
+            ],
+          },
+        ]);
         resourceType = selectedType;
       } else {
         resourceType = options.type;
       }
 
       let stackName = options.stack;
-      if (stackName === 'default') {
+      if (stackName === "default") {
         const existingResources = allResources;
         const stackSet = new Set<string>();
         for (const r of existingResources) {
@@ -379,42 +389,48 @@ export const resourceCommand = new Command('resource')
         const existingStacks = Array.from(stackSet);
 
         if (existingStacks.length > 0) {
-          const { selectedStack } = await inquirer.prompt([{
-            type: 'list',
-            name: 'selectedStack',
-            message: 'Assign to stack:',
-            choices: [
-              ...existingStacks.map(s => ({ name: s, value: s })),
-              { name: 'Create new stack', value: '__new__' },
-            ]
-          }]);
-          
-          if (selectedStack === '__new__') {
-            const { newStack } = await inquirer.prompt([{
-              type: 'input',
-              name: 'newStack',
-              message: 'New stack name:',
-              validate: createKebabCaseValidator('stack')
-            }]);
+          const { selectedStack } = await inquirer.prompt([
+            {
+              type: "list",
+              name: "selectedStack",
+              message: "Assign to stack:",
+              choices: [
+                ...existingStacks.map((s) => ({ name: s, value: s })),
+                { name: "Create new stack", value: "__new__" },
+              ],
+            },
+          ]);
+
+          if (selectedStack === "__new__") {
+            const { newStack } = await inquirer.prompt([
+              {
+                type: "input",
+                name: "newStack",
+                message: "New stack name:",
+                validate: createKebabCaseValidator("stack"),
+              },
+            ]);
             stackName = newStack;
           } else {
             stackName = selectedStack;
           }
         } else {
-          const { newStack } = await inquirer.prompt([{
-            type: 'input',
-            name: 'newStack',
-            message: 'Stack name (first resource):',
-            default: 'main',
-            validate: createKebabCaseValidator('stack')
-          }]);
+          const { newStack } = await inquirer.prompt([
+            {
+              type: "input",
+              name: "newStack",
+              message: "Stack name (first resource):",
+              default: "main",
+              validate: createKebabCaseValidator("stack"),
+            },
+          ]);
           stackName = newStack;
         }
       }
 
       let finalResourcePath = resourcePath;
       if (!finalResourcePath) {
-        const defaultPaths: Record<CreatableResourceType | 'sdk', string> = {
+        const defaultPaths: Record<CreatableResourceType | "sdk", string> = {
           backend: `services/${stackName}/${resourceName}`,
           frontend: `apps/${resourceName}`,
           worker: `workers/${resourceName}`,
@@ -427,64 +443,76 @@ export const resourceCommand = new Command('resource')
 
       // Prevent path traversal attacks
       const relativePathResult = relative(projectRoot, fullPath);
-      if (relativePathResult.startsWith('..') || isAbsolute(relativePathResult)) {
+      if (relativePathResult.startsWith("..") || isAbsolute(relativePathResult)) {
         errorFactories.invalidPath(fullPath).display();
         process.exit(1);
       }
 
-      if (finalResourcePath.includes('\0') || /[<>:"|?*]/.test(finalResourcePath)) {
+      if (finalResourcePath.includes("\0") || /[<>:"|?*]/.test(finalResourcePath)) {
         errorFactories.invalidPath(finalResourcePath).display();
         process.exit(1);
       }
 
       // Check if resource already exists
       const isExistingResource = existsSync(fullPath);
-      const hasServiceJson = existsSync(resolve(fullPath, 'service.json'));
-      const shouldRegisterExisting = options.registerExisting || resourceType === 'sdk' || (isExistingResource && hasServiceJson);
+      const hasServiceJson = existsSync(resolve(fullPath, "service.json"));
+      const shouldRegisterExisting =
+        options.registerExisting ||
+        resourceType === "sdk" ||
+        (isExistingResource && hasServiceJson);
 
       if (isExistingResource && !shouldRegisterExisting) {
         errorFactories.directoryExists(fullPath).display();
         process.exit(1);
       }
 
-      const assignedPort = resourceType === 'sdk' ? 0 : assignPort(resourceType as CreatableResourceType, allResources);
+      const assignedPort =
+        resourceType === "sdk"
+          ? 0
+          : assignPort(resourceType as CreatableResourceType, allResources);
 
-      console.log(chalk.gray('\nResource details:'));
+      console.log(chalk.gray("\nResource details:"));
       console.log(chalk.gray(`  Name:  ${resourceName}`));
       console.log(chalk.gray(`  Type:  ${resourceType}`));
       console.log(chalk.gray(`  Stack: ${stackName}`));
-      console.log(chalk.gray(`  Port:  ${assignedPort || 'N/A (SDK)'}`));
+      console.log(chalk.gray(`  Port:  ${assignedPort || "N/A (SDK)"}`));
       console.log(chalk.gray(`  Path:  ${finalResourcePath}`));
 
       if (shouldRegisterExisting && hasServiceJson) {
-        console.log(chalk.yellow('\n⚠️  Existing resource detected - will update service.json only'));
+        console.log(
+          chalk.yellow("\n⚠️  Existing resource detected - will update service.json only"),
+        );
       }
 
-      const confirmed = await confirmOrCancel(shouldRegisterExisting && hasServiceJson ? '\nRegister existing resource?' : '\nCreate resource?');
+      const confirmed = await confirmOrCancel(
+        shouldRegisterExisting && hasServiceJson
+          ? "\nRegister existing resource?"
+          : "\nCreate resource?",
+      );
       if (!confirmed) return;
 
       // Handle existing resource registration
       if (shouldRegisterExisting && hasServiceJson) {
         // Read existing service.json
-        const { readFileSync } = await import('node:fs');
-        const existingServiceJsonPath = resolve(fullPath, 'service.json');
-        const existingContent = readFileSync(existingServiceJsonPath, 'utf-8');
+        const { readFileSync } = await import("node:fs");
+        const existingServiceJsonPath = resolve(fullPath, "service.json");
+        const existingContent = readFileSync(existingServiceJsonPath, "utf-8");
         const existingServiceJson = JSON.parse(existingContent);
 
         // Update with new values while preserving existing fields
         const updatedServiceJson = {
           ...existingServiceJson,
           appName: resourceName,
-          appType: resourceType === 'sdk' ? 'sdk' : existingServiceJson.appType || resourceType,
+          appType: resourceType === "sdk" ? "sdk" : existingServiceJson.appType || resourceType,
           stack: stackName,
           ...(assignedPort > 0 && { port: assignedPort }),
         };
 
         // Write updated service.json
-        const { writeFileSync } = await import('node:fs');
+        const { writeFileSync } = await import("node:fs");
         writeFileSync(existingServiceJsonPath, JSON.stringify(updatedServiceJson, null, 2));
 
-        console.log(chalk.green('\n✅ Existing resource registered successfully!'));
+        console.log(chalk.green("\n✅ Existing resource registered successfully!"));
         console.log(chalk.gray(`\nLocation: ${fullPath}`));
         console.log(chalk.gray(`\nNext steps:`));
         console.log(chalk.gray(`  tdk up ${stackName}`));
@@ -492,41 +520,106 @@ export const resourceCommand = new Command('resource')
       }
 
       // Create directory structure for new resources
-      console.log(chalk.blue('\n📁 Creating directory structure...'));
+      console.log(chalk.blue("\n📁 Creating directory structure..."));
       mkdirSync(fullPath, { recursive: true });
-      mkdirSync(resolve(fullPath, 'src'), { recursive: true });
-      mkdirSync(resolve(fullPath, 'tests'), { recursive: true });
+      mkdirSync(resolve(fullPath, "src"), { recursive: true });
+      mkdirSync(resolve(fullPath, "tests"), { recursive: true });
 
       // Prepare file generation tasks
-      const serviceJson = createServiceJson(resourceName, resourceType as CreatableResourceType, stackName, assignedPort);
+      const serviceJson = createServiceJson(
+        resourceName,
+        resourceType as CreatableResourceType,
+        stackName,
+        assignedPort,
+      );
       const packageJson = createPackageJson(resourceName, resourceType);
 
       const tasks: FileGenerationTask[] = [
-        { type: 'json', filename: 'service.json', content: serviceJson, description: 'Generating service.json', emoji: '📝' },
-        { type: 'json', filename: 'package.json', content: packageJson, description: 'Generating package.json', emoji: '📦' },
-        { type: 'json', filename: 'tsconfig.json', content: TSCONFIG_TEMPLATE, description: 'Generating tsconfig.json', emoji: '⚙️' },
-        { type: 'text', filename: 'Dockerfile', content: DOCKERFILE_TEMPLATE, description: 'Generating Dockerfile', emoji: '🐳' },
+        {
+          type: "json",
+          filename: "service.json",
+          content: serviceJson,
+          description: "Generating service.json",
+          emoji: "📝",
+        },
+        {
+          type: "json",
+          filename: "package.json",
+          content: packageJson,
+          description: "Generating package.json",
+          emoji: "📦",
+        },
+        {
+          type: "json",
+          filename: "tsconfig.json",
+          content: TSCONFIG_TEMPLATE,
+          description: "Generating tsconfig.json",
+          emoji: "⚙️",
+        },
+        {
+          type: "text",
+          filename: "Dockerfile",
+          content: DOCKERFILE_TEMPLATE,
+          description: "Generating Dockerfile",
+          emoji: "🐳",
+        },
       ];
 
       // Add source files based on resource type
-      if (resourceType === 'backend') {
-        tasks.push({ type: 'text', filename: 'src/index.ts', content: getBackendIndexTemplate(resourceName), description: 'Generating backend source', emoji: '💻' });
-      } else if (resourceType === 'frontend') {
-        tasks.push({ type: 'text', filename: 'index.html', content: getFrontendIndexTemplate(resourceName), description: 'Generating HTML template', emoji: '💻' });
-        tasks.push({ type: 'text', filename: 'src/main.tsx', content: FRONTEND_MAIN_TEMPLATE, description: 'Generating React entry', emoji: '💻' });
-        tasks.push({ type: 'text', filename: 'src/App.tsx', content: getFrontendAppTemplate(resourceName), description: 'Generating React app', emoji: '💻' });
-      } else if (resourceType === 'worker') {
-        tasks.push({ type: 'text', filename: 'src/index.ts', content: getWorkerIndexTemplate(resourceName), description: 'Generating worker source', emoji: '💻' });
+      if (resourceType === "backend") {
+        tasks.push({
+          type: "text",
+          filename: "src/index.ts",
+          content: getBackendIndexTemplate(resourceName),
+          description: "Generating backend source",
+          emoji: "💻",
+        });
+      } else if (resourceType === "frontend") {
+        tasks.push({
+          type: "text",
+          filename: "index.html",
+          content: getFrontendIndexTemplate(resourceName),
+          description: "Generating HTML template",
+          emoji: "💻",
+        });
+        tasks.push({
+          type: "text",
+          filename: "src/main.tsx",
+          content: FRONTEND_MAIN_TEMPLATE,
+          description: "Generating React entry",
+          emoji: "💻",
+        });
+        tasks.push({
+          type: "text",
+          filename: "src/App.tsx",
+          content: getFrontendAppTemplate(resourceName),
+          description: "Generating React app",
+          emoji: "💻",
+        });
+      } else if (resourceType === "worker") {
+        tasks.push({
+          type: "text",
+          filename: "src/index.ts",
+          content: getWorkerIndexTemplate(resourceName),
+          description: "Generating worker source",
+          emoji: "💻",
+        });
       }
 
       // Add test file
-      tasks.push({ type: 'text', filename: `tests/${resourceName}.test.ts`, content: getTestTemplate(resourceName), description: 'Generating test file', emoji: '🧪' });
+      tasks.push({
+        type: "text",
+        filename: `tests/${resourceName}.test.ts`,
+        content: getTestTemplate(resourceName),
+        description: "Generating test file",
+        emoji: "🧪",
+      });
 
       // Execute all file writes with progress
-      console.log(chalk.blue('💻 Generating source files...'));
+      console.log(chalk.blue("💻 Generating source files..."));
       writeFilesWithProgress(fullPath, tasks);
 
-      console.log(chalk.green('\n✅ Resource created successfully!'));
+      console.log(chalk.green("\n✅ Resource created successfully!"));
       console.log(chalk.gray(`\nLocation: ${fullPath}`));
       console.log(chalk.gray(`\nNext steps:`));
       console.log(chalk.gray(`  cd ${finalResourcePath}`));

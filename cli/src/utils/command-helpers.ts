@@ -1,15 +1,17 @@
-import inquirer from 'inquirer';
-import type { ValidationResult } from '../types/index.js';
-import { showCancelled } from './formatting.js';
-import { showErrorAndExit } from './errors.js';
+import inquirer from "inquirer";
+import type { ValidationResult } from "../types/index.js";
+import { showErrorAndExit } from "./errors.js";
+import { showCancelled } from "./formatting.js";
 
 export async function confirmAction(message: string, defaultValue = true): Promise<boolean> {
-  const { confirm } = await inquirer.prompt([{
-    type: 'confirm',
-    name: 'confirm',
-    message,
-    default: defaultValue
-  }]);
+  const { confirm } = await inquirer.prompt([
+    {
+      type: "confirm",
+      name: "confirm",
+      message,
+      default: defaultValue,
+    },
+  ]);
 
   if (!confirm) {
     showCancelled();
@@ -20,17 +22,17 @@ export async function confirmAction(message: string, defaultValue = true): Promi
 
 export function assertValid(
   validation: ValidationResult,
-  exitCode: number = 1
+  exitCode: number = 1,
 ): asserts validation is { valid: true } {
   if (!validation.valid) {
-    showErrorAndExit(validation.error ?? 'Validation failed', exitCode);
+    showErrorAndExit(validation.error ?? "Validation failed", exitCode);
   }
 }
 
 export function handleDryRun(
   options: { dryRun?: boolean },
   description: string,
-  command: string
+  command: string,
 ): boolean {
   if (options.dryRun) {
     console.log(`Dry run - ${description}`);
@@ -47,10 +49,7 @@ export function handleDryRun(
  * @param onCancel - Optional callback when user cancels (defaults to returning false)
  * @returns Promise<boolean> - true if confirmed, false if cancelled (with callback)
  */
-export async function confirmOrCancel(
-  message: string,
-  onCancel?: () => void
-): Promise<boolean> {
+export async function confirmOrCancel(message: string, onCancel?: () => void): Promise<boolean> {
   const confirmed = await confirmAction(message, true);
   if (!confirmed) {
     if (onCancel) {
@@ -60,4 +59,3 @@ export async function confirmOrCancel(
   }
   return true;
 }
-

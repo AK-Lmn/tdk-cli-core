@@ -1,52 +1,52 @@
-import { createConnection } from 'node:net';
-import { spawn } from 'node:child_process';
-import type { DiscoveredResource, PortAssignableResourceType } from '../types/index.js';
-import { PORT_RANGES } from './constants.js';
+import { spawn } from "node:child_process";
+import { createConnection } from "node:net";
+import type { DiscoveredResource, PortAssignableResourceType } from "../types/index.js";
+import { PORT_RANGES } from "./constants.js";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
-    const server = createConnection({ port, host: '127.0.0.1' }, () => {
+    const server = createConnection({ port, host: "127.0.0.1" }, () => {
       server.destroy();
       resolve(false);
     });
 
-    server.on('error', () => {
+    server.on("error", () => {
       resolve(true);
     });
   });
 }
 
-export async function checkPortStatus(port: number): Promise<'running' | 'stopped' | 'unknown'> {
+export async function checkPortStatus(port: number): Promise<"running" | "stopped" | "unknown"> {
   return new Promise((resolve) => {
-    const child = spawn('lsof', ['-Pi', `:${port}`, '-sTCP:LISTEN'], {
+    const child = spawn("lsof", ["-Pi", `:${port}`, "-sTCP:LISTEN"], {
       timeout: 3000,
-      stdio: 'pipe'
+      stdio: "pipe",
     });
 
     let hasOutput = false;
 
-    child.stdout?.on('data', () => {
+    child.stdout?.on("data", () => {
       hasOutput = true;
     });
 
-    child.on('close', (code) => {
+    child.on("close", (code) => {
       // lsof returns 0 if it found something, 1 if nothing found
       if (code === 0) {
-        resolve('running');
+        resolve("running");
       } else {
-        resolve(hasOutput ? 'running' : 'stopped');
+        resolve(hasOutput ? "running" : "stopped");
       }
     });
 
-    child.on('error', () => {
-      resolve('unknown');
+    child.on("error", () => {
+      resolve("unknown");
     });
   });
 }
 
 export async function findAvailablePort(
   basePort: number,
-  maxAttempts: number = 10
+  maxAttempts: number = 10,
 ): Promise<number | null> {
   for (let i = 0; i < maxAttempts; i++) {
     const port = basePort + i;
@@ -69,7 +69,7 @@ export function getUsedPorts(resources: DiscoveredResource[]): Set<number> {
 
 function findNextAvailablePort(
   usedPorts: Set<number>,
-  range: { base: number; min: number; max: number }
+  range: { base: number; min: number; max: number },
 ): number | null {
   for (let port = range.base; port <= range.max; port++) {
     if (!usedPorts.has(port)) {
@@ -81,7 +81,7 @@ function findNextAvailablePort(
 
 export function assignPort(
   resourceType: PortAssignableResourceType,
-  existingResources: DiscoveredResource[]
+  existingResources: DiscoveredResource[],
 ): number {
   const usedPorts = getUsedPorts(existingResources);
   const portRange = PORT_RANGES[resourceType];
@@ -91,7 +91,7 @@ export function assignPort(
   if (assignedPort === null) {
     throw new Error(
       `No available ports in range ${portRange.base}-${portRange.max}. ` +
-      'Check TILT_RESOURCE_DEFAULTS.star for port configuration.'
+        "Check TILT_RESOURCE_DEFAULTS.star for port configuration.",
     );
   }
 

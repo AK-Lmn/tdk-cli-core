@@ -1,4 +1,4 @@
-import { PORT_RANGES, STANDARD_PORTS } from '../utils/constants.js';
+import { PORT_RANGES, STANDARD_PORTS } from "../utils/constants.js";
 
 const PLATFORM_VERSION = "1.0.0";
 
@@ -189,4 +189,4 @@ export const PLATFORM_STANDARDS = {
   runtime: RUNTIME,
 } as const;
 
-type PlatformStandards = typeof PLATFORM_STANDARDS;
+export type PlatformStandards = typeof PLATFORM_STANDARDS;

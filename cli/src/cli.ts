@@ -1,45 +1,45 @@
 #!/usr/bin/env node
 
-import { Command } from 'commander';
-import chalk from 'chalk';
-import pkg from '../package.json' with { type: 'json' };
-import { stacksCommand } from './commands/stacks.js';
-import { resourcesCommand } from './commands/resources.js';
-import { projectsCommand } from './commands/projects.js';
-import { upCommand } from './commands/up.js';
-import { downCommand } from './commands/down.js';
-import { statusCommand } from './commands/status.js';
-import { stackCommand } from './commands/stack.js';
-import { uiCommand } from './commands/ui.js';
-import { versionCommand } from './commands/version.js';
-import { doctorCommand } from './commands/doctor.js';
-import { projectCommand } from './commands/project.js';
-import { configCommand } from './commands/config.js';
-import { resourceCommand } from './commands/resource.js';
-import { completionCommand } from './commands/completion.js';
-import { upgradeCommand } from './commands/upgrade.js';
-import { networksCommand } from './commands/networks.js';
-import { showHelp } from './commands/help.js';
+import chalk from "chalk";
+import { Command } from "commander";
+import pkg from "../package.json" with { type: "json" };
+import { completionCommand } from "./commands/completion.js";
+import { configCommand } from "./commands/config.js";
+import { doctorCommand } from "./commands/doctor.js";
+import { downCommand } from "./commands/down.js";
+import { showHelp } from "./commands/help.js";
+import { networksCommand } from "./commands/networks.js";
+import { projectCommand } from "./commands/project.js";
+import { projectsCommand } from "./commands/projects.js";
+import { resourceCommand } from "./commands/resource.js";
+import { resourcesCommand } from "./commands/resources.js";
+import { stackCommand } from "./commands/stack.js";
+import { stacksCommand } from "./commands/stacks.js";
+import { statusCommand } from "./commands/status.js";
+import { uiCommand } from "./commands/ui.js";
+import { upCommand } from "./commands/up.js";
+import { upgradeCommand } from "./commands/upgrade.js";
+import { versionCommand } from "./commands/version.js";
 
 const program = new Command();
 
 program
-  .name('tdk')
-  .description('Tilt Development Kit - Project/Stack/Resource management')
-  .version(pkg.version, '-v, --version', 'Display version number')
-  .option('--verbose', 'Enable verbose output', false)
+  .name("tdk")
+  .description("Tilt Development Kit - Project/Stack/Resource management")
+  .version(pkg.version, "-v, --version", "Display version number")
+  .option("--verbose", "Enable verbose output", false)
   .configureOutput({
     outputError: (str, write) => write(chalk.red(str)),
     writeOut: (str) => process.stdout.write(str),
-    writeErr: (str) => process.stderr.write(str)
+    writeErr: (str) => process.stderr.write(str),
   });
 
-program.helpCommand('help [command]', 'Show colorful help').on('--help', () => {
+program.helpCommand("help [command]", "Show colorful help").on("--help", () => {
   showHelp();
   process.exit(0);
 });
 
-program.addHelpText('before', '');
+program.addHelpText("before", "");
 
 program.addCommand(stacksCommand);
 program.addCommand(resourcesCommand);
@@ -64,7 +64,7 @@ if (process.argv.length === 2) {
   process.exit(0);
 }
 
-if (process.argv.length === 3 && ['-h', '--help', 'help'].includes(process.argv[2])) {
+if (process.argv.length === 3 && ["-h", "--help", "help"].includes(process.argv[2])) {
   showHelp();
   process.exit(0);
 }
