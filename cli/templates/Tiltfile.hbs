@@ -157,24 +157,10 @@ def should_enable(resource_name):
 # 🏗️ INFRASTRUCTURE SERVICES
 # =============================================================================
 
-def _fix_docker_networks():
-    _project_name = os.environ.get('TDK_PROJECT_ROOT', '').split('/')[-1].replace('-', '_')
-    _networks = [
-        _project_name + '_traefik-public',
-        _project_name + '_backend',
-        _project_name + '_database',
-        _project_name + '_infisical-network',
-        _project_name + '_proxy',
-    ]
-    _cmds = []
-    for _n in _networks:
-        _cmds.append("docker network inspect {n} >/dev/null 2>&1 || docker network create --driver bridge {n}".format(n=_n))
-    return " && ".join(_cmds)
-
 print("🏗️  Loading infrastructure services...")
 Infra.load_all(
     should_enable=should_enable,
-    fix_docker_networks_fn=_fix_docker_networks,
+    fix_docker_networks_fn=Utils.fix_docker_networks,
     docker_provider=Docker,
     write_fn=Utils.write_file_if_changed,
     project_root=PROJECT_ROOT,
