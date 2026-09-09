@@ -22,7 +22,10 @@ function resolveSubdomainBases(): { appBase: string; apiBase: string } {
     const u = new URL(raw.includes("://") ? raw : `http://${raw}`);
     const host = u.hostname;
     if (host === "localhost" || /^\d+\.\d+\.\d+\.\d+$/.test(host)) {
-      return { appBase: `${u.protocol}//${host}${u.port ? `:${u.port}` : ""}`, apiBase: `${u.protocol}//${host}${u.port ? `:${u.port}` : ""}` };
+      return {
+        appBase: `${u.protocol}//${host}${u.port ? `:${u.port}` : ""}`,
+        apiBase: `${u.protocol}//${host}${u.port ? `:${u.port}` : ""}`,
+      };
     }
     const bare = host.replace(/^(app|api)\./, "");
     return {
@@ -30,7 +33,10 @@ function resolveSubdomainBases(): { appBase: string; apiBase: string } {
       apiBase: `${u.protocol}//api.${bare}${u.port ? `:${u.port}` : ""}`,
     };
   } catch {
-    return { appBase: "http://app.beauty-crm.localhost", apiBase: "http://api.beauty-crm.localhost" };
+    return {
+      appBase: "http://app.beauty-crm.localhost",
+      apiBase: "http://api.beauty-crm.localhost",
+    };
   }
 }
 
