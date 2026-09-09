@@ -67,7 +67,7 @@ export default apiClient;
 '''.format(
         stack=stack,
         api_path=api_path,
-        local_domain=PlatformDockerConstants.LOCAL_DOMAIN,
+        local_domain=PlatformDockerConstants.API_LOCAL_DOMAIN,
     )
     
     if write_fn:
@@ -108,7 +108,7 @@ export const API_URL = import.meta.env.VITE_API_URL || 'http://{local_domain}{ap
 '''.format(
         stack=stack,
         api_path=api_path,
-        local_domain=PlatformDockerConstants.LOCAL_DOMAIN,
+        local_domain=PlatformDockerConstants.API_LOCAL_DOMAIN,
     )
     
     if write_fn:

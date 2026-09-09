@@ -16,6 +16,24 @@ import { buildTiltUpArgs, runTilt } from "../utils/tilt.js";
 /** Base domain Traefik routes frontends on. Override with TDK_SERVICE_BASE_URL. */
 const SERVICE_BASE_URL = process.env.TDK_SERVICE_BASE_URL ?? "http://beauty-crm.localhost";
 
+function resolveSubdomainBases(): { appBase: string; apiBase: string } {
+  const raw = SERVICE_BASE_URL;
+  try {
+    const u = new URL(raw.includes("://") ? raw : `http://${raw}`);
+    const host = u.hostname;
+    if (host === "localhost" || /^\d+\.\d+\.\d+\.\d+$/.test(host)) {
+      return { appBase: `${u.protocol}//${host}${u.port ? `:${u.port}` : ""}`, apiBase: `${u.protocol}//${host}${u.port ? `:${u.port}` : ""}` };
+    }
+    const bare = host.replace(/^(app|api)\./, "");
+    return {
+      appBase: `${u.protocol}//app.${bare}${u.port ? `:${u.port}` : ""}`,
+      apiBase: `${u.protocol}//api.${bare}${u.port ? `:${u.port}` : ""}`,
+    };
+  } catch {
+    return { appBase: "http://app.beauty-crm.localhost", apiBase: "http://api.beauty-crm.localhost" };
+  }
+}
+
 export const upCommand = new Command("up")
   .description("Start all services (optionally filtered by stack)")
   .alias("deploy")
@@ -63,7 +81,7 @@ export const upCommand = new Command("up")
           console.log(chalk.gray(`  - ${name}`));
         });
 
-        const baseUrl = SERVICE_BASE_URL;
+        const { appBase, apiBase } = resolveSubdomainBases();
         const frontends = servicesToStart.filter((s) => s.config?.appType === "frontend");
         const backends = servicesToStart.filter((s) => s.config?.appType === "backend");
 
@@ -71,7 +89,7 @@ export const upCommand = new Command("up")
           console.log(chalk.blue("\n🌍 Frontend URLs:"));
           frontends.forEach((svc) => {
             const basePath = svc.config?.basePath ?? `/${svc.name}`;
-            console.log(chalk.gray(`  - ${svc.name}: ${baseUrl}${chalk.cyan(basePath)}`));
+            console.log(chalk.gray(`  - ${svc.name}: ${appBase}${chalk.cyan(basePath)}`));
           });
         }
 
@@ -79,7 +97,7 @@ export const upCommand = new Command("up")
           console.log(chalk.blue("\n🔧 Backend API URLs:"));
           backends.forEach((svc) => {
             const apiPath = svc.config?.apiPath ?? `/api/${svc.name}`;
-            console.log(chalk.gray(`  - ${svc.name}: ${baseUrl}${chalk.cyan(apiPath)}`));
+            console.log(chalk.gray(`  - ${svc.name}: ${apiBase}${chalk.cyan(apiPath)}`));
           });
         }
       }

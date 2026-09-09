@@ -10,6 +10,8 @@ TRAEFIK_API_BASE_PATH = "/api"
 load(
     "./traefik_constants.star",
     "TRAEFIK_PROJECT_HOST",
+    "TRAEFIK_PROJECT_APP_HOST",
+    "TRAEFIK_PROJECT_API_HOST",
     "TRAEFIK_ENABLE_BACKEND_PATH_RULE",
     "TRAEFIK_ENABLE_BACKEND_HOST_RULE",
     "TRAEFIK_ENABLE_FRONTEND_HOST_RULE",
@@ -47,7 +49,7 @@ def frontend_rule(res_name, base_path, traefik_host):
     if TRAEFIK_ENABLE_FRONTEND_PATH_RULE:
         parts.append(
             "(Host(`{host}`) && PathPrefix(`{base_path}`))".format(
-                host=TRAEFIK_PROJECT_HOST,
+                host=TRAEFIK_PROJECT_APP_HOST,
                 base_path=base_path,
             ),
         )
@@ -143,6 +145,6 @@ def project_backend_rule(manifest):
 
     api_path = get_api_path(stack, manifest)
     return "Host(`{host}`) && PathPrefix(`{path}`)".format(
-        host=TRAEFIK_PROJECT_HOST,
+        host=TRAEFIK_PROJECT_API_HOST,
         path=api_path,
     )

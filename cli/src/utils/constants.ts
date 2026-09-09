@@ -30,6 +30,31 @@ export const STANDARD_PORTS = {
   traefik: 8080,
 } as const;
 
+export const BASE_DOMAIN_DEFAULT = "beauty-crm.localhost";
+export const APP_SUBDOMAIN_PREFIX = "app";
+export const API_SUBDOMAIN_PREFIX = "api";
+
+export function getBaseDomain(): string {
+  const override = process.env.TDK_SERVICE_BASE_URL ?? process.env.TDK_PUBLIC_HOST;
+  if (override) {
+    try {
+      const u = new URL(override.includes("://") ? override : `http://${override}`);
+      return u.hostname;
+    } catch {
+      return override.replace(/^https?:\/\//, "").split("/")[0];
+    }
+  }
+  return BASE_DOMAIN_DEFAULT;
+}
+
+export function frontendBaseUrl(protocol = "http"): string {
+  return `${protocol}://${APP_SUBDOMAIN_PREFIX}.${getBaseDomain()}`;
+}
+
+export function apiBaseUrl(protocol = "http"): string {
+  return `${protocol}://${API_SUBDOMAIN_PREFIX}.${getBaseDomain()}`;
+}
+
 export const SKIP_DIRECTORIES = [
   "node_modules",
   ".git",

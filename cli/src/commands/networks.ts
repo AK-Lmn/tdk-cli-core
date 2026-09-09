@@ -70,9 +70,9 @@ function determineDefaultDomain(): string {
       { encoding: "utf-8" },
     );
 
-    // Use a simplified regex to avoid ReDoS - limit pattern length and use fixed patterns
+    // Capture every Host(`...`) in a rule (multi-host rules included), avoid ReDoS with bounded classes
     const domainRegex =
-      /traefik\.http\.routers\.[a-zA-Z0-9_-]{1,50}\.rule=Host\(`([a-zA-Z0-9_.-]{1,100})`\)/g;
+      /Host\(`([a-zA-Z0-9_.-]{1,100})`\)/g;
     for (
       let match = domainRegex.exec(traefikLabels);
       match !== null;
@@ -89,6 +89,7 @@ function determineDefaultDomain(): string {
   // Service domains typically contain the full service name like "myapp-api-frontend.localhost"
   const domainList = Array.from(domains);
   const projectDomains = domainList.filter((domain) => {
+    if (/^(app|api)\.[\w-]+\.localhost$/.test(domain)) return true;
     // Skip domains that look like specific service instances
     // These are long, hyphen-heavy domains for individual services
     const servicePatterns = [
@@ -208,6 +209,9 @@ export const networksCommand = new Command("networks")
     const discovery = createDiscoveryContext();
 
     const baseDomain = determineDefaultDomain();
+    const bareDomain = baseDomain.replace(/^(app|api)\./, "");
+    const appDomain = `app.${bareDomain}`;
+    const apiDomain = `api.${bareDomain}`;
     const services = discovery.resources;
     const servicesWithUrls: ServiceUrl[] = await Promise.all(
       services
@@ -217,7 +221,9 @@ export const networksCommand = new Command("networks")
         )
         .map(async (s) => {
           const basePath = s.config.basePath.replace(/^\//, "");
-          const url = `http://${baseDomain}/${basePath}`;
+          const isBackend = (s.config as { appType?: string })?.appType === "backend";
+          const host = isBackend ? apiDomain : appDomain;
+          const url = `http://${host}/${basePath}`;
           const port = s.config.port;
           const status = await checkServiceStatus(s.name, port, url);
 
