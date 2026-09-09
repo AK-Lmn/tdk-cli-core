@@ -20,6 +20,7 @@ export interface ResourceConfig {
   enabled?: boolean;
   basePath?: string;
   backendName?: string;
+  apiPath?: string;
 }
 
 export interface DiscoveredStack {

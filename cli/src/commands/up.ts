@@ -78,9 +78,8 @@ export const upCommand = new Command("up")
         if (backends.length > 0) {
           console.log(chalk.blue("\n🔧 Backend API URLs:"));
           backends.forEach((svc) => {
-            console.log(
-              chalk.gray(`  - ${svc.name}: ${baseUrl}${chalk.cyan(`/api/${svc.name}`)}`),
-            );
+            const apiPath = svc.config?.apiPath ?? `/api/${svc.name}`;
+            console.log(chalk.gray(`  - ${svc.name}: ${baseUrl}${chalk.cyan(apiPath)}`));
           });
         }
       }
