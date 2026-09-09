@@ -56,7 +56,7 @@
     "react": "^19.2.5"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.13",
+    "@biomejs/biome": "^2.5.12",
     "@types/inquirer": "^9.0.0",
     "@types/node": "^20.0.0",
     "knip": "^6.9.0",
