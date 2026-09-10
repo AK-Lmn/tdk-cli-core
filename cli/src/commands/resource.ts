@@ -97,9 +97,10 @@ export function createPackageJson(name: string, type: string) {
     },
     devDependencies: {
       "@types/bun": "latest",
-      typescript: "^5.0.0",
-      vitest: "^1.0.0",
-      "@biomejs/biome": "^1.5.0",
+      typescript: "^7.0.2",
+      vitest: "^5.0.0",
+      "@biomejs/biome": "^2.5.13",
+
       ...(isFrontend ? { vite: "^5.0.0" } : {}),
     },
   };

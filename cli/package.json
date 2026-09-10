@@ -56,12 +56,12 @@
     "react": "^19.2.5"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.12",
+    "@biomejs/biome": "^2.5.13",
     "@types/inquirer": "^9.0.0",
     "@types/node": "^20.0.0",
-    "knip": "^6.9.0",
-    "typescript": "^5.4.0",
-    "vitest": "^1.0.0"
+    "knip": "^6.35.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.0"
   },
   "engines": {
     "node": ">=20.0.0"
