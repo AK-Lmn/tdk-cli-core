@@ -4,4 +4,5 @@ stack: appointment-planner
 port: 3001
 backendName: appointment-planner-builder-backend
 basePath: /appointment-planner-builder
+enabled: True
 runtime: bun

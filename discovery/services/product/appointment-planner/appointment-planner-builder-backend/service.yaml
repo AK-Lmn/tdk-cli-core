@@ -3,6 +3,7 @@ appType: backend
 stack: appointment-planner
 port: 4001
 apiPath: /api/appointment-planner-builder
+enabled: True
 features:
   - nats
   - prisma

@@ -4,6 +4,7 @@ stack: appointment-planner
 port: 4006
 apiPath: /api/appointment-planner
 databaseName: beauty_crm_planner
+enabled: True
 features:
   - nats
   - prisma
