@@ -15,7 +15,7 @@ The TDK CLI codebase has undergone extensive deprecated code removal as document
 
 **Previous cleanup removed:**
 - ~2,800 lines from deprecated discovery system
-- Legacy manifest filename support (`platform-computing-provisioner.manifest.json`)
+- Legacy manifest filename support (`platform-service.json`)
 - Dual-filename search logic  
 - Deprecated schema field references
 - Inline validation functions in tests
@@ -164,7 +164,7 @@ These are NOT deprecated code - they are resilience patterns:
 |------|--------|--------------|
 | `spec.master.pre-migration` | ✅ REMOVED | File not found |
 | `oldTiltfilePath` check | ✅ REMOVED | No references found |
-| Legacy manifest filename support | ✅ REMOVED | No `platform-computing-provisioner.manifest.json` support found |
+| Legacy manifest filename support | ✅ REMOVED | No `platform-service.json` support found |
 | Inline validation tests | ✅ REMOVED | `error-handling.test.ts` now 82 lines, clean |
 
 ---

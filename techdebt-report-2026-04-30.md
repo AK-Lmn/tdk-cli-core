@@ -67,7 +67,7 @@ After comprehensive analysis of the TDK CLI codebase, I found a **relatively cle
 
 ### 2.2 Legacy Manifest Filename Support
 - **Pattern:** Dual-filename support across multiple files
-- **Legacy name:** `platform-computing-provisioner.manifest.json`
+- **Legacy name:** `platform-service.json`
 - **New name:** `service.json`
 - **Locations:**
   - `discovery/manifest/loading.star` (lines 86, 397-400)

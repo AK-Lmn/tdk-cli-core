@@ -13,7 +13,7 @@
 
 The TDK CLI codebase has undergone extensive cleanup as documented in `DEPRECATED_CODE_REMOVAL_REPORT.md`. Most significant deprecated code (~2,800 lines) has already been removed, including:
 - Deprecated discovery system (`engine/topologies/tilt/discovery/`)
-- Legacy manifest filename support (`platform-computing-provisioner.manifest.json`)
+- Legacy manifest filename support (`platform-service.json`)
 - YAML manifest search simplification
 
 **Current findings:** Only 2 minor legacy test patterns remain that can be safely removed.

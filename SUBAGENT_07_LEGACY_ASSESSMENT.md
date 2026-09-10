@@ -13,7 +13,7 @@
 
 The TDK CLI codebase has undergone extensive cleanup of deprecated code. Previous cleanup efforts have successfully removed:
 - Deprecated discovery system (`engine/topologies/tilt/discovery/`)
-- Legacy manifest filename support (`platform-computing-provisioner.manifest.json`)
+- Legacy manifest filename support (`platform-service.json`)
 - YAML manifest search simplification
 - ~2,800 lines of deprecated code (per previous reports)
 
@@ -86,7 +86,7 @@ The TDK CLI codebase has undergone extensive cleanup of deprecated code. Previou
 | Inline validateManifest | error-handling.test.ts | ✅ Removed |
 | createRequire pattern | cli.ts | ✅ Modernized |
 | Deprecated discovery system | engine/topologies/tilt/discovery/ | ✅ Removed |
-| Legacy manifest filename | platform-computing-provisioner.manifest.json | ✅ Removed |
+| Legacy manifest filename | platform-service.json | ✅ Removed |
 
 ### VERIFIED NOT PRESENT
 
