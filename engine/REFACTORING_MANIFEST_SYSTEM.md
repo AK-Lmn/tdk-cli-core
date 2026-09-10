@@ -94,7 +94,7 @@ Manifest = struct(
 load("../manifest/__init__.star", "Manifest")
 
 # Load and validate in one call
-result = Manifest.load_from_file("services/product/user/user-management-backend/platform-computing-provisioner.manifest.json")
+result = Manifest.load_from_file("services/product/user/user-management-backend/service.json")
 if result.error:
     print("Failed to load manifest:", result.error)
 else:

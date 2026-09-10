@@ -4,7 +4,7 @@
 # ANY MANUAL CHANGES MADE TO THIS FILE WILL BE WIPED ON THE NEXT 'tilt up'.
 # TO MODIFY THIS CONFIGURATION:
 # 1. Edit the source generator in: .tilt/topologies/
-# 2. Or update platform-computing-provisioner.manifest.json
+# 2. Or update service.json
 #
 # Generation Source: GoldenImage.generate_layered_dockerfile()
 # Service: beauty-crm-l1-l4

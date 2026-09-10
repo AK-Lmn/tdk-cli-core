@@ -186,7 +186,7 @@ graph TB
 ```
 Package name → Directory path (automatic)
 
-@tdk/platform-eventing → shared-platform-engineering/platform-eventing/src
+@tdk-landscape/eventing → platform/packages/eventing/src
 @tdk/domain            → shared-ddd-layers/domain/src
 ```
 

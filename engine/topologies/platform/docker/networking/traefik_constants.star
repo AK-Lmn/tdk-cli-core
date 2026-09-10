@@ -105,7 +105,7 @@ TRAEFIK_MIDDLEWARE_SUFFIX = TRAEFIK_CONFIG["strip_prefix_middleware_suffix"]
 # API ROUTING PATHS - Dynamic from Manifests
 # =============================================================================
 # API paths are generated dynamically from manifest domain and appName fields
-# No hardcoded service names - all from platform-computing-provisioner.manifest.json
+# No hardcoded service names - all from service.json
 # =============================================================================
 
 # Planner service paths are generated dynamically from manifests
@@ -119,7 +119,7 @@ TRAEFIK_MIDDLEWARE_SUFFIX = TRAEFIK_CONFIG["strip_prefix_middleware_suffix"]
 # =============================================================================
 # Standard API path pattern generated from manifest: /api/v1/{appName}
 # Domain comes from service manifest, allowing dynamic service discovery
-# No hardcoded examples - all paths from platform-computing-provisioner.manifest.json
+# No hardcoded examples - all paths from service.json
 # =============================================================================
 # TRAEFIK_API_VERSION and TRAEFIK_API_BASE_PATH now imported from master config
 

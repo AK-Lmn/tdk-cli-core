@@ -306,7 +306,7 @@ def apply_focus_filter(cfg):
         "elk",
         "debezium",
         # Domains are auto-discovered from service manifests
-        # No hardcoded domain names - all from platform-computing-provisioner.manifest.json
+        # No hardcoded domain names - all from service.json
         "backends-only",
     ]
     # Infrastructure resources that exist as Tilt local_resource or docker_compose

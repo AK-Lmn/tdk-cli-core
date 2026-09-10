@@ -69,7 +69,6 @@ def get_manifest_discovery_config():
         # Manifest filename patterns to search for
         "manifest_filenames": [
             "service.json",
-            "platform-computing-provisioner.manifest.json",
         ],
 
         # Enable synthesis for services without manifests

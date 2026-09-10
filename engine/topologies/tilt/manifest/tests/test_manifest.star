@@ -99,7 +99,7 @@ def _test_constants():
     
     # Test MANIFEST_FILENAME
     assert_equal(
-        'platform-computing-provisioner.manifest.json',
+        'service.json',
         ManifestConstants.MANIFEST_FILENAME,
         "MANIFEST_FILENAME should match expected"
     )
@@ -233,7 +233,7 @@ def _test_facade():
     print("🔍 Testing Manifest facade...")
     
     # Test constants accessible via facade
-    assert_equal('platform-computing-provisioner.manifest.json', Manifest.filename, "Filename should be accessible")
+    assert_equal('service.json', Manifest.filename, "Filename should be accessible")
     assert_not_none(Manifest.defaults, "Defaults should be accessible")
     assert_not_none(Manifest.app_types, "App types should be accessible")
     assert_not_none(Manifest.stacks, "Stacks should be accessible")

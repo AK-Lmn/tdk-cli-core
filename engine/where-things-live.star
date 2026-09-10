@@ -411,7 +411,6 @@ SPEC = struct(
 RESOURCE_PATTERNS = struct(
     # Manifest file names - EXPLICIT, no guessing
     MANIFEST_FILE = "service.json",
-    LEGACY_MANIFEST = "platform-computing-provisioner.manifest.json",
     
     # Service structure - EXPLICIT expectations
     BACKEND_DIR = "backend",
@@ -453,7 +452,6 @@ DISCOVERY = struct(
     # Manifest patterns - EXPLICIT glob patterns
     MANIFEST_PATTERNS = [
         "**/service.json",
-        "**/platform-computing-provisioner.manifest.json",
     ],
     
     # Exclusion patterns - EXPLICIT (no hidden exclusions)

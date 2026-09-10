@@ -215,7 +215,7 @@ Per-Service:
 
 **Before (Bulk)**:
 ```
-Change: services/product/user/user-backend/platform-computing-provisioner.manifest.json
+Change: services/product/user/user-backend/service.json
 Triggers:
   ├─ Regenerate ALL vite configs (30 services)
   ├─ Regenerate ALL dockerfiles (30 services)
@@ -228,7 +228,7 @@ Time: ~10 seconds
 
 **After (Manifest-Driven)**:
 ```
-Change: services/product/user/user-backend/platform-computing-provisioner.manifest.json
+Change: services/product/user/user-backend/service.json
 Triggers:
   └─ user-management-backend-config-gen
       ├─ Regenerate tsconfig.json (2 files)

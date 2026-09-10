@@ -42,7 +42,7 @@ Level 7 manifest-driven autogeneration. One `service.json` file triggers 10+ gen
   "port": 4005,
   "databaseName": "payments_db",
   "features": ["nats", "prisma", "traefik"],
-  "internalDependencies": ["identity", "platform-eventing"]
+  "internalDependencies": ["identity", "eventing"]
 }
 ```
 

@@ -15,11 +15,11 @@
 load("../manifest/__init__.star", "Manifest")
 
 # Access constants
-print(Manifest.filename)  # platform-computing-provisioner.manifest.json
+print(Manifest.filename)  # service.json
 print(Manifest.defaults)  # Default field values
 
 # Load and validate a manifest
-result = Manifest.load_from_file("services/product/user/user-management-backend/platform-computing-provisioner.manifest.json")
+result = Manifest.load_from_file("services/product/user/user-management-backend/service.json")
 if result.error:
     print("Error:", result.error)
 else:
@@ -273,7 +273,7 @@ result = Manifest.load_all_integration("services/product")
 ```starlark
 load("../manifest/__init__.star", "Manifest")
 
-manifest_path = "services/product/user/user-management-backend/platform-computing-provisioner.manifest.json"
+manifest_path = "services/product/user/user-management-backend/service.json"
 
 result = Manifest.load_from_file(manifest_path)
 
@@ -487,7 +487,7 @@ if dep_issues:
 ```starlark
 # Use integration layer for discovery system
 result = Manifest.load_and_validate_integration(
-    manifest_path="services/product/user/user-management-backend/platform-computing-provisioner.manifest.json",
+    manifest_path="services/product/user/user-management-backend/service.json",
     all_manifests=all_manifests,  # For cross-validation
 )
 

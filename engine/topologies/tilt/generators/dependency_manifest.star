@@ -376,7 +376,7 @@ def generate_library_stub(lib_name, lib_type, lib_path, write_fn=None):
     files = {
         "package.json": Utils.encode_json(package_json),
         "src/index.ts": index_ts,
-        "platform-computing-provisioner.manifest.json": Utils.encode_json(manifest_json),
+        "service.json": Utils.encode_json(manifest_json),
     }
     
     if write_fn:

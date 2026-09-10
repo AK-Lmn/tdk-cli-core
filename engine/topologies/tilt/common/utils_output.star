@@ -82,7 +82,7 @@ def get_template_header(file_type, generator_name, resource_name='', extra_info=
 {c} ANY MANUAL CHANGES MADE TO THIS FILE WILL BE WIPED ON THE NEXT 'tilt up'.
 {c} TO MODIFY THIS CONFIGURATION:
 {c} 1. Edit the source generator in: .tilt/topologies/
-{c} 2. Or update platform-computing-provisioner.manifest.json
+{c} 2. Or update service.json
 {c}
 {c} Generation Source: {generator}{resource_line}{extra_line}
 {border}

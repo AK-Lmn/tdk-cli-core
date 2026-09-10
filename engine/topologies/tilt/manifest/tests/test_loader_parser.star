@@ -82,7 +82,7 @@ def _test_loader_functions():
     # Test get_manifest_path
     path = Manifest.get_manifest_path("services/product/user/user-management-backend")
     assert_true(
-        path.endswith("platform-computing-provisioner.manifest.json"),
+        path.endswith("service.json"),
         "get_manifest_path should include manifest filename"
     )
     

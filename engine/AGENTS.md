@@ -58,7 +58,7 @@ You don't just manage services; you map, design, and optimize the topology that 
 ```
 
 **Key Topology Concepts:**
-- **Manifest**: `service.json` defines service (legacy: `platform-computing-provisioner.manifest.json`)
+- **Manifest**: `service.json` defines service
 - **Synthesis**: Services without manifests auto-configure from directory structure
 - **Service**: Collection of resources (backend, frontend, migrator)
 - **Resource**: Individual Tilt resource with dependencies
@@ -84,7 +84,7 @@ You don't just manage services; you map, design, and optimize the topology that 
     "host": "user.backend.{project}.local",
     "pathPrefix": "/api/users"
   },
-  "internalDependencies": ["identity", "platform-eventing"]
+  "internalDependencies": ["identity", "eventing"]
 }
 ```
 

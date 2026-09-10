@@ -33,7 +33,7 @@ def deploy_synthetic_monitor(ctx):
         auto_init=True,
         resource_deps=[
             # Services will be auto-discovered from manifests
-            # No hardcoded service names - all from platform-computing-provisioner.manifest.json
+            # No hardcoded service names - all from service.json
         ],
         labels=['monitoring'],
         links=[

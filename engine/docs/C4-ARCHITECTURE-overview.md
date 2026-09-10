@@ -164,7 +164,7 @@ graph LR
 ```mermaid
 sequenceDiagram
     participant Tilt as Tilt Orchestrator
-    participant Manifest as platform-computing-provisioner.manifest.json
+    participant Manifest as service.json
     participant ConfigGen as {service}-config-gen (Tilt Resource)
     participant Generators as 10+ Config Generators
     participant Docker as Docker Build
@@ -263,7 +263,7 @@ sequenceDiagram
     participant Docker as Docker Generator
     participant Service as Service Container
     
-    Dev->>File: bun add @tdk/platform-eventing
+    Dev->>File: bun add @tdk-landscape/eventing
     File->>Tilt: File change detected
     Tilt->>DepSync: Trigger sync
     DepSync->>DepSync: Extract internal deps
@@ -275,7 +275,7 @@ sequenceDiagram
     Docker->>Service: Rebuild container
     Service-->>Dev: Service restarted with new dependency
     
-    Note over DepSync,Docker: Convention over Configuration:<br/>@tdk/platform-x → shared-platform-engineering/platform-x/src
+    Note over DepSync,Docker: Convention over Configuration:<br/>@tdk-landscape/platform-x → platform/packages/platform-x/src
 ```
 
 ---
