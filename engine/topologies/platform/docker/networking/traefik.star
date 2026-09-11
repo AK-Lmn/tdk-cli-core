@@ -29,35 +29,13 @@ load("./traefik_helpers.star",
     "get_api_path",
     "project_backend_rule",
 )
+load("./sablier_container_cycle.star",
+    "_sablier_middleware_suffix",
+    "_sablier_container_labels",
+)
 
 
-def _sablier_middleware_suffix(manifest):
-    """Return (middleware_suffix, group, enabled) for a manifest's Sablier block.
-
-    When a workload opts in via a `sablier` block, it is fronted by the file-provider
-    middleware `sablier-<group>@file` (defined in the platform proxy dynamic config).
-    The leading comma lets callers append the suffix to an existing middlewares list.
-    """
-    sablier_cfg = manifest.get('sablier', {}) if manifest else {}
-    if not sablier_cfg.get('enable', False):
-        return "", "", False
-    group = sablier_cfg.get('group', manifest.get('stack', '') if manifest else '')
-    if not group:
-        return ",sablier-base@file", "", True
-    return ",sablier-" + group + "@file", group, True
-
-
-def _sablier_container_labels(group, indent):
-    """Container labels that let Sablier discover, wake, and stop this workload.
-
-    `traefik.docker.allownonrunning=true` keeps the router registered while the
-    container is stopped, so the next request can trigger the wake.
-    """
-    lines = [indent + '- "sablier.enable=true"']
-    if group:
-        lines.append(indent + '- "sablier.group=' + group + '"')
-    lines.append(indent + '- "traefik.docker.allownonrunning=true"')
-    return "\n" + "\n".join(lines)
+# Sablier functions imported from sablier_container_cycle.star
 
 
 def get_frontend_traefik_labels(res_name, domain, base_path, port, traefik_host=None, manifest=None):
@@ -195,7 +173,7 @@ def get_backend_traefik_labels(
       - "traefik.http.routers.{resource_entry_name}-project.rule={project_rule}"
       - "traefik.http.routers.{resource_entry_name}-project.entrypoints={project_entrypoints}"
       - "traefik.http.routers.{resource_entry_name}-project.service={traefik_resource_name}"
-      - "traefik.http.routers.{resource_entry_name}-project.middlewares={middleware_name}-project{maintenance_middleware}"
+      - "traefik.http.routers.{resource_entry_name}-project.middlewares={middleware_name}-project{maintenance_middleware}{sablier_middleware}"
       - "traefik.http.middlewares.{middleware_name}-project.stripprefix.prefixes={api_path}"
       - "traefik.http.routers.{resource_entry_name}-project.priority={router_priority}"
 
@@ -210,6 +188,7 @@ def get_backend_traefik_labels(
                 project_entrypoints=project_entrypoints,
                 middleware_name=middleware_name,
                 maintenance_middleware=maintenance_middleware,
+                sablier_middleware=sablier_middleware,
                 api_path=api_path,
                 router_priority=router_priority,
                 old_path_pattern=old_path_pattern,
