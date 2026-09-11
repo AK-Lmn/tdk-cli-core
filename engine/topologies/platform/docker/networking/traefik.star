@@ -38,7 +38,7 @@ def _sablier_middleware_suffix(_):
     # Stub: no Sablier middleware needed
     return "", "", False
 
-def _sablier_container_labels(_, _):
+def _sablier_container_labels(_, __):
     # Stub: no extra labels needed
     return ""
 
