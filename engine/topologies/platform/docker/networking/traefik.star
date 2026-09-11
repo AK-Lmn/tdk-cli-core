@@ -29,10 +29,18 @@ load("./traefik_helpers.star",
     "get_api_path",
     "project_backend_rule",
 )
-load("./sablier_container_cycle.star",
-    "_sablier_middleware_suffix",
-    "_sablier_container_labels",
-)
+# load("./sablier_container_cycle.star",
+#     "_sablier_middleware_suffix",
+#     "_sablier_container_labels",
+# )
+
+def _sablier_middleware_suffix(_):
+    # Stub: no Sablier middleware needed
+    return "", "", False
+
+def _sablier_container_labels(_, _):
+    # Stub: no extra labels needed
+    return ""
 
 
 # Sablier functions imported from sablier_container_cycle.star
