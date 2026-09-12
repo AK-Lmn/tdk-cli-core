@@ -52,9 +52,11 @@ function shouldSkipDirectory(name: string): boolean {
 function isValidResourceConfig(value: unknown): value is ResourceConfig {
   if (!value || typeof value !== "object") return false;
   const config = value as Record<string, unknown>;
-  // Accept either runtime or appType (for backward compatibility with existing service.json files)
+  // Accept runtime, appType, or type (for backward compatibility with existing service.json files)
   const hasRuntimeOrAppType =
-    typeof config.runtime === "string" || typeof config.appType === "string";
+    typeof config.runtime === "string" ||
+    typeof config.appType === "string" ||
+    typeof config.type === "string";
   return typeof config.appName === "string" && hasRuntimeOrAppType;
 }
 
@@ -68,7 +70,11 @@ function parseResource(serviceJsonPath: string): DiscoveredResource {
     );
   }
 
-  const config: ResourceConfig = parsed;
+  const rawConfig = parsed as Record<string, unknown>;
+  const config: ResourceConfig = {
+    ...(parsed as ResourceConfig),
+    appType: (rawConfig.appType || rawConfig.type) as ResourceConfig["appType"],
+  };
   const resourceDir = dirname(serviceJsonPath);
 
   return {
