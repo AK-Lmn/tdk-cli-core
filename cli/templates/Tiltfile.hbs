@@ -23,12 +23,12 @@ _vendored_tdk_path = config.main_dir + "/tdk-cli-ext"
 _use_local = False
 _local_tdk_path = ""
 
-if str(local("test -d " + _vendored_tdk_path, quiet=True, echo_off=True)).strip() == 'yes':
+if str(local("test -d " + _vendored_tdk_path + " && echo yes || echo no", quiet=True, echo_off=True)).strip() == 'yes':
     _use_local = True
     _local_tdk_path = _vendored_tdk_path
 else:
     _env_tdk_path = os.environ.get('TDK_EXTENSION_PATH', '')
-    if len(_env_tdk_path) > 0 and str(local("test -d " + _env_tdk_path, quiet=True, echo_off=True)).strip() == 'yes':
+    if len(_env_tdk_path) > 0 and str(local("test -d " + _env_tdk_path + " && echo yes || echo no", quiet=True, echo_off=True)).strip() == 'yes':
         _use_local = True
         _local_tdk_path = _env_tdk_path
 
