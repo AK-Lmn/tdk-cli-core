@@ -80,6 +80,9 @@ def _load_verdaccio(should_enable, root_prefix="", env_file=None):
         # Use project root from environment or relative path
         project_root = os.environ.get('TDK_PROJECT_ROOT', '.')
         compose_file = project_root + '/docker-compose.verdaccio.yml'
+    if not _file_exists(compose_file):
+        print("DEBUG INFRA: Skipping Verdaccio (compose file not found)")
+        return
     print("DEBUG INFRA: Loading Verdaccio from {} with env_file={}".format(compose_file, env_file))
     docker_compose(compose_file, env_file=env_file)
     print("DEBUG INFRA: Calling dc_resource for verdaccio")
@@ -101,9 +104,14 @@ def _load_infisical(should_enable, root_prefix="", env_file=None):
     """Load Infisical secrets management."""
     if not should_enable('infisical'):
         return
-    
+
+    compose_file = root_prefix + 'docker-compose.infisical.yml'
+    if not _file_exists(compose_file):
+        print("DEBUG INFRA: Skipping Infisical (compose file not found)")
+        return
+
     print("🔐 Loading Infisical...")
-    docker_compose(root_prefix + 'docker-compose.infisical.yml', env_file=env_file)
+    docker_compose(compose_file, env_file=env_file)
     dc_resource('infisical-db', labels=['infra.tools', 'secrets'], resource_deps=['init-networks'], auto_init=True)
     dc_resource('infisical-redis', labels=['infra.tools', 'secrets'], resource_deps=['init-networks'], auto_init=True)
     dc_resource('infisical', labels=['infra.tools', 'secrets'], resource_deps=['init-networks', 'infisical-db', 'infisical-redis'], auto_init=True)
@@ -118,6 +126,18 @@ def _load_proxy(should_enable, root_prefix="", env_file=None):
     if not should_enable('proxy'):
         return
 
+    compose_files = [
+        root_prefix + 'shared-product-engineering/introvertic/infra/docker-compose.traefik.yml',
+        root_prefix + 'services/platform/proxy/docker-compose.core.yml',
+        root_prefix + 'services/platform/proxy/docker-compose.utilities.yml',
+        root_prefix + 'services/platform/proxy/docker-compose.redirects.yml',
+        root_prefix + 'services/platform/proxy/docker-compose.docs.yml',
+    ]
+    for compose_file in compose_files:
+        if not _file_exists(compose_file):
+            print("DEBUG INFRA: Skipping proxy (compose file not found: {})".format(compose_file))
+            return
+
     print("🌐 Loading proxy services from Introvertic Infra...")
     print("   → Primary: shared-product-engineering/introvertic/infra/docker-compose.traefik.yml")
     print("   → Override flags: TRAEFIK_LOG_LEVEL, TRAEFIK_ENABLE_DASHBOARD, etc.")
@@ -126,13 +146,7 @@ def _load_proxy(should_enable, root_prefix="", env_file=None):
 
     # Use introvertic/infra traefik configuration (primary)
     # Keep legacy core.yml for network definitions during migration
-    docker_compose([
-        root_prefix + 'shared-product-engineering/introvertic/infra/docker-compose.traefik.yml',
-        root_prefix + 'services/platform/proxy/docker-compose.core.yml',
-        root_prefix + 'services/platform/proxy/docker-compose.utilities.yml',
-        root_prefix + 'services/platform/proxy/docker-compose.redirects.yml',
-        root_prefix + 'services/platform/proxy/docker-compose.docs.yml'
-    ], env_file=env_file)
+    docker_compose(compose_files, env_file=env_file)
     
     # Traefik depends on core infrastructure being healthy (not just started) to prevent 504s
     dc_resource('traefik', 
