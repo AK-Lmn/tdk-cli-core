@@ -105,7 +105,7 @@ def _get_nested_field(manifest, field_path):
     
     Supports:
       - Simple field: 'port'
-      - Nested field: 'metadata.name' 
+    - Nested field: 'metadata.stack'
       - Deep nested: 'spec.dependencies.internal'
     """
     if '.' not in field_path:

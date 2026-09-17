@@ -77,7 +77,7 @@ const TRAEFIK = {
   apiHost: "api.localhost",
   appSubdomainPrefix: "app",
   apiSubdomainPrefix: "api",
-  defaultPort: 80,
+  defaultPort: 8080,
   tlsEnabled: false,
   entrypoints: ["web"],
   middlewares: [],
