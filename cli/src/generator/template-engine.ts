@@ -4,6 +4,11 @@ import Handlebars from "handlebars";
 import { PLATFORM_STANDARDS } from "../config/platform-standards.js";
 import type { JsonValue, ProjectConfig } from "../types/index.js";
 import { writeTextFile } from "../utils/file-helpers.js";
+import tiltResourceDefaultsTemplate from "../../templates/TILT_RESOURCE_DEFAULTS.star.hbs" with { type: "text" };
+import tiltTechStackTemplate from "../../templates/TILT_TECH_STACK.star.hbs" with { type: "text" };
+import tiltfileTemplate from "../../templates/Tiltfile.hbs" with { type: "text" };
+import tiltignoreTemplate from "../../templates/.tiltignore.hbs" with { type: "text" };
+import specMasterTemplate from "../../templates/spec.master.hbs" with { type: "text" };
 
 interface GeneratorContext {
   version: string;
@@ -59,6 +64,14 @@ const ALL_GENERATED_FILES = [
  * Derived from ALL_GENERATED_FILES const array for type safety.
  */
 type GeneratedFileName = (typeof ALL_GENERATED_FILES)[number];
+
+const EMBEDDED_TEMPLATES: Record<string, string> = {
+  ".tiltignore": tiltignoreTemplate,
+  "TILT_RESOURCE_DEFAULTS.star": tiltResourceDefaultsTemplate,
+  "TILT_TECH_STACK.star": tiltTechStackTemplate,
+  Tiltfile: tiltfileTemplate,
+  "spec.master": specMasterTemplate,
+};
 
 export class TemplateEngine {
   private templatesDir: string;
@@ -146,10 +159,12 @@ export class TemplateEngine {
 
   private loadTemplate(templateName: string): HandlebarsTemplateDelegate {
     const templatePath = path.join(this.templatesDir, `${templateName}.hbs`);
-    if (!fs.existsSync(templatePath)) {
+    const templateSource = fs.existsSync(templatePath)
+      ? fs.readFileSync(templatePath, "utf-8")
+      : EMBEDDED_TEMPLATES[templateName];
+    if (!templateSource) {
       throw new Error(`Template not found: ${templatePath}`);
     }
-    const templateSource = fs.readFileSync(templatePath, "utf-8");
     return Handlebars.compile(templateSource);
   }
 
