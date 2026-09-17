@@ -47,9 +47,11 @@ def _determine_app_type(manifest, resource_path):
     """
     Determine app type from manifest or service path.
     """
-    # Check if manifest has explicit appType
+    # Check if manifest has explicit appType or compact legacy type alias
     if manifest.get("appType") in ["frontend", "backend", "library", "migrator", "sdk", "worker", "infra"]:
         return manifest["appType"]
+    if manifest.get("type") in ["frontend", "backend", "library", "migrator", "sdk", "worker", "infra"]:
+        return manifest["type"]
     
     # Extract from path
     dir_name = resource_path.split("/")[-1] if resource_path else ""

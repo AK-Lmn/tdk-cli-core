@@ -47,7 +47,7 @@ def validate_manifest(manifest):
         issues.append("appName cannot start or end with a hyphen")
     
     # 2. appType validation
-    app_type = manifest.get('appType')
+    app_type = manifest.get('appType', manifest.get('type'))
     if not app_type:
         issues.append("Missing required field: appType")
     elif app_type not in VALID_APP_TYPES:
@@ -104,10 +104,5 @@ def validate_manifest(manifest):
             issues.append("Invalid replicas: " + str(replicas) + ". Minimum is 1")
         elif replicas > 10:
             issues.append("Invalid replicas: " + str(replicas) + ". Maximum is 10")
-    
-    # 8. Worker type requires 'nats' feature
-    if app_type == 'worker':
-        if type(features) == 'list' and 'nats' not in features:
-            issues.append("Worker appType requires 'nats' feature for event processing")
     
     return issues

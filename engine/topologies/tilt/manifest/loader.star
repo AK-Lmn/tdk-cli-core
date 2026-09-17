@@ -63,6 +63,8 @@ def load_from_file(path):
     
     if manifest == None:
         return struct(manifest=None, error="Invalid manifest: " + path)
+    if not manifest.get("appType") and manifest.get("type"):
+        manifest["appType"] = manifest["type"]
     
     return struct(manifest=manifest, error=None)
 

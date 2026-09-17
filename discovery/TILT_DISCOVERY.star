@@ -221,7 +221,7 @@ def get_port_ranges():
     return {
         "frontend": {"min": 3000, "max": 5999},
         "backend": {"min": 4000, "max": 5999},
-        "worker": {"min": 6000, "max": 6999},
+        "worker": {"min": 4000, "max": 6999},
         "migrator": {"min": 7000, "max": 7999},
         "sdk": {"min": 3000, "max": 9999},  # SDKs don't have strict rules
         "library": {"min": 3000, "max": 9999},  # Libraries don't have ports
