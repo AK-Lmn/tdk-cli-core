@@ -34,4 +34,4 @@ coverage/
 .jscpd-report/
 .tdk/.tdk-out/
 
-release-dist-*/*.zip
+release-dist-*/

@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+readonly REMOTE_URL="$2"
+
+case "${REMOTE_URL}" in
+  *github.com/tdk-landscape/tdk-cli.git) ;;
+  *) exit 0 ;;
+esac
+
+while read -r local_ref _remote_ref; do
+  if [[ "${local_ref}" == "refs/heads/main" ]]; then
+    "$(git rev-parse --show-toplevel)/scripts/release-binaries.sh" --publish
+    exit 0
+  fi
+done

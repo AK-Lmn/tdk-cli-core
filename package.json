@@ -14,6 +14,9 @@
     "lint:fix": "cd cli && npm run lint:fix",
     "test": "cd cli && npm run test",
     "clean": "cd cli && npm run clean",
+    "release:binaries": "scripts/release-binaries.sh",
+    "release:binaries:publish": "scripts/release-binaries.sh --publish",
+    "prepare": "scripts/install-git-hooks.sh",
     "cli": "cd cli && node bin/tdk.js",
     "tdk": "cd cli && node bin/tdk.js"
   },
