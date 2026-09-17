@@ -186,8 +186,8 @@ app.get('/', (c) => {
 });
 
 const port = process.env.PORT || 3000;
-console.log('\n🚀 ${name} running on http://localhost:' + port);
-console.log('📊 Health check: http://localhost:' + port + '/health\n');
+console.log('\\n🚀 ${name} running on http://localhost:' + port);
+console.log('📊 Health check: http://localhost:' + port + '/health\\n');
 
 export default {
   port,
