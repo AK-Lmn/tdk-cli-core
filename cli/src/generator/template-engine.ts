@@ -321,8 +321,67 @@ export function generateMasterConfigs(projectRoot: string): void {
     console.log(`✓ Copied: .tiltignore → project root`);
   }
 
+  vendorTdkExtension(projectRoot);
+
   console.log("");
   console.log("💡 To start Tilt: tdk up");
+}
+
+// The generated Tiltfile loads the TDK Tilt extension (engine, discovery,
+// specs, ext starlark modules). The extension repo may stay private, so we
+// vendor a working copy into .tdk/.tdk-out/tdk-cli-ext/ at generation time.
+// This makes `tdk up` work offline and on any machine - no hardcoded paths,
+// no dependency on a private GitHub repo.
+const TDK_EXTENSION_DIRS = ["engine", "discovery", "specs", "ext"] as string[];
+
+function vendorTdkExtension(projectRoot: string): void {
+  const outputDir = path.join(projectRoot, ".tdk", ".tdk-out");
+  const vendoredDir = path.join(outputDir, "tdk-cli-ext");
+
+  // Source resolution order:
+  //   1. $TDK_EXTENSION_SOURCE (explicit override)
+  //   2. Executable-adjacent checkout (bundled installs / dev checkouts)
+  //   3. Relative ../tdk-cli sibling (monorepo maintainer layout)
+  let sources: string[] = [];
+  if (process.env.TDK_EXTENSION_SOURCE) {
+    sources.push(process.env.TDK_EXTENSION_SOURCE);
+  }
+  const exeDir =
+    typeof process.executablePath === "string"
+      ? path.dirname(process.executablePath)
+      : import.meta.dirname || process.cwd();
+  sources.push(path.join(exeDir, "tdk-cli"));
+  sources.push(path.join(projectRoot, "..", "tdk-cli"));
+
+  let sourceRoot = "";
+  for (const candidate of sources) {
+    if (
+      candidate &&
+      fs.existsSync(path.join(candidate, "Tiltfile")) &&
+      fs.existsSync(path.join(candidate, "engine"))
+    ) {
+      sourceRoot = candidate;
+      break;
+    }
+  }
+
+  if (!sourceRoot) {
+    console.warn(
+      `⚠️  TDK extension not found - 'tdk up' will need TDK_EXTENSION_PATH set.`
+    );
+    return;
+  }
+
+  if (!fs.existsSync(vendoredDir)) {
+    fs.mkdirSync(vendoredDir, { recursive: true });
+  }
+  fs.copyFileSync(path.join(sourceRoot, "Tiltfile"), path.join(vendoredDir, "Tiltfile"));
+  for (const dir of TDK_EXTENSION_DIRS) {
+    fs.cpSync(path.join(sourceRoot, dir), path.join(vendoredDir, dir), {
+      recursive: true,
+    });
+  }
+  console.log(`✓ Vendored TDK extension → .tdk/.tdk-out/tdk-cli-ext/`);
 }
 
 export function verifyMasterConfigs(projectRoot: string): { valid: boolean; errors: string[] } {

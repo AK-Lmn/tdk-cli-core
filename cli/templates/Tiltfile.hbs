@@ -14,17 +14,40 @@ print("🚀 Loading {{project.name}}...")
 # =============================================================================
 # 📦 REGISTER TDK EXTENSION
 # =============================================================================
-# AUTO-DETECT: Use local if available, otherwise GitHub
-_local_tdk_path = "/private/var/www/2025/ollamar1/tdk-cli"
-_check_local_cmd = "test -d " + _local_tdk_path + " && echo 'yes' || echo 'no'"
-_use_local = str(local(_check_local_cmd, quiet=True, echo_off=True)).strip() == 'yes'
+# The TDK Tilt extension (engine, discovery, specs, ext) is vendored into
+# this project at generation time (.tdk/.tdk-out/tdk-cli-ext). Resolution:
+#   1. Vendored in-project copy (default - works offline, no GitHub needed)
+#   2. $TDK_EXTENSION_PATH (explicit override to any tdk-cli checkout)
+#   3. Clear failure with instructions (no endless git retry on a missing repo)
+_vendored_tdk_path = config.main_dir + "/tdk-cli-ext"
+_use_local = False
+_local_tdk_path = ""
 
-if _use_local:
-    v1alpha1.extension_repo(name='tdk-cli-local', url='file://' + _local_tdk_path)
-    v1alpha1.extension(name='tdk-cli', repo_name='tdk-cli-local', repo_path='')
+if str(local("test -d " + _vendored_tdk_path, quiet=True, echo_off=True)).strip() == 'yes':
+    _use_local = True
+    _local_tdk_path = _vendored_tdk_path
 else:
-    v1alpha1.extension_repo(name='tdk-cli', url='https://github.com/tdk-landscape/tdk-cli')
-    v1alpha1.extension(name='tdk-cli', repo_name='tdk-cli', repo_path='')
+    _env_tdk_path = os.environ.get('TDK_EXTENSION_PATH', '')
+    if len(_env_tdk_path) > 0 and str(local("test -d " + _env_tdk_path, quiet=True, echo_off=True)).strip() == 'yes':
+        _use_local = True
+        _local_tdk_path = _env_tdk_path
+
+if not _use_local:
+    fail("""
+TDK extension not found.
+
+'tdk up' needs the TDK Tilt extension (engine/discovery/specs/ext).
+Fix it with one of:
+  1) Regenerate the project so the extension is vendored in:
+       tdk project --yes
+     (set $TDK_EXTENSION_SOURCE to a tdk-cli checkout if it was not auto-detected)
+  2) Point at any tdk-cli checkout:
+       export TDK_EXTENSION_PATH=/path/to/tdk-cli
+  3) Follow the sandbox guide: https://tdk-landscape.github.io/tdk-website/sandbox/
+""")
+
+v1alpha1.extension_repo(name='tdk-cli-local', url='file://' + _local_tdk_path)
+v1alpha1.extension(name='tdk-cli', repo_name='tdk-cli-local', repo_path='')
 
 # =============================================================================
 # 📍 PROJECT CONFIGURATION
@@ -245,13 +268,8 @@ if FOCUS_MODE and FOCUS_ENABLED_RESOURCES:
 if _AUTO_DISCOVER_ENABLED:
     watch_file('snapshots/resource-snapshot.json')
     
-    # Get extension install path (local if available, otherwise tilt_modules cache)
-    if _use_local:
-        discovery_path = _local_tdk_path + "/discovery"
-    else:
-        discovery_path = str(local("echo $HOME/Library/Application Support/tilt-dev/tilt_modules/github.com/tdk-landscape/tdk-cli/discovery", quiet=True)).strip()
-        if str(local('uname -s', quiet=True)).strip() == 'Linux':
-            discovery_path = str(local("echo $HOME/.local/share/tilt-dev/tilt_modules/github.com/tdk-landscape/tdk-cli/discovery", quiet=True)).strip()
+    # Get extension install path: vendored copy inside this project
+    discovery_path = _local_tdk_path + "/discovery"
 
     daemon_script = discovery_path + '/resource_snapshot.py'
     daemon_cmd = "cd " + config.main_dir + " && python3 \"" + daemon_script + "\" watch"
