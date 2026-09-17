@@ -197,8 +197,6 @@ def _apply_manifest_defaults(manifest, resource_path):
     - domain: "order" -> nats.queueGroup="order_backend_svc"
     """
     result = dict(manifest)
-    if not result.get('appType') and result.get('type'):
-        result['appType'] = result['type']
     
     # Normalize resource_path to be relative (strip leading / if present)
     # Docker build context requires relative paths

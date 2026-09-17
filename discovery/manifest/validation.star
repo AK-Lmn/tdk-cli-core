@@ -47,7 +47,7 @@ def validate_manifest(manifest):
         issues.append("appName cannot start or end with a hyphen")
     
     # 2. appType validation
-    app_type = manifest.get('appType', manifest.get('type'))
+    app_type = manifest.get('appType')
     if not app_type:
         issues.append("Missing required field: appType")
     elif app_type not in VALID_APP_TYPES:
