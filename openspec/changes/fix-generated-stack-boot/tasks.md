@@ -21,7 +21,7 @@
 
 ## 4. Release Binaries
 
-- [ ] 4.1 Rebuild binaries from fixed source: `bun build --compile --target=bun-linux-amd64 --outfile tdk-linux-amd64 cli/src/cli.ts` (repeat for `bun-linux-arm64`, `bun-darwin-amd64`, `bun-darwin-arm64`)
-- [ ] 4.2 Verify each rebuilt binary: `--version` matches, `project --yes` vendors the extension, and a generated service compiles and boots
-- [ ] 4.3 Update `release-dist-*` snapshots, `checksums.txt`, and the binaries zip
-- [ ] 4.4 Publish binaries to `tdk-landscape/tdk-cli-releases` releases with the fixed snapshots
+- [x] 4.1 Rebuild binaries from fixed source: `bun build --compile --target=bun-linux-amd64 --outfile tdk-linux-amd64 cli/src/cli.ts` (repeat for `bun-linux-arm64`, `bun-darwin-amd64`, `bun-darwin-arm64`)
+- [x] 4.2 Verify each rebuilt binary: `--version` matches, `project --yes` vendors the extension, and a generated service compiles and boots
+- [x] 4.3 Update `release-dist-*` snapshots, `checksums.txt`, and the binaries zip
+- [x] 4.4 Publish binaries to `tdk-landscape/tdk-cli-releases` releases with the fixed snapshots
