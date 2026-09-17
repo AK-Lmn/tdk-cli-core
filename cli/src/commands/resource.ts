@@ -71,6 +71,8 @@ export function createServiceJson(
 
   return {
     ...base,
+    appName: name,
+    appType: type,
     name,
     type,
     stack,
