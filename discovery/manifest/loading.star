@@ -217,7 +217,7 @@ def _apply_manifest_defaults(manifest, resource_path):
     # Traefik routes by hostname (e.g., booking.backend.{project}.local), not port
     app_type = result.get('appType', 'backend')
     
-    # Set constant port per appType with override detection
+    # Set constant port per appType, but preserve explicit service.json ports.
     computed_port = None
     if app_type == 'frontend':
         computed_port = BASE_PORT_FRONTEND
@@ -226,9 +226,7 @@ def _apply_manifest_defaults(manifest, resource_path):
     elif app_type == 'migrator':
         computed_port = 7000  # Migrator uses different range
     
-    if computed_port != None:
-        if 'port' in result and result['port'] != computed_port:
-            overrides.append("port: {} (auto: {})".format(result['port'], computed_port))
+    if computed_port != None and ('port' not in manifest or manifest.get('port') == None):
         result['port'] = computed_port
     
     # 🎯 CEO REVIEW: Custom dockerfile support

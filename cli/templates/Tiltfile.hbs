@@ -240,7 +240,6 @@ _KNOWN_TILT_RESOURCES.add('golden-layers-build')
 for _KNOWN_SVC in _app_resources_list:
     _KNOWN_SVC_NAME = _KNOWN_SVC.get('name', '')
     if _KNOWN_SVC_NAME:
-        _KNOWN_TILT_RESOURCES.add(_KNOWN_SVC_NAME + '-yaml')
         for _KNOWN_RES in _KNOWN_SVC.get('resources', []):
             _KNOWN_RES_NAME = _KNOWN_RES.get('name', '')
             if _KNOWN_RES_NAME:
