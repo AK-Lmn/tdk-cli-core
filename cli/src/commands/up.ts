@@ -118,8 +118,8 @@ export const upCommand = new Command("up")
         if (backends.length > 0) {
           console.log(chalk.blue("\n🔧 Backend API URLs:"));
           backends.forEach((svc) => {
-            const stackStr = svc.stack || svc.name;
-            const apiPath = svc.config?.apiPath ?? `/api/${stackStr}-management`;
+            const servicePathName = svc.name.replace(/-api$/, "");
+            const apiPath = svc.config?.apiPath ?? `/api/${servicePathName}`;
             console.log(chalk.gray(`  - ${svc.name}: ${apiBase}${chalk.cyan(apiPath)}`));
           });
         }
