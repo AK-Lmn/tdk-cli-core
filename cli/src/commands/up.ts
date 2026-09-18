@@ -1,4 +1,6 @@
 import { execSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import chalk from "chalk";
 import { Command } from "commander";
 import { handleDryRun } from "../utils/command-helpers.js";
@@ -13,11 +15,25 @@ import {
 } from "../utils/services.js";
 import { buildTiltUpArgs, runTilt } from "../utils/tilt.js";
 
-/** Base domain Traefik routes frontends on. Override with TDK_SERVICE_BASE_URL. */
-const SERVICE_BASE_URL = process.env.TDK_SERVICE_BASE_URL ?? "http://beauty-crm.localhost";
+import { findProjectRoot } from "../utils/paths.js";
+
+function getProjectName(): string {
+  const root = findProjectRoot();
+  if (root) {
+    try {
+      const content = readFileSync(join(root, ".tdk", "project.json"), "utf-8");
+      const parsed = JSON.parse(content);
+      if (parsed?.project?.name) {
+        return parsed.project.name;
+      }
+    } catch {}
+  }
+  return "beauty-crm";
+}
 
 function resolveSubdomainBases(): { appBase: string; apiBase: string } {
-  const raw = SERVICE_BASE_URL;
+  const projectName = getProjectName();
+  const raw = process.env.TDK_SERVICE_BASE_URL ?? `http://${projectName}.localhost`;
   try {
     const u = new URL(raw.includes("://") ? raw : `http://${raw}`);
     const host = u.hostname;
@@ -34,8 +50,8 @@ function resolveSubdomainBases(): { appBase: string; apiBase: string } {
     };
   } catch {
     return {
-      appBase: "http://app.beauty-crm.localhost",
-      apiBase: "http://api.beauty-crm.localhost",
+      appBase: `http://app.${projectName}.localhost`,
+      apiBase: `http://api.${projectName}.localhost`,
     };
   }
 }
@@ -102,7 +118,8 @@ export const upCommand = new Command("up")
         if (backends.length > 0) {
           console.log(chalk.blue("\n🔧 Backend API URLs:"));
           backends.forEach((svc) => {
-            const apiPath = svc.config?.apiPath ?? `/api/${svc.name}`;
+            const stackStr = svc.stack || svc.name;
+            const apiPath = svc.config?.apiPath ?? `/api/${stackStr}-management`;
             console.log(chalk.gray(`  - ${svc.name}: ${apiBase}${chalk.cyan(apiPath)}`));
           });
         }
