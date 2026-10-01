@@ -1,20 +1,22 @@
 ## Why
 
-Greenfield `tdk resource --type backend` always scaffolds a Bun + Hono service. Teams that want a Python API must use `bring-your-own` and write the Dockerfile, health check, and Tilt sync themselves. That makes Python a second-class local service even though the runtime contract is already Docker + Tilt + a health URL.
+`tdk resource --type backend` has always scaffolded a Bun + Hono service. That default is existing behavior, not something this change introduces. A team that wants a Node.js or Python API today has to use `bring-your-own` and write the Dockerfile, health check, and Tilt sync by hand. Frontend frameworks already have an opt-in provider seam (React default, Vue registered). Backends need the same seam, with Bun left as the default and Node.js and Python offered as explicit template choices.
 
 ## What Changes
 
-- Add an opt-in Python backend provider. Bun/Hono remains the default for `--type backend` and for existing manifests.
-- Select it with `tdk resource <name> --type backend --language <language> --stack <stack>`. Persist `language: "python"` on the new `service.json`.
-- Generate a runnable FastAPI service: `pyproject.toml`, app entry, `/health`, multi-stage Dockerfile, and Tilt live-update that reloads the process without a full image rebuild.
-- Do not add Python, FastAPI, or uvicorn to the TDK CLI runtime. Generated files belong only to the resource.
-- Keep ports, Traefik, health-checked boot order, and stack slices shared with Bun backends.
+- Preserve the existing Bun + Hono output when `--language` is omitted. Do not redefine or newly establish Bun as the default.
+- Add opt-in Node.js and Python backend templates selected with `tdk resource <name> --type backend --language <node|python> --stack <stack>`.
+- Persist the selected `language` on resources created with an explicit provider. A missing `language` on a legacy manifest continues to mean Bun and does not trigger a rewrite.
+- Generate a Node.js TypeScript service with `/health`, a Node start script, a Node Docker image, and Tilt reload behavior; generate a FastAPI service with `/health`, `pyproject.toml`, a Python Docker image, and Tilt live-update behavior.
+- Keep Python, FastAPI, uvicorn, and generated service dependencies out of the TDK CLI runtime. Generated files belong only to each resource.
+- Document the provider contract alongside `docs/frontend-framework-providers.md`, including where backend providers intentionally own language-specific images and reload commands.
+- Leave `bring-your-own` unchanged. It remains the path for languages without a provider.
 
 ## Capabilities
 
 ### New Capabilities
 
-- `backend-language-providers`: Language-specific backend scaffolding behind the shared backend service contract.
+- `backend-language-providers`: Language-specific backend scaffolding behind the shared backend service contract. Bun stays the historical default; Node.js and Python are opt-in templates.
 
 ### Modified Capabilities
 
@@ -22,6 +24,8 @@ None. Language selection is part of the new capability. `bring-your-own` is unch
 
 ## Impact
 
-- Affected code: `cli/src/commands/resource.ts`, a new backend-language provider module, Starlark Docker/Tilt generators for the Python image and sync, `engine/schemas/service-schema.json`, CLI tests.
-- Affected docs: `cli/README.md`, a short provider guide next to the frontend framework guide.
-- Existing Bun backends are not rewritten. `tdk config regenerate` still does not recreate resource source.
+- Affected code, in the implementation PR: `cli/src/commands/resource.ts`, a new `cli/src/backend-languages/` provider registry, Starlark Docker and Tilt generators for Node.js and Python, `engine/schemas/service-schema.json`, and CLI tests.
+- Affected docs: `cli/README.md`, `docs/backend-language-providers.md`, and a link from `CONTRIBUTING.md`.
+- Shared ports, Traefik routing, health-checked boot order, and stack slices remain unchanged.
+- `tdk config regenerate` still rebuilds project-level master config only. It does not recreate resource source.
+- This pull request contains planning artifacts only. Implementation tasks remain unchecked.

@@ -1,29 +1,124 @@
 ## ADDED Requirements
 
-### Requirement: Backend language selection
+### Requirement: Backend resource generation keeps Bun as the existing default
 
-The CLI SHALL scaffold a Bun backend when `--type backend` is used without `--language`.
-The CLI SHALL scaffold a Python FastAPI backend when `--type backend --language python` is used.
-The CLI MUST reject an unknown language before creating the resource directory.
-The CLI MUST reject `--language` on a resource type other than backend.
+`tdk resource --type backend` has always scaffolded a Bun + Hono service. This change MUST NOT redefine that default. The CLI SHALL keep producing the existing Bun + Hono starter when `--type backend` is used without `--language`. Interactive creation SHALL keep scaffolding Bun and SHALL NOT add a language picker. A missing `language` field on an existing backend `service.json` SHALL mean Bun. Discovery and `tdk up` MUST NOT rewrite that file only to insert `language`.
 
-#### Scenario: Default backend stays Bun
+#### Scenario: Omitted language preserves the historical Bun backend
 
-- GIVEN a project with a stack `shop`
-- WHEN the user runs `tdk resource orders-api --type backend --stack shop --yes`
-- THEN `service.json` has `appType` backend and language `bun` or omitted-compatible Bun output
-- AND the generated entry is a Hono app, not a Python app
+- **WHEN** a user creates a backend resource without specifying a language
+- **THEN** the generated service is the existing Bun + Hono starter
+- **AND** the command does not scaffold a Node.js app or a Python app
 
-#### Scenario: Opt-in Python backend
+#### Scenario: Interactive creation does not ask for a language
 
-- GIVEN a project with a stack `shop`
-- WHEN the user runs `tdk resource orders-api --type backend --language python --stack shop --yes`
-- THEN `service.json` has `language` `python` and `healthCheckPath` `/health`
-- AND the generated files include a FastAPI app and a Python Dockerfile
-- AND the TDK CLI package dependencies do not include FastAPI
+- **WHEN** a user creates a backend resource interactively and does not pass `--language`
+- **THEN** the CLI scaffolds the Bun + Hono starter
+- **AND** it does not prompt for Node.js or Python
 
-#### Scenario: Unknown language fails closed
+#### Scenario: Legacy backend metadata omits language
 
-- WHEN the user runs `tdk resource orders-api --type backend --language ruby --yes`
-- THEN the command exits non-zero
-- AND no resource directory is created
+- **WHEN** TDK reads an existing backend `service.json` that has no `language` field
+- **THEN** the service remains valid and is treated as the existing Bun backend
+- **AND** `service.json` is not rewritten solely to insert `"language": "bun"`
+
+### Requirement: Node.js is a chosen backend template
+
+The CLI SHALL accept `--language node` on a backend resource as an explicit template choice. Node.js is not the default. The resolved id SHALL be persisted as `"language": "node"`. Matching SHALL be case-insensitive (`Node`, `node`, and `NODE` select `node`). The Node template SHALL be a TypeScript HTTP API on the Node.js runtime, with a `/health` route, a `package.json` that starts under `node`, and a Dockerfile whose base image is Node.js, not Bun. The TDK CLI runtime MUST NOT gain the generated service's dependencies.
+
+#### Scenario: Explicit Node template is selected
+
+- **WHEN** a user runs `tdk resource orders-api --type backend --language node --stack shop --yes`
+- **THEN** the Node provider is used
+- **AND** generated `service.json` contains `"language": "node"` and `"appType": "backend"`
+- **AND** generated `service.json` contains `"healthCheckPath": "/health"`
+- **AND** the generated start command runs on Node.js, not Bun
+
+#### Scenario: Node template file set
+
+- **WHEN** the Node provider scaffolds a backend
+- **THEN** the resource includes a TypeScript entry that serves `/health`
+- **AND** includes `package.json` with a Node start script and the template dependencies
+- **AND** includes a Dockerfile based on a Node.js image
+- **AND** does not include a Bun base image, `bunfig.toml`, or a Python app entry
+- **AND** the `tdk` package dependencies do not include the generated service dependencies
+
+#### Scenario: Node language match is case-insensitive
+
+- **WHEN** a user runs `tdk resource orders-api --type backend --language Node --stack shop --yes`
+- **THEN** the Node provider is used
+- **AND** generated `service.json` contains `"language": "node"`
+
+### Requirement: Python is a chosen backend template
+
+The CLI SHALL accept `--language python` on a backend resource as an explicit template choice. Python is not the default. The resolved id SHALL be persisted as `"language": "python"`. Matching SHALL be case-insensitive. The Python template SHALL be a FastAPI app on Python 3.12, with `/health`, a `pyproject.toml`, a pytest smoke test, and a Dockerfile based on `python:3.12-slim`. The TDK CLI runtime MUST NOT gain FastAPI, uvicorn, or a Python dependency.
+
+#### Scenario: Explicit Python template is selected
+
+- **WHEN** a user runs `tdk resource orders-api --type backend --language python --stack shop --yes`
+- **THEN** the Python provider is used
+- **AND** generated `service.json` contains `"language": "python"`
+- **AND** generated `service.json` contains `"healthCheckPath": "/health"`
+
+#### Scenario: Python template file set
+
+- **WHEN** the Python provider scaffolds a backend
+- **THEN** the resource includes a FastAPI app that serves `/health`
+- **AND** includes `pyproject.toml` pinning FastAPI and uvicorn
+- **AND** includes a pytest file that requests `/health`
+- **AND** includes a Dockerfile based on `python:3.12-slim`
+- **AND** does not include `package.json`, a Bun image, or a Node image
+- **AND** the `tdk` package dependencies do not include FastAPI or uvicorn
+
+### Requirement: Language selection fails closed
+
+The CLI SHALL resolve `--language` only through registered provider ids. The initial registered ids are `bun`, `node`, and `python`. The CLI MUST reject an unknown identifier before creating the resource directory. The CLI MUST reject `--language` on a resource type other than backend. The error MUST identify the valid resource type and registered ids.
+
+#### Scenario: Unknown language is rejected before generation
+
+- **WHEN** a user runs `tdk resource orders-api --type backend --language ruby --stack shop --yes`
+- **THEN** the command exits non-zero
+- **AND** the error lists the registered ids `bun`, `node`, and `python`
+- **AND** no resource directory is created
+
+#### Scenario: Language option is rejected for non-backend resources
+
+- **WHEN** a user supplies `--language node` or `--language python` while creating a frontend, worker, bring-your-own, sdk, library, or migrator
+- **THEN** the CLI returns an actionable error that the option applies only to backend resources
+- **AND** does not create or modify the resource
+
+### Requirement: Chosen templates keep the shared backend contract
+
+Every backend provider SHALL use the shared backend metadata and local runtime contract: port allocation in 4000–4999, Traefik hostname, `healthCheckPath`, `dependsOn` boot order, and stack-slice selection via `tdk up <stack>`. Provider selection SHALL NOT fork those behaviors. The image and Tilt reload command MAY differ per language because Node.js and Python processes require different runtimes. This is an intentional difference from frontend providers, which share one Docker and nginx path.
+
+#### Scenario: Node and Python use the same port and health contract
+
+- **WHEN** a Node backend and a Python backend are generated in the same stack
+- **THEN** each receives a port in 4000–4999
+- **AND** each declares `healthCheckPath` `/health`
+- **AND** each is routable through the existing Traefik hostname pattern
+- **AND** `dependsOn` still controls boot order
+
+#### Scenario: Images and reload commands stay language-specific
+
+- **WHEN** Tilt generates local runtime config for a Node backend
+- **THEN** the image is a Node.js image and the reload command is the Node start command
+- **WHEN** Tilt generates local runtime config for a Python backend
+- **THEN** the image is `python:3.12-slim` and the reload command runs uvicorn
+- **AND** neither image is `oven/bun`
+
+### Requirement: Registry and schema stay locked
+
+The schema enum for `language` SHALL contain exactly the registered provider ids. A test MUST fail when the enum and registry differ. New resources created with an explicit `--language` SHALL persist the normalized selected id. `tdk config regenerate` SHALL keep rebuilding project-level master config only and SHALL NOT recreate resource source files.
+
+#### Scenario: Schema rejects an unregistered language
+
+- **WHEN** a backend `service.json` sets `language` to a value outside `bun`, `node`, and `python`
+- **THEN** schema validation fails
+- **AND** the resource is not started
+
+#### Scenario: Regenerating project config does not rewrite the template
+
+- **WHEN** a user runs `tdk config regenerate` after scaffolding a Node or Python backend
+- **THEN** project-level master config is rebuilt
+- **AND** the resource source files are left unchanged
