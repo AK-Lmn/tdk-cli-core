@@ -109,6 +109,7 @@ def test_standalone_compose_enables_file_provider_and_wake_gateway(tmp_path):
     yaml_text = r["yaml"]
     assert "--providers.file.directory=/etc/traefik/dynamic" in yaml_text
     assert "--providers.file.watch=true" in yaml_text
+    assert "--experimental.plugins.sablier.modulename=github.com/sablierapp/sablier-traefik-plugin" in yaml_text
     assert "/etc/traefik/dynamic:ro" in yaml_text
     assert "wake-gateway:" in yaml_text
     assert "/root/.tilt-dev:ro" in yaml_text

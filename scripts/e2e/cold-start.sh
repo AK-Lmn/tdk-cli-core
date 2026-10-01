@@ -220,7 +220,17 @@ fi
 
 health_url=""
 for _ in $(seq 1 60); do
-  health_url="$(grep -oE 'https?://[^ ]*/cold-api[^ ]*/health' up.log | head -1 || true)"
+  health_url="$(python3 - <<'PY'
+import re
+from pathlib import Path
+
+log = Path("up.log").read_text(errors="replace")
+log = re.sub(r"\x1b\[[0-?]*[ -/]*[@-~]", "", log)
+match = re.search(r"(?m)^\s*-\s*cold-api:\s*(https?://\S+)", log)
+if match:
+    print(match.group(1))
+PY
+)"
   [ -n "$health_url" ] && break
   sleep 2
 done
