@@ -215,6 +215,7 @@ describe("template-engine", () => {
       expect(focusBlock).toMatch(/_messaging_compose_doc\.get\('services',\s*\{\}\)\.keys\(\)/);
       expect(focusBlock).toContain("_ALWAYS_ENABLED_INFRA_RESOURCES.append(_messaging_svc_name)");
       expect(focusBlock).toContain("_ALWAYS_ENABLED_INFRA_RESOURCES.append('nats')");
+      expect(focusBlock).toContain("_FILTERED_RESOURCES.append(_STACK_RES_NAME + '-image')");
       // Both must land in the list Tilt is actually told to enable.
       const alwaysBlockEnd = focusBlock.indexOf("for _KR in _KNOWN_TILT_RESOURCES:");
       expect(focusBlock.slice(0, alwaysBlockEnd)).toMatch(
