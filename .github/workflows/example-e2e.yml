@@ -14,9 +14,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  docs:
+    uses: ./.github/workflows/docs-only.yml # zizmor: ignore[self-repository] reusable workflow resolves from this commit, not the job filesystem
+    permissions:
+      contents: read
+      pull-requests: read
+
   example-e2e:
     name: example-e2e
     runs-on: ubuntu-latest
+    needs: docs
+    # Skip on docs-only PRs; a skipped job still satisfies required checks.
+    if: ${{ !cancelled() && needs.docs.outputs.docs_only != 'true' }}
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v7
