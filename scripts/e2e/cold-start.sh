@@ -29,7 +29,7 @@ slow_sources = list(Path(".").glob("**/slow-api/src/index.ts"))
 if len(slow_sources) != 1:
     raise SystemExit(f"expected one slow-api source file; found {slow_sources}")
 source = slow_sources[0]
-source.write_text("await Bun.sleep(90000);\n" + source.read_text())
+source.write_text("await new Promise((resolve) => setTimeout(resolve, 90000));\n" + source.read_text())
 PY
 
 # Re-vendor after setting the manifest so a configured premium CI key overlays
