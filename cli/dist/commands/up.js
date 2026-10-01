@@ -28,7 +28,7 @@ export function formatUpSuccess(port, appUrls = []) {
 export function nativeWindowsUpRefusal(platform, allowNativeWindows) {
     if (platform !== "win32" || allowNativeWindows === "1")
         return null;
-    return "Native Windows is not supported for `tdk up`. Use WSL2 with Docker Desktop integration, then run `tdk doctor` inside your WSL project.";
+    return "Landscape startup needs Ubuntu on WSL2. Native Windows is inspect-only.";
 }
 function waitForTiltUi(port, timeoutMs = 30_000) {
     return new Promise((resolve) => {

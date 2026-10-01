@@ -21,7 +21,9 @@ describe("tdk up success output", () => {
 
 describe("tdk up platform contract", () => {
   it("refuses native Windows unless the explicit escape hatch is set", () => {
-    expect(nativeWindowsUpRefusal("win32")).toContain("tdk doctor");
+    expect(nativeWindowsUpRefusal("win32")).toBe(
+      "Landscape startup needs Ubuntu on WSL2. Native Windows is inspect-only.",
+    );
     expect(nativeWindowsUpRefusal("win32", "0")).not.toBeNull();
     expect(nativeWindowsUpRefusal("win32", "1")).toBeNull();
     expect(nativeWindowsUpRefusal("linux")).toBeNull();

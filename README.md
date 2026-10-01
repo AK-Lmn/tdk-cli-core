@@ -2,7 +2,9 @@
 
 TDK CLI starts your services on your laptop. It is not a deploy and not a Compose file: define each service in `service.json`, then run `tdk up`. No Kubernetes is needed on the machine.
 
-Docker runs the containers. Tilt runs the development loop. TDK CLI writes that configuration. Production deployment stays with Helm, Argo CD, or Kustomize.
+Stability: 1.x local dev. Generated files are a contract; verify with `tdk config verify`. Core CLI is MIT and needs no key. Premium is optional.
+
+Docker runs the containers. Tilt watches services and live-updates containers while you code. TDK CLI writes the configuration Tilt uses. Production deployment stays with Helm, Argo CD, or Kustomize.
 
 [Website](https://tdk-landscape.github.io/tdk-website/) · [Quickstart](https://tdk-landscape.github.io/tdk-website/docs/quickstart/) · [Examples](https://tdk-landscape.github.io/tdk-website/docs/examples/) · [Awesome TDK](https://github.com/tdk-landscape/awesome-tdk-framework) · [Demo](https://tdk-landscape.github.io/tdk-demo-animation/) · [Report a bug](https://github.com/tdk-landscape/tdk-cli-core/issues)
 
@@ -60,12 +62,26 @@ curl -fsSL https://tdk-landscape.github.io/install.sh | sh
 - [Full multi-service example](examples/tdk-example/README.md)
 - [Features and license limits](docs/FEATURES.md)
 - [Honest comparison and known limits](docs/compare-honest.md)
+- [Public claims registry](docs/claims.md)
+- [Show HN draft](docs/show-hn.md)
 - [Architecture and repository map](docs/project-overview.md)
 - [Scale fixture measurements and caveats](docs/scale-bench.md)
 
 ## Requirements and support
 
 For the local runtime, install Docker (Desktop, OrbStack, or Colima; Engine 25+, Compose 2.20+) and [Tilt](https://docs.tilt.dev/install.html). Bun 1.2+ is used by the default generated services. TDK selects host ports from bounded fallback ranges for HTTP, HTTPS, and Postgres; set `TDK_HTTP_PORT`, `TDK_HTTPS_PORT`, or `TDK_POSTGRES_PORT` to override them. TDK supports macOS, Linux, and Windows through WSL2 Ubuntu; native Windows supports CLI inspection only. Run `tdk doctor` to check local readiness. See [WSL2 setup](docs/wsl2.md).
+
+On native Windows, `tdk --version`, `tdk doctor`, and `tdk up --dry-run` are inspect-only commands. `tdk up` exits 2 with “Landscape startup needs Ubuntu on WSL2. Native Windows is inspect-only.”
+
+## License matrix
+
+| Capability | Free | Premium |
+| --- | --- | --- |
+| `tdk up`, scaffold, Traefik, Postgres, Tilt live update, golden layers | yes | yes |
+| Verdaccio, DDD scaffold, Sablier idle stop | no | key |
+| Playwright, C4, AGENTS.md | free if generated in-repo | only if the implementation is downloaded with a key |
+
+Core stays free. Premium is a separate key for the extras above; no key required to run `tdk up`.
 
 **Ecosystem map:** examples, articles, related tools, and notes live in [awesome-tdk-framework](https://github.com/tdk-landscape/awesome-tdk-framework). Star this repo (`tdk-cli-core`) if the CLI is what you run; use the awesome list to browse the rest.
 
