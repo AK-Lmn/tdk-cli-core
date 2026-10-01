@@ -11,10 +11,14 @@ _tdk_completions() {
     prev="\${COMP_WORDS[COMP_CWORD-1]}"
     
     # Main commands
-    local commands="project projects stack stacks resource resources up down status ui doctor version completion help upgrade"
+    local commands="project projects stack stacks resource resources up down status ui doctor runtime version completion help upgrade"
     
     # Options for specific commands
     case "\${prev}" in
+        runtime)
+            COMPREPLY=( $(compgen -W "--check-assets --json" -- \${cur}) )
+            return 0
+            ;;
         tdk)
             COMPREPLY=( $(compgen -W "\${commands}" -- \${cur}) )
             return 0
@@ -108,6 +112,11 @@ _tdk() {
             _arguments 
                 '--fix[Attempt to fix issues]'
             ;;
+        runtime)
+            _arguments
+                '--check-assets[Check bundled engine and template assets]'
+                '--json[Print the check result as JSON]'
+            ;;
         upgrade)
             _arguments
                 '--force[Force upgrade even if on latest]'
@@ -129,6 +138,7 @@ _tdk_commands() {
         'status:Show resource status'
         'ui:Open interactive UI'
         'doctor:Check environment'
+        'runtime:Inspect packaged runtime assets'
         'version:Show version'
         'upgrade:Upgrade TDK CLI'
         'completion:Generate shell completions'
@@ -173,6 +183,7 @@ complete -c tdk -n '__fish_use_subcommand' -a 'down' -d 'Stop all services'
 complete -c tdk -n '__fish_use_subcommand' -a 'status' -d 'Show resource status'
 complete -c tdk -n '__fish_use_subcommand' -a 'ui' -d 'Open interactive UI'
 complete -c tdk -n '__fish_use_subcommand' -a 'doctor' -d 'Check environment'
+complete -c tdk -n '__fish_use_subcommand' -a 'runtime' -d 'Inspect packaged runtime assets'
 complete -c tdk -n '__fish_use_subcommand' -a 'version' -d 'Show version'
 complete -c tdk -n '__fish_use_subcommand' -a 'upgrade' -d 'Upgrade TDK CLI'
 complete -c tdk -n '__fish_use_subcommand' -a 'completion' -d 'Generate shell completions'
@@ -208,6 +219,8 @@ complete -c tdk -n '__fish_seen_subcommand_from up' -a '(tdk resources 2>/dev/nu
 
 # doctor command options
 complete -c tdk -n '__fish_seen_subcommand_from doctor' -l fix -d 'Attempt to fix issues'
+complete -c tdk -n '__fish_seen_subcommand_from runtime' -l check-assets -d 'Check bundled engine and template assets'
+complete -c tdk -n '__fish_seen_subcommand_from runtime' -l json -d 'Print the check result as JSON'
 
 # upgrade command options
 complete -c tdk -n '__fish_seen_subcommand_from upgrade' -l force -d 'Force upgrade even if on latest'
@@ -215,7 +228,7 @@ complete -c tdk -n '__fish_seen_subcommand_from upgrade' -l dry-run -d 'Show wha
 `;
 const POWERSHELL_COMPLETION = `Register-ArgumentCompleter -Native -CommandName tdk -ScriptBlock {
   param($wordToComplete)
-  $cmds = @('up','down','doctor','project','resource','stacks','status','networks','upgrade','version','ui','config')
+  $cmds = @('up','down','doctor','project','resource','stacks','status','networks','upgrade','runtime','version','ui','config')
   $cmds | Where-Object { $_ -like "$wordToComplete*" }
 }`;
 const POWERSHELL_START = "# TDK-CLI-COMPLETION-START";
