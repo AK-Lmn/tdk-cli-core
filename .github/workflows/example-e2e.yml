@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   docs:
-    uses: ./.github/workflows/docs-only.yml
+    uses: ./.github/workflows/docs-only.yml # zizmor: ignore[self-repository] reusable workflow resolves from this commit, not the job filesystem
     permissions:
       contents: read
       pull-requests: read
