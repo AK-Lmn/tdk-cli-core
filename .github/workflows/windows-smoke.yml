@@ -9,8 +9,17 @@ permissions:
   contents: read
 
 jobs:
+  docs:
+    uses: ./.github/workflows/docs-only.yml
+    permissions:
+      contents: read
+      pull-requests: read
+
   windows-smoke:
     runs-on: windows-latest
+    needs: docs
+    # Skip on docs-only PRs; a skipped job still satisfies required checks.
+    if: ${{ !cancelled() && needs.docs.outputs.docs_only != 'true' }}
     steps:
       - uses: actions/checkout@v7
         with:

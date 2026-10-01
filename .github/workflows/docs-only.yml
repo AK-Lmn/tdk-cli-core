@@ -1,0 +1,49 @@
+# Reusable check: does this pull request change only documentation?
+#
+# Heavy jobs (example E2E, Windows and WSL2 smoke, CI build/test) call this and
+# skip when `docs_only` is exactly 'true'. A skipped job still satisfies a
+# required status check, so docs-only PRs can merge without booting stacks.
+#
+# Fail closed: on push, workflow_dispatch, or if this job fails, `docs_only`
+# is empty and callers run as usual. Callers must use
+#   if: ${{ !cancelled() && needs.<job>.outputs.docs_only != 'true' }}
+name: Docs-only change detection
+
+on:
+  workflow_call:
+    outputs:
+      docs_only:
+        description: "'true' when every changed file is documentation"
+        value: ${{ jobs.detect.outputs.docs_only }}
+
+permissions:
+  contents: read
+
+jobs:
+  detect:
+    name: Detect docs-only change
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      docs_only: ${{ steps.filter.outputs.code == 'false' }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # `code` is true when any changed file is outside the docs patterns.
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          predicate-quantifier: every
+          filters: |
+            code:
+              - '**'
+              - '!**/*.md'
+              - '!docs/**'
+              - '!openspec/**'
+              - '!LICENSE'
