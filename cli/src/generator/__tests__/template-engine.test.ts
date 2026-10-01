@@ -219,7 +219,7 @@ describe("template-engine", () => {
       // Config.apply_focus expands a stack target into concrete service
       // resources before this template filter sees it. Deferred image
       // prebuilds must follow that concrete-resource path too.
-      expect(focusBlock).toMatch(/_DEFERRED_IMAGE_RESOURCES\.add\(_KNOWN_RES_NAME \+ '-image'\)/);
+      expect(tiltfile).toMatch(/_DEFERRED_IMAGE_RESOURCES\.add\(_KNOWN_RES_NAME \+ '-image'\)/);
       expect(focusBlock).toMatch(
         /if _R \+ '-image' in _DEFERRED_IMAGE_RESOURCES:\s*\n\s*_FILTERED_RESOURCES\.append\(_R \+ '-image'\)/,
       );
