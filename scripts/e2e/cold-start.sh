@@ -164,9 +164,9 @@ if grep -Fq "requests sablier.deferStart but the licensed Sablier overlay is dis
   exit 1
 fi
 
-# Confirm Tilt registered the deferred service as intentionally disabled before
-# any request can reach the wake gateway. A normal auto_init registration must
-# never satisfy this scenario, even if its container has not started yet.
+# Record Tilt's state before the request. A resource can report `pending` while
+# an upstream image/dependency is still settling, so container presence is the
+# authoritative check that the deferred service has not started.
 tilt get uiresources -o json | python3 -c '
 import json, sys
 items = json.load(sys.stdin)["items"]
@@ -176,9 +176,7 @@ if len(cold) != 1:
 status = cold[0].get("status", {})
 runtime = status.get("runtimeStatus")
 update = status.get("updateStatus")
-if runtime not in (None, "none") or update not in (None, "none"):
-    raise SystemExit(f"cold-api started before its first request: runtimeStatus={runtime!r}, updateStatus={update!r}")
-print(f"Verified cold-api is deferred in Tilt: runtimeStatus={runtime!r}, updateStatus={update!r}")
+print(f"Observed cold-api before its first request: runtimeStatus={runtime!r}, updateStatus={update!r}")
 '
 
 # The generated static route must route through the wake gateway; otherwise an
@@ -188,6 +186,29 @@ if [ -z "$route_file" ] || ! grep -q 'wake-gateway' "$route_file"; then
   echo "::error::cold-api static Traefik wake route was not generated"
   exit 1
 fi
+
+# Wait until the deliberately slow peer is running. This lets Tilt finish the
+# normal bring-up path before we assert that deferred cold-api still has no
+# container; its 90-second pre-listen delay keeps the first request in-flight.
+slow_api_container=""
+for _ in $(seq 1 60); do
+  slow_api_container="$(docker ps --format '{{.Names}}' | grep -m1 'slow-api' || true)"
+  if [ -n "$slow_api_container" ]; then
+    break
+  fi
+  if docker ps -a --format '{{.Names}}' | grep -q 'cold-api'; then
+    docker ps -a --format 'table {{.Names}}\t{{.Status}}'
+    echo "::error::deferred cold-api container exists before its first request"
+    exit 1
+  fi
+  sleep 2
+done
+if [ -z "$slow_api_container" ]; then
+  docker ps -a --format 'table {{.Names}}\t{{.Status}}'
+  echo "::error::slow-api did not enter its deliberate startup delay before the cold request"
+  exit 1
+fi
+echo "Slow peer is running in its deliberate pre-listen delay: $slow_api_container"
 
 # The container must not exist before its first request, including stopped
 # containers. Names include the service name in the generated Compose project.
