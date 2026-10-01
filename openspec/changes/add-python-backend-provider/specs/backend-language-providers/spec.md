@@ -99,13 +99,17 @@ Every backend provider SHALL use the shared backend metadata and local runtime c
 - **AND** each is routable through the existing Traefik hostname pattern
 - **AND** `dependsOn` still controls boot order
 
-#### Scenario: Images and reload commands stay language-specific
+#### Scenario: Node backend uses a Node image and reload command
 
 - **WHEN** Tilt generates local runtime config for a Node backend
 - **THEN** the image is a Node.js image and the reload command is the Node start command
+- **AND** the image is not `oven/bun`
+
+#### Scenario: Python backend uses a Python image and uvicorn reload
+
 - **WHEN** Tilt generates local runtime config for a Python backend
 - **THEN** the image is `python:3.12-slim` and the reload command runs uvicorn
-- **AND** neither image is `oven/bun`
+- **AND** the image is not `oven/bun`
 
 ### Requirement: Registry and schema stay locked
 
@@ -122,7 +126,6 @@ The schema enum for `language` SHALL contain exactly the registered provider ids
 - **WHEN** a user runs `tdk config regenerate` after scaffolding a Node or Python backend
 - **THEN** project-level master config is rebuilt
 - **AND** the resource source files are left unchanged
-
 
 ### Requirement: Database provisioning status guarantees backend readiness
 
@@ -152,3 +155,47 @@ When database management is enabled for a stack, the database provisioner SHALL 
 - **AND** `GET /api/orders/health` through Traefik returns a successful response
 - **AND** the existing routed order write/read path completes with the worker observing the order
 - **AND** a missing database cannot be masked as a transient route probe or a successful provisioner update
+
+### Requirement: Python backend ships a runnable example in `examples/`
+
+The repository SHALL include `examples/one-backend-python/`, the Python counterpart of `examples/one-backend/`. It SHALL contain one authored backend `service.json` with `"language": "python"`, the FastAPI source produced by the Python provider (`pyproject.toml`, `src/main.py`, `tests/test_health.py`), and a `README.md`. The example source MUST match what `tdk resource --type backend --language python` generates, apart from service name and stack, and a test MUST fail when they drift. Running the example MUST NOT require Bun, Node.js, or a local Python interpreter beyond what the TDK CLI itself needs; Docker builds the service image.
+
+#### Scenario: Python example runs with the documented commands
+
+- **GIVEN** Docker, Tilt, and the TDK CLI are installed
+- **WHEN** a user runs `tdk project --yes` and `tdk up one-backend-python` in `examples/one-backend-python`
+- **THEN** Tilt builds the service from a `python:3.12-slim` image and starts uvicorn
+- **AND** `curl --fail http://api-backend.backend.one-backend-python.localhost/health` returns `{"status":"ok"}`
+- **AND** the README lists exactly these commands, the prerequisites, and `tdk down` to stop
+
+#### Scenario: Python example hot-reloads source edits
+
+- **GIVEN** the Python example is running under `tdk up one-backend-python`
+- **WHEN** a user edits `src/main.py`
+- **THEN** Tilt syncs the file and uvicorn reloads without an image rebuild
+- **AND** a change to `pyproject.toml` triggers an image rebuild instead of a live update
+
+#### Scenario: Example and generated template stay in sync
+
+- **WHEN** the Python provider's generated files change without updating `examples/one-backend-python/`
+- **THEN** the drift test fails and names the differing file
+
+#### Scenario: Python example is linked from the docs
+
+- **WHEN** a user reads `README.md`, `docs/README.md`, `cli/README.md`, or `docs/backend-language-providers.md`
+- **THEN** each links to `examples/one-backend-python/README.md` next to the existing one-backend example
+
+### Requirement: CI boots the Python example
+
+A CI job SHALL build the candidate TDK package, run `tdk up one-backend-python` in `examples/one-backend-python`, require routed `/health` to return 2xx through Traefik, and stop the stack. The job SHALL run on pull requests that touch the backend provider registry, the Python provider templates, its Starlark Docker or Tilt generators, or `examples/one-backend-python/`. It SHALL have a bounded timeout no longer than the default example E2E. The Python pytest smoke test SHALL run inside the built image, so CI does not need a host Python toolchain.
+
+#### Scenario: Python example E2E passes
+
+- **WHEN** the Python example job runs against a valid build
+- **THEN** the image builds, routed `/health` returns 2xx, the in-image pytest passes, and the stack is stopped within the timeout
+
+#### Scenario: Broken Python template fails CI
+
+- **WHEN** a change breaks the Python Dockerfile, uvicorn command, or `/health` route
+- **THEN** the Python example job fails with Tilt and container logs attached
+

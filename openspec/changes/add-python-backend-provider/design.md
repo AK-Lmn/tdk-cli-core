@@ -17,6 +17,7 @@ Backend providers cannot share the image the way frontend providers share Docker
 - Generate Node.js and Python services that answer `/health` and are reachable through the existing Traefik hostname.
 - Implement language-specific images and Tilt reload behavior without changing Bun live-update.
 - Ensure a database-backed backend cannot start before the database named by its generated `DATABASE_URL` exists, and make provisioning failures visible instead of reporting success.
+- Ship `examples/one-backend-python/` so a user can run a Python backend with documented commands, and boot it in CI.
 - Keep the default example E2E proving database readiness, routed health, and a write/read path through the API and worker.
 - Document provider-owned files versus shared files, including the intentional Docker and reload difference from frontend providers.
 
@@ -74,6 +75,10 @@ The Bun provider owns the existing Hono entry, package scripts, and Bun Dockerfi
 
 This differs from the frontend provider guide intentionally: backend runtime images and process reload commands depend on the language, while ports, routing, health behavior, and stack orchestration stay shared.
 
+### Python example lives beside `one-backend`, not inside the default example
+
+`examples/one-backend-python/` mirrors `examples/one-backend/`: one authored `service.json` with `"language": "python"`, the provider's FastAPI files, and a README. Adding a Python service to `examples/tdk-example` would put a second language in the required eight-minute default-example gate and change what `tdk project example` produces, so the default example stays Bun-only. A drift test compares the example with `tdk resource --type backend --language python` output so the example cannot rot. A path-filtered CI job boots the example, checks routed `/health`, and runs the pytest smoke test inside the built image, so the runner needs no host Python toolchain.
+
 ### CLI runtime stays language-neutral
 
 Generated Node and Python dependencies belong to the generated service only. The CLI package must not acquire FastAPI, uvicorn, or service-template dependencies. Tests should assert generated file contents and metadata; do not require a Python interpreter unless an existing CI job already provides one.
@@ -94,8 +99,9 @@ The registry is the source of valid language ids, with a schema enum kept in syn
 
 1. Extract the existing Bun starter behind a provider registry, preserving the default and captured output.
 2. Add Node and Python providers, schema ids, images, Tilt reload behavior, and focused scaffold tests.
-3. Correct database provisioning and dependency ordering so success guarantees the stack database exists; verify it through the default example E2E.
-4. Add the contributor guide and CLI selection examples.
+3. Add `examples/one-backend-python/`, its drift test, and its CI job.
+4. Correct database provisioning and dependency ordering so success guarantees the stack database exists; verify it through the default example E2E.
+5. Add the contributor guide and CLI selection examples.
 
 Rollback is a revert. Existing generated services need no migration.
 

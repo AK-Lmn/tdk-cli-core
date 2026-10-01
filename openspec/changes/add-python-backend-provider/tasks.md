@@ -22,17 +22,26 @@
 - [ ] 3.4 Test Python output, persisted metadata, case-insensitive selection, unknown id rejection, non-backend rejection, and legacy manifest compatibility.
 - [ ] 3.5 Verify FastAPI, uvicorn, and Python service dependencies are not added to the TDK CLI package.
 
-## 4. Make database readiness truthful and verify the default example
+## 4. Ship the runnable Python example
 
-- [ ] 4.1 Reproduce the failed example E2E: `orders-api` waits on `tdk_example_shop`, `/api/orders/health` returns 404, and Tilt reports `provision-db-shop` updated while the database is absent.
-- [ ] 4.2 Trace the `DATABASE_URL` name, `provision-db-<stack>` target, and backend `resource_deps`; guarantee they identify the same database and that provisioning runs before the backend.
-- [ ] 4.3 Make database provisioning fail when the database cannot be created or verified. A successful Tilt update must mean the configured database exists and accepts a connection.
-- [ ] 4.4 Extend the default example E2E to assert the stack database exists, routed `/api/orders/health` returns success, and the existing API/worker write/read path completes.
-- [ ] 4.5 Keep health probes from treating a backend as ready until its required database is available; confirm the request does not fall through to Traefik's 404 response after startup.
+- [ ] 4.1 Add `examples/one-backend-python/` mirroring `examples/one-backend/`: `services/one-backend-python/api/service.json` with `"language": "python"`, `pyproject.toml`, `src/main.py`, `tests/test_health.py`, and `README.md`.
+- [ ] 4.2 Write the README with prerequisites (Docker, Tilt, TDK CLI; no host Python), `tdk project --yes`, `tdk up one-backend-python`, the `curl --fail .../health` check, the Tilt dashboard URL, and `tdk down`.
+- [ ] 4.3 Add a drift test that compares the example source with `tdk resource --type backend --language python` output, ignoring service name and stack.
+- [ ] 4.4 Add a path-filtered CI job that boots the example, curls routed `/health`, runs pytest inside the built image, uploads Tilt and container logs on failure, and runs `tdk down`.
+- [ ] 4.5 Verify by hand that editing `src/main.py` live-reloads and editing `pyproject.toml` rebuilds the image.
+- [ ] 4.6 Link the example from `README.md`, `docs/README.md`, `cli/README.md`, and `docs/backend-language-providers.md`.
 
-## 5. Document the provider contract
+## 5. Make database readiness truthful and verify the default example
 
-- [ ] 5.1 Add `docs/backend-language-providers.md` modeled on `docs/frontend-framework-providers.md`, covering the file map, provider registration, shared-versus-owned responsibilities, the Docker/reload exception, and a one-provider-per-implementation-PR checklist.
-- [ ] 5.2 Link the backend guide from `CONTRIBUTING.md`.
-- [ ] 5.3 Document `tdk resource api --type backend --language node --stack shop` and the Python equivalent in `cli/README.md`; state that omitting `--language` keeps the existing Bun default.
-- [ ] 5.4 State that `bring-your-own` remains the path for languages without a provider.
+- [ ] 5.1 Reproduce the failed example E2E: `orders-api` waits on `tdk_example_shop`, `/api/orders/health` returns 404, and Tilt reports `provision-db-shop` updated while the database is absent.
+- [ ] 5.2 Trace the `DATABASE_URL` name, `provision-db-<stack>` target, and backend `resource_deps`; guarantee they identify the same database and that provisioning runs before the backend.
+- [ ] 5.3 Make database provisioning fail when the database cannot be created or verified. A successful Tilt update must mean the configured database exists and accepts a connection.
+- [ ] 5.4 Extend the default example E2E to assert the stack database exists, routed `/api/orders/health` returns success, and the existing API/worker write/read path completes.
+- [ ] 5.5 Keep health probes from treating a backend as ready until its required database is available; confirm the request does not fall through to Traefik's 404 response after startup.
+
+## 6. Document the provider contract
+
+- [ ] 6.1 Add `docs/backend-language-providers.md` modeled on `docs/frontend-framework-providers.md`, covering the file map, provider registration, shared-versus-owned responsibilities, the Docker/reload exception, and a one-provider-per-implementation-PR checklist.
+- [ ] 6.2 Link the backend guide from `CONTRIBUTING.md`.
+- [ ] 6.3 Document `tdk resource api --type backend --language node --stack shop` and the Python equivalent in `cli/README.md`; state that omitting `--language` keeps the existing Bun default.
+- [ ] 6.4 State that `bring-your-own` remains the path for languages without a provider.
