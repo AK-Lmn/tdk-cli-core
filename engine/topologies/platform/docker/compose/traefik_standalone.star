@@ -115,7 +115,7 @@ _SABLIER_DEPENDS_ON = """    depends_on:
 _SABLIER_FLAGS = """      # On-demand scaling: routes to stopped containers (opt-in via a
       # resource's `sablier:` manifest block), keeps idle services from
       # burning memory. Requires Traefik >=3.6 (see allownonrunning below).
-      - "--experimental.plugins.sablier.moduleName=github.com/sablierapp/sablier-traefik-plugin"
+      - "--experimental.plugins.sablier.modulename=github.com/sablierapp/sablier-traefik-plugin"
       - "--experimental.plugins.sablier.version=v1.3.1"
 """
 
