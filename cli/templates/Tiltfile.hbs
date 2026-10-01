@@ -241,6 +241,7 @@ Watchers.setup_package_json(_app_resources_list, should_enable)
 # not "app-*") - so stack membership must be resolved explicitly rather than
 # assumed via string prefix.
 _KNOWN_TILT_RESOURCES = set()
+_DEFERRED_IMAGE_RESOURCES = set()
 _KNOWN_TILT_RESOURCES.add('service-discovery-daemon')
 _KNOWN_TILT_RESOURCES.add('init-networks')
 _KNOWN_TILT_RESOURCES.add('postgres')
@@ -262,6 +263,10 @@ for _KNOWN_SVC in _app_resources_list:
                 _KNOWN_TILT_RESOURCES.add(_KNOWN_RES_NAME)
                 _KNOWN_TILT_RESOURCES.add(_KNOWN_RES_NAME + '-run-only')
                 _KNOWN_TILT_RESOURCES.add(_KNOWN_RES_NAME + '-config-gen')
+                _KNOWN_RES_MANIFEST = _KNOWN_RES.get('_manifest', {})
+                _KNOWN_RES_SABLIER = _KNOWN_RES_MANIFEST.get('sablier', {})
+                if _KNOWN_RES_SABLIER.get('enable', False) and _KNOWN_RES_SABLIER.get('deferStart', False):
+                    _DEFERRED_IMAGE_RESOURCES.add(_KNOWN_RES_NAME + '-image')
                 if _KNOWN_SVC_STACK:
                     _STACK_TO_RESOURCE_NAMES.setdefault(_KNOWN_SVC_STACK, [])
                     _STACK_TO_RESOURCE_NAMES[_KNOWN_SVC_STACK].append(_KNOWN_RES_NAME)
@@ -270,6 +275,13 @@ if FOCUS_MODE and FOCUS_ENABLED_RESOURCES:
     for _R in FOCUS_ENABLED_RESOURCES:
         if _R in _KNOWN_TILT_RESOURCES:
             _FILTERED_RESOURCES.append(_R)
+            # Focus expansion normally resolves stack names to concrete
+            # resources before this loop, so the stack branch below is not
+            # reached for the common `tdk up <stack>` path. Keep a deferred
+            # service's separate image prebuild enabled alongside that
+            # concrete resource in the expanded focus list.
+            if _R + '-image' in _DEFERRED_IMAGE_RESOURCES:
+                _FILTERED_RESOURCES.append(_R + '-image')
         elif _R in _STACK_TO_RESOURCE_NAMES:
             for _STACK_RES_NAME in _STACK_TO_RESOURCE_NAMES[_R]:
                 _FILTERED_RESOURCES.append(_STACK_RES_NAME)

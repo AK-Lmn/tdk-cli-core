@@ -216,6 +216,13 @@ describe("template-engine", () => {
       expect(focusBlock).toContain("_ALWAYS_ENABLED_INFRA_RESOURCES.append(_messaging_svc_name)");
       expect(focusBlock).toContain("_ALWAYS_ENABLED_INFRA_RESOURCES.append('nats')");
       expect(focusBlock).toContain("_FILTERED_RESOURCES.append(_STACK_RES_NAME + '-image')");
+      // Config.apply_focus expands a stack target into concrete service
+      // resources before this template filter sees it. Deferred image
+      // prebuilds must follow that concrete-resource path too.
+      expect(tiltfile).toMatch(/_DEFERRED_IMAGE_RESOURCES\.add\(_KNOWN_RES_NAME \+ '-image'\)/);
+      expect(focusBlock).toMatch(
+        /if _R \+ '-image' in _DEFERRED_IMAGE_RESOURCES:\s*\n\s*_FILTERED_RESOURCES\.append\(_R \+ '-image'\)/,
+      );
       // Both must land in the list Tilt is actually told to enable.
       const alwaysBlockEnd = focusBlock.indexOf("for _KR in _KNOWN_TILT_RESOURCES:");
       expect(focusBlock.slice(0, alwaysBlockEnd)).toMatch(
