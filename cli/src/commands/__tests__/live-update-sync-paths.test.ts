@@ -30,10 +30,12 @@ it("anchors live-update sync sources at the project root", () => {
   );
 });
 
-it("passes the project root from the resource config into the live-update rules", () => {
-  expect(registration).toMatch(
-    /_build_live_update_rules\(\s*config\['res_path'\],\s*config\['res_path'\],\s*config\['syncs'\],\s*config\.get\('project_root', ''\),?\s*\)/,
+it("passes the project root and language to the live-update rules by keyword", () => {
+  expect(registration).toContain(
+    "def _build_live_update_rules(res_path, full_res_path, syncs, project_root='', language='bun')",
   );
+  expect(registration).toContain("project_root=config.get('project_root', ''),");
+  expect(registration).toContain("language=config.get('manifest', {}).get('language', 'bun'),");
 });
 
 it("keeps the container destination under /app, independent of the host project root", () => {

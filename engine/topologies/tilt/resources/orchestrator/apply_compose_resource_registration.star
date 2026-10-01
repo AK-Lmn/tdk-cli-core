@@ -215,13 +215,20 @@ def _live_update_sync_source(project_root, full_res_path, sync_path):
     return relative_path
 
 
-def _build_live_update_rules(res_path, full_res_path, syncs, project_root=''):
-    """Build live update sync and run rules for a resource."""
+def _build_live_update_rules(res_path, full_res_path, syncs, project_root='', language='bun'):
+    """Build live update sync and run rules for a resource.
+
+    Python backends reload their own process after a sync (uvicorn --reload), so they have
+    no Bun install step. A changed pyproject.toml is not synced, so Tilt rebuilds the image instead.
+    """
     live_update_rules = []
     for sync_path in syncs:
         full_sync_path = _live_update_sync_source(project_root, full_res_path, sync_path)
         dest = '/app/' + full_res_path + '/' + sync_path
         live_update_rules.append(sync(full_sync_path, dest))
+    
+    if language == 'python':
+        return live_update_rules
     
     package_json_path = '/app/' + full_res_path + '/package.json'
     bun_lock_path = '/app/' + full_res_path + '/bun.lock'
@@ -388,7 +395,8 @@ def _register_single_resource(config, resource_path, compose_project_name, auto_
             config['res_path'],
             config['res_path'],
             config['syncs'],
-            config.get('project_root', ''),
+            project_root=config.get('project_root', ''),
+            language=config.get('manifest', {}).get('language', 'bun'),
         )
         _register_docker_build(config, live_update_rules)
         if defers_start:
