@@ -26,6 +26,6 @@ None. Language selection is part of the new capability. `bring-your-own` is unch
 
 - Affected code, in the implementation PR: `cli/src/commands/resource.ts`, a new `cli/src/backend-languages/` provider registry, Starlark Docker and Tilt generators for Node.js and Python, `engine/schemas/service-schema.json`, and CLI tests.
 - Affected docs: `cli/README.md`, `docs/backend-language-providers.md`, and a link from `CONTRIBUTING.md`.
-- Shared ports, Traefik routing, health-checked boot order, and stack slices remain unchanged.
+- Shared ports, Traefik routing, database provisioning, health-checked boot order, and stack slices remain one contract for all providers. The example E2E must verify that its stack database exists before the backend reports healthy and accepts routed requests.
 - `tdk config regenerate` still rebuilds project-level master config only. It does not recreate resource source.
 - This pull request contains planning artifacts only. Implementation tasks remain unchecked.

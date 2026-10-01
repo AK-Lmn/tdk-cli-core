@@ -4,7 +4,7 @@ Backend scaffolding lives in `cli/src/commands/resource.ts` and has always emitt
 
 `bring-your-own` already wraps an existing Dockerfile or image. It stays the escape hatch for Go, Java, legacy services, and other languages without a provider.
 
-Backend providers cannot share the image the way frontend providers share Docker and nginx. Frontend providers produce Vite applications that use the same build and serving path. Node.js and Python backends need different base images and process reload commands. Language-specific Dockerfiles and Tilt reload behavior are therefore provider-owned; port allocation, routing, health checks, and stack orchestration remain shared.
+Backend providers cannot share the image the way frontend providers share Docker and nginx. Frontend providers produce Vite applications that use the same build and serving path. Node.js and Python backends need different base images and process reload commands. Language-specific Dockerfiles and Tilt reload behavior are therefore provider-owned; port allocation, routing, database provisioning, health checks, and stack orchestration remain shared. A failed default-example E2E run showed a backend waiting forever on `tdk_example_shop` even though Tilt reported `provision-db-shop` as updated. Because this backend only starts its HTTP server after dependency connections succeed, the routed `/health` probe eventually receives 404. This proposal requires the provisioner status to reflect the database postcondition and the example E2E to prove the full routed path.
 
 ## Goals / Non-Goals
 
@@ -16,6 +16,8 @@ Backend providers cannot share the image the way frontend providers share Docker
 - Reject an unknown `--language` before creating a directory, and reject `--language` on any type other than backend.
 - Generate Node.js and Python services that answer `/health` and are reachable through the existing Traefik hostname.
 - Implement language-specific images and Tilt reload behavior without changing Bun live-update.
+- Ensure a database-backed backend cannot start before the database named by its generated `DATABASE_URL` exists, and make provisioning failures visible instead of reporting success.
+- Keep the default example E2E proving database readiness, routed health, and a write/read path through the API and worker.
 - Document provider-owned files versus shared files, including the intentional Docker and reload difference from frontend providers.
 
 **Non-Goals:**
@@ -57,13 +59,16 @@ The flag follows the explicit-selection pattern of frontend `--framework`. Using
 
 ### Shared backend contract, language-owned runtime files
 
-Every provider uses the shared service metadata and orchestration contract:
+Every provider uses the shared service metadata and orchestration contract, including database lifecycle:
 
 - `appName`, `appType: "backend"`, `stack`, `port`, `healthCheckPath`, and `dependsOn`
 - port allocation in 4000–4999
 - existing Traefik route and hostname conventions
 - health-gated boot order
 - stack-slice selection such as `tdk up <stack>`
+- database provisioning for the stack database used in `DATABASE_URL`; the provisioner succeeds only after the database exists and is connectable
+
+The backend runtime waits for its declared infrastructure dependencies. A database-enabled service must depend on the matching stack provisioner as well as PostgreSQL. The example E2E exercises this with the `shop` stack: it verifies the expected database exists, then checks routed `/health` and the order write/read path. A provisioner update status alone is insufficient evidence of readiness.
 
 The Bun provider owns the existing Hono entry, package scripts, and Bun Dockerfile. The Node provider owns its TypeScript entry, `package.json` start script, Node Dockerfile, and Node reload command. The Python provider owns `pyproject.toml`, `src/main.py`, `tests/test_health.py`, its Python Dockerfile, and uvicorn reload command. Starlark writes language-aware Tilt configuration under the existing generated-config paths. Do not emit a second Compose file or put Bun in Node/Python images.
 
@@ -81,6 +86,7 @@ The registry is the source of valid language ids, with a schema enum kept in syn
 
 - Extracting the Bun starter can change generated output accidentally. Capture today's Bun file set in a test before the move, then compare after extraction.
 - Tilt reload behavior may differ across Docker Desktop setups. Test sync paths and document a container restart fallback if process reload is unreliable.
+- Database provisioning can report a successful Tilt update without the target database being present. Check the database postcondition and fail the resource update when creation fails; retain the end-to-end example as coverage for startup ordering.
 - Node starter dependency choices can become an accidental framework commitment. Keep the provider contract language-oriented and limit the starter to a small HTTP service.
 - FastAPI as the only Python framework is opinionated. `bring-your-own` remains available; another Python framework can be proposed separately.
 
@@ -88,7 +94,8 @@ The registry is the source of valid language ids, with a schema enum kept in syn
 
 1. Extract the existing Bun starter behind a provider registry, preserving the default and captured output.
 2. Add Node and Python providers, schema ids, images, Tilt reload behavior, and focused scaffold tests.
-3. Add the contributor guide and CLI selection examples.
+3. Correct database provisioning and dependency ordering so success guarantees the stack database exists; verify it through the default example E2E.
+4. Add the contributor guide and CLI selection examples.
 
 Rollback is a revert. Existing generated services need no migration.
 

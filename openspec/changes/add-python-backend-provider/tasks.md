@@ -22,9 +22,17 @@
 - [ ] 3.4 Test Python output, persisted metadata, case-insensitive selection, unknown id rejection, non-backend rejection, and legacy manifest compatibility.
 - [ ] 3.5 Verify FastAPI, uvicorn, and Python service dependencies are not added to the TDK CLI package.
 
-## 4. Document the provider contract
+## 4. Make database readiness truthful and verify the default example
 
-- [ ] 4.1 Add `docs/backend-language-providers.md` modeled on `docs/frontend-framework-providers.md`, covering the file map, provider registration, shared-versus-owned responsibilities, the Docker/reload exception, and a one-provider-per-implementation-PR checklist.
-- [ ] 4.2 Link the backend guide from `CONTRIBUTING.md`.
-- [ ] 4.3 Document `tdk resource api --type backend --language node --stack shop` and the Python equivalent in `cli/README.md`; state that omitting `--language` keeps the existing Bun default.
-- [ ] 4.4 State that `bring-your-own` remains the path for languages without a provider.
+- [ ] 4.1 Reproduce the failed example E2E: `orders-api` waits on `tdk_example_shop`, `/api/orders/health` returns 404, and Tilt reports `provision-db-shop` updated while the database is absent.
+- [ ] 4.2 Trace the `DATABASE_URL` name, `provision-db-<stack>` target, and backend `resource_deps`; guarantee they identify the same database and that provisioning runs before the backend.
+- [ ] 4.3 Make database provisioning fail when the database cannot be created or verified. A successful Tilt update must mean the configured database exists and accepts a connection.
+- [ ] 4.4 Extend the default example E2E to assert the stack database exists, routed `/api/orders/health` returns success, and the existing API/worker write/read path completes.
+- [ ] 4.5 Keep health probes from treating a backend as ready until its required database is available; confirm the request does not fall through to Traefik's 404 response after startup.
+
+## 5. Document the provider contract
+
+- [ ] 5.1 Add `docs/backend-language-providers.md` modeled on `docs/frontend-framework-providers.md`, covering the file map, provider registration, shared-versus-owned responsibilities, the Docker/reload exception, and a one-provider-per-implementation-PR checklist.
+- [ ] 5.2 Link the backend guide from `CONTRIBUTING.md`.
+- [ ] 5.3 Document `tdk resource api --type backend --language node --stack shop` and the Python equivalent in `cli/README.md`; state that omitting `--language` keeps the existing Bun default.
+- [ ] 5.4 State that `bring-your-own` remains the path for languages without a provider.

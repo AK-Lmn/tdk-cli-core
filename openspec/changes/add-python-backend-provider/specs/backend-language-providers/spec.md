@@ -122,3 +122,33 @@ The schema enum for `language` SHALL contain exactly the registered provider ids
 - **WHEN** a user runs `tdk config regenerate` after scaffolding a Node or Python backend
 - **THEN** project-level master config is rebuilt
 - **AND** the resource source files are left unchanged
+
+
+### Requirement: Database provisioning status guarantees backend readiness
+
+When database management is enabled for a stack, the database provisioner SHALL create or verify the database named by the backend's generated `DATABASE_URL` before that backend starts. The backend SHALL depend on the matching `provision-db-<stack>` resource and PostgreSQL. The provisioner MUST fail its update when the database cannot be created or verified; an updated Tilt status MUST NOT be treated as success while the target database is missing. This contract applies equally to Bun, Node.js, and Python providers.
+
+#### Scenario: Stack database exists before the backend starts
+
+- **GIVEN** the `shop` stack enables database management
+- **WHEN** TDK starts a database-backed backend whose `DATABASE_URL` targets `tdk_example_shop`
+- **THEN** `provision-db-shop` creates or verifies `tdk_example_shop` before the backend process starts
+- **AND** the backend resource depends on that provisioner and PostgreSQL
+- **AND** the API can connect to the configured database before serving requests
+
+#### Scenario: Database provisioning cannot silently report success
+
+- **GIVEN** PostgreSQL is available but the configured stack database does not exist
+- **WHEN** the database provisioner cannot create or verify that database
+- **THEN** the provisioner update fails with an actionable diagnostic
+- **AND** Tilt does not report the provisioner as successfully updated
+- **AND** the database-backed backend is not reported healthy
+
+#### Scenario: Example E2E proves routed database-backed readiness
+
+- **GIVEN** the default example is configured with the `shop` stack and database management
+- **WHEN** the example E2E starts the stack
+- **THEN** it verifies the configured database exists before checking backend readiness
+- **AND** `GET /api/orders/health` through Traefik returns a successful response
+- **AND** the existing routed order write/read path completes with the worker observing the order
+- **AND** a missing database cannot be masked as a transient route probe or a successful provisioner update
