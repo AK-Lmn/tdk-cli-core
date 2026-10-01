@@ -1,25 +1,22 @@
 # TDK and your existing tools
 
-## TDK and Helm
+TDK CLI turns a `service.json` per service into a local Docker stack, with Tilt (the local development tool) watching services and live-updating containers as you code. It is not a deploy tool and not a Compose replacement. Production stays on Helm.
 
-TDK generates and runs the local Docker + Tilt development loop. Helm (including bjw-s app-template), Kustomize, Flux, and Argo keep rendering and deploying your cluster configuration. The same application source or image can flow through both paths; local routes and startup order do not configure production ingress or workload policy. See [TDK + Helm](with-helm.md).
+## Compose
 
-## Keep your existing local setup when
+Compose is better for 2–3 services you already wrote. TDK is useful when you want scaffolding, selective `tdk up <stack>`, and a generated Tiltfile for a larger service set.
 
-- Your Compose or Tilt setup already works for you.
-- The apps are not containers
-- You need TDK to generate Go/Java/Python apps (use bring-your-own)
+## Tilt
 
-## vs docker compose
+TDK writes the Tiltfile that configures Tilt's service watcher and live-update loop. If you already maintain a Tiltfile and it serves your workflow, stay on Tilt.
 
-TDK generates compose-like Docker + Tilt live update. Compose is simpler for 2–3 services you already wrote.
+## Skaffold, Garden, and DevSpace
 
-## vs raw Tilt
-
-TDK writes the Tiltfile for you. If you already maintain a Tiltfile, stay on Tilt.
+Those tools target a cluster. TDK does not; it runs a local Docker + Tilt development loop. Production deployment remains in your Helm or Kubernetes workflow.
 
 ## Known limits
 
-- Community is small
-- Generators are TypeScript-first
-- 100-service ERP-named benchmark is a fixture bench of tiny `/health` stubs, not a real ERP product or real application workload
+- The community is small.
+- Built-in generators are TypeScript-first; bring your own Go, Java, or Python services.
+- The 100-service number is a fixture bench of generated `/health` stubs, not an application workload. See [the claims registry](claims.md) and [bench notes](scale-bench.md).
+- Native Windows is inspect-only; startup needs Ubuntu on WSL2.

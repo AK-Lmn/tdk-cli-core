@@ -2,6 +2,18 @@
 
 This document describes all available features in TDK and how to control them.
 
+Stability: 1.x local dev. Generated files are a contract; verify with `tdk config verify`. Core CLI is MIT and needs no key. Premium is optional.
+
+## License matrix
+
+| Capability | Free | Premium |
+| --- | --- | --- |
+| `tdk up`, scaffold, Traefik, Postgres, Tilt live update, golden layers | yes | yes |
+| Verdaccio, DDD scaffold, Sablier idle stop | no | key |
+| Playwright, C4, AGENTS.md | free if generated in-repo | only if the implementation is downloaded with a key |
+
+Core stays free. Premium is a separate key for the extras above; no key required to run `tdk up`.
+
 ## Overview
 
 TDK has two levels of feature control:
@@ -203,7 +215,7 @@ These generators always run and don't have a feature flag:
 - **npmrc/bunfig** - Package manager configuration
 - **nginx** - Static file serving (frontend)
 - **env** - Backend environment setup
-- **agents-md** - AI safety guard rail
+- **agents-md** - AI safety guard rail (Free when generated in-repo; downloaded implementation requires Premium)
 
 ---
 
