@@ -275,6 +275,11 @@ if FOCUS_MODE and FOCUS_ENABLED_RESOURCES:
                 _FILTERED_RESOURCES.append(_STACK_RES_NAME)
                 _FILTERED_RESOURCES.append(_STACK_RES_NAME + '-run-only')
                 _FILTERED_RESOURCES.append(_STACK_RES_NAME + '-config-gen')
+                # deferStart backends prebuild their image in a separate
+                # local_resource because their dc_resource is not auto-init.
+                # Keep that prebuild in focus mode so `tdk up <stack>` still
+                # prepares the image before the first request wakes the service.
+                _FILTERED_RESOURCES.append(_STACK_RES_NAME + '-image')
         else:
             _MATCHED = [kr for kr in _KNOWN_TILT_RESOURCES if kr != 'service-discovery-daemon' and kr.startswith(_R + '-')]
             _FILTERED_RESOURCES.extend(_MATCHED)
