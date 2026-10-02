@@ -79,7 +79,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           current=$(node -p "require('./package.json').version")
-          version="$current"
+          # main is protected, so the bot's version-bump push is usually rejected and package.json
+          # lags behind. Start from the newest published version instead of counting up from it.
+          latest=$(npm view "@tdk-landscape/tdk-cli-core" version 2>/dev/null || true)
+          version=$(node -e '
+            const [cur, latest] = process.argv.slice(1);
+            const parse = (v) => v.split(".").map(Number);
+            const newer = latest && parse(latest).some((n, i) => n !== parse(cur)[i]
+              && n > parse(cur)[i] && parse(latest).slice(0, i).every((m, j) => m === parse(cur)[j]));
+            console.log(newer ? latest : cur);
+          ' "$current" "$latest")
           while npm view "@tdk-landscape/tdk-cli-core@${version}" version >/dev/null 2>&1 \
             || gh release view "v${version}" --repo tdk-landscape/tdk-cli-releases >/dev/null 2>&1; do
             version=$(node -p 'const [a, b, c] = process.argv[1].split(".").map(Number); [a, b, c + 1].join(".")' "$version")
