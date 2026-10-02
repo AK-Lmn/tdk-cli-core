@@ -126,6 +126,28 @@ describe("project and resource feature E2E", () => {
     );
   }, 60000);
 
+  it("scaffolds a backend that `tdk doctor` has nothing to say about, with the health route under the key the engine reads", () => {
+    projectRoot = mkdtempSync(join(tmpdir(), "tdk-project-healthpath-"));
+    runTdk(["project", "--yes"], projectRoot);
+    for (const [name, type] of [
+      ["fresh-api", "backend"],
+      ["fresh-mcp", "mcp"],
+    ] as const) {
+      runTdk(["resource", name, "--type", type, "--stack", "app", "--yes"], projectRoot);
+      const service = JSON.parse(
+        readFileSync(join(projectRoot, "services", "app", name, "service.json"), "utf-8"),
+      );
+      // The engine reads healthCheckPath (default /health). A top-level `healthCheck` is read by nothing.
+      expect(service.healthCheckPath, `${name} healthCheckPath`).toBe("/health");
+      expect(service, `${name} must not carry the unread healthCheck key`).not.toHaveProperty(
+        "healthCheck",
+      );
+    }
+
+    const output = runTdkAllowFailure(["doctor"], projectRoot);
+    expect(output).not.toMatch(/service\.json\.healthCheck: unknown field/);
+  }, 120000);
+
   it("calls a deprecated service.json field deprecated, not unknown, in `tdk doctor`", () => {
     projectRoot = mkdtempSync(join(tmpdir(), "tdk-project-deprecated-"));
     runTdk(["project", "--yes"], projectRoot);

@@ -14,7 +14,8 @@ export declare const BASE_TEMPLATE: {
     };
 };
 interface TypeSpecificConfig {
-    healthCheck?: string;
+    /** The route the engine probes. The engine reads `healthCheckPath` (default /health); a top-level `healthCheck` is read by nothing. */
+    healthCheckPath?: string;
     dev?: {
         command: string;
         watch: string[];

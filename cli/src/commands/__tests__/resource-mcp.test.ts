@@ -99,7 +99,7 @@ describe("tdk resource --type mcp", () => {
       appType: "mcp",
       type: "mcp",
       stack: "shop",
-      healthCheck: "/health",
+      healthCheckPath: "/health",
     });
     // Not a backend framework, no language, and no backend-only features such as Prisma.
     expect(service).not.toHaveProperty("framework");

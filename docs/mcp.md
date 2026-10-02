@@ -12,7 +12,7 @@ tdk up shop
 
 | File | What it is |
 | --- | --- |
-| `service.json` | `appType: "mcp"`, a port from 4000-5999, `healthCheck: "/health"`. No `framework` or `language` setting and no backend features such as Prisma. |
+| `service.json` | `appType: "mcp"`, a port from 4000-5999, `healthCheckPath: "/health"`. No `framework` or `language` setting and no backend features such as Prisma. |
 | `src/index.ts` | A server built on `@modelcontextprotocol/sdk` (1.x) using the Streamable HTTP transport, with one placeholder tool, `echo`. |
 | `package.json`, `tsconfig.json`, `Dockerfile`, `tests/` | The same Bun scaffold a backend gets. |
 
