@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -15,6 +15,7 @@ import {
   probeContainerRuntimeError,
   summarizeTiltBuildError,
 } from "../../utils/doctor-runtime.js";
+import { checkSharedStackRoutes } from "../../utils/doctor-wiring.js";
 import {
   checkDockerVersions,
   checkFrontendDockerPreflight,
@@ -1041,5 +1042,51 @@ describe("doctor resource discovery", () => {
     expect(result.message).toContain("apps/storefront");
     expect(result.message).not.toContain("orders-api");
     expect(result.fix).toContain("discovery.paths");
+  });
+});
+
+describe("checkSharedStackRoutes", () => {
+  const originalCwd = process.cwd();
+  let testDir: string;
+
+  beforeEach(() => {
+    testDir = mkdtempSync(join(tmpdir(), "tdk-doctor-stack-routes-"));
+  });
+
+  afterEach(() => {
+    process.chdir(originalCwd);
+    rmSync(testDir, { recursive: true, force: true });
+  });
+
+  function writeResource(name: string, extra: Record<string, unknown> = {}) {
+    const dir = join(testDir, "services", "shop", name);
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(
+      join(dir, "service.json"),
+      JSON.stringify({ appName: name, appType: "backend", stack: "shop", ...extra }),
+    );
+  }
+
+  it("passes when each stack has one backend", () => {
+    writeResource("orders-api");
+    expect(checkSharedStackRoutes(testDir).didPass).toBe(true);
+  });
+
+  it("warns, naming both backends, when two share a stack", () => {
+    writeResource("orders-api");
+    writeResource("billing-api");
+
+    const result = checkSharedStackRoutes(testDir);
+
+    expect(result.didPass).toBe(false);
+    expect(result.isWarning).toBe(true);
+    expect(result.message).toContain("billing-api and orders-api");
+    expect(result.fix).toContain("traefik.pathPrefix");
+  });
+
+  it("does not warn for a backend that sets its own traefik.pathPrefix", () => {
+    writeResource("orders-api");
+    writeResource("billing-api", { traefik: { pathPrefix: "/api/billing" } });
+    expect(checkSharedStackRoutes(testDir).didPass).toBe(true);
   });
 });

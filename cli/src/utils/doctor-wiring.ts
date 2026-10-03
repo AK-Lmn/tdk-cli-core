@@ -154,6 +154,38 @@ function listSourceFiles(dir: string): string[] {
 const LOCALHOST_PORT = /(?:localhost|127\.0\.0\.1):(\d{2,5})\b/g;
 const COMMENT_LINE = /^\s*(?:\/\/|\/\*|\*|<!--|#)/;
 
+/**
+ * Two API backends in one stack used to share the stack-scoped Traefik routers (`/api/<stack>-management`), so the same rule
+ * matched both and Traefik chose between them arbitrarily. The engine now drops those routers for such a stack and leaves each
+ * backend only its own `/api/<name>` route, so a client that still calls the stack path gets a 404 instead.
+ */
+export function checkSharedStackRoutes(
+  projectRoot = findProjectRoot() ?? process.cwd(),
+): CheckResult {
+  const byStack = new Map<string, string[]>();
+  for (const resource of discoverResourcesFromRoot(projectRoot)) {
+    const { appType, stack, traefik } = resource.config ?? {};
+    if (!stack || !isApiServiceType(appType) || traefik?.host || traefik?.pathPrefix) continue;
+    byStack.set(stack, [...(byStack.get(stack) ?? []), resource.name]);
+  }
+  const shared = [...byStack].filter(([, names]) => names.length > 1);
+
+  if (shared.length === 0) {
+    return {
+      name: "Stack API routes",
+      didPass: true,
+      message: "No stack has two backends sharing one /api/<stack>-management route",
+    };
+  }
+  return {
+    name: "Stack API routes",
+    didPass: false,
+    isWarning: true,
+    message: `${shared.map(([stack, names]) => `stack "${stack}" has ${[...names].sort().join(" and ")}`).join("; ")}. They are routed at /api/<name> only; /api/<stack>-management is not routed`,
+    fix: 'Call each backend at /api/<name>, move one backend to its own stack, or set "traefik.pathPrefix" in its service.json to keep a stack path for it',
+  };
+}
+
 export function checkFrontendBackendUrls(
   projectRoot = findProjectRoot() ?? process.cwd(),
 ): CheckResult {

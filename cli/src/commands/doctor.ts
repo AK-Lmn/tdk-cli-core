@@ -26,6 +26,7 @@ import {
   checkNatsBroker,
   checkResourcePackageJson,
   checkServiceUrlPorts,
+  checkSharedStackRoutes,
   checkTiltInstances,
 } from "../utils/doctor-wiring.js";
 import { validateEnvFile } from "../utils/env-validator.js";
@@ -1338,6 +1339,7 @@ export const doctorCommand = new Command("doctor")
       () => checkResourcePackageJson(),
       () => checkServiceUrlPorts(),
       () => checkFrontendBackendUrls(),
+      () => checkSharedStackRoutes(),
       () => checkNatsBroker(),
       () => checkTiltInstances(),
       checkEnvironmentVariables,
