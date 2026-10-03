@@ -206,6 +206,14 @@ EOF
     /^## / && in_unreleased { exit }
     in_unreleased { print }
   ' "${ROOT_DIR}/CHANGELOG.md")"
+  # The changelog's "Unreleased" section is only rolled into a version heading when the
+  # post-release bump can be pushed to main. While that is rejected (protected branch) it
+  # keeps its old entries, so leave out any line the previous release already published.
+  previous_tag_for_notes="$(gh release list --repo "${RELEASE_REPOSITORY}" --limit 1 --json tagName --jq '.[0].tagName // empty')"
+  if [[ -n "${previous_tag_for_notes}" ]]; then
+    previous_body="$(gh release view "${previous_tag_for_notes}" --repo "${RELEASE_REPOSITORY}" --json body --jq '.body')"
+    changelog_body="$(grep -vxFf <(printf '%s\n' "${previous_body}") <<<"${changelog_body}" || true)"
+  fi
   if [[ -n "$(tr -d '[:space:]' <<<"${changelog_body}")" ]]; then
     printf '\n## What\x27s Changed\n\n%s\n' "${changelog_body}" >> "${release_notes_file}"
   fi
