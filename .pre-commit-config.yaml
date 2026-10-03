@@ -12,7 +12,6 @@ repos:
         description: |
           Fast tests only (marked with @pytest.mark.fast):
           - Docker/Compose generator bug tests
-          - Port anchor selection (*backend-port vs *frontend-port)
           - EXPOSE validation (port numbers, not paths)
           - Function signature validation (keyword args)
           These are pure Python tests (no Tilt/Docker needed) and run in ~1s.

@@ -152,7 +152,7 @@ class TestComposePortAnchors:
     
     def test_backend_entry_is_detected_as_backend(self, sample_backend_entry: str):
         """Verify backend detection logic identifies backends correctly."""
-        # This mirrors the _is_backend_entry function logic
+        # Backend detection as _generate_port_anchors does it (healthcheck + curl, not frontend, not SDK)
         entry = sample_backend_entry
         
         # Backend should NOT be SDK
@@ -192,7 +192,6 @@ class TestComposePortAnchors:
         entry = sample_backend_entry
         
         # After processing, backend with port 4004 should get *backend-port
-        # This tests the _replace_ports_with_anchors logic
         is_backend = "healthcheck:" in entry and "curl" in entry and "<<: *frontend-memory-limit" not in entry
         has_frontend = "<<: *frontend-memory-limit" in entry
         
