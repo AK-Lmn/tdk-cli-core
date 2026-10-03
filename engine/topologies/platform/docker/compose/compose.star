@@ -295,7 +295,7 @@ def _generate_single_backend_entry(resource_path, resource_name, res, manifest, 
     environment:
 {infisical_env}
       - RESOURCE_NAME={stack}
-      - PORT={port_anchor}
+      - PORT={internal_port}
       - INSTANCE_ID={instance_label}
       - NATS_QUEUE_GROUP={nats_queue}
       - TILT_DATABASE_URL={db_url_for_tilt}
@@ -337,7 +337,6 @@ def _generate_single_backend_entry(resource_path, resource_name, res, manifest, 
         env_file_rel_path=env_file_rel_path,
         stack=stack,
         internal_port=internal_port,
-        port_anchor=internal_port,
         restart_policy=restart_policy,
         dev_port=dev_port,
         db_name=db_name,
@@ -375,150 +374,18 @@ def generate_backend_compose_entry(resource_path, resource_name, res, manifest=N
     # Multi-replica: generate separate service entries
     entries = []
     
-    # Primary instance (gets the port mapping)
+    # Primary instance
     entries.append(_generate_single_backend_entry(resource_path, resource_name, res, manifest, instance_id=None))
     
-    # Additional replicas (numbered, expose only)
+    # Additional replicas (numbered)
     for i in range(1, replicas):
         entries.append(_generate_single_backend_entry(resource_path, resource_name, res, manifest, instance_id=i))
     
     return ''.join(entries)
 
 
-def _generate_port_anchors(resource_entries):
-    """Extract unique ports and generate YAML anchors for them."""
-    backend_port = None
-    frontend_port = None
-    sdk_port = None
-    has_backend = False
-    has_sdk = False
-    has_frontend = False
-
-    for entry in resource_entries:
-        # Check if this is an SDK (ends with -sdk)
-        if "-sdk:" in entry or entry.strip().startswith("identity-sdk:"):
-            has_sdk = True
-            # Extract SDK port from entry
-            if "loadbalancer.server.port=" in entry:
-                for line in entry.split("\n"):
-                    if "loadbalancer.server.port=" in line:
-                        # Safe parsing without try/except
-                        port_str = line.split("loadbalancer.server.port=")[-1].split('"')[0]
-                        if port_str.isdigit():
-                            sdk_port = int(port_str)
-                            break
-        # Check if this is a frontend (has frontend-memory-limit but not SDK)
-        elif "<<: *frontend-memory-limit" in entry and not ("-sdk:" in entry or entry.strip().startswith("identity-sdk:")):
-            has_frontend = True
-            # Extract frontend port from entry
-            if "loadbalancer.server.port=" in entry:
-                for line in entry.split("\n"):
-                    if "loadbalancer.server.port=" in line:
-                        # Safe parsing without try/except
-                        port_str = line.split("loadbalancer.server.port=")[-1].split('"')[0]
-                        if port_str.isdigit():
-                            frontend_port = int(port_str)
-                            break
-        # Check if this is a backend (has a port, not frontend, not SDK)
-        # Backend entries have "healthcheck:" section with backend port
-        elif "healthcheck:" in entry and "<<: *frontend-memory-limit" not in entry and not ("-sdk:" in entry or entry.strip().startswith("identity-sdk:")):
-            has_backend = True
-            # Extract backend port from entry
-            if "loadbalancer.server.port=" in entry:
-                for line in entry.split("\n"):
-                    if "loadbalancer.server.port=" in line:
-                        # Safe parsing without try/except
-                        port_str = line.split("loadbalancer.server.port=")[-1].split('"')[0]
-                        if port_str.isdigit():
-                            backend_port = int(port_str)
-                            break
-
-    # Build anchors - use extracted port or fall back to default
-    anchors = []
-    anchors.append("x-backend-port: &backend-port {}".format(backend_port if backend_port else BASE_PORT_BACKEND))
-    if has_frontend and frontend_port:
-        anchors.append("x-frontend-port: &frontend-port {}".format(frontend_port))
-    if has_sdk and sdk_port:
-        anchors.append("x-sdk-port: &sdk-port {}".format(sdk_port))
-
-    return "\n".join(anchors)
-
-
-def _detect_sdk_in_entries(resource_entries):
-    """Check if any entry is an SDK."""
-    for entry in resource_entries:
-        if "-sdk:" in entry or entry.strip().startswith("identity-sdk:"):
-            return True
-    return False
-
-def _detect_frontend_in_entries(resource_entries):
-    """Check if any entry is a frontend."""
-    for entry in resource_entries:
-        if "<<: *frontend-memory-limit" in entry:
-            return True
-    return False
-
-def _detect_backend_in_entries(resource_entries):
-    """Check if any entry is a backend."""
-    for entry in resource_entries:
-        if _is_backend_entry(entry):
-            return True
-    return False
-
-def _is_sdk_entry(entry):
-    """Check if a specific entry is an SDK."""
-    return "-sdk:" in entry or entry.strip().startswith("identity-sdk:")
-
-def _is_backend_entry(entry):
-    """Check if a specific entry is a backend (not frontend, not SDK)."""
-    if "-sdk:" in entry or entry.strip().startswith("identity-sdk:"):
-        return False
-    if "<<: *frontend-memory-limit" in entry:
-        return False
-    # Backend entries have healthcheck with backend port pattern
-    if "healthcheck:" in entry and "curl" in entry:
-        return True
-    return False
-
-def _replace_ports_with_anchors(entry, has_sdk=False, has_frontend=False, has_backend=False):
-    """Replace hardcoded ports with YAML anchors in an entry."""
-    is_sdk = _is_sdk_entry(entry)
-    is_backend = _is_backend_entry(entry)
-    lines = entry.split("\n")
-    result = []
-
-    for line in lines:
-        new_line = line
-        # NOTE: We do NOT replace PORT=3000 with an anchor because YAML anchors
-        # in environment variable values are treated as literal strings, not resolved.
-        # The actual port value is already correctly set by _generate_single_backend_entry
-        # using the internal_port variable. Keep PORT=3000 as-is.
-
-        # YAML anchors do not resolve inside quoted Docker labels. Traefik must
-        # see a numeric loadbalancer.port (e.g. 4000), not `*backend-port`.
-        # NOTE: We do NOT replace healthcheck URLs with YAML anchors because anchors
-        # don't work inside quoted strings. The wget healthcheck URLs must use actual
-        # port numbers (e.g., http://127.0.0.1:3000), not anchor references.
-        # The correct port is already set by generate_frontend_compose.
-        # NOTE: We do NOT replace healthcheck URLs with anchors because YAML anchors
-        # don't work inside quoted strings. The healthcheck URL must use the actual
-        # port number (e.g., http://localhost:3000/health), not an anchor reference.
-        # The _generate_single_backend_entry function already uses the correct port
-        # via the internal_port variable in the healthcheck URL.
-
-        result.append(new_line)
-
-    return "\n".join(result)
-
-def _process_entries_with_anchors(resource_entries, has_sdk, has_frontend, has_backend):
-    """Replace ports with anchors in all entries."""
-    result = []
-    for entry in resource_entries:
-        result.append(_replace_ports_with_anchors(entry, has_sdk, has_frontend, has_backend))
-    return result
-
 def generate_app_compose_from_entries(resource_path, resource_entries, write_fn=None):
-    """Generate docker-compose.app.autogenerated.yml from service entries with port anchors.
+    """Generate docker-compose.app.autogenerated.yml from service entries.
 
     Args:
         resource_path: Path to the resource directory
@@ -529,28 +396,12 @@ def generate_app_compose_from_entries(resource_path, resource_entries, write_fn=
         str: Generated docker-compose YAML content
     """
 
-    # Detect service types
-    has_sdk = _detect_sdk_in_entries(resource_entries)
-    has_frontend = _detect_frontend_in_entries(resource_entries)
-    has_backend = _detect_backend_in_entries(resource_entries)
-
-    # Replace ports with anchors in entries
-    processed_entries = _process_entries_with_anchors(resource_entries, has_sdk, has_frontend, has_backend)
-
-    # Generate port anchors
-    port_anchors = _generate_port_anchors(resource_entries)
-
     header = """###############################################################################
 # 🛑 CRITICAL: SYSTEM-GENERATED FILE - DO NOT MODIFY DIRECTLY
 #
 # ANY MANUAL CHANGES MADE TO THIS FILE WILL BE WIPED ON THE NEXT 'tilt up'.
 # Generation Source: .tilt/topologies/platform/docker/index.star
 ###############################################################################
-
-# =============================================================================
-# PORT DEFINITIONS - Change these to change ports everywhere
-# =============================================================================
-{port_anchors}
 
 # =============================================================================
 # MEMORY LIMITS
@@ -573,7 +424,7 @@ x-frontend-memory-limit: &frontend-memory-limit
         memory: 32M
 
 services:
-""".format(port_anchors=port_anchors)
+"""
 
     footer = """
 networks:
@@ -592,15 +443,11 @@ networks:
         network_infisical=PlatformDockerConstants.NETWORK_INFISICAL,
     )
 
-    content = header + "\n".join(processed_entries) + footer
+    content = header + "\n".join(resource_entries) + footer
 
     if write_fn:
         compose_path = resource_path + '/' + OUTPUT.AUTOGENERATED_FOLDER + '/docker-compose.app.autogenerated.yml'
-        print("DEBUG COMPOSE GEN: Writing {} bytes to {}".format(len(content), compose_path))
         write_fn(compose_path, content)
-        print("DEBUG COMPOSE GEN: Write completed")
-    else:
-        print("DEBUG COMPOSE GEN: No write_fn provided!")
 
     return content
 
