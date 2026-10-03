@@ -5,6 +5,7 @@ import { qwikFrontendProvider } from "./qwik.js";
 import { reactFrontendProvider } from "./react.js";
 import { solidFrontendProvider } from "./solid.js";
 import { svelteFrontendProvider } from "./svelte.js";
+import { tanstackRouterFrontendProvider } from "./tanstack-router.js";
 import { vanillaFrontendProvider } from "./vanilla.js";
 import { vueFrontendProvider } from "./vue.js";
 export const DEFAULT_FRONTEND_FRAMEWORK = "react";
@@ -17,6 +18,7 @@ export const FRONTEND_FRAMEWORKS = {
     solid: solidFrontendProvider,
     qwik: qwikFrontendProvider,
     vanilla: vanillaFrontendProvider,
+    "tanstack-router": tanstackRouterFrontendProvider,
 };
 export function getFrontendFramework(frameworkId) {
     const id = (frameworkId ?? DEFAULT_FRONTEND_FRAMEWORK).trim().toLowerCase();

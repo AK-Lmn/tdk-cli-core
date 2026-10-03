@@ -280,6 +280,24 @@ if 'proxy:' not in files[dev_path]: fail('missing shared proxy')
     expect(result.status, result.stderr).toBe(0);
   });
 
+  it("generates both Vite configs for TanStack Router with the React plugin and the shared runtime settings", () => {
+    const result =
+      evaluateTiltfile(`load(${JSON.stringify(frontendGenerator)}, 'generate_frontend', 'VITE_FRONTEND_CONFIG_PATH', 'VITE_FRONTEND_BUILD_CONFIG_PATH')
+manifest = {'appType': 'frontend', 'framework': 'tanstack-router', 'appName': 'storefront', 'stack': 'shop', 'port': 3100, '_resource_path': 'apps/storefront'}
+files = {}
+def write_config(path, content):
+    files[path] = content
+generate_frontend(manifest, write_fn=write_config)
+if len(files) != 2: fail('expected exactly two generated TanStack Router Vite configs')
+for content in files.values():
+    if "@vitejs/plugin-react" not in content: fail('missing React plugin')
+    if "base: '/storefront/'" not in content: fail('missing shared base path')
+if 'proxy:' not in files['apps/storefront' + VITE_FRONTEND_CONFIG_PATH]: fail('missing shared proxy')
+`);
+
+    expect(result.status, result.stderr).toBe(0);
+  });
+
   it("selects the Solid plugin in both generated configs and retains shared runtime settings", () => {
     const result =
       evaluateTiltfile(`load(${JSON.stringify(frontendGenerator)}, 'generate_frontend', 'VITE_FRONTEND_CONFIG_PATH', 'VITE_FRONTEND_BUILD_CONFIG_PATH')
@@ -424,6 +442,11 @@ generate_frontend_tsconfig('apps/storefront', write_solid, is_docker=True, frame
 solid_config = decode_json(solid[list(solid.keys())[0]])
 if solid_config['compilerOptions'].get('jsx') != 'preserve': fail('Solid JSX must be preserved for its compiler')
 if solid_config['compilerOptions'].get('jsxImportSource') != 'solid-js': fail('Solid must import its JSX runtime from solid-js')
+router = {}
+def write_router(path, content):
+    router[path] = content
+generate_frontend_tsconfig('apps/storefront', write_router, is_docker=True, framework='tanstack-router')
+if decode_json(router[list(router.keys())[0]])['compilerOptions'].get('jsx') != 'react-jsx': fail('TanStack Router JSX must be react-jsx')
 qwik = {}
 def write_qwik(path, content):
     qwik[path] = content
@@ -468,6 +491,8 @@ solid = generate_resource_health_check('web', 'apps/web', {'appType': 'frontend'
 if 'src/main.tsx' not in solid: fail('Solid entry check is wrong')
 qwik = generate_resource_health_check('web', 'apps/web', {'appType': 'frontend', 'framework': 'qwik'}, {})
 if 'src/main.tsx' not in qwik: fail('Qwik entry check is wrong')
+router = generate_resource_health_check('web', 'apps/web', {'appType': 'frontend', 'framework': 'tanstack-router'}, {})
+if 'src/main.tsx' not in router: fail('TanStack Router entry check is wrong')
 react = generate_resource_health_check('web', 'apps/web', {'appType': 'frontend'}, {})
 if 'src/main.tsx' not in react: fail('legacy React entry check is wrong')
 `);

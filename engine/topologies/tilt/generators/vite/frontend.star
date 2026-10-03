@@ -68,6 +68,11 @@ _FRAMEWORK_TEMPLATES = {
         'dev': VANILLA_VITE_FRONTEND,
         'build': VANILLA_VITE_FRONTEND_BUILD,
     },
+    # A React SPA with TanStack Router: same plugin, same config, only the app code differs.
+    'tanstack-router': {
+        'dev': REACT_VITE_FRONTEND,
+        'build': REACT_VITE_FRONTEND_BUILD,
+    },
 }
 
 def _normalize_vite_base_path(base_path):

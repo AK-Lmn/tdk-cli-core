@@ -1,6 +1,6 @@
 # Contributing a frontend framework provider
 
-TDK supports Vite-based single-page applications. React is the default; Vue, Svelte, Preact, Lit, Solid, Qwik and Vanilla TypeScript (`vanilla`, no UI framework) are also registered. Add one framework per pull request, using a lowercase kebab-case id. Start by copying the React provider and its tests.
+TDK supports Vite-based single-page applications. React is the default; Vue, Svelte, Preact, Lit, Solid, Qwik, TanStack Router (`tanstack-router`, a React SPA with code-based routes) and Vanilla TypeScript (`vanilla`, no UI framework) are also registered. Add one framework per pull request, using a lowercase kebab-case id. Start by copying the React provider and its tests.
 
 New to the repository? Start with the [step-by-step contributor guide](contributing/README.md), then follow this focused provider recipe.
 
@@ -44,3 +44,20 @@ Create a resource with `tdk resource web --type frontend --framework <id> --stac
 Last run (2026-10-03): `PASS all 8 frontend frameworks: react vue svelte preact lit solid qwik vanilla`.
 
 Not covered: client-side behaviour in a browser (the script checks HTML and assets over HTTP, not that the app renders), production builds, and hot reload.
+
+## TanStack Router and TanStack Start (SSR)
+
+`tdk resource shop-web --type frontend --framework tanstack-router --stack shop --yes` scaffolds a client-side Vite SPA: React, `@tanstack/react-router`, one code-based route, and the shared Vite config (the React plugin, the base path, the proxy and the port are the same as for `react`). The router's `basepath` is Vite's `import.meta.env.BASE_URL`, so links work under `/<name>/` behind Traefik. File-based routing (the router's Vite plugin) is not scaffolded; add it in the app's own code if you want it.
+
+### TanStack Start (SSR)
+
+TanStack Start owns its Vite config and runs a server, so it does not fit the SPA provider. Create it with TanStack's own CLI and register it as a bring-your-own app:
+
+```bash
+tanstack create shop-web --router-only   # or the Start template
+tdk resource shop-web --type bring-your-own --stack shop --yes
+```
+
+Verified: `scripts/verify-frontend-frameworks.sh tanstack-router` -> `PASS tanstack-router: through tdk up and Traefik, GET /<project>-tanstack-router/ -> 200, .../index.js -> 200 application/javascript` (this run also caught that `import.meta.env` needs `/// <reference types="vite/client" />`, now in the scaffold).
+
+Not run: a TanStack Start app, and the `tanstack create` plus `--type bring-your-own` commands above.

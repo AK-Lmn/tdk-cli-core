@@ -5,6 +5,7 @@ import { qwikFrontendProvider } from "./qwik.js";
 import { reactFrontendProvider } from "./react.js";
 import { solidFrontendProvider } from "./solid.js";
 import { svelteFrontendProvider } from "./svelte.js";
+import { tanstackRouterFrontendProvider } from "./tanstack-router.js";
 import type { FrontendFrameworkProvider } from "./types.js";
 import { vanillaFrontendProvider } from "./vanilla.js";
 import { vueFrontendProvider } from "./vue.js";
@@ -20,6 +21,7 @@ export const FRONTEND_FRAMEWORKS: Record<string, FrontendFrameworkProvider> = {
   solid: solidFrontendProvider,
   qwik: qwikFrontendProvider,
   vanilla: vanillaFrontendProvider,
+  "tanstack-router": tanstackRouterFrontendProvider,
 };
 
 export function getFrontendFramework(frameworkId?: string): FrontendFrameworkProvider {

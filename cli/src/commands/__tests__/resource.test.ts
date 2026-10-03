@@ -196,7 +196,7 @@ describe("resource command", () => {
       expect(getFrontendFramework("solid").id).toBe("solid");
       expect(getFrontendFramework("qwik").id).toBe("qwik");
       expect(() => getFrontendFramework("angular")).toThrow(
-        /Supported frameworks: react, vue, svelte, preact, lit, solid, qwik, vanilla/,
+        /Supported frameworks: react, vue, svelte, preact, lit, solid, qwik, vanilla, tanstack-router/,
       );
       expect(() => getFrontendFramework("__proto__")).toThrow(/Unknown frontend framework/);
       expect(getFrontendFramework("React").id).toBe("react");
@@ -344,6 +344,30 @@ describe("resource command", () => {
         "src/App.tsx",
       ]);
       expect(files[1]?.content).toContain("from 'solid-js/web'");
+      expect(files[2]?.content).toContain("Frontend resource created with TDK");
+      expect(files.some(({ filename }) => filename === "vite.config.ts")).toBe(false);
+    });
+
+    it("keeps TanStack Router source and dependencies in its provider", () => {
+      const provider = getFrontendFramework("tanstack-router");
+      const files = provider.createFiles("sample-web");
+
+      expect(provider.id).toBe("tanstack-router");
+      expect(provider.dependencies).toHaveProperty("@tanstack/react-router");
+      expect(provider.dependencies).toHaveProperty("react");
+      expect(provider.devDependencies).toHaveProperty("@vitejs/plugin-react");
+      expect(provider.compilerOptions).toEqual({ jsx: "react-jsx" });
+      expect(files.map(({ filename }) => filename)).toEqual([
+        "index.html",
+        "src/main.tsx",
+        "src/router.tsx",
+      ]);
+      // The app is served under /<name>/, so the router must take Vite's base as its basepath.
+      expect(files[1]?.content).toContain("RouterProvider");
+      expect(files[2]?.content).toContain("basepath: import.meta.env.BASE_URL");
+      // `tsc` fails the image build on import.meta.env without the Vite client types (seen in a real tdk up).
+      expect(files[2]?.content).toContain('/// <reference types="vite/client" />');
+      expect(files[2]?.content).toContain("createRoute");
       expect(files[2]?.content).toContain("Frontend resource created with TDK");
       expect(files.some(({ filename }) => filename === "vite.config.ts")).toBe(false);
     });

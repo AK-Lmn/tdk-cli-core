@@ -428,6 +428,38 @@ describe("frontend resource framework selection", () => {
     ).toBe(true);
   }, 15000);
 
+  it("scaffolds TanStack Router as a Vite SPA that shares the React toolchain", () => {
+    const path = join(projectRoot, "apps", "router-web");
+    runTdk(
+      [
+        "resource",
+        "router-web",
+        "--type",
+        "frontend",
+        "--framework",
+        "tanstack-router",
+        "--stack",
+        "shop",
+        "--path",
+        "apps/router-web",
+      ],
+      projectRoot,
+      "y\n",
+    );
+
+    const service = JSON.parse(readFileSync(join(path, "service.json"), "utf-8"));
+    const pkg = JSON.parse(readFileSync(join(path, "package.json"), "utf-8"));
+    const tsconfig = JSON.parse(readFileSync(join(path, "tsconfig.json"), "utf-8"));
+
+    expect(service.framework).toBe("tanstack-router");
+    expect(service.appType).toBe("frontend");
+    expect(pkg.dependencies).toHaveProperty("@tanstack/react-router");
+    expect(pkg.devDependencies).toHaveProperty("@vitejs/plugin-react");
+    expect(tsconfig.compilerOptions.jsx).toBe("react-jsx");
+    expect(readdirSync(join(path, "src")).sort()).toEqual(["main.tsx", "router.tsx"]);
+    expect(existsSync(join(path, "vite.config.ts"))).toBe(false);
+  }, 15000);
+
   it("scaffolds Qwik without a second Vite config owner or runtime fork", () => {
     const qwikPath = join(projectRoot, "apps", "qwik-web");
     runTdk(
@@ -529,7 +561,7 @@ describe("frontend resource framework selection", () => {
         projectRoot,
       ),
     ).toThrow(
-      /Unknown frontend framework "angular"[\s\S]*Use one of: react, vue, svelte, preact, lit, solid, qwik, vanilla/,
+      /Unknown frontend framework "angular"[\s\S]*Use one of: react, vue, svelte, preact, lit, solid, qwik, vanilla, tanstack-router/,
     );
     expect(existsSync(resourcePath)).toBe(false);
   }, 15000);

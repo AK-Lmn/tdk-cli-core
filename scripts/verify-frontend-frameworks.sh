@@ -13,7 +13,7 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 if [ "$#" -gt 0 ]; then
   frameworks=("$@")
 else
-  frameworks=(react vue svelte preact lit solid qwik vanilla)
+  frameworks=(react vue svelte preact lit solid qwik vanilla tanstack-router)
 fi
 
 proj="fe$$"
@@ -58,7 +58,7 @@ failed=()
 for fw in "${frameworks[@]}"; do
   url="$(route "$fw")"
   html="$(curl -s -m 5 -H "Host: app.$proj.localhost" "$url" || true)"
-  asset="$(printf '%s' "$html" | grep -oE 'src="[^"]*\.js"' | head -1 | sed 's/^src="//; s/"$//')"
+  asset="$(printf '%s' "$html" | grep -oE 'src="[^"]*\.js"' | head -1 | sed 's/^src="//; s/"$//' || true)"
   status="$(code "$url")"
   asset_info="no module script in the HTML"
   asset_ok=1
