@@ -209,11 +209,15 @@ EOF
   # The changelog's "Unreleased" section is only rolled into a version heading when the
   # post-release bump can be pushed to main. While that is rejected (protected branch) it
   # keeps its old entries, so leave out any line the previous release already published.
-  previous_tag_for_notes="$(gh release list --repo "${RELEASE_REPOSITORY}" --limit 1 --json tagName --jq '.[0].tagName // empty')"
-  if [[ -n "${previous_tag_for_notes}" ]]; then
-    previous_body="$(gh release view "${previous_tag_for_notes}" --repo "${RELEASE_REPOSITORY}" --json body --jq '.body')"
-    changelog_body="$(grep -vxFf <(printf '%s\n' "${previous_body}") <<<"${changelog_body}" || true)"
-  fi
+  # Compare against several recent releases, not just the last one: a line dropped from one
+  # release's notes must not look new again in the next.
+  previous_notes_file="$(mktemp)"
+  while read -r previous_tag_for_notes; do
+    [[ -n "${previous_tag_for_notes}" ]] || continue
+    gh release view "${previous_tag_for_notes}" --repo "${RELEASE_REPOSITORY}" --json body --jq '.body' >> "${previous_notes_file}" || true
+  done < <(gh release list --repo "${RELEASE_REPOSITORY}" --limit 10 --json tagName --jq '.[].tagName')
+  changelog_body="$(grep -vxFf "${previous_notes_file}" <<<"${changelog_body}" || true)"
+  rm -f "${previous_notes_file}"
   if [[ -n "$(tr -d '[:space:]' <<<"${changelog_body}")" ]]; then
     printf '\n## What\x27s Changed\n\n%s\n' "${changelog_body}" >> "${release_notes_file}"
   fi

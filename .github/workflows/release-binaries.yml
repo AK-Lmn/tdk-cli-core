@@ -299,6 +299,6 @@ jobs:
           if ! git push "$remote" HEAD:main; then
             git fetch --depth=50 "$remote" main
             if ! { git rebase FETCH_HEAD && git push "$remote" HEAD:main; }; then
-              echo "::warning::Released ${VERSION}, but main changed and the version bump could not be pushed. Make sure package.json and cli/package.json on main are ${VERSION} or higher."
+              echo "::notice::Released ${VERSION}. The version bump was not pushed to main (branch protection or a newer commit). This is harmless: the next release starts from the newest npm version and its notes skip entries already published. CHANGELOG.md is not rolled over until the bot may push to main."
             fi
           fi
