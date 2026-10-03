@@ -1,0 +1,11 @@
+# A real `hanami new` app (Ruby 3.4, no database): the generator runs at build time.
+FROM ruby:3.4-slim
+RUN apt-get update -qq && apt-get install -y -qq build-essential git libyaml-dev curl >/dev/null \
+ && rm -rf /var/lib/apt/lists/*
+WORKDIR /work
+RUN gem install hanami --no-document >/dev/null \
+ && hanami new bookshelf --skip-db --skip-assets \
+ && cd bookshelf && bundle install --quiet
+WORKDIR /work/bookshelf
+# The server must listen beyond loopback (--host) and on TDK's port.
+CMD ["sh", "-c", "exec bundle exec hanami server --host 0.0.0.0 --port ${PORT:-2300}"]
