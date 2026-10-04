@@ -303,8 +303,14 @@ export type StatusValue =
 
 export type StatusCategory = "success" | "error" | "warning" | "unknown";
 
+export interface DiscoveryProblem {
+  path: string;
+  reason: string;
+}
+
 export interface DiscoveryContext {
   resources: DiscoveredResource[];
+  problems: DiscoveryProblem[];
   stacks: DiscoveredStack[];
   stackNames: string[];
   unassignedResources: DiscoveredResource[];

@@ -48,11 +48,34 @@ const printedWarnings = new Set();
 export function resetPrintedServiceWarnings() {
     printedWarnings.clear();
 }
+class InvalidServiceJsonError extends Error {
+    reason;
+    constructor(reason) {
+        super(reason);
+        this.reason = reason;
+        this.name = "InvalidServiceJsonError";
+    }
+}
+function errorMessage(error) {
+    return error instanceof Error ? error.message : String(error);
+}
 function parseResource(serviceJsonPath) {
-    const content = readFileSync(serviceJsonPath, "utf-8");
-    const parsed = JSON.parse(content);
+    let content;
+    try {
+        content = readFileSync(serviceJsonPath, "utf-8");
+    }
+    catch (error) {
+        throw new InvalidServiceJsonError(`could not read file: ${errorMessage(error)}`);
+    }
+    let parsed;
+    try {
+        parsed = JSON.parse(content);
+    }
+    catch (error) {
+        throw new InvalidServiceJsonError(`invalid JSON: ${errorMessage(error)}`);
+    }
     if (!isValidResourceConfig(parsed)) {
-        throw new Error(`Invalid service.json at ${serviceJsonPath}: missing required fields (appName, runtime or appType)`);
+        throw new InvalidServiceJsonError("missing required fields (appName, runtime or appType)");
     }
     const parsedConfig = parsed;
     for (const warning of validateServiceManifest(parsed, serviceJsonPath).warnings) {
@@ -76,12 +99,35 @@ function parseResource(serviceJsonPath) {
         stack: config.stack,
     };
 }
-export function discoverResourcesFromRoot(projectRoot) {
+export function discoverResourcesWithProblems(projectRoot) {
     const serviceJsonPaths = findServiceJsonFiles(projectRoot);
     const resources = [];
+    const problems = [];
     for (const path of serviceJsonPaths) {
-        resources.push(parseResource(path));
+        try {
+            resources.push(parseResource(path));
+        }
+        catch (error) {
+            problems.push({
+                path,
+                reason: error instanceof InvalidServiceJsonError ? error.reason : errorMessage(error),
+            });
+        }
     }
+    return { resources, problems };
+}
+export function warnAboutSkippedFiles(problems) {
+    for (const problem of problems) {
+        const warning = `skipped ${problem.path}: ${problem.reason}`;
+        if (printedWarnings.has(warning))
+            continue;
+        printedWarnings.add(warning);
+        console.warn(`⚠️  ${warning}`);
+    }
+}
+export function discoverResourcesFromRoot(projectRoot) {
+    const { resources, problems } = discoverResourcesWithProblems(projectRoot);
+    warnAboutSkippedFiles(problems);
     return resources;
 }
 export function discoverResources() {
@@ -90,6 +136,19 @@ export function discoverResources() {
         throw new Error("Could not find project root (no .tdk/project.json found). Run `tdk project --yes` first.");
     }
     return discoverResourcesFromRoot(projectRoot);
+}
+export function discoverResourcesStrict() {
+    const projectRoot = findProjectRoot();
+    if (!projectRoot) {
+        throw new Error("Could not find project root (no .tdk/project.json found). Run `tdk project --yes` first.");
+    }
+    const { resources, problems } = discoverResourcesWithProblems(projectRoot);
+    if (problems.length > 0) {
+        throw new Error(problems
+            .map((problem) => `Invalid service.json at ${problem.path}: ${problem.reason}`)
+            .join("\n"));
+    }
+    return resources;
 }
 /**
  * Unique, sorted `stack` values across discovered service.json files under `projectRoot`.
@@ -117,8 +176,7 @@ export function getAllStacks(resources) {
     }
     return Array.from(stacks).sort();
 }
-export function discoverStacks() {
-    const resources = discoverResources();
+export function discoverStacks(resources = discoverResources()) {
     const stackMap = new Map();
     for (const resource of resources) {
         if (resource.stack) {

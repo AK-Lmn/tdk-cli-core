@@ -8,14 +8,15 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { networksCommand } from "../../commands/networks.js";
 import { resolveByoPort, resourceCommand } from "../../commands/resource.js";
 import { resourcesCommand } from "../../commands/resources.js";
 import { statusCommand } from "../../commands/status.js";
 import { upCommand } from "../../commands/up.js";
-import { discoverResourcesFromRoot } from "../../utils/services.js";
+import { clearDiscoveryCache } from "../../utils/discovery-context.js";
+import { discoverResourcesFromRoot, resetPrintedServiceWarnings } from "../../utils/services.js";
 
 const originalCwd = process.cwd();
 
@@ -254,5 +255,65 @@ describe("bring-your-own resource type", () => {
     expect(() => resolveByoPort("4550", 4000, [{ config: { port: 4550 } }])).toThrow(
       /already assigned/,
     );
+  });
+
+  it("lists valid resources with a warning and keeps tdk up strict", async () => {
+    await createByo();
+    const badPath = join(tempDir, "services", "shop", "broken", "service.json");
+    mkdirSync(dirname(badPath), { recursive: true });
+    writeFileSync(badPath, "{ not json");
+
+    const output: string[] = [];
+    const warnings: string[] = [];
+    const errors: string[] = [];
+    const log = vi.spyOn(console, "log").mockImplementation((...parts: unknown[]) => {
+      output.push(parts.map(String).join(" "));
+    });
+    const warn = vi.spyOn(console, "warn").mockImplementation((...parts: unknown[]) => {
+      warnings.push(parts.map(String).join(" "));
+    });
+
+    try {
+      clearDiscoveryCache();
+      await resourcesCommand.parseAsync(["node", "tdk"], { from: "node" });
+      expect(output.join("\n")).toContain("widget [shop]");
+      expect(warnings.join("\n")).toContain(badPath);
+      expect(warnings.join("\n")).toContain("invalid JSON");
+
+      clearDiscoveryCache();
+      resetPrintedServiceWarnings();
+      output.length = 0;
+      warnings.length = 0;
+      await statusCommand.parseAsync(["node", "tdk", "--json"], { from: "node" });
+      const report = JSON.parse(output.join("\n"));
+      expect(report.data.resources).toMatchObject([{ name: "widget", stack: "shop" }]);
+      expect(warnings.join("\n")).toContain(badPath);
+      expect(warnings.join("\n")).toContain("invalid JSON");
+
+      const previousWindowsOverride = process.env.TDK_ALLOW_NATIVE_WINDOWS;
+      process.env.TDK_ALLOW_NATIVE_WINDOWS = "1";
+      const error = vi.spyOn(console, "error").mockImplementation((...parts: unknown[]) => {
+        errors.push(parts.map(String).join(" "));
+      });
+      const exit = vi.spyOn(process, "exit").mockImplementation((() => {
+        throw new Error("process.exit");
+      }) as never);
+      try {
+        clearDiscoveryCache();
+        await upCommand
+          .parseAsync(["node", "tdk", "--dry-run", "--quiet"], { from: "node" })
+          .catch(() => {});
+      } finally {
+        error.mockRestore();
+        exit.mockRestore();
+        if (previousWindowsOverride === undefined) delete process.env.TDK_ALLOW_NATIVE_WINDOWS;
+        else process.env.TDK_ALLOW_NATIVE_WINDOWS = previousWindowsOverride;
+      }
+      expect(errors.join("\n")).toContain(badPath);
+    } finally {
+      log.mockRestore();
+      warn.mockRestore();
+      clearDiscoveryCache();
+    }
   });
 });

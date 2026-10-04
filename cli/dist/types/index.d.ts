@@ -225,8 +225,13 @@ export interface SelectItem {
 }
 export type StatusValue = ResourceStatus | StackHealthStatus | TiltRuntimeStatus | ServiceUrl["status"] | "active" | "failed" | "critical" | "stopped" | "starting" | "building" | undefined;
 export type StatusCategory = "success" | "error" | "warning" | "unknown";
+export interface DiscoveryProblem {
+    path: string;
+    reason: string;
+}
 export interface DiscoveryContext {
     resources: DiscoveredResource[];
+    problems: DiscoveryProblem[];
     stacks: DiscoveredStack[];
     stackNames: string[];
     unassignedResources: DiscoveredResource[];

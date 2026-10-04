@@ -16,7 +16,7 @@ import { findProjectRoot } from "../utils/paths.js";
 import { findAvailablePort } from "../utils/port-assignment.js";
 import { isApiServiceType } from "../utils/resource-kind.js";
 import { appendHealthPath, resolveSubdomainBases } from "../utils/service-urls.js";
-import { discoverResources, discoverStacks, getResourcesForStack, stackExists, } from "../utils/services.js";
+import { discoverResources, discoverResourcesStrict, discoverStacks, stackExists, } from "../utils/services.js";
 import { buildSmokePlans, formatSmokeFailure, runSmokePlans } from "../utils/smoke.js";
 import { buildTiltUpArgs, runTilt } from "../utils/tilt.js";
 import { stopTiltOnPort } from "../utils/tilt-process.js";
@@ -105,11 +105,14 @@ export const upCommand = new Command("up")
         const projectRoot = options.dryRun
             ? requireProjectRoot()
             : (findProjectRoot() ?? process.cwd());
+        const discoveredResources = discoverResourcesStrict();
         // Reject a bad request before anything below can write to the project (.env, runtime assets, .tdk/project.json).
         if (options.only) {
             if (stackName && !stackExists(stackName))
                 errorFactories.stackNotFound(stackName).exit();
-            const candidates = stackName ? getResourcesForStack(stackName) : discoverResources();
+            const candidates = stackName
+                ? discoveredResources.filter((resource) => resource.stack === stackName)
+                : discoveredResources;
             const unknown = findUnknownServices(options.only, candidates);
             if (unknown.length > 0) {
                 const message = `Unknown service ${unknown.join(", ")}. Valid names: ${candidates.map((s) => s.name).join(", ")}`;
@@ -142,16 +145,16 @@ export const upCommand = new Command("up")
         let stackDescription;
         let focusServiceNames = [];
         if (stackName) {
-            if (!stackExists(stackName)) {
+            servicesToStart = discoveredResources.filter((resource) => resource.stack === stackName);
+            if (servicesToStart.length === 0) {
                 errorFactories.stackNotFound(stackName).exit();
             }
-            servicesToStart = getResourcesForStack(stackName);
             focusServiceNames = servicesToStart.map((s) => s.name);
             stackDescription = `stack "${stackName}"`;
         }
         else {
-            servicesToStart = discoverResources();
-            const allStacks = discoverStacks();
+            servicesToStart = discoveredResources;
+            const allStacks = discoverStacks(discoveredResources);
             stackDescription = `all stacks (${formatCount(allStacks.length, "stack")}, ${formatCount(servicesToStart.length, "service")})`;
         }
         let dependencyNames = [];
