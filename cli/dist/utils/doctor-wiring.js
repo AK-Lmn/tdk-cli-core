@@ -301,9 +301,7 @@ function databaseManagementEnabled(projectRoot) {
  * build, start and fail on its first query.
  */
 export function checkPrismaPostgres(projectRoot = findProjectRoot() ?? process.cwd()) {
-    const users = discoverResourcesFromRoot(projectRoot)
-        .filter((resource) => resource.config?.featuresEnabled?.includes("prisma"))
-        .map((resource) => resource.name);
+    const users = discoverResourcesFromRoot(projectRoot).filter((resource) => resource.config?.featuresEnabled?.includes("prisma"));
     if (users.length === 0) {
         return {
             name: "Prisma database",
@@ -312,18 +310,33 @@ export function checkPrismaPostgres(projectRoot = findProjectRoot() ?? process.c
             isSkipped: true,
         };
     }
-    if (databaseManagementEnabled(projectRoot)) {
+    const names = users.map((resource) => resource.name);
+    if (!databaseManagementEnabled(projectRoot)) {
         return {
             name: "Prisma database",
-            didPass: true,
-            message: `${formatCount(users.length, "resource")} enable prisma and the database-management stack feature (Postgres) is enabled`,
+            didPass: false,
+            message: `${names.join(", ")} enable the prisma feature, but the database-management stack feature is not enabled in .tdk/project.json, so TDK starts no Postgres for them`,
+            fix: 'Add "database-management" to phases.pre_alpha.enabledStacks in .tdk/project.json, run `tdk config regenerate`, and list "postgres" in each resource\'s dependsOn',
+        };
+    }
+    // Postgres is started anyway, so a missing entry is not a failure: older scaffolds wrote an
+    // empty dependsOn and work. It is reported so the dependency is written down.
+    const undeclared = users
+        .filter((resource) => !(resource.config?.dependsOn ?? []).some((dep) => POSTGRES_DEPENDENCY_NAMES.has(dep)))
+        .map((resource) => resource.name);
+    if (undeclared.length > 0) {
+        return {
+            name: "Prisma database",
+            didPass: false,
+            isWarning: true,
+            message: `${undeclared.join(", ")} enable the prisma feature without "postgres" in dependsOn; Postgres still starts because database-management is enabled`,
+            fix: 'Add "postgres" to dependsOn in each service.json listed',
         };
     }
     return {
         name: "Prisma database",
-        didPass: false,
-        message: `${users.join(", ")} enable the prisma feature, but the database-management stack feature is not enabled in .tdk/project.json, so TDK starts no Postgres for them`,
-        fix: 'Add "database-management" to phases.pre_alpha.enabledStacks in .tdk/project.json, run `tdk config regenerate`, and list "postgres" in each resource\'s dependsOn',
+        didPass: true,
+        message: `${formatCount(users.length, "resource")} enable prisma, list postgres in dependsOn, and the database-management stack feature is enabled`,
     };
 }
 /**

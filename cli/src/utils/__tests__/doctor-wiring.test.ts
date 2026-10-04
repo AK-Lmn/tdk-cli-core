@@ -270,10 +270,25 @@ describe("checkPrismaPostgres", () => {
 
   it("passes when database-management is enabled", () => {
     enableStacks(["proxy", "database-management"]);
-    resource("app", "api", { appType: "backend", port: 4000, featuresEnabled: ["prisma"] });
+    resource("app", "api", {
+      appType: "backend",
+      port: 4000,
+      featuresEnabled: ["prisma"],
+      dependsOn: ["postgres"],
+    });
     const result = checkPrismaPostgres(root);
     expect(result.didPass).toBe(true);
     expect(result.isSkipped).toBeUndefined();
+  });
+
+  it("warns, without failing, when a prisma resource does not list postgres in dependsOn", () => {
+    enableStacks(["proxy", "database-management"]);
+    resource("app", "api", { appType: "backend", port: 4000, featuresEnabled: ["prisma"] });
+    const result = checkPrismaPostgres(root);
+    expect(result.didPass).toBe(false);
+    expect(result.isWarning).toBe(true);
+    expect(result.message).toContain("api");
+    expect(result.fix).toContain("dependsOn");
   });
 
   it("passes when the database-management compose file exists without the stack feature", () => {
@@ -283,7 +298,12 @@ describe("checkPrismaPostgres", () => {
       join(root, "services", "platform", "database-management", "docker-compose.yml"),
       "",
     );
-    resource("app", "api", { appType: "backend", port: 4000, featuresEnabled: ["prisma"] });
+    resource("app", "api", {
+      appType: "backend",
+      port: 4000,
+      featuresEnabled: ["prisma"],
+      dependsOn: ["database-management"],
+    });
     expect(checkPrismaPostgres(root).didPass).toBe(true);
   });
 
