@@ -327,7 +327,19 @@ export async function checkDockerNetworkCapacity(
 /** The `dependsOn` names TDK maps to the shared Postgres (the Tilt resource, and the feature that provides it). */
 const POSTGRES_DEPENDENCY_NAMES = new Set(["postgres", "database-management"]);
 
+/**
+ * TDK loads Postgres from services/platform/database-management/docker-compose.yml, which it
+ * generates only while the stack feature is enabled in a phase (see infra-loader.star and
+ * template-engine.ts). A hand-written file works too, so either one counts.
+ */
 function databaseManagementEnabled(projectRoot: string): boolean {
+  if (
+    existsSync(
+      join(projectRoot, "services", "platform", "database-management", "docker-compose.yml"),
+    )
+  ) {
+    return true;
+  }
   try {
     const parsed = JSON.parse(readFileSync(join(projectRoot, ".tdk", "project.json"), "utf-8"));
     return isStackFeatureEnabledInStacks(parsed?.phases ?? {}, "database-management");

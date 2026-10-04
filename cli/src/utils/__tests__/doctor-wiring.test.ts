@@ -276,6 +276,17 @@ describe("checkPrismaPostgres", () => {
     expect(result.isSkipped).toBeUndefined();
   });
 
+  it("passes when the database-management compose file exists without the stack feature", () => {
+    enableStacks(["proxy"]);
+    mkdirSync(join(root, "services", "platform", "database-management"), { recursive: true });
+    writeFileSync(
+      join(root, "services", "platform", "database-management", "docker-compose.yml"),
+      "",
+    );
+    resource("app", "api", { appType: "backend", port: 4000, featuresEnabled: ["prisma"] });
+    expect(checkPrismaPostgres(root).didPass).toBe(true);
+  });
+
   it("names the resource when no Postgres would start", () => {
     enableStacks(["proxy"]);
     resource("app", "api", { appType: "backend", port: 4000, featuresEnabled: ["prisma"] });
