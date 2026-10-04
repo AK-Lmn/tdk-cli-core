@@ -350,11 +350,17 @@ export function checkDependsOnTargets(projectRoot = findProjectRoot() ?? process
     const names = resources.map((resource) => resource.name);
     const stacks = new Set(resources.map((resource) => resource.config?.stack ?? resource.stack).filter(Boolean));
     const unresolved = [];
+    const postgresStarts = databaseManagementEnabled(projectRoot);
     for (const resource of resources) {
         for (const dep of resource.config?.dependsOn ?? []) {
-            const known = POSTGRES_DEPENDENCY_NAMES.has(dep) ||
-                stacks.has(dep) ||
-                names.some((name) => name === dep || name.startsWith(`${dep}-`));
+            if (POSTGRES_DEPENDENCY_NAMES.has(dep)) {
+                // The engine drops this entry when no postgres resource exists, so it would be silently ignored.
+                if (!postgresStarts) {
+                    unresolved.push(`${resource.name} -> ${dep} (no Postgres starts: database-management is not enabled)`);
+                }
+                continue;
+            }
+            const known = stacks.has(dep) || names.some((name) => name === dep || name.startsWith(`${dep}-`));
             if (!known)
                 unresolved.push(`${resource.name} -> ${dep}`);
         }
@@ -363,13 +369,13 @@ export function checkDependsOnTargets(projectRoot = findProjectRoot() ?? process
         return {
             name: "dependsOn targets",
             didPass: true,
-            message: "Every dependsOn entry names a resource, a stack or the shared Postgres",
+            message: "Every dependsOn entry names a resource, a stack or a Postgres that starts",
         };
     }
     return {
         name: "dependsOn targets",
         didPass: false,
-        message: `dependsOn names that match no resource, stack or Postgres, so Tilt would wait on a resource that does not exist:\n    ${unresolved.join("\n    ")}`,
+        message: `dependsOn entries that Tilt cannot satisfy (no matching resource, stack or running Postgres), so they are ignored or wait on a resource that does not exist:\n    ${unresolved.join("\n    ")}`,
         fix: 'Use a resource name (appName), a stack name, or "postgres" for the shared database',
     };
 }

@@ -319,6 +319,7 @@ describe("checkPrismaPostgres", () => {
 
 describe("checkDependsOnTargets", () => {
   it("accepts resources, stacks, name prefixes and both Postgres names", () => {
+    enableStacks(["proxy", "database-management"]);
     resource("platform", "identity-management-backend", { appType: "backend", port: 4001 });
     resource("app", "api", {
       appType: "backend",
@@ -326,6 +327,14 @@ describe("checkDependsOnTargets", () => {
       dependsOn: ["postgres", "database-management", "identity", "platform"],
     });
     expect(checkDependsOnTargets(root).didPass).toBe(true);
+  });
+
+  it("reports a postgres entry when no Postgres would start", () => {
+    enableStacks(["proxy"]);
+    resource("app", "worker", { appType: "worker", port: 4000, dependsOn: ["postgres"] });
+    const result = checkDependsOnTargets(root);
+    expect(result.didPass).toBe(false);
+    expect(result.message).toContain("worker -> postgres");
   });
 
   it("reports a name that matches nothing", () => {

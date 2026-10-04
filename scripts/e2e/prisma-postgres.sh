@@ -58,15 +58,25 @@ PY
 (cd "$svc" && bun install >/dev/null)
 tdk config regenerate >/dev/null
 
-# The scaffold writes `dependsOn: ["postgres"]` itself when `prisma` is enabled, but this project edits service.json after scaffolding.
-# `tdk doctor` must accept what the engine will run: the prisma feature has a database and the dependency names a real target.
-if ! tdk doctor --no-ping >"$work/doctor.log" 2>&1; then
-  grep -E "Prisma database|dependsOn" "$work/doctor.log" >&2 || true
-fi
-if grep -E "✗.*(prisma feature|dependsOn names)" "$work/doctor.log" >&2; then
-  echo "FAIL: tdk doctor rejected the prisma + postgres wiring" >&2
-  exit 1
-fi
+# `tdk doctor` must accept what the engine will run. Other doctor findings (host ports, a missing container runtime) are not this test's
+# business, so assert the two checks this change owns: both must be present and pass, and neither may be a warning.
+tdk doctor --no-ping --json >"$work/doctor.json" 2>"$work/doctor.err" || true
+python3 - "$work/doctor.json" <<'PY'
+import json, sys
+try:
+    checks = json.load(open(sys.argv[1]))["data"]["checks"]
+except Exception as error:
+    sys.exit(f"FAIL: tdk doctor --json produced no readable report ({error})")
+wanted = ("Prisma database", "dependsOn targets")
+for name in wanted:
+    found = [c for c in checks if c["name"] == name]
+    if not found:
+        sys.exit(f"FAIL: tdk doctor has no '{name}' check")
+    check = found[0]
+    if not check.get("didPass") or check.get("isWarning") or check.get("isSkipped"):
+        sys.exit(f"FAIL: tdk doctor '{name}': {check.get('message')}")
+print("tdk doctor: " + ", ".join(f"'{n}' passes" for n in wanted))
+PY
 
 started="$(date +%s)"
 TILT_PORT="$tilt_port" nohup node "$root/cli/bin/tdk.js" up "$proj" >"$work/up.log" 2>&1 &
