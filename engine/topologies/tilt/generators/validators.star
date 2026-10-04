@@ -182,6 +182,9 @@ def validate_dependency_graph(resource_path, manifest, all_services):
     # Check manifest dependsOn
     internal_deps = manifest.get("dependsOn", [])
     for dep in internal_deps:
+        # The shared Postgres is platform infrastructure, not a service.
+        if dep in ["postgres", "database-management"]:
+            continue
         dep_exists = False
         for svc in all_services:
             # Check service name/stack match (supports legacy 'stack' field)

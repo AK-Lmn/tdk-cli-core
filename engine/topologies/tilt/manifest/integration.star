@@ -305,6 +305,9 @@ def check_dependencies_valid(manifests):
         internal_deps = manifest.get('dependsOn', [])
         
         for dep in internal_deps:
+            # The shared Postgres is platform infrastructure, not a manifest.
+            if dep in ['postgres', 'database-management']:
+                continue
             if dep not in app_names:
                 errors.append(ManifestErrors.new(
                     message="Service '{}' depends on non-existent service '{}'".format(app_name, dep),

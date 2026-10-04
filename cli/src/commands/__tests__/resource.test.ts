@@ -529,6 +529,23 @@ describe("service.json schema", () => {
   });
 });
 
+describe("createServiceJson prisma dependency", () => {
+  it("lists the shared Postgres in dependsOn when prisma is enabled", () => {
+    const json = createServiceJson("api", "backend", "app", 4000, ["prisma"]);
+    expect(json.featuresEnabled).toContain("prisma");
+    expect(json.dependsOn).toEqual(["postgres"]);
+  });
+
+  it("leaves dependsOn empty without prisma", () => {
+    expect(createServiceJson("api", "backend", "app", 4000).dependsOn).toEqual([]);
+  });
+
+  it("does not share dependsOn between scaffolds", () => {
+    createServiceJson("a", "backend", "app", 4000, ["prisma"]);
+    expect(createServiceJson("b", "backend", "app", 4001).dependsOn).toEqual([]);
+  });
+});
+
 describe("parseResourceType", () => {
   it("accepts every creatable type, sdk and the byo alias", () => {
     for (const type of [...CREATABLE_RESOURCE_TYPES, "sdk"]) {

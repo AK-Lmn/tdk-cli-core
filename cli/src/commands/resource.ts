@@ -42,6 +42,9 @@ import {
   validateStackName,
 } from "../utils/validation.js";
 
+/** The `dependsOn` name for the shared Postgres (the Tilt resource; `database-management` is accepted too). */
+export const POSTGRES_DEPENDENCY = "postgres";
+
 export const BASE_TEMPLATE = {
   port: 0, // Will be assigned
   // `dependsOn` is the current name; `dependencies` is deprecated and `tdk doctor` warns about it, so a fresh scaffold must not write it.
@@ -143,19 +146,25 @@ export function createServiceJson(
     delete base.build;
   }
 
+  const featuresEnabled = [
+    ...getDefaultFeaturesForResourceType(type as ResourceType).filter(
+      // Prisma wiring is Bun-only; the Python provider owns their data layer.
+      (feature) => !(language?.createFiles && feature === "prisma"),
+    ),
+    ...extraFeatures,
+  ];
+  // Prisma talks to the shared Postgres, so say so instead of relying on it being started anyway.
+  if (featuresEnabled.includes("prisma") && !base.dependsOn.includes(POSTGRES_DEPENDENCY)) {
+    base.dependsOn.push(POSTGRES_DEPENDENCY);
+  }
+
   return {
     ...base,
     $schema: SERVICE_MANIFEST_SCHEMA_URL,
     schemaVersion: SERVICE_MANIFEST_SCHEMA_VERSION,
     appName: name,
     appType: type as ResourceType,
-    featuresEnabled: [
-      ...getDefaultFeaturesForResourceType(type as ResourceType).filter(
-        // Prisma wiring is Bun-only; the Python provider owns their data layer.
-        (feature) => !(language?.createFiles && feature === "prisma"),
-      ),
-      ...extraFeatures,
-    ],
+    featuresEnabled,
     name,
     type,
     stack,

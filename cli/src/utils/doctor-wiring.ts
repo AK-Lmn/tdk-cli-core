@@ -8,6 +8,7 @@ import { formatCount } from "./formatting.js";
 import { findProjectRoot } from "./paths.js";
 import { isApiServiceType } from "./resource-kind.js";
 import { discoverResourcesFromRoot } from "./services.js";
+import { isStackFeatureEnabledInStacks } from "./stack-features.js";
 
 /**
  * Checks for wiring mistakes that only show up minutes into `tdk up`: an image
@@ -321,4 +322,90 @@ export async function checkDockerNetworkCapacity(
     // A leftover probe network is harmless and tdk_doctor_probe_* is easy to prune.
   }
   return { name: "Docker networks", didPass: true, message: "Docker can create networks" };
+}
+
+/** The `dependsOn` names TDK maps to the shared Postgres (the Tilt resource, and the feature that provides it). */
+const POSTGRES_DEPENDENCY_NAMES = new Set(["postgres", "database-management"]);
+
+function databaseManagementEnabled(projectRoot: string): boolean {
+  try {
+    const parsed = JSON.parse(readFileSync(join(projectRoot, ".tdk", "project.json"), "utf-8"));
+    return isStackFeatureEnabledInStacks(parsed?.phases ?? {}, "database-management");
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * A resource that enables `prisma` needs the shared Postgres. TDK only starts it while the
+ * `database-management` stack feature is enabled, and nothing else says so: the service would
+ * build, start and fail on its first query.
+ */
+export function checkPrismaPostgres(projectRoot = findProjectRoot() ?? process.cwd()): CheckResult {
+  const users = discoverResourcesFromRoot(projectRoot)
+    .filter((resource) => resource.config?.featuresEnabled?.includes("prisma"))
+    .map((resource) => resource.name);
+
+  if (users.length === 0) {
+    return {
+      name: "Prisma database",
+      didPass: true,
+      message: "No resource enables the prisma feature",
+      isSkipped: true,
+    };
+  }
+  if (databaseManagementEnabled(projectRoot)) {
+    return {
+      name: "Prisma database",
+      didPass: true,
+      message: `${formatCount(users.length, "resource")} enable prisma and the database-management stack feature (Postgres) is enabled`,
+    };
+  }
+  return {
+    name: "Prisma database",
+    didPass: false,
+    message: `${users.join(", ")} enable the prisma feature, but the database-management stack feature is not enabled in .tdk/project.json, so TDK starts no Postgres for them`,
+    fix: 'Add "database-management" to phases.pre_alpha.enabledStacks in .tdk/project.json, run `tdk config regenerate`, and list "postgres" in each resource\'s dependsOn',
+  };
+}
+
+/**
+ * `dependsOn` names are matched leniently by the engine, and a name that matches nothing falls
+ * back to a "<name>-yaml" resource that does not exist. Report those up front. The engine
+ * accepts a resource name, a stack, a name prefix (`identity` for `identity-management-backend`),
+ * and the shared Postgres under either of its two names.
+ */
+export function checkDependsOnTargets(
+  projectRoot = findProjectRoot() ?? process.cwd(),
+): CheckResult {
+  const resources = discoverResourcesFromRoot(projectRoot);
+  const names = resources.map((resource) => resource.name);
+  const stacks = new Set(
+    resources.map((resource) => resource.config?.stack ?? resource.stack).filter(Boolean),
+  );
+  const unresolved: string[] = [];
+
+  for (const resource of resources) {
+    for (const dep of resource.config?.dependsOn ?? []) {
+      const known =
+        POSTGRES_DEPENDENCY_NAMES.has(dep) ||
+        stacks.has(dep) ||
+        names.some((name) => name === dep || name.startsWith(`${dep}-`));
+      if (!known) unresolved.push(`${resource.name} -> ${dep}`);
+    }
+  }
+
+  if (unresolved.length === 0) {
+    return {
+      name: "dependsOn targets",
+      didPass: true,
+      message: "Every dependsOn entry names a resource, a stack or the shared Postgres",
+    };
+  }
+  return {
+    name: "dependsOn targets",
+    didPass: false,
+    message: `dependsOn names that match no resource, stack or Postgres, so Tilt would wait on a resource that does not exist:\n    ${unresolved.join("\n    ")}`,
+    fix: 'Use a resource name (appName), a stack name, or "postgres" for the shared database',
+  };
 }

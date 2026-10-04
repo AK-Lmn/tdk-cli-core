@@ -235,3 +235,33 @@ def test_prebuild_dockerignore_mirrors_docker_build_only_and_ignore(tmp_path):
 def test_resolve_manifest_dependency_names_dedupes_and_skips_empty(tmp_path):
     manifest = {"dependsOn": []}
     assert _run_resolve_names(tmp_path, manifest, {}) == []
+
+
+def test_resolve_manifest_dependency_names_maps_postgres_to_its_tilt_resource(tmp_path):
+    """The shared Postgres is infrastructure, not a service. Both of its names resolve to the
+    `postgres` Tilt resource instead of the last-resort "<name>-yaml" guess, which names nothing."""
+    for name in ("postgres", "database-management"):
+        assert _run_resolve_names(tmp_path, {"dependsOn": [name]}, {}) == ["postgres"]
+
+
+def _run_build_resource_deps(tmp_path: Path, depends_on: list, infra_deps: list) -> list:
+    result = run_starlark(
+        tmp_path,
+        "load('@ORCHESTRATOR/apply_compose_resource_registration.star', 'build_resource_deps')\n"
+        f"manifest = {{'dependsOn': {depends_on!r}}}\n"
+        f"r = {{'deps': build_resource_deps({{}}, 'api', manifest, {{}}, {infra_deps!r}, {{}}, {{}}, "
+        "{'enforce_migrator_deps': False}, {})}\n",
+    )
+    return result["deps"]
+
+
+def test_build_resource_deps_does_not_duplicate_postgres(tmp_path):
+    """With database-management enabled, infra_deps already carries `postgres`; listing it in
+    dependsOn must not add it twice."""
+    assert _run_build_resource_deps(tmp_path, ["postgres"], ["postgres"]) == ["postgres"]
+
+
+def test_build_resource_deps_drops_postgres_when_it_is_not_a_resource(tmp_path):
+    """Without database-management there is no `postgres` Tilt resource; naming it would make
+    Tilt fail. `tdk doctor` reports that case (checkPrismaPostgres)."""
+    assert _run_build_resource_deps(tmp_path, ["postgres"], []) == []

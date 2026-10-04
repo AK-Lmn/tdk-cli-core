@@ -48,6 +48,12 @@ def _build_infra_dependencies(resource_name, should_enable, ctx, has_backend=Fal
     return infra_deps
 
 
+# `dependsOn` names for the shared Postgres. The Tilt resource is `postgres`; the platform
+# feature that provides it is `database-management`. Both spellings are accepted.
+POSTGRES_DEPENDENCY_NAMES = ['postgres', 'database-management']
+POSTGRES_RESOURCE = 'postgres'
+
+
 def _resolve_dependency_to_resource(dep_name, all_services_map):
     """
     Resolve a short dependency name (e.g., 'identity') to the full YAML resource name.
@@ -61,6 +67,11 @@ def _resolve_dependency_to_resource(dep_name, all_services_map):
     # Check if already a full YAML resource name
     if dep_name in all_services_map:
         return dep_name
+
+    # The shared Postgres is infrastructure, not a service in all_services_map. Without this it
+    # would fall through to the last-resort "<name>-yaml" guess, which names no resource.
+    if dep_name in POSTGRES_DEPENDENCY_NAMES:
+        return POSTGRES_RESOURCE
     
     # Try with -yaml suffix (for resources already resolved)
     yaml_name = dep_name + '-yaml'
@@ -110,6 +121,11 @@ def _build_resource_deps(res, res_name, manifest, resource_config, infra_deps, c
     internal_deps = manifest.get('dependsOn', [])
     for dep in internal_deps:
         resolved_dep = _resolve_dependency_to_resource(dep, all_services_map)
+        # `postgres` only exists as a Tilt resource while `database-management` is enabled, and
+        # then infra_deps already carries it. Naming a resource that does not exist would make
+        # Tilt fail; `tdk doctor` reports the disabled-feature case instead.
+        if resolved_dep == POSTGRES_RESOURCE and resolved_dep not in infra_deps:
+            continue
         if resolved_dep and resolved_dep != res_name and resolved_dep not in res_deps:
             res_deps.append(resolved_dep)
     
@@ -144,6 +160,10 @@ def resource_defers_start(manifest):
     if not sablier_licensed_and_enabled:
         return False
     return defers_start
+
+
+# Public name for the underscore-prefixed builder, so tests can load it (Starlark does not export `_names`).
+build_resource_deps = _build_resource_deps
 
 
 def resolve_manifest_dependency_names(manifest, all_services_map):

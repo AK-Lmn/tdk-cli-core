@@ -28,9 +28,11 @@ import {
   summarizeServiceProbes,
 } from "../utils/doctor-runtime.js";
 import {
+  checkDependsOnTargets,
   checkDockerNetworkCapacity,
   checkFrontendBackendUrls,
   checkNatsBroker,
+  checkPrismaPostgres,
   checkResourcePackageJson,
   checkServiceUrlPorts,
   checkTiltInstances,
@@ -1369,6 +1371,8 @@ export const doctorCommand = new Command("doctor")
       () => checkServiceUrlPorts(),
       () => checkFrontendBackendUrls(),
       () => checkNatsBroker(),
+      () => checkPrismaPostgres(),
+      () => checkDependsOnTargets(),
       () => checkTiltInstances(),
       checkEnvironmentVariables,
       // Preflight: Verdaccio down causes ImageBuild bun install ConnectionRefused.

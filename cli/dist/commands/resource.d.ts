@@ -1,6 +1,8 @@
 import { Command } from "commander";
 import { getBackendIndexTemplate } from "../backend-languages/bun.js";
 import type { CreatableResourceType } from "../types/index.js";
+/** The `dependsOn` name for the shared Postgres (the Tilt resource; `database-management` is accepted too). */
+export declare const POSTGRES_DEPENDENCY = "postgres";
 export declare const BASE_TEMPLATE: {
     readonly port: 0;
     readonly dependsOn: readonly [];

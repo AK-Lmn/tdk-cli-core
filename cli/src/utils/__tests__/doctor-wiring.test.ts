@@ -4,9 +4,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
+  checkDependsOnTargets,
   checkDockerNetworkCapacity,
   checkFrontendBackendUrls,
   checkNatsBroker,
+  checkPrismaPostgres,
   checkResourcePackageJson,
   checkServiceUrlPorts,
   checkTiltInstances,
@@ -245,5 +247,60 @@ describe("checkDockerNetworkCapacity", async () => {
       });
     }) as unknown as ExecAsync;
     expect((await checkDockerNetworkCapacity(exec)).isSkipped).toBe(true);
+  });
+});
+
+function enableStacks(stacks: string[]) {
+  writeFileSync(
+    join(root, ".tdk", "project.json"),
+    JSON.stringify({
+      project: { name: "reports-demo" },
+      phases: { pre_alpha: { enabledStacks: stacks }, alpha: {}, beta: {} },
+    }),
+  );
+}
+
+describe("checkPrismaPostgres", () => {
+  it("skips when no resource enables prisma", () => {
+    resource("app", "api", { appType: "backend", port: 4000 });
+    const result = checkPrismaPostgres(root);
+    expect(result.didPass).toBe(true);
+    expect(result.isSkipped).toBe(true);
+  });
+
+  it("passes when database-management is enabled", () => {
+    enableStacks(["proxy", "database-management"]);
+    resource("app", "api", { appType: "backend", port: 4000, featuresEnabled: ["prisma"] });
+    const result = checkPrismaPostgres(root);
+    expect(result.didPass).toBe(true);
+    expect(result.isSkipped).toBeUndefined();
+  });
+
+  it("names the resource when no Postgres would start", () => {
+    enableStacks(["proxy"]);
+    resource("app", "api", { appType: "backend", port: 4000, featuresEnabled: ["prisma"] });
+    const result = checkPrismaPostgres(root);
+    expect(result.didPass).toBe(false);
+    expect(result.message).toContain("api");
+    expect(result.fix).toContain("database-management");
+  });
+});
+
+describe("checkDependsOnTargets", () => {
+  it("accepts resources, stacks, name prefixes and both Postgres names", () => {
+    resource("platform", "identity-management-backend", { appType: "backend", port: 4001 });
+    resource("app", "api", {
+      appType: "backend",
+      port: 4000,
+      dependsOn: ["postgres", "database-management", "identity", "platform"],
+    });
+    expect(checkDependsOnTargets(root).didPass).toBe(true);
+  });
+
+  it("reports a name that matches nothing", () => {
+    resource("app", "api", { appType: "backend", port: 4000, dependsOn: ["postgress"] });
+    const result = checkDependsOnTargets(root);
+    expect(result.didPass).toBe(false);
+    expect(result.message).toContain("api -> postgress");
   });
 });
