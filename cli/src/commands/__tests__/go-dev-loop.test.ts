@@ -157,8 +157,26 @@ describe("Go development wiring", () => {
     );
     expect(tsBuilder).toContain("target=target,");
     expect(registration).toContain(
-      "target = 'development' if Docker.go_live_reload(config.get('manifest', {})) else 'production'",
+      "return 'development' if Docker.go_live_reload(config.get('manifest', {})) else 'production'",
     );
+    // docker_build gets its target from the shared helper.
+    expect(registration).toContain("target = _image_target(config),");
+  });
+
+  it("prebuilds the same target for a deferStart service as docker_build does", () => {
+    // A deferStart Go service with liveReload would otherwise be prebuilt as `production` under the tag its container runs.
+    const start = registration.indexOf("def _register_deferred_image_prebuild(");
+    expect(start).toBeGreaterThan(-1);
+    const next = registration.indexOf("\ndef ", start + 1);
+    const prebuild = registration.slice(start, next === -1 ? undefined : next);
+    // The variable interpolated into `docker build` is assigned once, from the shared helper, before the command is built.
+    const assignments = prebuild.match(/^\s*target = .*$/gm) ?? [];
+    expect(assignments).toEqual(["    target = _image_target(config)"]);
+    const assigned = prebuild.indexOf("target = _image_target(config)");
+    const used = prebuild.indexOf('docker build --network host --target " + target');
+    expect(assigned).toBeGreaterThan(-1);
+    expect(used).toBeGreaterThan(assigned);
+    expect(prebuild).not.toMatch(/--target\s+production/);
   });
 
   it("syncs the Go sources and falls back to a rebuild for go.mod, go.sum and the Dockerfile", () => {
