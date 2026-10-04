@@ -445,6 +445,6 @@ export function checkDependsOnTargets(
     name: "dependsOn targets",
     didPass: false,
     message: `dependsOn entries that Tilt cannot satisfy (no matching resource, stack or running Postgres), so they are ignored or wait on a resource that does not exist:\n    ${unresolved.join("\n    ")}`,
-    fix: 'Use a resource name (appName), a stack name, or "postgres" for the shared database',
+    fix: "For a name that matches nothing, use a resource name (appName) or a stack name. For a postgres entry, enable the database-management stack feature in .tdk/project.json (then `tdk config regenerate`) or remove the entry",
   };
 }
