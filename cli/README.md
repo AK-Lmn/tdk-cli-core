@@ -39,6 +39,7 @@ Organize resources into deployment groups:
 ```bash
 # 📋 List all stacks
 tdk stacks
+tdk stacks --json
 tdk stacks --services     # 🔍 Include resources in each stack
 
 # 🗂️  Organize resources into stacks (interactive)
@@ -59,9 +60,12 @@ Create and manage individual services:
 ```bash
 # 📋 List all resources
 tdk resources
+tdk resources --json
 tdk resources --stack api     # 🔍 Filter by stack
 tdk resources --no-stack           # ⚠️ Show unassigned only
 tdk resources --ports              # 🔌 Show port assignments
+tdk resources --stack api --json
+tdk resources --no-stack --json
 
 # 🆕 Create new resource (interactive)
 tdk resource my-api --type backend --stack api
@@ -340,6 +344,6 @@ Use `tdk doctor --json` for CI readiness checks. Exit codes: 0 ready (warnings p
 
 ### Machine-readable status
 
-`tdk status --json`, `tdk resources --json`, and `tdk networks --json` emit one JSON object with `schemaVersion: 1`, `data`, and `errors`. Use `tdk status --json --tilt` to request live Tilt resources; without `--tilt`, the response reports Tilt availability and sets `resourcesQueried` to false. The old `tdk networks --json` array remains temporarily available as `tdk networks --json-legacy`; migrate consumers to `data.services` before that compatibility flag is removed. Diagnostics go to stderr.
+`tdk status --json`, `tdk resources --json`, `tdk stacks --json`, and `tdk networks --json` emit one JSON object with `schemaVersion: 1`, `data`, and `errors`. Use `tdk status --json --tilt` to request live Tilt resources; without `--tilt`, the response reports Tilt availability and sets `resourcesQueried` to false. The old `tdk networks --json` array remains temporarily available as `tdk networks --json-legacy`; migrate consumers to `data.services` before that compatibility flag is removed. `tdk stacks --json` returns `data.stacks` with each stack name and resource count. `--services` adds service names, and `--verbose` adds descriptions. Diagnostics go to stderr.
 
 See [machine-readable CLI](../docs/reference/machine-readable-cli.md) for JSON shapes, exit codes, schema evolution, and an agent polling example.

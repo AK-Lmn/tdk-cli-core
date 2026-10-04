@@ -23,6 +23,7 @@ export const resourcesCommand = new Command("resources")
             requireProjectRoot();
         }
         const discovery = createDiscoveryContext();
+        const withoutStackFilter = options.noStack || options.stack === false;
         let resources = discovery.resources;
         if (options.stack) {
             resources = discovery.resourcesByStack.get(options.stack) || [];
@@ -31,7 +32,7 @@ export const resourcesCommand = new Command("resources")
                 return;
             }
         }
-        if (options.noStack) {
+        if (withoutStackFilter) {
             resources = discovery.unassignedResources;
             if (resources.length === 0 && !options.json) {
                 showAllSatisfyCondition("resources", "assigned to a stack");
@@ -85,7 +86,7 @@ export const resourcesCommand = new Command("resources")
         const withoutStackCount = options.stack
             ? resources.filter((r) => !r.stack).length
             : discovery.unassignedResources.length;
-        if (withoutStackCount > 0 && !options.noStack && !options.stack) {
+        if (withoutStackCount > 0 && !withoutStackFilter && !options.stack) {
             console.log(chalk.yellow(`\n${formatCount(withoutStackCount, "resource")} not assigned to any stack.`));
             showDetail('Run "tdk resources --no-stack" to see them, or "tdk stack" to assign them.');
         }
