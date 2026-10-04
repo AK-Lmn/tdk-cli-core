@@ -7,9 +7,11 @@ export interface ReadinessResult {
   failures: Array<{ name: string; message: string }>;
   pending: number;
   timedOut: boolean;
+  /** Names of the resources Tilt has enabled (everything not `Disabled`), so callers report what actually started. */
+  enabled: string[];
 }
 
-function tiltGetUiResources(port: number): Promise<string | null> {
+export function tiltGetUiResources(port: number): Promise<string | null> {
   return new Promise((resolve) => {
     execFile(
       findOnPath("tilt") ?? "tilt",
@@ -18,6 +20,53 @@ function tiltGetUiResources(port: number): Promise<string | null> {
       (error, stdout) => resolve(error ? null : stdout),
     );
   });
+}
+
+interface TiltItem {
+  metadata?: { name?: string };
+  status?: { disableStatus?: { state?: string }; updateStatus?: string; [key: string]: unknown };
+  [key: string]: unknown;
+}
+
+/**
+ * Tilt lists resources outside the current focus (the other release phases, or everything but a `--only` selection) with
+ * `disableStatus.state: Disabled` and both statuses `none`, which would read as pending forever. A resource whose update
+ * status is `not_applicable` (a serve-only local resource) has nothing to build, so it counts as built.
+ */
+export function onlyEnabledResources(jsonText: string): string {
+  const parsed = JSON.parse(jsonText) as { items?: Array<TiltItem> };
+  const items = (parsed.items ?? [])
+    .filter((item) => item.status?.disableStatus?.state !== "Disabled")
+    .map((item) =>
+      item.status?.updateStatus === "not_applicable"
+        ? { ...item, status: { ...item.status, updateStatus: "ok" } }
+        : item,
+    );
+  return JSON.stringify({ items });
+}
+
+function enabledNames(jsonText: string): string[] {
+  return ((JSON.parse(jsonText) as { items?: TiltItem[] }).items ?? [])
+    .filter((item) => item.status?.disableStatus?.state !== "Disabled")
+    .flatMap((item) => (item.metadata?.name ? [item.metadata.name] : []));
+}
+
+/**
+ * Services the caller asked for must not vanish into the disabled filter: one that Tilt lists as disabled (it can be
+ * disabled while running) is a failure, and one Tilt does not list yet is still pending.
+ */
+export function checkExpectedResources(
+  jsonText: string,
+  expected: string[],
+): { missing: string[]; disabled: string[] } {
+  const items = (JSON.parse(jsonText) as { items?: TiltItem[] }).items ?? [];
+  const byName = new Map(items.map((item) => [item.metadata?.name, item]));
+  return {
+    missing: expected.filter((name) => !byName.has(name)),
+    disabled: expected.filter(
+      (name) => byName.get(name)?.status?.disableStatus?.state === "Disabled",
+    ),
+  };
 }
 
 /**
@@ -31,6 +80,8 @@ export async function waitForTiltResourcesReady(
     intervalMs?: number;
     fetchJson?: (port: number) => Promise<string | null>;
     deferred?: Set<string>;
+    /** Resource names that must be present, enabled, and ready (a `--only` selection). */
+    expected?: string[];
   } = {},
 ): Promise<ReadinessResult> {
   const timeoutMs = options.timeoutMs ?? Number(process.env.TDK_UP_READY_TIMEOUT_MS ?? 900_000);
@@ -38,12 +89,18 @@ export async function waitForTiltResourcesReady(
   const fetchJson = options.fetchJson ?? tiltGetUiResources;
   const deferred = options.deferred ?? getDeferredResourceNames();
   const deadline = Date.now() + timeoutMs;
-  let last: ReadinessResult = { ready: false, failures: [], pending: 0, timedOut: false };
+  let last: ReadinessResult = {
+    ready: false,
+    failures: [],
+    pending: 0,
+    timedOut: false,
+    enabled: [],
+  };
   for (;;) {
     const text = await fetchJson(port);
     if (text) {
       try {
-        const parsed = parseTiltResourceFailures(text, deferred);
+        const parsed = parseTiltResourceFailures(onlyEnabledResources(text), deferred);
         last = {
           ready: parsed.failures.length === 0 && parsed.pendingCount === 0 && parsed.okCount > 0,
           failures: parsed.failures.map((failure) => ({
@@ -52,7 +109,26 @@ export async function waitForTiltResourcesReady(
           })),
           pending: parsed.pendingCount,
           timedOut: false,
+          enabled: enabledNames(text),
         };
+        if (options.expected && options.expected.length > 0) {
+          const { missing, disabled } = checkExpectedResources(text, options.expected);
+          if (missing.length > 0) {
+            last = { ...last, ready: false, pending: last.pending + missing.length };
+          }
+          if (disabled.length > 0) {
+            return {
+              ready: false,
+              pending: last.pending,
+              timedOut: false,
+              enabled: last.enabled,
+              failures: [
+                ...last.failures,
+                ...disabled.map((name) => ({ name, message: "disabled in Tilt" })),
+              ],
+            };
+          }
+        }
         if (last.ready) return last;
         if (last.failures.length > 0 && last.pending === 0) return last;
       } catch {

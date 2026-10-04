@@ -10,6 +10,7 @@ import {
   WEBCONTAINER_UP_MESSAGE,
 } from "../utils/agent-host.js";
 import { handleDryRun } from "../utils/command-helpers.js";
+import { getDeferredResourceNames } from "../utils/doctor-runtime.js";
 import { completeEnvFile } from "../utils/env-validator.js";
 import {
   errorFactories,
@@ -40,7 +41,8 @@ import {
 import { buildSmokePlans, formatSmokeFailure, runSmokePlans } from "../utils/smoke.js";
 import { buildTiltUpArgs, runTilt } from "../utils/tilt.js";
 import { stopTiltOnPort } from "../utils/tilt-process.js";
-import { waitForTiltResourcesReady } from "../utils/up-readiness.js";
+import { findUnknownServices, resolveOnlySelection } from "../utils/up-only.js";
+import { tiltGetUiResources, waitForTiltResourcesReady } from "../utils/up-readiness.js";
 import { enableDiscoveredStacks } from "./project.js";
 
 export function formatUpSuccess(port: number, appUrls: string[] = []): string[] {
@@ -109,6 +111,10 @@ export const upCommand = new Command("up")
   .option("--dry-run", "Show what would be started without starting", false)
   .option("-f, --force", "Kill existing Tilt process before starting", false)
   .option(
+    "--only <services...>",
+    "Start only these services plus what the Tiltfile enables for them (their dependsOn services and shared infrastructure). With a stack, names must belong to that stack; dependencies may cross stacks",
+  )
+  .option(
     "--json",
     "Print one JSON object on stdout when the stack is ready or the command fails; implies --quiet",
     false,
@@ -135,6 +141,17 @@ export const upCommand = new Command("up")
       const projectRoot = options.dryRun
         ? requireProjectRoot()
         : (findProjectRoot() ?? process.cwd());
+      // Reject a bad request before anything below can write to the project (.env, runtime assets, .tdk/project.json).
+      if (options.only) {
+        if (stackName && !stackExists(stackName)) errorFactories.stackNotFound(stackName).exit();
+        const candidates = stackName ? getResourcesForStack(stackName) : discoverResources();
+        const unknown = findUnknownServices(options.only, candidates);
+        if (unknown.length > 0) {
+          const message = `Unknown service ${unknown.join(", ")}. Valid names: ${candidates.map((s) => s.name).join(", ")}`;
+          emit?.({ ok: false }, [{ code: "UNKNOWN_SERVICE", message }]);
+          showErrorAndExit(message, 2);
+        }
+      }
       const hostPortPlan = await getHostPortPlan(projectRoot, {
         inspectDocker: !options.dryRun,
       });
@@ -183,6 +200,16 @@ export const upCommand = new Command("up")
         servicesToStart = discoverResources();
         const allStacks = discoverStacks();
         stackDescription = `all stacks (${formatCount(allStacks.length, "stack")}, ${formatCount(servicesToStart.length, "service")})`;
+      }
+
+      let dependencyNames: string[] = [];
+      if (options.only) {
+        // Dependencies come from the whole project, not just the named stack: dependsOn may cross stacks.
+        const selection = resolveOnlySelection(options.only, discoverResources());
+        servicesToStart = selection.selected;
+        dependencyNames = selection.dependencies;
+        focusServiceNames = servicesToStart.map((s) => s.name);
+        stackDescription = `${formatCount(options.only.length, "requested service")}${dependencyNames.length > 0 ? ` plus ${dependencyNames.join(", ")}` : ""}`;
       }
 
       if (options.verbose && !options.quiet) {
@@ -238,9 +265,14 @@ export const upCommand = new Command("up")
         }
       }
 
-      const dryRunCommand = stackName
-        ? `tilt up -- --focus=${stackName} ${focusServiceNames.join(" ")}`
-        : "tilt up";
+      const focusTargets = options.only ?? (stackName ? [stackName] : undefined);
+      const tiltArgs = buildTiltUpArgs(focusServiceNames, {
+        verbose: options.verbose,
+        quiet: options.quiet,
+        force: options.force,
+        focusTargets,
+      });
+      const dryRunCommand = focusTargets ? `tilt up ${tiltArgs.join(" ")}` : "tilt up";
       if (!options.quiet) {
         console.log(chalk.blue(formatHostPortPlan(hostPortPlan)));
         console.log(
@@ -253,6 +285,9 @@ export const upCommand = new Command("up")
           dryRun: true,
           stack: stackName ?? null,
           services: serviceNames,
+          ...(options.only
+            ? { requested: options.only, declaredDependencies: dependencyNames }
+            : {}),
           command: dryRunCommand,
         });
         return;
@@ -266,6 +301,26 @@ export const upCommand = new Command("up")
 
       const basePort = 10350;
       let port = basePort;
+
+      // A second Tilt would apply a different selection to the same containers, whatever port it listens on, so `--only`
+      // looks for a Tilt that answers on the default port and on TILT_PORT before it chooses one. A listener that is not
+      // Tilt does not count: the port is then picked below as usual.
+      if (options.only) {
+        const envPort = process.env.TILT_PORT ? Number.parseInt(process.env.TILT_PORT, 10) : NaN;
+        const candidatePorts = [
+          ...new Set([basePort, ...(Number.isInteger(envPort) ? [envPort] : [])]),
+        ];
+        const running: number[] = [];
+        for (const candidate of candidatePorts) {
+          if ((await tiltGetUiResources(candidate)) !== null) running.push(candidate);
+        }
+        if (running.length > 0 && !options.force) {
+          const message = `A Tilt is already running on port ${running.join(", ")}. --only cannot change a running stack's services: run \`tdk down\` first, or pass --force to replace it.`;
+          emit?.({ ok: false }, [{ code: "TILT_ALREADY_RUNNING", message }]);
+          showErrorAndExit(message);
+        }
+        for (const runningPort of running) stopTiltOnPort(runningPort);
+      }
 
       if (process.env.TILT_PORT) {
         port = parseInt(process.env.TILT_PORT, 10);
@@ -290,13 +345,6 @@ export const upCommand = new Command("up")
         await new Promise((resolve) => setTimeout(resolve, 2000));
       }
 
-      const tiltArgs = buildTiltUpArgs(focusServiceNames, {
-        verbose: options.verbose,
-        quiet: options.quiet,
-        force: options.force,
-        focusTargets: stackName ? [stackName] : undefined,
-      });
-
       if (!options.quiet) {
         console.log(chalk.gray("\nRunning tilt up..."));
         console.log(chalk.gray(`Using Tiltfile: .tdk/.tdk-out/Tiltfile`));
@@ -318,10 +366,26 @@ export const upCommand = new Command("up")
         const uiReady = await waitForTiltUi(port);
         // JSON consumers get success only after every non-deferred resource is built and running, not when the UI port opens.
         let jsonReady = false;
+        let startedServices = serviceNames;
+        let startedDependencies = dependencyNames;
         if (uiReady && emit) {
-          const readiness = await waitForTiltResourcesReady(port);
+          const deferred = getDeferredResourceNames();
+          const readiness = await waitForTiltResourcesReady(port, {
+            deferred,
+            // Only what the caller named must be enabled. Dependencies are the Tiltfile's call (it skips some on purpose).
+            expected: options.only
+              ? options.only.filter((name: string) => !deferred.has(name))
+              : undefined,
+          });
           if (readiness.ready) {
             jsonReady = true;
+            if (options.only) {
+              // Report what Tilt actually enabled, not the service.json closure, which can differ from the Tiltfile's expansion.
+              const enabled = new Set(readiness.enabled);
+              const allNames = discoverResources().map((r) => r.name);
+              startedServices = allNames.filter((name) => enabled.has(name));
+              startedDependencies = startedServices.filter((name) => !options.only.includes(name));
+            }
           } else {
             const detail = readiness.failures.map((f) => `${f.name}: ${f.message}`).join("; ");
             emit({ ok: false, tiltUrl: `http://localhost:${port}`, failures: readiness.failures }, [
@@ -363,7 +427,8 @@ export const upCommand = new Command("up")
           emit?.({
             ok: true,
             stack: stackName ?? null,
-            services: serviceNames,
+            services: startedServices,
+            ...(options.only ? { requested: options.only, dependencies: startedDependencies } : {}),
             tiltUrl: `http://localhost:${port}`,
           });
         }

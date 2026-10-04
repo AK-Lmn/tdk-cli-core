@@ -37,6 +37,74 @@ describe("waitForTiltResourcesReady", () => {
     });
     expect(result.ready).toBe(true);
   });
+  it("ignores resources Tilt reports as disabled, as in a partial or phased up", async () => {
+    const disabled = {
+      metadata: { name: "web-run-only" },
+      status: { updateStatus: "none", runtimeStatus: "none", disableStatus: { state: "Disabled" } },
+    };
+    const result = await waitForTiltResourcesReady(1, {
+      ...opts,
+      fetchJson: async () => json(item("api", "ok", "ok"), disabled),
+    });
+    expect(result.ready).toBe(true);
+  });
+  it("treats a serve-only resource (update not_applicable) as built", async () => {
+    const result = await waitForTiltResourcesReady(1, {
+      ...opts,
+      fetchJson: async () => json(item("api", "not_applicable", "ok")),
+    });
+    expect(result.ready).toBe(true);
+  });
+  it("reports an expected service that Tilt has disabled instead of filtering it out", async () => {
+    const disabled = {
+      metadata: { name: "catalog-api" },
+      status: { updateStatus: "none", runtimeStatus: "none", disableStatus: { state: "Disabled" } },
+    };
+    const result = await waitForTiltResourcesReady(1, {
+      ...opts,
+      expected: ["catalog-api"],
+      fetchJson: async () => json(item("postgres", "ok", "ok"), disabled),
+    });
+    expect(result.ready).toBe(false);
+    expect(result.failures).toEqual([{ name: "catalog-api", message: "disabled in Tilt" }]);
+  });
+  it("is not ready while an expected service is not listed yet", async () => {
+    const result = await waitForTiltResourcesReady(1, {
+      ...opts,
+      timeoutMs: 20,
+      expected: ["catalog-api"],
+      fetchJson: async () => json(item("postgres", "ok", "ok")),
+    });
+    expect(result).toMatchObject({ ready: false, timedOut: true });
+  });
+  it("is ready once every expected service is listed, enabled and running", async () => {
+    const result = await waitForTiltResourcesReady(1, {
+      ...opts,
+      expected: ["catalog-api"],
+      fetchJson: async () => json(item("postgres", "ok", "ok"), item("catalog-api", "ok", "ok")),
+    });
+    expect(result.ready).toBe(true);
+  });
+  it("keeps a not_applicable resource failed when its runtime status is an error", async () => {
+    const result = await waitForTiltResourcesReady(1, {
+      ...opts,
+      fetchJson: async () =>
+        json(item("api", "ok", "ok"), item("worker", "not_applicable", "error")),
+    });
+    expect(result.ready).toBe(false);
+    expect(result.failures.map((f) => f.name)).toEqual(["worker"]);
+  });
+  it("returns the names Tilt has enabled", async () => {
+    const disabled = {
+      metadata: { name: "other" },
+      status: { updateStatus: "none", runtimeStatus: "none", disableStatus: { state: "Disabled" } },
+    };
+    const result = await waitForTiltResourcesReady(1, {
+      ...opts,
+      fetchJson: async () => json(item("api", "ok", "ok"), disabled),
+    });
+    expect(result.enabled).toEqual(["api"]);
+  });
   it("times out while resources stay pending", async () => {
     const result = await waitForTiltResourcesReady(1, {
       ...opts,
