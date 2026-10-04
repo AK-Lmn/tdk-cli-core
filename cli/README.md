@@ -19,9 +19,11 @@ Initialize your project with master configuration files:
 tdk project
 
 # 📊 Check project info and config status
-tdk projects              # Overview
+tdk projects                  # Overview
 
-tdk projects --check      # ✅ CI validation (exit 0/1)
+tdk projects --check          # ✅ CI validation (exit 0/1)
+tdk projects --json           # Versioned JSON report
+tdk projects --json --check   # Machine-readable CI validation (exit 0/1; 1 also if no project root)
 ```
 
 **Creates:**
