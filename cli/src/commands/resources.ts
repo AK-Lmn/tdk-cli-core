@@ -30,6 +30,7 @@ export const resourcesCommand = new Command("resources")
       }
 
       const discovery = createDiscoveryContext();
+      const withoutStackFilter = options.noStack || options.stack === false;
 
       let resources = discovery.resources;
 
@@ -41,7 +42,7 @@ export const resourcesCommand = new Command("resources")
         }
       }
 
-      if (options.noStack) {
+      if (withoutStackFilter) {
         resources = discovery.unassignedResources;
         if (resources.length === 0 && !options.json) {
           showAllSatisfyCondition("resources", "assigned to a stack");
@@ -107,7 +108,7 @@ export const resourcesCommand = new Command("resources")
         ? resources.filter((r: { stack?: string }) => !r.stack).length
         : discovery.unassignedResources.length;
 
-      if (withoutStackCount > 0 && !options.noStack && !options.stack) {
+      if (withoutStackCount > 0 && !withoutStackFilter && !options.stack) {
         console.log(
           chalk.yellow(
             `\n${formatCount(withoutStackCount, "resource")} not assigned to any stack.`,
