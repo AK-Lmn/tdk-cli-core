@@ -39,7 +39,24 @@ The source of truth is `cli/src/commands/doctor.ts` (`MIN_*` constants).
 
 ## Importing an existing repo
 
-`tdk import <dir>` is provided by the separate `tdk-import` package. Its Helm/Kustomize refusal behavior is tracked in [tdk-import#8](https://github.com/tdk-landscape/tdk-import/pull/8); verify that change is released before relying on it operationally.
+TDK CLI core 1.3.104 is the first release with `buildContext` ([tdk-cli-core#525](https://github.com/tdk-landscape/tdk-cli-core/pull/525), [release 1.3.104](https://github.com/tdk-landscape/tdk-cli-releases/releases/tag/v1.3.104)). Use core 1.3.104 or later before starting imported services. The importer does not detect or enforce the installed core version.
+
+The importer safeguards are merged in [tdk-import#9](https://github.com/tdk-landscape/tdk-import/pull/9), but npm `@tdk-landscape/tdk-import@0.1.0` does not contain them. The published 0.1.0 still writes a `service.json` for an unbuildable Python Procfile process. Import cannot be started safely with that package; wait for a package release containing #9.
+
+After a package release containing #9 is available, preview the services an existing repository describes, then write the generated manifests:
+
+```bash
+npx -y @tdk-landscape/tdk-import@latest <dir> --dry-run
+npx -y @tdk-landscape/tdk-import@latest <dir> --yes
+```
+
+`@tdk-landscape/tdk-import@0.1.0` does not include the complete Helm/Kustomize refusal behavior or the Procfile skip safeguards. Those are in [tdk-import#9](https://github.com/tdk-landscape/tdk-import/pull/9), which is merged and not published. Do not run `npx` until a release after 0.1.0 containing #9 is on npm.
+
+If core 1.3.104 or later is not installed, update TDK before running `tdk up`; older releases cannot build imported services that use `buildContext`. Start the imported stack with `tdk up <stack>` only after both the importer release and compatible core are available.
+
+Helm (`Chart.yaml`) and Kustomize (`kustomization.yaml`) files are not imported. The command refuses a directory that contains only those files. Supported Compose, Dockerfile, `package.json` script, and Procfile services are still imported when those files appear alongside Helm or Kustomize files.
+
+For Procfiles, commands beginning with `node`, `npm`, `pnpm`, `yarn`, or `bun` are eligible for Dockerfile scaffolding. Other processes, including Python, Ruby, Gunicorn, and Poetry, are skipped unless a matching Dockerfile or image exists. The importer can write buildable processes from a mixed Procfile and reports each skipped process; add a Dockerfile or image to import it.
 
 ## Cutting a release
 
