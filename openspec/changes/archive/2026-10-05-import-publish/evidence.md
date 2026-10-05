@@ -38,7 +38,7 @@ Raw output and file snapshots are in `published-evidence.json`. Core `tdk up` wa
 
 ```bash
 gh run download 37298395884 --repo tdk-landscape/tdk-cli-core --name tdk-import-tarball --dir /tmp/import-release-artifact
-node openspec/changes/import-publish/verify-published.mjs /tmp/import-release-artifact/tdk-landscape-tdk-import-0.1.1.tgz /tmp/import-published-evidence.json
+node openspec/changes/archive/2026-10-05-import-publish/verify-published.mjs /tmp/import-release-artifact/tdk-landscape-tdk-import-0.1.1.tgz /tmp/import-published-evidence.json
 ```
 
 The workflow artifact has a one-day retention. After it expires, use the recorded integrity to verify the npm tarball; byte comparison to a newly built tarball does not prove the original workflow artifact.
