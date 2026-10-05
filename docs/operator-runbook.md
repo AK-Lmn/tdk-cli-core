@@ -39,7 +39,20 @@ The source of truth is `cli/src/commands/doctor.ts` (`MIN_*` constants).
 
 ## Importing an existing repo
 
-`tdk import <dir>` is provided by the separate `tdk-import` package. Its Helm/Kustomize refusal behavior is tracked in [tdk-import#8](https://github.com/tdk-landscape/tdk-import/pull/8); verify that change is released before relying on it operationally.
+Preview the services an existing repository describes, then write the generated manifests:
+
+```bash
+npx -y @tdk-landscape/tdk-import <dir> --dry-run
+npx -y @tdk-landscape/tdk-import <dir> --yes
+```
+
+The first TDK CLI core release that includes `buildContext` is **1.3.104** ([tdk-cli-core#525](https://github.com/tdk-landscape/tdk-cli-core/pull/525), [release 1.3.104](https://github.com/tdk-landscape/tdk-cli-releases/releases/tag/v1.3.104)). Use TDK CLI core 1.3.104 or later before starting imported services. The importer does not detect or enforce the installed core version.
+
+If the installed core is older than 1.3.104, update TDK before running `tdk up`; older releases cannot build imported services that use `buildContext`. With a compatible core installed, start the imported stack with `tdk up <stack>`.
+
+Helm (`Chart.yaml`) and Kustomize (`kustomization.yaml`) files are not imported. The command refuses a directory that contains only those files. Supported Compose, Dockerfile, `package.json` script, and Procfile services are still imported when those files appear alongside Helm or Kustomize files.
+
+For Procfiles, commands beginning with `node`, `npm`, `pnpm`, `yarn`, or `bun` are eligible for Dockerfile scaffolding. Other processes, including Python, Ruby, Gunicorn, and Poetry, are skipped unless a matching Dockerfile or image exists. The importer can write buildable processes from a mixed Procfile and reports each skipped process; add a Dockerfile or image to import it.
 
 ## Cutting a release
 

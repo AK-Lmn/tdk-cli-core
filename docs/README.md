@@ -54,6 +54,7 @@
 | Folder | Holds |
 | --- | --- |
 | `docs/` (top level) | Long-lived guides that other repos, error messages and published releases link to. Their paths are kept stable on purpose, for example `wsl2.md` is named in CLI messages and `byo.md` in upstream issues. |
+| [`operator-runbook.md`](operator-runbook.md) | Importer command, core version prerequisite, and import boundaries. |
 | `docs/recipes/` | One file per outside tool |
 | `docs/reference/` | Contracts that scripts and agents rely on |
 | `docs/benchmarks/` | Measurements and how they were taken |

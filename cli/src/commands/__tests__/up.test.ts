@@ -6,6 +6,7 @@ import {
 } from "../../generator/template-engine.js";
 import { runTilt } from "../../utils/tilt.js";
 import { findTiltProcessIdsOnPort, stopTiltOnPort } from "../../utils/tilt-process.js";
+import { parseTiltPort, resolveTiltPort, stopTiltForUp } from "../../utils/tilt-startup.js";
 import {
   DRIFT_EXIT_CODE,
   driftReport,
@@ -52,8 +53,6 @@ vi.mock("../../utils/host-port-config.js", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../../utils/host-port-config.js")>()),
   getHostPortPlan: vi.fn(async () => ({ ports: [] })),
 }));
-
-import { parseTiltPort, resolveTiltPort, stopTiltForUp } from "../../utils/tilt-startup.js";
 
 describe("tdk up success output", () => {
   it("prints the first-win block with exact UI and networks copy", () => {
