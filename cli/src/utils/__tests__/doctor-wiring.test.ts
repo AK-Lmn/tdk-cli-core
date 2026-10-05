@@ -5,6 +5,8 @@ import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   checkDockerNetworkCapacity,
+  checkDuplicateResourceNames,
+  checkDuplicateResourcePorts,
   checkFrontendBackendUrls,
   checkMigrationsInApi,
   checkNatsBroker,
@@ -54,6 +56,47 @@ describe("checkResourcePackageJson", () => {
     resource("app", "bun-api", { appType: "backend", port: 4001, language: "bun" }, {});
     expect(checkResourcePackageJson(root).message).toContain("bun-api");
   });
+
+  it("skips go and rust backends, which have no package.json", () => {
+    resource("app", "gosvc", { appType: "backend", port: 4000, language: "go" }, {});
+    resource("app", "rssvc", { appType: "backend", port: 4001, language: "rust" }, {});
+    expect(checkResourcePackageJson(root).didPass).toBe(true);
+  });
+
+  it("does not require a package.json for a bring-your-own resource (image, dockerfile, buildContext)", () => {
+    resource(
+      "shop",
+      "by-image",
+      { appType: "bring-your-own", port: 4000, image: "nginx:1.27" },
+      {},
+    );
+    resource(
+      "shop",
+      "by-dockerfile",
+      { appType: "bring-your-own", port: 4001, dockerfile: "./Dockerfile" },
+      { Dockerfile: "FROM nginx:1.27-alpine\n" },
+    );
+    resource(
+      "shop",
+      "by-context",
+      { appType: "bring-your-own", port: 4002, buildContext: "../../..", dockerfile: "Dockerfile" },
+      {},
+    );
+    const result = checkResourcePackageJson(root);
+    expect(result.didPass).toBe(true);
+    expect(result.message).not.toContain("without");
+  });
+
+  it.each(["backend", "frontend", "worker", "migrator", "mcp", "library", "sdk"])(
+    "still fails a %s without a package.json, even next to a bring-your-own resource",
+    (appType) => {
+      resource("shop", "legacy", { appType: "bring-your-own", port: 4000, image: "nginx" }, {});
+      resource("shop", "needs-pkg", { appType, port: 4100 }, {});
+      const result = checkResourcePackageJson(root);
+      expect(result.didPass).toBe(false);
+      expect(result.message).toContain("1 resource without a package.json: needs-pkg");
+    },
+  );
 
   it("names the resource whose image build would fail", () => {
     resource("app", "api", { appType: "backend", port: 4000 });
@@ -327,5 +370,78 @@ describe("checkMigrationsInApi", () => {
       "src/index.test.ts": "prisma migrate deploy",
     });
     expect(checkMigrationsInApi(root).didPass).toBe(true);
+  });
+});
+
+describe("checkDuplicateResourceNames", () => {
+  /** Same appName in two different directories. */
+  function twin(dir: string, appName: string, config: Record<string, unknown> = {}) {
+    const path = join(root, "services", dir);
+    mkdirSync(path, { recursive: true });
+    writeFileSync(
+      join(path, "service.json"),
+      JSON.stringify({ appName, appType: "backend", stack: "app", port: 4000, ...config }),
+    );
+  }
+
+  it("fails when two directories use one appName, naming both paths", () => {
+    twin("app/api", "api");
+    twin("other/api-copy", "api");
+    const result = checkDuplicateResourceNames(root);
+    expect(result.didPass).toBe(false);
+    expect(result.isWarning).toBeUndefined();
+    expect(result.message).toContain('"api"');
+    expect(result.message).toContain(join("services", "app", "api", "service.json"));
+    expect(result.message).toContain(join("services", "other", "api-copy", "service.json"));
+    expect(result.fix).toContain("appName");
+  });
+
+  it("fails across different types, because the name is what collides", () => {
+    twin("app/web", "shop", { appType: "frontend" });
+    twin("app/shop-api", "shop");
+    expect(checkDuplicateResourceNames(root).didPass).toBe(false);
+  });
+
+  it("passes when every appName is unique, and with no resources", () => {
+    expect(checkDuplicateResourceNames(root).didPass).toBe(true);
+    twin("app/api", "api");
+    twin("app/orders", "orders");
+    expect(checkDuplicateResourceNames(root).didPass).toBe(true);
+  });
+});
+
+describe("checkDuplicateResourcePorts", () => {
+  it("warns, not fails, when two backends share a port", () => {
+    resource("app", "api", { appType: "backend", port: 4000 });
+    resource("app", "orders", { appType: "backend", port: 4000 });
+    const result = checkDuplicateResourcePorts(root);
+    expect(result.didPass).toBe(false);
+    expect(result.isWarning).toBe(true);
+    expect(result.message).toContain("port 4000: api, orders");
+  });
+
+  it("warns for a backend and a bring-your-own resource on one port", () => {
+    resource("app", "api", { appType: "backend", port: 4000 });
+    resource("app", "legacy", { appType: "bring-your-own", port: 4000 });
+    expect(checkDuplicateResourcePorts(root).isWarning).toBe(true);
+  });
+
+  it("passes for distinct ports", () => {
+    resource("app", "api", { appType: "backend", port: 4000 });
+    resource("app", "orders", { appType: "backend", port: 4001 });
+    const result = checkDuplicateResourcePorts(root);
+    expect(result.didPass).toBe(true);
+    expect(result.isWarning).toBeUndefined();
+  });
+
+  it("ignores frontends, workers, libraries, unrouted bring-your-own resources and missing ports", () => {
+    resource("app", "api", { appType: "backend", port: 3000 });
+    resource("app", "web", { appType: "frontend", port: 3000 });
+    resource("app", "jobs", { appType: "worker", port: 3000 });
+    resource("app", "lib", { appType: "library", port: 3000 });
+    resource("app", "byo", { appType: "bring-your-own", port: 3000, exposeViaProxy: false });
+    resource("app", "noport", { appType: "backend" });
+    resource("app", "noport2", { appType: "backend" });
+    expect(checkDuplicateResourcePorts(root).didPass).toBe(true);
   });
 });

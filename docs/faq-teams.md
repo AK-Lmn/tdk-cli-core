@@ -16,7 +16,7 @@ Questions a team lead usually asks before moving client projects onto a new tool
 
 - There are two maintainers from two companies ([MAINTAINERS.md](../MAINTAINERS.md)); the project has no foundation or funding commitment. Governance is in [GOVERNANCE.md](../GOVERNANCE.md).
 - Core is MIT, so you can fork it.
-- **Gap, partly answered:** [gradual adoption](gradual-adoption.md#taking-it-out-again) lists the files TDK adds, so you know what to delete. There is still no guide for moving to Compose or Helm. Your `service.json` files are TDK-specific, and the generated Compose and Tilt files live under the gitignored `.tdk/.tdk-out/` ([#505](https://github.com/tdk-landscape/tdk-cli-core/issues/505)).
+- **Answered in part:** [Leaving TDK](leaving-tdk.md) says what `tdk eject` does (it only writes an `EJECTED.md` note), which generated files exist and what they need from TDK, and what you lose. [Gradual adoption](gradual-adoption.md#taking-it-out-again) lists what to delete. There is still no command that produces plain Compose; moving to Compose or Helm is manual, and your `service.json` files are TDK-specific.
 
 ## Licence: can we use it on client projects?
 
@@ -44,11 +44,11 @@ If the default host ports are taken, TDK picks the next free ports from bounded 
 
 ## Onboarding a new developer, and showing it to the client
 
-The [adoption guide](adopt-tdk.md) is the one-page path: `tdk doctor`, `tdk up --dry-run`, `tdk up`. `tdk doctor` is designed to replace a setup wiki; that is a design goal, not a measured result.
+The [adoption guide](adopt-tdk.md) is the one-page path: `tdk doctor`, `tdk up --dry-run`, `tdk up`. `tdk doctor` is designed to replace a setup wiki; that is a design goal, not a measured result. Messages it prints, and others you may meet, are in [Troubleshooting](troubleshooting.md).
 
 ## CI
 
-`tdk config verify` checks that generated project files match `.tdk/project.json` and runs in CI ([`example-e2e.yml`](../.github/workflows/example-e2e.yml)). The [quickstart workflow](../.github/workflows/quickstart-e2e.yml) runs a real `tdk up` on a GitHub-hosted runner, so it works on one. The [scope page](scope.md#local-only-or-also-staging-and-ci) says what CI is and is not for. A ready-made reusable CI recipe for your own repository is not published ([#510](https://github.com/tdk-landscape/tdk-cli-core/issues/510)).
+`tdk config verify` checks that generated project files match `.tdk/project.json` and runs in CI ([`example-e2e.yml`](../.github/workflows/example-e2e.yml)). The [quickstart workflow](../.github/workflows/quickstart-e2e.yml) runs a real `tdk up` on a GitHub-hosted runner, so it works on one. The [scope page](scope.md#local-only-or-also-staging-and-ci) says what CI is and is not for. A copy-paste workflow for your own repository is in [Running TDK in CI](ci.md); its `tdk up` job has not been run on GitHub.
 
 ## Where are the other answers?
 
