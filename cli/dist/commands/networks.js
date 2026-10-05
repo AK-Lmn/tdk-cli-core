@@ -168,7 +168,7 @@ export const networksCommand = new Command("networks")
     const action = async () => {
         const projectRoot = options.json || options.jsonLegacy ? findProjectRoot() : requireProjectRoot();
         if (!projectRoot) {
-            throw new Error("Could not find project root (no .tdk/project.json found)");
+            throw errorFactories.notInProject();
         }
         const discovery = createDiscoveryContext();
         if (options.stack && !stackExists(options.stack, discovery.resources)) {

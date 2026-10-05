@@ -20,7 +20,7 @@ export const resourcesCommand = new Command("resources")
     const action = async () => {
         if (options.json) {
             if (!findProjectRoot()) {
-                writeMachineError(new Error("Could not find project root (no .tdk/project.json found)"));
+                writeMachineError(errorFactories.notInProject());
             }
         }
         else {
