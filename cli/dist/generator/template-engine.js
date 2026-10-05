@@ -407,7 +407,7 @@ function ensureRootWorkspaceManifest(projectRoot, projectConfig) {
     writeTextFile(packageJsonPath, `${JSON.stringify(manifest, null, 2)}\n`);
     return true;
 }
-export async function generateMasterConfigs(projectRoot) {
+export async function generateMasterConfigs(projectRoot, options = {}) {
     const projectConfig = readProjectConfig(projectRoot);
     await warnIfSablierUnlicensed(projectRoot);
     if (ensureRootWorkspaceManifest(projectRoot, projectConfig)) {
@@ -455,9 +455,21 @@ export async function generateMasterConfigs(projectRoot) {
     // Copy .tiltignore to project root so Tilt uses it
     const tiltignoreSource = path.join(outputDir, ".tiltignore");
     const tiltignoreTarget = assertTdkGeneratedPath(projectRoot, ".tiltignore");
-    if (fs.existsSync(tiltignoreSource) && !fs.existsSync(tiltignoreTarget)) {
-        fs.copyFileSync(tiltignoreSource, tiltignoreTarget);
-        console.log(`✓ Copied: .tiltignore → project root`);
+    if (fs.existsSync(tiltignoreSource)) {
+        if (!fs.existsSync(tiltignoreTarget)) {
+            fs.copyFileSync(tiltignoreSource, tiltignoreTarget);
+            console.log(`✓ Copied: .tiltignore → project root`);
+        }
+        else if (options.discardHandEdits) {
+            // Only a file TDK wrote (it carries the header) may be restored; one without the
+            // header is the team's own and `verifyMasterConfigs` reports it as a warning.
+            const current = fs.readFileSync(tiltignoreTarget, "utf-8");
+            if (current.includes(TDK_GENERATED_MARKER) &&
+                current !== fs.readFileSync(tiltignoreSource, "utf-8")) {
+                fs.copyFileSync(tiltignoreSource, tiltignoreTarget);
+                console.log("✓ Restored: .tiltignore → project root (hand edits discarded)");
+            }
+        }
     }
     const copiedAssets = ensureProjectRuntimeAssets(projectRoot);
     for (const asset of copiedAssets) {

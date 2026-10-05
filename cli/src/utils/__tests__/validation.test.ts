@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { VALID_RESOURCE_TYPES } from "../constants.js";
 import {
   createKebabCaseValidator,
+  includes,
+  isPathSafe,
   isValidPort,
   sanitizeForShell,
   validateOptionalInfraService,
@@ -162,6 +164,39 @@ describe("sanitizeForShell", () => {
   it("should limit output to 100 chars", () => {
     const long = "a".repeat(200);
     expect(sanitizeForShell(long).length).toBe(100);
+  });
+});
+
+describe("isPathSafe", () => {
+  it("accepts ordinary names and relative paths", () => {
+    expect(isPathSafe("my-service")).toBe(true);
+    expect(isPathSafe("a/b")).toBe(true);
+  });
+
+  it.each(["\0", "<", ">", ":", '"', "|", "?", "*"])(
+    "rejects unsafe path character %j",
+    (character) => {
+      expect(isPathSafe(character)).toBe(false);
+    },
+  );
+});
+
+describe("includes", () => {
+  const resourceTypes = ["backend", "worker"] as const;
+
+  it("returns true for a member and false for a non-member", () => {
+    expect(includes(resourceTypes, "backend")).toBe(true);
+    expect(includes(resourceTypes, "frontend")).toBe(false);
+  });
+
+  it("narrows a string to the readonly array's element type", () => {
+    const candidate: string = "worker";
+    if (!includes(resourceTypes, candidate)) {
+      throw new Error("Expected candidate to be a resource type");
+    }
+
+    const narrowed: (typeof resourceTypes)[number] = candidate;
+    expect(narrowed).toBe("worker");
   });
 });
 
