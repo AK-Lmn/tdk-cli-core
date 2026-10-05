@@ -4,14 +4,12 @@ import {
   mkdtempSync,
   readdirSync,
   readFileSync,
-  realpathSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, relative } from "node:path";
+import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { getTiltfilePath } from "../../utils/tilt.js";
 import {
   EJECTED_CONTENT,
   ejectCommand,
@@ -60,6 +58,7 @@ describe("tdk eject", () => {
   });
 
   it("lists kept and created files in dry-run without writing", async () => {
+    writeFileSync(join(tempDir, "Tiltfile"), "# user-owned\n");
     const output: string[] = [];
     const originalLog = console.log;
     console.log = (...args: unknown[]) => output.push(args.join(" "));
@@ -70,9 +69,13 @@ describe("tdk eject", () => {
       console.log = originalLog;
     }
 
-    expect(output.join("\n")).toContain("Generated files, left where they are (git-ignored):");
-    expect(output.join("\n")).toContain(".tdk/.tdk-out/Tiltfile");
-    expect(output.join("\n")).toContain("Files written:\n  EJECTED.md");
+    const dryRunOutput = output.join("\n");
+    expect(dryRunOutput).toContain("Generated files, left where they are (git-ignored):");
+    expect(dryRunOutput).toContain(".tdk/.tdk-out/Tiltfile");
+    expect(dryRunOutput).toContain(
+      "Root Tiltfile, left where it is (not generated, not git-ignored):\n  Tiltfile\nFiles written:",
+    );
+    expect(dryRunOutput).toContain("Files written:\n  EJECTED.md");
     expect(existsSync(join(tempDir, "EJECTED.md"))).toBe(false);
   });
 
@@ -92,11 +95,12 @@ describe("tdk eject", () => {
       "Wrote EJECTED.md. Nothing was copied, moved or generated.",
       "Generated files stay in .tdk/.tdk-out/ (git-ignored) and still need TDK inputs.",
       "Run from the project root: tilt up -f .tdk/.tdk-out/Tiltfile -- --focus=<stack>",
+      "Replace <stack> with a stack name under services/, or omit --focus to use the Tiltfile's default phase.",
       "Read EJECTED.md",
     ]);
     // `tdk up` passes this exact file to Tilt; there is no Tiltfile at the project root.
-    expect(TILTFILE_RELATIVE_PATH).toBe(relative(realpathSync(tempDir), getTiltfilePath()));
-    expect(TILT_UP_COMMAND).toContain(`-f ${relative(realpathSync(tempDir), getTiltfilePath())}`);
+    expect(TILTFILE_RELATIVE_PATH).toBe(".tdk/.tdk-out/Tiltfile");
+    expect(TILT_UP_COMMAND).toContain("-f .tdk/.tdk-out/Tiltfile");
     expect(existsSync(join(tempDir, "Tiltfile"))).toBe(false);
   });
 
