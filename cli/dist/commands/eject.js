@@ -6,7 +6,7 @@ import { confirmOrCancel } from "../utils/command-helpers.js";
 import { runCommand } from "../utils/errors.js";
 import { findProjectRoot } from "../utils/paths.js";
 // Same location `tdk up` hands to Tilt (see getTiltfilePath in utils/tilt.ts), relative to the project root.
-export const TILTFILE_RELATIVE_PATH = join(".tdk", ".tdk-out", "Tiltfile");
+export const TILTFILE_RELATIVE_PATH = ".tdk/.tdk-out/Tiltfile";
 export const TILT_UP_COMMAND = `tilt up -f ${TILTFILE_RELATIVE_PATH} -- --focus=<stack>`;
 export const EJECTED_CONTENT = `# Ejected from TDK
 
@@ -67,14 +67,18 @@ export const ejectCommand = new Command("eject")
             throw new Error("Generated Tilt files are missing. Run `tdk project --yes` before ejecting.");
         }
         const rootTiltfile = join(projectRoot, "Tiltfile");
-        if (existsSync(rootTiltfile))
-            files.push("Tiltfile");
+        const userTiltfile = existsSync(rootTiltfile) ? ["Tiltfile"] : [];
         const ejectedPath = join(projectRoot, "EJECTED.md");
         const willCreate = existsSync(ejectedPath) ? [] : ["EJECTED.md"];
         if (options.dryRun) {
             console.log("Generated files, left where they are (git-ignored):");
             for (const path of files)
                 console.log(`  ${path}`);
+            if (userTiltfile.length > 0) {
+                console.log("Root Tiltfile, left where it is (not generated, not git-ignored):");
+                for (const path of userTiltfile)
+                    console.log(`  ${path}`);
+            }
             console.log("Files written:");
             for (const path of willCreate)
                 console.log(`  ${path}`);
@@ -95,6 +99,7 @@ export const ejectCommand = new Command("eject")
         }
         console.log("Generated files stay in .tdk/.tdk-out/ (git-ignored) and still need TDK inputs.");
         console.log(`Run from the project root: ${TILT_UP_COMMAND}`);
+        console.log("Replace <stack> with a stack name under services/, or omit --focus to use the Tiltfile's default phase.");
         console.log("Read EJECTED.md");
     });
 });
