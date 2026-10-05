@@ -12,4 +12,4 @@
 ## 3. Pin core documentation
 
 - [x] 3.1 Pin runbook commands to 0.1.1, remove unpublished-package warning, and retain the core 1.3.104 gate; verify documentation and OpenSpec validation.
-- [ ] 3.2 Open core PR containing the proposal, artifacts, runbook, and published-package evidence.
+- [x] 3.2 Open core PR containing the proposal, artifacts, runbook, and published-package evidence.
