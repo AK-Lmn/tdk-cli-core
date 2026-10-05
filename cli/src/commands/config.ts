@@ -155,7 +155,7 @@ export const configCommand = new Command("config")
           }
 
           console.log(chalk.blue("📋 Regenerating master configuration files...\n"));
-          await generateMasterConfigs(projectRoot);
+          await generateMasterConfigs(projectRoot, { discardHandEdits: true });
           console.log(chalk.green("\n✅ Configuration regenerated!"));
         });
       }),
