@@ -1,8 +1,23 @@
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { EJECTED_CONTENT, ejectCommand } from "../eject.js";
+import { getTiltfilePath } from "../../utils/tilt.js";
+import {
+  EJECTED_CONTENT,
+  ejectCommand,
+  TILT_UP_COMMAND,
+  TILTFILE_RELATIVE_PATH,
+} from "../eject.js";
 
 const originalCwd = process.cwd();
 
@@ -55,12 +70,13 @@ describe("tdk eject", () => {
       console.log = originalLog;
     }
 
-    expect(output.join("\n")).toContain("Files kept:");
-    expect(output.join("\n")).toContain("Files created:\n  EJECTED.md");
+    expect(output.join("\n")).toContain("Generated files, left where they are (git-ignored):");
+    expect(output.join("\n")).toContain(".tdk/.tdk-out/Tiltfile");
+    expect(output.join("\n")).toContain("Files written:\n  EJECTED.md");
     expect(existsSync(join(tempDir, "EJECTED.md"))).toBe(false);
   });
 
-  it("writes EJECTED.md and prints the next steps with --yes", async () => {
+  it("writes EJECTED.md and prints a tilt command that points at the real Tiltfile", async () => {
     const output: string[] = [];
     const originalLog = console.log;
     console.log = (...args: unknown[]) => output.push(args.join(" "));
@@ -73,10 +89,49 @@ describe("tdk eject", () => {
 
     expect(readFileSync(join(tempDir, "EJECTED.md"), "utf-8")).toBe(EJECTED_CONTENT);
     expect(output).toEqual([
-      "Ejected. Tilt and Docker files are yours.",
-      "Next: tilt up",
+      "Wrote EJECTED.md. Nothing was copied, moved or generated.",
+      "Generated files stay in .tdk/.tdk-out/ (git-ignored) and still need TDK inputs.",
+      "Run from the project root: tilt up -f .tdk/.tdk-out/Tiltfile -- --focus=<stack>",
       "Read EJECTED.md",
     ]);
+    // `tdk up` passes this exact file to Tilt; there is no Tiltfile at the project root.
+    expect(TILTFILE_RELATIVE_PATH).toBe(relative(realpathSync(tempDir), getTiltfilePath()));
+    expect(TILT_UP_COMMAND).toContain(`-f ${relative(realpathSync(tempDir), getTiltfilePath())}`);
+    expect(existsSync(join(tempDir, "Tiltfile"))).toBe(false);
+  });
+
+  it("writes only EJECTED.md and does not claim files it did not create", async () => {
+    const before = readdirSync(tempDir, { recursive: true }).map(String).sort();
+    const originalLog = console.log;
+    console.log = () => {};
+    try {
+      await ejectCommand.parseAsync(["node", "tdk", "--yes"], { from: "node" });
+    } finally {
+      console.log = originalLog;
+    }
+    const after = readdirSync(tempDir, { recursive: true }).map(String).sort();
+    expect(after.filter((p) => !before.includes(p))).toEqual(["EJECTED.md"]);
+
+    expect(EJECTED_CONTENT).not.toMatch(/^Keep:/m);
+    expect(EJECTED_CONTENT).not.toContain("compose files TDK wrote");
+    expect(EJECTED_CONTENT).toContain("written by Tilt when it runs");
+    expect(EJECTED_CONTENT).toContain("`service.json` files");
+    expect(EJECTED_CONTENT).toContain("`tdk config regenerate`");
+    expect(EJECTED_CONTENT).toContain("no Tiltfile at the project root");
+  });
+
+  it("leaves an existing EJECTED.md alone and says so", async () => {
+    writeFileSync(join(tempDir, "EJECTED.md"), "mine\n");
+    const output: string[] = [];
+    const originalLog = console.log;
+    console.log = (...args: unknown[]) => output.push(args.join(" "));
+    try {
+      await ejectCommand.parseAsync(["node", "tdk", "--yes"], { from: "node" });
+    } finally {
+      console.log = originalLog;
+    }
+    expect(readFileSync(join(tempDir, "EJECTED.md"), "utf-8")).toBe("mine\n");
+    expect(output[0]).toContain("EJECTED.md already exists and was left unchanged");
   });
 
   it("requires a TDK project", async () => {

@@ -13,12 +13,13 @@ Core is MIT ([FAQ](faq-teams.md#what-if-the-project-stops-being-maintained)), so
 
 ## What `tdk eject` really does
 
-`tdk eject --help` says "Take ownership of the generated Tilt and Docker files". Run in a project with a backend, a frontend and a bring-your-own service:
+Before [#610](https://github.com/tdk-landscape/tdk-cli-core/issues/610), `tdk eject --help` said "Take ownership of the generated Tilt and Docker files" and the command printed "Ejected. Tilt and Docker files are yours." and "Next: tilt up". Neither was true. Its output now says what happens. Run in a project with a backend, a frontend and a bring-your-own service (output shown is from the fixed CLI; the observations below were made on 1.3.86):
 
 ```text
 $ tdk eject --yes
-Ejected. Tilt and Docker files are yours.
-Next: tilt up
+Wrote EJECTED.md. Nothing was copied, moved or generated.
+Generated files stay in .tdk/.tdk-out/ (git-ignored) and still need TDK inputs.
+Run from the project root: tilt up -f .tdk/.tdk-out/Tiltfile -- --focus=<stack>
 Read EJECTED.md
 $ git status --short
 ?? EJECTED.md
@@ -27,12 +28,12 @@ $ git status --short
 What was observed:
 
 - It writes **one file**, `EJECTED.md`, at the project root, and nothing else. No file is copied, moved or generated. A second run changes nothing and also exits 0.
-- `EJECTED.md` is a note that says "Keep: Tiltfile, Dockerfiles, compose files TDK wrote, Traefik / proxy config TDK wrote". In the scratch project (before any `tdk up`) none of those existed outside `.tdk/.tdk-out/`, which `.gitignore` excludes (`git check-ignore` confirms `.tdk/.tdk-out/Tiltfile`). After eject a fresh clone still has to run TDK to get them.
+- On 1.3.86, `EJECTED.md` said "Keep: Tiltfile, Dockerfiles, compose files TDK wrote, Traefik / proxy config TDK wrote". In the scratch project (before any `tdk up`) none of those existed outside `.tdk/.tdk-out/`, which `.gitignore` excludes (`git check-ignore` confirms `.tdk/.tdk-out/Tiltfile`). After eject a fresh clone still has to run TDK to get them. The note now says that: it lists where the generated files are, says Tilt writes the Compose, golden-layer and Traefik files when it runs, and that the Tiltfile still reads `.tdk/project.json` and the `service.json` files. An `EJECTED.md` written by an older CLI is never overwritten, so delete it and run `tdk eject` again to get the new text.
 - `tdk eject --dry-run` prints the contents of `.tdk/.tdk-out/` (315 lines: the Tiltfile, `spec.master`, and the vendored engine under `tdk-cli-ext/`) as "Files kept". It has no `--out` option and no per-service file.
-- "Next: tilt up" is not enough by itself. TDK runs `tilt up -f <project>/.tdk/.tdk-out/Tiltfile` (from `cli/src/utils/tilt.ts`), and there is no `Tiltfile` at the project root after eject. Starting it by hand was **not tried**.
+- 1.3.86 printed "Next: tilt up", which cannot work: there is no `Tiltfile` at the project root after eject, and `tilt alpha tiltfile-result` there answered `No Tiltfile found at paths '<project>/Tiltfile'`. TDK runs `tilt up -f <project>/.tdk/.tdk-out/Tiltfile -- --focus=<stack>` (`tdk up shop --dry-run` printed exactly that, from `cli/src/utils/tilt.ts`). The command now prints that form. `tdk up` also chooses host ports and exports them before Tilt starts; a hand-run Tilt skips that. Starting it by hand was **not tried**.
 - Without `.tdk/.tdk-out/` it fails: `Generated Tilt files are missing. Run \`tdk project --yes\` before ejecting.` (exit 1). Outside a project: `tdk eject: no .tdk/project.json in this directory or parents` (exit 1).
 
-Treat `tdk eject` as a note-writer, not as an exit path. Its tests only check the dry-run listing and that `EJECTED.md` is written.
+Treat `tdk eject` as a note-writer, not as an exit path. A command that exports plain Compose files and Dockerfiles does not exist.
 
 ## What exists on disk, and when
 
@@ -88,7 +89,7 @@ What survives: service source and your own Dockerfiles. `service.json`, `AGENTS.
 
 ## Not checked
 
-- Starting anything, with TDK or without it, including a plain `docker compose up` and `tilt up -f` after eject.
+- Starting anything, with TDK or without it, including a plain `docker compose up` and the `tilt up -f .tdk/.tdk-out/Tiltfile -- --focus=<stack>` that eject now prints.
 - Whether a built set of golden layers makes the service file build outside TDK.
 - The Compose output for a bring-your-own service and for a frontend (only a generated backend's file was read).
 - Helm: nothing here produces a chart.
