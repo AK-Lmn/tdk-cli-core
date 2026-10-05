@@ -1,7 +1,8 @@
 import chalk from "chalk";
 import { Command } from "commander";
+import { VALID_RESOURCE_TYPES } from "../utils/constants.js";
 import { createDiscoveryContext } from "../utils/discovery-context.js";
-import { errorFactories, requireProjectRoot, runCommand } from "../utils/errors.js";
+import { errorFactories, requireProjectRoot, runCommand, TdkError } from "../utils/errors.js";
 import {
   formatCount,
   showAllSatisfyCondition,
@@ -12,11 +13,13 @@ import {
 import { createMachineEnvelope, writeMachineError } from "../utils/machine-output.js";
 import { findProjectRoot } from "../utils/paths.js";
 import { stackExists } from "../utils/services.js";
+import { includes } from "../utils/validation.js";
 
 export const resourcesCommand = new Command("resources")
   .description("List all resources (services) in the project")
   .option("-v, --verbose", "Show detailed information about each resource", false)
   .option("-s, --stack <stack>", "Filter resources by stack name")
+  .option("-t, --type <type>", "Filter resources by type")
   .option("--no-stack", "Show only resources without a stack")
   .option("--ports", "Show port assignments", false)
   .option("--json", "Output a versioned JSON resource report", false)
@@ -28,6 +31,12 @@ export const resourcesCommand = new Command("resources")
         }
       } else {
         requireProjectRoot();
+      }
+
+      if (options.type !== undefined && !includes(VALID_RESOURCE_TYPES, options.type)) {
+        throw new TdkError(`Invalid resource type "${options.type}"`, [
+          `Valid types: ${VALID_RESOURCE_TYPES.join(", ")}`,
+        ]);
       }
 
       const discovery = createDiscoveryContext();
@@ -42,7 +51,7 @@ export const resourcesCommand = new Command("resources")
 
       if (options.stack) {
         resources = discovery.resourcesByStack.get(options.stack) || [];
-        if (resources.length === 0 && !options.json) {
+        if (resources.length === 0 && !options.json && options.type === undefined) {
           showEmptyState("stack-services", ` in stack "${options.stack}"`);
           return;
         }
@@ -50,10 +59,16 @@ export const resourcesCommand = new Command("resources")
 
       if (withoutStackFilter) {
         resources = discovery.unassignedResources;
-        if (resources.length === 0 && !options.json) {
+        if (resources.length === 0 && !options.json && options.type === undefined) {
           showAllSatisfyCondition("resources", "assigned to a stack");
           return;
         }
+      }
+
+      if (options.type !== undefined) {
+        resources = resources.filter(
+          (resource) => (resource.config?.appType ?? resource.type) === options.type,
+        );
       }
 
       if (options.json) {
@@ -69,9 +84,12 @@ export const resourcesCommand = new Command("resources")
       }
 
       if (resources.length === 0) {
+        const stackContext = options.stack ? ` in stack "${options.stack}"` : "";
+        const noStackContext = withoutStackFilter && !options.stack ? " without a stack" : "";
+        const typeContext = options.type !== undefined ? ` with type "${options.type}"` : "";
         showEmptyState(
           options.stack ? "stack-services" : "resources",
-          options.stack ? ` in stack "${options.stack}"` : "",
+          stackContext + noStackContext + typeContext,
         );
         return;
       }
@@ -110,9 +128,10 @@ export const resourcesCommand = new Command("resources")
         showDetail("\nRun with --verbose for more details or --ports to see port assignments.", 0);
       }
 
-      const withoutStackCount = options.stack
-        ? resources.filter((r: { stack?: string }) => !r.stack).length
-        : discovery.unassignedResources.length;
+      const withoutStackCount =
+        options.stack || options.type !== undefined
+          ? resources.filter((r: { stack?: string }) => !r.stack).length
+          : discovery.unassignedResources.length;
 
       if (withoutStackCount > 0 && !withoutStackFilter && !options.stack) {
         console.log(
