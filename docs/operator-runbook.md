@@ -50,6 +50,8 @@ npx -y @tdk-landscape/tdk-import@latest <dir> --dry-run
 npx -y @tdk-landscape/tdk-import@latest <dir> --yes
 ```
 
+`@tdk-landscape/tdk-import@0.1.0` does not include the complete Helm/Kustomize refusal behavior or the Procfile skip safeguards. Those are in [tdk-import#9](https://github.com/tdk-landscape/tdk-import/pull/9), which is merged and not published. Do not run `npx` until a release after 0.1.0 containing #9 is on npm.
+
 If core 1.3.104 or later is not installed, update TDK before running `tdk up`; older releases cannot build imported services that use `buildContext`. Start the imported stack with `tdk up <stack>` only after both the importer release and compatible core are available.
 
 Helm (`Chart.yaml`) and Kustomize (`kustomization.yaml`) files are not imported. The command refuses a directory that contains only those files. Supported Compose, Dockerfile, `package.json` script, and Procfile services are still imported when those files appear alongside Helm or Kustomize files.
