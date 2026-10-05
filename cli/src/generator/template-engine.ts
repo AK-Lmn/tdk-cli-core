@@ -487,7 +487,19 @@ function ensureRootWorkspaceManifest(projectRoot: string, projectConfig: Project
   return true;
 }
 
-export async function generateMasterConfigs(projectRoot: string): Promise<void> {
+export interface GenerateMasterConfigsOptions {
+  /**
+   * Overwrite a root .tiltignore that carries TDK's generated header but was edited by hand.
+   * Set by `tdk config regenerate`, the explicit "discard hand edits" command. A root
+   * .tiltignore without the header belongs to the team and is never overwritten.
+   */
+  discardHandEdits?: boolean;
+}
+
+export async function generateMasterConfigs(
+  projectRoot: string,
+  options: GenerateMasterConfigsOptions = {},
+): Promise<void> {
   const projectConfig = readProjectConfig(projectRoot);
 
   await warnIfSablierUnlicensed(projectRoot);
@@ -550,9 +562,22 @@ export async function generateMasterConfigs(projectRoot: string): Promise<void> 
   // Copy .tiltignore to project root so Tilt uses it
   const tiltignoreSource = path.join(outputDir, ".tiltignore");
   const tiltignoreTarget = assertTdkGeneratedPath(projectRoot, ".tiltignore");
-  if (fs.existsSync(tiltignoreSource) && !fs.existsSync(tiltignoreTarget)) {
-    fs.copyFileSync(tiltignoreSource, tiltignoreTarget);
-    console.log(`✓ Copied: .tiltignore → project root`);
+  if (fs.existsSync(tiltignoreSource)) {
+    if (!fs.existsSync(tiltignoreTarget)) {
+      fs.copyFileSync(tiltignoreSource, tiltignoreTarget);
+      console.log(`✓ Copied: .tiltignore → project root`);
+    } else if (options.discardHandEdits) {
+      // Only a file TDK wrote (it carries the header) may be restored; one without the
+      // header is the team's own and `verifyMasterConfigs` reports it as a warning.
+      const current = fs.readFileSync(tiltignoreTarget, "utf-8");
+      if (
+        current.includes(TDK_GENERATED_MARKER) &&
+        current !== fs.readFileSync(tiltignoreSource, "utf-8")
+      ) {
+        fs.copyFileSync(tiltignoreSource, tiltignoreTarget);
+        console.log("✓ Restored: .tiltignore → project root (hand edits discarded)");
+      }
+    }
   }
 
   const copiedAssets = ensureProjectRuntimeAssets(projectRoot);
