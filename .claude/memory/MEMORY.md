@@ -29,3 +29,4 @@ Hard-won, repo-specific facts for anyone (human or agent) working here. Keep ent
 ## Housekeeping
 - Verification scripts must remove every tag of `app_<project>` images (Tilt adds a `tilt-<hash>` tag) and the project's containers and networks.
 - `PAGES_SYNC_TOKEN` is not set, so the schema publish workflow succeeds but does nothing.
+- npm publication can succeed before cached registry metadata shows the new version (2026-10-05, importer 0.1.1): wait for ordinary `npm view` and fresh-cache `npx` to see it before removing release gates; verify the registry tarball against the workflow artifact.
