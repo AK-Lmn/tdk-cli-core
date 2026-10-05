@@ -62,6 +62,8 @@ Create and manage individual services:
 tdk resources
 tdk resources --json
 tdk resources --stack api     # 🔍 Filter by stack
+tdk resources --type backend  # Filter by resource type
+tdk resources --type backend --stack api
 tdk resources --no-stack           # ⚠️ Show unassigned only
 tdk resources --ports              # 🔌 Show port assignments
 tdk resources --stack api --json
