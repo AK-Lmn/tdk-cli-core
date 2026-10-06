@@ -23,9 +23,17 @@ export interface SharedPlatformPostgresEvaluation {
     }>;
 }
 /**
- * True when the database-management feature is on for this project:
- * any phases.*.enabledStacks entry includes database-management, OR the
- * effective always_enabled_infra (field or default) includes it.
+ * True when the database-management feature is on for this project.
+ *
+ * Matches the generated Tiltfile's `should_enable('database-management')`:
+ * 1. any phases.*.enabledStacks entry includes database-management, OR
+ * 2. effective always_enabled_infra includes it — field when present,
+ *    otherwise DEFAULT_ALWAYS_ENABLED_INFRA (same default the generator
+ *    bakes into ALWAYS_ENABLED_INFRA; Tiltfile then returns
+ *    RESOURCE_DEFAULTS.get(name, True) for those names).
+ *
+ * An omitted always_enabled_infra field is therefore feature-ON, not OFF.
+ * Explicit field without database-management + no enabledStacks entry is OFF.
  */
 export declare function databaseManagementEnabled(projectRoot: string): boolean;
 /**

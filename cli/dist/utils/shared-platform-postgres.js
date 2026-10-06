@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { DEFAULT_ALWAYS_ENABLED_INFRA } from "./project-config-defaults.js";
 import { discoverResourcesFromRoot } from "./services.js";
 /**
  * Shared platform Postgres start predicate.
@@ -12,8 +13,6 @@ import { discoverResourcesFromRoot } from "./services.js";
  * Spec: openspec/changes/dependson-starts-platform-postgres
  */
 export const POSTGRES_DEPENDENCY_NAMES = ["postgres", "database-management"];
-/** Default always_enabled_infra from the project template — includes database-management. */
-const DEFAULT_ALWAYS_ENABLED_INFRA = ["database-management", "proxy"];
 const PHASE_KEYS = ["pre_alpha", "alpha", "beta", "out_of_scope"];
 export function isSharedPlatformPostgresDependency(name) {
     return POSTGRES_DEPENDENCY_NAMES.includes(name);
@@ -27,9 +26,17 @@ function readProjectJson(projectRoot) {
     }
 }
 /**
- * True when the database-management feature is on for this project:
- * any phases.*.enabledStacks entry includes database-management, OR the
- * effective always_enabled_infra (field or default) includes it.
+ * True when the database-management feature is on for this project.
+ *
+ * Matches the generated Tiltfile's `should_enable('database-management')`:
+ * 1. any phases.*.enabledStacks entry includes database-management, OR
+ * 2. effective always_enabled_infra includes it — field when present,
+ *    otherwise DEFAULT_ALWAYS_ENABLED_INFRA (same default the generator
+ *    bakes into ALWAYS_ENABLED_INFRA; Tiltfile then returns
+ *    RESOURCE_DEFAULTS.get(name, True) for those names).
+ *
+ * An omitted always_enabled_infra field is therefore feature-ON, not OFF.
+ * Explicit field without database-management + no enabledStacks entry is OFF.
  */
 export function databaseManagementEnabled(projectRoot) {
     const parsed = readProjectJson(projectRoot);
