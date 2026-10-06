@@ -44,6 +44,16 @@ jobs:
             workflows:
               - '.github/workflows/**'
 
+  spellcheck:
+    name: Spell check
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: crate-ci/typos@v1.50.3
+
   lint:
     name: 🛡️ Lint
     runs-on: ubuntu-latest
