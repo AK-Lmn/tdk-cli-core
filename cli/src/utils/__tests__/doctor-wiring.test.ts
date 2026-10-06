@@ -12,6 +12,7 @@ import {
   checkNatsBroker,
   checkResourcePackageJson,
   checkServiceUrlPorts,
+  checkSharedPlatformPostgres,
   checkTiltInstances,
   parseTiltProcesses,
 } from "../doctor-wiring.js";
@@ -225,6 +226,142 @@ describe("checkNatsBroker", () => {
       "services: {}",
     );
     expect(checkNatsBroker(root).didPass).toBe(true);
+  });
+});
+
+describe("checkSharedPlatformPostgres", () => {
+  function writeProjectJson(config: Record<string, unknown>): void {
+    writeFileSync(join(root, ".tdk", "project.json"), JSON.stringify(config));
+  }
+
+  function featureOffProjectJson(): Record<string, unknown> {
+    return {
+      project: { name: "reports-demo" },
+      always_enabled_infra: ["proxy"],
+      phases: {
+        pre_alpha: { name: "Pre-Alpha", description: "", enabledStacks: ["app"] },
+        alpha: { name: "Alpha", description: "", enabledStacks: [] },
+        beta: { name: "Beta", description: "", enabledStacks: [] },
+        out_of_scope: { name: "Out of Scope", description: "", enabledStacks: [] },
+      },
+    };
+  }
+
+  function featureOnProjectJson(): Record<string, unknown> {
+    return {
+      project: { name: "reports-demo" },
+      always_enabled_infra: ["database-management", "proxy"],
+      phases: {
+        pre_alpha: {
+          name: "Pre-Alpha",
+          description: "",
+          enabledStacks: ["app", "database-management"],
+        },
+        alpha: { name: "Alpha", description: "", enabledStacks: [] },
+        beta: { name: "Beta", description: "", enabledStacks: [] },
+        out_of_scope: { name: "Out of Scope", description: "", enabledStacks: [] },
+      },
+    };
+  }
+
+  beforeEach(() => writeProjectJson(featureOffProjectJson()));
+
+  it("passes when willStart because a resource depends on postgres", () => {
+    resource("app", "orders-api", {
+      appType: "backend",
+      port: 4000,
+      dependsOn: ["postgres"],
+    });
+    const result = checkSharedPlatformPostgres(root);
+    expect(result.didPass).toBe(true);
+    expect(result.name).toBe("Shared platform Postgres");
+    expect(result.message).toContain("orders-api");
+    expect(result.message).toContain("depend on postgres/database-management");
+  });
+
+  it("passes when willStart because a resource depends on database-management", () => {
+    resource("app", "billing-api", {
+      appType: "backend",
+      port: 4100,
+      dependsOn: ["database-management"],
+    });
+    const result = checkSharedPlatformPostgres(root);
+    expect(result.didPass).toBe(true);
+    expect(result.message).toContain("billing-api");
+  });
+
+  it("passes when willStart because the feature is on", () => {
+    writeProjectJson(featureOnProjectJson());
+    resource("app", "api", { appType: "backend", port: 4000 });
+    const result = checkSharedPlatformPostgres(root);
+    expect(result.didPass).toBe(true);
+    expect(result.message).toContain("database-management feature is enabled");
+  });
+
+  it("skips when feature is off and nothing depends on either name", () => {
+    resource("app", "api", { appType: "backend", port: 4000, dependsOn: [] });
+    const result = checkSharedPlatformPostgres(root);
+    expect(result.didPass).toBe(true);
+    expect(result.isSkipped).toBe(true);
+    expect(result.message).toContain("will not start");
+  });
+
+  it("fails on unknown typo dependsOn names", () => {
+    resource("app", "orders-api", {
+      appType: "backend",
+      port: 4000,
+      dependsOn: ["postgress"],
+    });
+    const result = checkSharedPlatformPostgres(root);
+    expect(result.didPass).toBe(false);
+    expect(result.message).toContain('"postgress" (from orders-api)');
+  });
+
+  it("does not report postgres as a missing service when the dependency is present", () => {
+    resource("app", "orders-api", {
+      appType: "backend",
+      port: 4000,
+      dependsOn: ["postgres"],
+    });
+    const result = checkSharedPlatformPostgres(root);
+    expect(result.didPass).toBe(true);
+    expect(result.message.toLowerCase()).not.toContain("missing");
+    expect(result.message.toLowerCase()).not.toContain("not a known service");
+  });
+
+  it("does not claim Prisma will start when prisma is not in featuresEnabled", () => {
+    resource("app", "orders-api", {
+      appType: "backend",
+      port: 4000,
+      dependsOn: ["postgres"],
+    });
+    const result = checkSharedPlatformPostgres(root);
+    expect(result.didPass).toBe(true);
+    expect(result.message).not.toMatch(/prisma/i);
+  });
+
+  it("agrees with evaluateSharedPlatformPostgres on the will-start predicate", async () => {
+    const { evaluateSharedPlatformPostgres } = await import("../shared-platform-postgres.js");
+    resource("app", "orders-api", {
+      appType: "backend",
+      port: 4000,
+      dependsOn: ["postgres"],
+    });
+    const evaluation = evaluateSharedPlatformPostgres(root);
+    const result = checkSharedPlatformPostgres(root);
+    expect(result.didPass).toBe(evaluation.willStart);
+    expect(evaluation.willStart).toBe(true);
+  });
+
+  it("finds the dependency through project-scoped discovery even without feature on", () => {
+    resource("other", "billing-api", {
+      appType: "backend",
+      port: 4100,
+      dependsOn: ["postgres"],
+    });
+    const result = checkSharedPlatformPostgres(root);
+    expect(result.didPass).toBe(true);
+    expect(result.message).toContain("billing-api");
   });
 });
 

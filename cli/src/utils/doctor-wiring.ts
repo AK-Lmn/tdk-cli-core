@@ -8,6 +8,7 @@ import { formatCount } from "./formatting.js";
 import { findProjectRoot } from "./paths.js";
 import { isApiServiceType } from "./resource-kind.js";
 import { discoverResourcesFromRoot } from "./services.js";
+import { evaluateSharedPlatformPostgres } from "./shared-platform-postgres.js";
 
 /**
  * Checks for wiring mistakes that only show up minutes into `tdk up`: an image
@@ -405,6 +406,62 @@ export function checkNatsBroker(projectRoot = findProjectRoot() ?? process.cwd()
     didPass: false,
     message: `${users.join(", ")} enable the nats feature, but no NATS server will start: TDK only starts one when services/platform/messaging/docker-compose.yml exists, and it does not generate that file`,
     fix: `Create it with a "nats" service (image nats with -js, container_name ${name}_nats, network ${name}_backend, external) and a "redis" service, which TDK registers alongside it`,
+  };
+}
+
+/**
+ * Shared platform Postgres will-start reporting.
+ *
+ * Uses the same evaluateSharedPlatformPostgres predicate as `tdk config verify`.
+ * Resource set is the project discovery set those commands already inspect —
+ * not a `tdk up` filter. Unknown dependsOn names (typos like `postgress`)
+ * stay errors. Does NOT report postgres/database-management as missing services
+ * and does NOT claim Prisma will start.
+ */
+export function checkSharedPlatformPostgres(
+  projectRoot = findProjectRoot() ?? process.cwd(),
+): CheckResult {
+  const evaluation = evaluateSharedPlatformPostgres(projectRoot);
+
+  if (evaluation.unknownDependsOnNames.length > 0) {
+    const list = evaluation.unknownDependsOnNames
+      .map(({ resource, name }) => `"${name}" (from ${resource})`)
+      .join(", ");
+    return {
+      name: "Shared platform Postgres",
+      didPass: false,
+      message: `${formatCount(evaluation.unknownDependsOnNames.length, "unknown dependsOn name")}: ${list}. These are not known services or stacks, and are not the shared platform database names (postgres, database-management)`,
+      fix: 'Use "postgres" or "database-management" in dependsOn for the shared platform database, or fix the name to match an existing service',
+    };
+  }
+
+  if (!evaluation.willStart) {
+    return {
+      name: "Shared platform Postgres",
+      didPass: true,
+      isSkipped: true,
+      message:
+        "Shared platform Postgres will not start: database-management is off and no resource depends on postgres or database-management",
+    };
+  }
+
+  if (evaluation.reason === "feature" && evaluation.dependsOnUsers.length === 0) {
+    return {
+      name: "Shared platform Postgres",
+      didPass: true,
+      message:
+        "Shared platform Postgres will start because the database-management feature is enabled",
+    };
+  }
+
+  const reason =
+    evaluation.reason === "feature"
+      ? `the database-management feature is enabled and resource(s) ${evaluation.dependsOnUsers.join(", ")} depend on postgres/database-management`
+      : `resource(s) ${evaluation.dependsOnUsers.join(", ")} depend on postgres/database-management`;
+  return {
+    name: "Shared platform Postgres",
+    didPass: true,
+    message: `Shared platform Postgres will start because ${reason}`,
   };
 }
 

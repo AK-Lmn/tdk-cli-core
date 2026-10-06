@@ -23,6 +23,7 @@ import {
   validateServiceManifest,
 } from "../utils/service-manifest.js";
 import { discoverServiceManifestPaths } from "../utils/services.js";
+import { evaluateSharedPlatformPostgres } from "../utils/shared-platform-postgres.js";
 import { validateOptionalInfraService } from "../utils/validation.js";
 
 /**
@@ -238,19 +239,26 @@ export const configCommand = new Command("config")
           if (!projectRoot) throw errorFactories.notInProject();
 
           const result = verifyMasterConfigs(projectRoot);
+          // Same predicate as tdk doctor's Shared platform Postgres check.
+          const sharedPostgres = evaluateSharedPlatformPostgres(projectRoot);
+          const sharedPostgresErrors = sharedPostgres.unknownDependsOnNames.map(
+            ({ resource, name }) =>
+              `dependsOn "${name}" on ${resource} is not a known service or stack (shared platform Postgres names are postgres and database-management)`,
+          );
 
           if (options.json) {
             console.log(
               JSON.stringify(
                 createMachineEnvelope({
-                  valid: result.valid,
-                  errors: result.errors,
+                  valid: result.valid && sharedPostgresErrors.length === 0,
+                  errors: [...result.errors, ...sharedPostgresErrors],
                   warnings: result.warnings,
                   diffs: result.diffs,
+                  sharedPlatformPostgres: sharedPostgres,
                 }),
               ),
             );
-            if (!result.valid) process.exit(1);
+            if (!result.valid || sharedPostgresErrors.length > 0) process.exit(1);
             return;
           }
 
@@ -260,7 +268,31 @@ export const configCommand = new Command("config")
             console.warn(chalk.yellow(`⚠️  ${warning}`));
           }
 
-          if (result.valid) {
+          for (const error of sharedPostgresErrors) {
+            console.log(chalk.red(`❌ ${error}`));
+          }
+
+          if (sharedPostgres.willStart) {
+            if (sharedPostgres.reason === "feature" && sharedPostgres.dependsOnUsers.length === 0) {
+              console.log(
+                chalk.yellow("ℹ️  Postgres will start because database-management is enabled"),
+              );
+            } else if (sharedPostgres.reason === "feature") {
+              console.log(
+                chalk.yellow(
+                  `ℹ️  Postgres will start because database-management is enabled and resource(s) ${sharedPostgres.dependsOnUsers.join(", ")} depend on postgres/database-management`,
+                ),
+              );
+            } else {
+              console.log(
+                chalk.green(
+                  `ℹ️  Postgres will start because resource(s) ${sharedPostgres.dependsOnUsers.join(", ")} depend on postgres/database-management`,
+                ),
+              );
+            }
+          }
+
+          if (result.valid && sharedPostgresErrors.length === 0) {
             console.log(chalk.green("✅ All files are in sync!"));
             return;
           } else {
@@ -269,7 +301,9 @@ export const configCommand = new Command("config")
               console.log(chalk.gray(`   - ${error}`));
             }
             for (const { diff } of result.diffs) console.log(chalk.gray(`\n${diff}`));
-            console.log(chalk.gray("\nRun `tdk config regenerate` to fix."));
+            if (!result.valid) {
+              console.log(chalk.gray("\nRun `tdk config regenerate` to fix."));
+            }
             process.exit(1);
           }
         };

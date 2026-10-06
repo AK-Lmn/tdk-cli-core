@@ -101,23 +101,59 @@ def _ensure_database_management_compose(root_prefix, write_fn):
         write_fn(compose_rel, _generate_database_management_compose())
     return compose_file
 
-def _load_database_management(should_enable, root_prefix="", env_file=None, write_fn=None):
-    """Load database and messaging infrastructure."""
-    if not should_enable('database-management'):
-        print("DEBUG INFRA: database-management not enabled")
+# Starlark globals cannot be rebound, so the idempotent-registration flag lives
+# in a mutable container. Written by both the feature-on path and the
+# force-start path so shared platform Postgres is registered at most once.
+_POSTGRES_REGISTERED = {"flag": False}
+
+
+def _register_platform_postgres(should_enable, root_prefix="", env_file=None, write_fn=None):
+    """Materialize the platform compose and register the shared `postgres` Tilt resource.
+
+    Does NOT load messaging, kafka, redis, nats, provision-db, or Prisma.
+    Idempotent: returns immediately when `_POSTGRES_REGISTERED` is already set.
+    """
+    if _POSTGRES_REGISTERED["flag"]:
+        print("DEBUG INFRA: platform postgres already registered, skipping")
         return
-    
-    print("🗃️  Loading database management services...")
-    
-    # Load postgres from the database-management stack feature compose.
     postgres_compose = _ensure_database_management_compose(root_prefix, write_fn)
     if _file_exists(postgres_compose):
         print("DEBUG INFRA: Loading postgres compose from {}".format(postgres_compose))
         _docker_compose(postgres_compose, env_file)
         dc_resource('postgres', labels=['infra.tools'], resource_deps=['init-networks'], auto_init=True)
+        _POSTGRES_REGISTERED["flag"] = True
     else:
         print("DEBUG INFRA: Skipping postgres (compose file not found)")
-    
+
+
+def force_start_platform_postgres(should_enable, root_prefix="", env_file=None, write_fn=None):
+    """Force-start the shared platform Postgres for a run whose selected resources
+    depend on `postgres` / `database-management` while `database-management` is off.
+
+    Reuses the existing platform compose path and the existing `postgres` Tilt
+    resource — no second image, port, migrator, or Prisma resource.
+    """
+    if _POSTGRES_REGISTERED["flag"]:
+        print("DEBUG INFRA: force_start_platform_postgres called but postgres is already registered")
+        return
+    if env_file == None:
+        candidate_env_file = root_prefix + '.env' if root_prefix else '.env'
+        env_file = candidate_env_file if _file_exists(candidate_env_file) else None
+    print("🗃️  Force-starting shared platform Postgres (selected dependsOn postgres/database-management)")
+    _register_platform_postgres(should_enable, root_prefix, env_file, write_fn)
+
+
+def _load_database_management(should_enable, root_prefix="", env_file=None, write_fn=None):
+    """Load database and messaging infrastructure."""
+    if not should_enable('database-management'):
+        print("DEBUG INFRA: database-management not enabled")
+        return
+
+    print("🗃️  Loading database management services...")
+
+    # Load postgres from the database-management stack feature compose.
+    _register_platform_postgres(should_enable, root_prefix, env_file, write_fn)
+
     # Load messaging if compose file exists
     messaging_compose = root_prefix + 'services/platform/messaging/docker-compose.yml'
     if _file_exists(messaging_compose):
@@ -131,7 +167,7 @@ def _load_database_management(should_enable, root_prefix="", env_file=None, writ
             dc_resource('nats', labels=['infra.messaging'], auto_init=True)
     else:
         print("DEBUG INFRA: Skipping messaging (compose file not found)")
-    
+
     # Only create kafka resources if debezium is enabled AND messaging exists
     cdc_enabled = should_enable('debezium')
     if cdc_enabled and _file_exists(messaging_compose):
@@ -422,7 +458,7 @@ Infra = struct(
     # Main loader
     load_all = load_all_infrastructure,
     init_networks = _init_networks,
-    
+
     # Individual loaders (for granular control)
     load_database = _load_database_management,
     load_verdaccio = _load_verdaccio,
@@ -432,4 +468,8 @@ Infra = struct(
     load_debezium = _load_debezium,
     load_elk = _load_elk,
     load_golden_image = _load_golden_image,
+
+    # Shared platform Postgres start signal (dependsOn postgres/database-management
+    # when the database-management feature is off). Idempotent; no messaging/kafka/Prisma.
+    force_start_postgres = force_start_platform_postgres,
 )
