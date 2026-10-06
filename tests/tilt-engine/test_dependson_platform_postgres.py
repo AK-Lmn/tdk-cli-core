@@ -298,6 +298,19 @@ def test_source_resolution_special_case_before_yaml_fallthrough():
     assert resolve_idx < special_idx < yaml_fallthrough
 
 
+def test_source_ensure_compose_write_matches_exists_check():
+    """Ensure writes the same path family it checks; absolute fallback if custom write_fn missed."""
+    source = INFRA_LOADER.read_text()
+    ensure_idx = source.find("def _ensure_database_management_compose(")
+    register_idx = source.find("def _register_platform_postgres(")
+    assert ensure_idx != -1 and register_idx != -1
+    body = source[ensure_idx:register_idx]
+    assert "compose_rel" in body
+    assert "write_fn(compose_rel" in body
+    # Absolute-path fallback when relative write did not land
+    assert "startswith('/')" in body or "startswith(\"/\")" in body
+
+
 def test_source_no_circular_load_from_infra_loader_to_apply_compose():
     """infra-loader.star must not load apply_compose_resource_registration (circular load guard)."""
     source = INFRA_LOADER.read_text()

@@ -92,13 +92,23 @@ volumes:
 
 
 def _ensure_database_management_compose(root_prefix, write_fn):
-    """Ensure the database-management stack feature has its compose file."""
+    """Ensure the database-management stack feature has its compose file.
+
+    write_fn is expected to be Utils.write_file_if_changed, which prepends
+    TDK_PROJECT_ROOT to relative paths — the same base as root_prefix when
+    the Tiltfile sets TDK_PROJECT_ROOT = PROJECT_ROOT. A custom write_fn that
+    does not prepend may write a different file; if the path we return is
+    absolute and still missing after the relative write, write that exact
+    path once so the exists-check and the write cannot diverge.
+    """
     compose_rel = "services/platform/database-management/docker-compose.yml"
     compose_file = root_prefix + compose_rel if root_prefix else compose_rel
     if _file_exists(compose_file):
         return compose_file
     if write_fn:
         write_fn(compose_rel, _generate_database_management_compose())
+        if not _file_exists(compose_file) and compose_file.startswith('/'):
+            write_fn(compose_file, _generate_database_management_compose())
     return compose_file
 
 # Starlark globals cannot be rebound, so the idempotent-registration flag lives

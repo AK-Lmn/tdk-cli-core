@@ -49,6 +49,7 @@
 ## 6. CLI: Verify and Doctor Reporting (project resource set)
 
 - [x] 6.1 Predicate shape matches the engine: Postgres will start when the feature is on **or** an inspected project resource depends on `postgres` / `database-management`. Resource set is what verify/doctor already inspect — **not** a `tdk up` filter.
+- [x] 6.1b Feature-on predicate uses `DEFAULT_ALWAYS_ENABLED_INFRA` from `project-config-defaults.ts` — the same default the generator bakes into the Tiltfile when `always_enabled_infra` is omitted (omitted field = feature ON, matching `should_enable`).
 - [x] 6.2 `tdk config verify`: when Postgres will start because of a project resource's `dependsOn`, report that it will start because of that dependency.
 - [x] 6.3 `tdk doctor`: same reporting for `dependsOn: ["postgres"]` and `["database-management"]`.
 - [x] 6.4 Do not report `postgres` or `database-management` as missing services when that dependency is present.

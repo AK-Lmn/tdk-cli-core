@@ -79,7 +79,10 @@ describe("isSharedPlatformPostgresDependency", () => {
 });
 
 describe("databaseManagementEnabled", () => {
-  it("is true when always_enabled_infra defaults include database-management", () => {
+  it("is true when always_enabled_infra is omitted — same default the generator bakes into the Tiltfile", () => {
+    // template-engine: always_enabled_infra ?? DEFAULT_ALWAYS_ENABLED_INFRA
+    // Tiltfile: ALWAYS_ENABLED_INFRA includes database-management →
+    // should_enable returns RESOURCE_DEFAULTS.get(name, True) → feature ON.
     writeProjectJson({ project: { name: "demo" } });
     expect(databaseManagementEnabled(root)).toBe(true);
   });
@@ -98,8 +101,31 @@ describe("databaseManagementEnabled", () => {
     expect(databaseManagementEnabled(root)).toBe(true);
   });
 
-  it("is false when always_enabled_infra omits it and no phase lists it", () => {
+  it("is true when always_enabled_infra explicitly includes database-management even without enabledStacks", () => {
+    writeProjectJson({
+      project: { name: "demo" },
+      always_enabled_infra: ["database-management", "proxy"],
+      phases: {
+        pre_alpha: { enabledStacks: ["app"] },
+        alpha: { enabledStacks: [] },
+        beta: { enabledStacks: [] },
+        out_of_scope: { enabledStacks: [] },
+      },
+    });
+    expect(databaseManagementEnabled(root)).toBe(true);
+  });
+
+  it("is false when always_enabled_infra is present without database-management and no phase lists it", () => {
+    // Explicit field (not omitted) → Tiltfile ALWAYS_ENABLED_INFRA omits dm →
+    // Utils.should_enable defaults False when not in RESOURCE_DEFAULTS/cfg.
+    writeProjectJson(featureOffProjectJson());
     expect(databaseManagementEnabled(root)).toBe(false);
+  });
+
+  it("shares DEFAULT_ALWAYS_ENABLED_INFRA with the project generator", async () => {
+    const { DEFAULT_ALWAYS_ENABLED_INFRA } = await import("../project-config-defaults.js");
+    expect([...DEFAULT_ALWAYS_ENABLED_INFRA]).toContain("database-management");
+    expect([...DEFAULT_ALWAYS_ENABLED_INFRA]).toContain("proxy");
   });
 });
 
