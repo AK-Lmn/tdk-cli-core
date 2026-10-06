@@ -14,13 +14,12 @@ from pathlib import Path
 
 import pytest
 
-pytestmark = [
-    pytest.mark.generator,
-    pytest.mark.skipif(shutil.which("tilt") is None, reason="tilt CLI not installed"),
-]
+pytestmark = [pytest.mark.generator]
+TILT_REQUIRED = pytest.mark.skipif(shutil.which("tilt") is None, reason="tilt CLI not installed")
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 ORCHESTRATOR_DIR = REPO_ROOT / "engine" / "topologies" / "tilt" / "resources" / "orchestrator"
+ORCHESTRATOR = ORCHESTRATOR_DIR / "apply_compose_resource_registration.star"
 INFRA_LOADER = REPO_ROOT / "engine" / "topologies" / "tilt" / "resources" / "infra-loader.star"
 RESULT_MARKER = "Error in fail: RESULT"
 
@@ -78,6 +77,7 @@ def test_resolve_feature_on_still_maps_via_public_resolve(tmp_path):
     assert _run_resolve(tmp_path, "database-management", all_services_map) == "postgres"
 
 
+@TILT_REQUIRED
 def test_mixed_depends_on_list_both_resolve_to_one_postgres(tmp_path):
     result = run_starlark(
         tmp_path,
@@ -88,6 +88,7 @@ def test_mixed_depends_on_list_both_resolve_to_one_postgres(tmp_path):
     assert result["names"] == ["postgres"]
 
 
+@TILT_REQUIRED
 def test_public_helpers_exported(tmp_path):
     result = run_starlark(
         tmp_path,
@@ -129,6 +130,7 @@ def _make_should_enable(enabled: set[str]):
     )
 
 
+@TILT_REQUIRED
 def test_build_infra_dependencies_feature_off_has_no_postgres(tmp_path):
     result = run_starlark(
         tmp_path,
@@ -140,6 +142,7 @@ def test_build_infra_dependencies_feature_off_has_no_postgres(tmp_path):
     assert result["deps"] == []
 
 
+@TILT_REQUIRED
 def test_build_infra_dependencies_feature_on_has_postgres(tmp_path):
     result = run_starlark(
         tmp_path,
@@ -151,6 +154,7 @@ def test_build_infra_dependencies_feature_on_has_postgres(tmp_path):
     assert result["deps"] == ["postgres"]
 
 
+@TILT_REQUIRED
 def test_build_resource_deps_feature_off_depends_on_postgres_has_edge(tmp_path):
     result = run_starlark(
         tmp_path,
@@ -162,6 +166,7 @@ def test_build_resource_deps_feature_off_depends_on_postgres_has_edge(tmp_path):
     assert result["deps"] == ["postgres"]
 
 
+@TILT_REQUIRED
 def test_build_resource_deps_feature_off_depends_on_database_management_has_edge(tmp_path):
     result = run_starlark(
         tmp_path,
@@ -173,6 +178,7 @@ def test_build_resource_deps_feature_off_depends_on_database_management_has_edge
     assert result["deps"] == ["postgres"]
 
 
+@TILT_REQUIRED
 def test_build_resource_deps_feature_on_depends_on_exactly_one_postgres(tmp_path):
     """Feature already adds postgres via _build_infra_dependencies; dependsOn must not double it."""
     result = run_starlark(
@@ -186,6 +192,7 @@ def test_build_resource_deps_feature_on_depends_on_exactly_one_postgres(tmp_path
     assert result["deps"].count("postgres") == 1
 
 
+@TILT_REQUIRED
 def test_build_resource_deps_feature_on_depends_on_dm_exactly_one_postgres(tmp_path):
     result = run_starlark(
         tmp_path,
@@ -198,6 +205,7 @@ def test_build_resource_deps_feature_on_depends_on_dm_exactly_one_postgres(tmp_p
     assert result["deps"].count("postgres") == 1
 
 
+@TILT_REQUIRED
 def test_build_resource_deps_no_edge_when_neither_feature_nor_dependency(tmp_path):
     result = run_starlark(
         tmp_path,
@@ -209,6 +217,7 @@ def test_build_resource_deps_no_edge_when_neither_feature_nor_dependency(tmp_pat
     assert result["deps"] == []
 
 
+@TILT_REQUIRED
 def test_build_resource_deps_mixed_names_single_postgres_edge(tmp_path):
     result = run_starlark(
         tmp_path,
@@ -220,8 +229,7 @@ def test_build_resource_deps_mixed_names_single_postgres_edge(tmp_path):
     assert result["deps"].count("postgres") == 1
 
 
-# --- Source-text guards (no tilt required for the file reads; still skipped with tilt mark above
-# only when we want consistency — these use Path directly so they run without tilt too). ---
+# --- Source-text guards (file reads only; no tilt required). ---
 
 
 def test_source_force_start_platform_postgres_exists_and_does_not_load_messaging():
@@ -252,6 +260,44 @@ def test_source_force_start_platform_postgres_exists_and_does_not_load_messaging
     assert "_register_platform_postgres" in db_body
 
 
+def test_source_force_start_passes_required_and_fails_on_missing_compose():
+    """Force path must pass required=True and fail() when compose is not materialized."""
+    source = INFRA_LOADER.read_text()
+    register_idx = source.find("def _register_platform_postgres(")
+    force_idx = source.find("def force_start_platform_postgres(")
+    load_idx = source.find("def _load_database_management(")
+    assert register_idx != -1 and force_idx != -1
+    register_body = source[register_idx:force_idx]
+    force_body = source[force_idx:load_idx]
+    assert "required=False" in register_body or "required=" in register_body
+    assert "fail(" in register_body
+    assert "required=True" in force_body
+    assert "write_fn" in force_body
+
+
+def test_source_orchestrator_calls_force_start_for_selected_dependson():
+    """Orchestrator must wire Infra.force_start_postgres for selected dependsOn when feature is off."""
+    source = ORCHESTRATOR.read_text()
+    assert "load('../infra-loader.star', 'Infra')" in source
+    assert "Infra.force_start_postgres" in source
+    assert "manifest_needs_shared_platform_postgres" in source
+    assert "not should_enable('database-management')" in source
+    # write_fn must be taken from ctx and required when force-starting
+    assert "ctx.get('write_file'" in source
+    assert "fail(" in source  # missing write_file fails the run
+    # Only selected resources in this registration are scanned
+    assert "resource_config.get('resources', [])" in source
+
+
+def test_source_resolution_special_case_before_yaml_fallthrough():
+    source = ORCHESTRATOR.read_text()
+    resolve_idx = source.find("def _resolve_dependency_to_resource(")
+    special_idx = source.find("if is_shared_platform_postgres_dependency(dep_name):")
+    yaml_fallthrough = source.find("return dep_name + '-yaml'", resolve_idx)
+    assert resolve_idx != -1 and special_idx != -1 and yaml_fallthrough != -1
+    assert resolve_idx < special_idx < yaml_fallthrough
+
+
 def test_source_no_circular_load_from_infra_loader_to_apply_compose():
     """infra-loader.star must not load apply_compose_resource_registration (circular load guard)."""
     source = INFRA_LOADER.read_text()
@@ -260,5 +306,5 @@ def test_source_no_circular_load_from_infra_loader_to_apply_compose():
 
 
 def test_source_apply_compose_loads_infra_loader_via_top_level_path():
-    apply_source = (ORCHESTRATOR_DIR / "apply_compose_resource_registration.star").read_text()
+    apply_source = ORCHESTRATOR.read_text()
     assert "load('../infra-loader.star', 'Infra')" in apply_source

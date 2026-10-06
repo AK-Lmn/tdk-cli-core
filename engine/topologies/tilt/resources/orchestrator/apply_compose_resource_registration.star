@@ -649,6 +649,8 @@ def register_compose_resources(resource_config, ctx, runtime_flags, manifest_sta
     # platform Postgres via the existing infra loader (materializes
     # services/platform/database-management/docker-compose.yml + registers the
     # existing `postgres` Tilt resource). Does NOT open migrators/provision-db/Prisma.
+    # write_fn is mandatory here: the force path fails the run if compose cannot
+    # be materialized (no silent skip that leaves Tilt waiting on a bare name).
     if not should_enable('database-management'):
         for res in resource_config.get('resources', []):
             res_manifest = resource_manifests.get(res['name'], {})
@@ -658,7 +660,10 @@ def register_compose_resources(resource_config, ctx, runtime_flags, manifest_sta
                 root_prefix = (project_root_for_env + '/') if project_root_for_env else ''
                 env_candidate = (project_root_for_env + '/.env') if project_root_for_env else '.env'
                 env_file = _env_file_if_exists(env_candidate)
-                Infra.force_start_postgres(should_enable, root_prefix=root_prefix, env_file=env_file, write_fn=write_file)
+                write_fn = ctx.get('write_file', None)
+                if write_fn == None:
+                    fail("dependsOn postgres/database-management on selected resource '{}' requires ctx.write_file to materialize services/platform/database-management/docker-compose.yml".format(res.get('name', '')))
+                Infra.force_start_postgres(should_enable, root_prefix=root_prefix, env_file=env_file, write_fn=write_fn)
                 break
 
     resource_entries = []

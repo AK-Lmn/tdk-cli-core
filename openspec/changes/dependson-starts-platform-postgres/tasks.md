@@ -10,8 +10,8 @@
 
 ## 2. Engine: Start Path (Feature Off + Selected dependsOn)
 
-- [x] 2.1 When `database-management` is off but any **selected** resource depends on `postgres` or `database-management`, start Postgres for that run.
-- [x] 2.2 Materialize platform files under `services/platform/database-management` using the existing Compose generation/path from `_load_database_management` / `_ensure_database_management_compose` — not a second image or port.
+- [x] 2.1 When `database-management` is off but any **selected** resource depends on `postgres` or `database-management`, start Postgres for that run (orchestrator calls `Infra.force_start_postgres` when feature off).
+- [x] 2.2 Materialize platform files under `services/platform/database-management` using the existing Compose generation/path. Force path MUST pass `ctx.write_file`; missing write_fn or missing compose after ensure **fails the run** (no silent skip that leaves Tilt waiting on a bare name).
 - [x] 2.3 Register the existing `postgres` Tilt resource through the same infra loader path the feature uses.
 - [x] 2.4 Feature-on start path stays: one `postgres` resource, same compose, same port (when the feature is on). Do **not** claim feature-on is fully unchanged — resolution and verify/doctor still change when either name is present.
 - [x] 2.5 Leave the feature-off + no such `dependsOn` path unchanged: Postgres does not start; no `postgres` resource registered solely because of `dependsOn`.

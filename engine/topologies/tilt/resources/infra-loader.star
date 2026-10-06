@@ -107,11 +107,15 @@ def _ensure_database_management_compose(root_prefix, write_fn):
 _POSTGRES_REGISTERED = {"flag": False}
 
 
-def _register_platform_postgres(should_enable, root_prefix="", env_file=None, write_fn=None):
+def _register_platform_postgres(should_enable, root_prefix="", env_file=None, write_fn=None, required=False):
     """Materialize the platform compose and register the shared `postgres` Tilt resource.
 
     Does NOT load messaging, kafka, redis, nats, provision-db, or Prisma.
     Idempotent: returns immediately when `_POSTGRES_REGISTERED` is already set.
+
+    When `required` is true (dependsOn force-start path), a missing compose after
+    ensure is a hard failure — not a silent skip — so Tilt never waits on a
+    `postgres` resource that has no compose definition.
     """
     if _POSTGRES_REGISTERED["flag"]:
         print("DEBUG INFRA: platform postgres already registered, skipping")
@@ -122,8 +126,11 @@ def _register_platform_postgres(should_enable, root_prefix="", env_file=None, wr
         _docker_compose(postgres_compose, env_file)
         dc_resource('postgres', labels=['infra.tools'], resource_deps=['init-networks'], auto_init=True)
         _POSTGRES_REGISTERED["flag"] = True
-    else:
-        print("DEBUG INFRA: Skipping postgres (compose file not found)")
+        return
+    message = "Shared platform Postgres compose was not materialized at {}".format(postgres_compose)
+    if required:
+        fail(message + " (write_fn present: {}). Refusing to register a postgres Tilt resource with no compose.".format(write_fn != None))
+    print("DEBUG INFRA: Skipping postgres (compose file not found): {}".format(message))
 
 
 def force_start_platform_postgres(should_enable, root_prefix="", env_file=None, write_fn=None):
@@ -132,6 +139,10 @@ def force_start_platform_postgres(should_enable, root_prefix="", env_file=None, 
 
     Reuses the existing platform compose path and the existing `postgres` Tilt
     resource — no second image, port, migrator, or Prisma resource.
+
+    The orchestrator MUST pass the same `write_fn` the feature path uses
+    (`ctx['write_file']`) so `services/platform/database-management/docker-compose.yml`
+    is materialized when missing. A failed materialize fails the run.
     """
     if _POSTGRES_REGISTERED["flag"]:
         print("DEBUG INFRA: force_start_platform_postgres called but postgres is already registered")
@@ -140,7 +151,7 @@ def force_start_platform_postgres(should_enable, root_prefix="", env_file=None, 
         candidate_env_file = root_prefix + '.env' if root_prefix else '.env'
         env_file = candidate_env_file if _file_exists(candidate_env_file) else None
     print("🗃️  Force-starting shared platform Postgres (selected dependsOn postgres/database-management)")
-    _register_platform_postgres(should_enable, root_prefix, env_file, write_fn)
+    _register_platform_postgres(should_enable, root_prefix, env_file, write_fn, required=True)
 
 
 def _load_database_management(should_enable, root_prefix="", env_file=None, write_fn=None):
