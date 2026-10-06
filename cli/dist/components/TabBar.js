@@ -1,12 +1,11 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { Box, Text } from "ink";
 import { getTabBarDensity, getTerminalRuleWidth } from "../utils/terminal-layout.js";
-const TABS = [
+export const TABS = [
     { id: "overview", label: "OVERVIEW", shortcut: "1" },
     { id: "resources", label: "RESOURCES", shortcut: "2" },
-    { id: "events", label: "EVENTS", shortcut: "3" },
-    { id: "files", label: "FILES", shortcut: "4" },
-    { id: "config", label: "CONFIG", shortcut: "5" },
+    { id: "files", label: "FILES", shortcut: "3" },
+    { id: "config", label: "CONFIG", shortcut: "4" },
 ];
 export const TabBar = ({ activeTab, compact = false, terminalWidth }) => {
     const responsive = terminalWidth !== undefined;

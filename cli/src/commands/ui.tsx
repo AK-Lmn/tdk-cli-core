@@ -10,6 +10,7 @@ import {
   TabBar,
   TUIHeader,
 } from "../components/index.js";
+import { TABS } from "../components/TabBar.js";
 import type {
   DiscoveredResource,
   DiscoveredStack,
@@ -57,7 +58,10 @@ const HelpPanel: React.FC<HelpPanelProps> = ({ onClose }) => (
       <Text> Enter Select item / Open detail</Text>
       <Text> Space Toggle expand (tree view)</Text>
       <Text> Tab Next tab</Text>
-      <Text> 1-5 Direct tab access</Text>
+      <Text>
+        {" "}
+        {TABS[0].shortcut}-{TABS[TABS.length - 1].shortcut} Direct tab access
+      </Text>
 
       <Box marginTop={1}>
         <Text bold underline>
@@ -557,7 +561,7 @@ export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) =>
     }
 
     if (key.tab) {
-      const tabs: TabId[] = ["overview", "resources", "events", "files", "config"];
+      const tabs = TABS.map((tab) => tab.id);
       const currentIdx = tabs.indexOf(activeTab);
       const nextIdx = key.shift
         ? (currentIdx - 1 + tabs.length) % tabs.length
@@ -566,15 +570,9 @@ export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) =>
       return;
     }
 
-    if (/^[1-5]$/.test(input)) {
-      const tabMap: Record<string, TabId> = {
-        "1": "overview",
-        "2": "resources",
-        "3": "events",
-        "4": "files",
-        "5": "config",
-      };
-      setActiveTab(tabMap[input]);
+    const shortcutTab = TABS.find((tab) => tab.shortcut === input);
+    if (shortcutTab) {
+      setActiveTab(shortcutTab.id);
       return;
     }
 
@@ -692,15 +690,13 @@ export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) =>
                 ? `[↑/↓] Navigate │ [Enter] Select │ [e] ${showEnabledOnly ? "show all" : "enabled only"} │ [?] help`
                 : activeTab === "resources"
                   ? `[Tab] Tabs │ [r] Refresh │ [/] Search │ [e] ${showEnabledOnly ? "show all" : "enabled only"} │ [?] help`
-                  : activeTab === "events"
-                    ? `Event timeline │ [Tab] Switch tabs │ [e] ${showEnabledOnly ? "show all" : "enabled only"} │ [?] help`
-                    : activeTab === "files" && selectedService
-                      ? `Service "${selectedService}" │ [Space] Expand │ [Esc] Back │ [e] ${showEnabledOnly ? "show all" : "enabled only"} │ [?] help`
-                      : activeTab === "files"
-                        ? `Select service to view files │ [e] ${showEnabledOnly ? "show all" : "enabled only"} │ [?] help`
-                        : activeTab === "config"
-                          ? `View configurations │ [e] ${showEnabledOnly ? "show all" : "enabled only"} │ [?] help`
-                          : `[Tab] Next │ [1-5] Tabs │ [e] ${showEnabledOnly ? "show all" : "enabled only"} │ [?] help │ [q] Quit`}
+                  : activeTab === "files" && selectedService
+                    ? `Service "${selectedService}" │ [Space] Expand │ [Esc] Back │ [e] ${showEnabledOnly ? "show all" : "enabled only"} │ [?] help`
+                    : activeTab === "files"
+                      ? `Select service to view files │ [e] ${showEnabledOnly ? "show all" : "enabled only"} │ [?] help`
+                      : activeTab === "config"
+                        ? `View configurations │ [e] ${showEnabledOnly ? "show all" : "enabled only"} │ [?] help`
+                        : `[Tab] Next │ [${TABS[0].shortcut}-${TABS[TABS.length - 1].shortcut}] Tabs │ [e] ${showEnabledOnly ? "show all" : "enabled only"} │ [?] help │ [q] Quit`}
           </Text>
         </Box>
       )}
@@ -777,19 +773,6 @@ export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) =>
                       </Box>
                     </>
                   )}
-                </>
-              )}
-
-              {activeTab === "events" && (
-                <>
-                  <Box marginBottom={1}>
-                    <Text bold color="gray">
-                      ┌─ Events ─
-                    </Text>
-                  </Box>
-                  <Box marginTop={1}>
-                    <Text color="gray">Events tab not yet implemented</Text>
-                  </Box>
                 </>
               )}
 
