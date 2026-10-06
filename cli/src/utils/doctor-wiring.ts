@@ -412,7 +412,8 @@ export function checkNatsBroker(projectRoot = findProjectRoot() ?? process.cwd()
 /**
  * Shared platform Postgres will-start reporting.
  *
- * Uses the same evaluateSharedPlatformPostgres predicate as `tdk config verify`.
+ * Uses the same evaluateSharedPlatformPostgres predicate as `tdk config verify`,
+ * which reads project.json **and** the generated Tiltfile/spec.master when present.
  * Resource set is the project discovery set those commands already inspect —
  * not a `tdk up` filter. A resource that depends on Postgres while you bring up
  * a different one still makes this report will-start; the engine start path is
@@ -420,6 +421,9 @@ export function checkNatsBroker(projectRoot = findProjectRoot() ?? process.cwd()
  * names (typos like `postgress`) stay errors. Does NOT report
  * postgres/database-management as missing services and does NOT claim Prisma
  * will start.
+ *
+ * Preflight loop: edit service.json → `tdk config regenerate` → `tdk doctor`.
+ * Doctor is the gate; one real `tdk up` after doctor is green confirms the run.
  */
 export function checkSharedPlatformPostgres(
   projectRoot = findProjectRoot() ?? process.cwd(),
@@ -427,18 +431,18 @@ export function checkSharedPlatformPostgres(
   const evaluation = evaluateSharedPlatformPostgres(projectRoot);
   const projectScopeNote =
     " (project resource set; tdk up may select a subset and not start Postgres)";
-  const willStartSuffix = evaluation.willStart
-    ? ` Postgres will start because ${
-        evaluation.reason === "feature"
-          ? "database-management is enabled"
-          : `resource(s) ${evaluation.dependsOnUsers.join(", ")} depend on postgres/database-management`
-      }${projectScopeNote}`
-    : " Postgres will not start (database-management is off and no project resource depends on postgres/database-management)";
 
   if (evaluation.unknownDependsOnNames.length > 0) {
     const list = evaluation.unknownDependsOnNames
       .map(({ resource, name }) => `"${name}" (from ${resource})`)
       .join(", ");
+    const willStartSuffix = evaluation.willStart
+      ? ` Postgres will start because ${
+          evaluation.reason === "feature"
+            ? "database-management is enabled"
+            : `resource(s) ${evaluation.dependsOnUsers.join(", ")} depend on postgres/database-management`
+        }${projectScopeNote}`
+      : " Postgres will not start for this project.json/generated Tiltfile state.";
     return {
       name: "Shared platform Postgres",
       didPass: false,
@@ -448,21 +452,28 @@ export function checkSharedPlatformPostgres(
   }
 
   if (!evaluation.willStart) {
+    const focusWarning = evaluation.focusWouldEnableDatabaseManagement
+      ? " Warning: default focus/CORE_INFRA expansion enables database-management on a typical tdk up even when project.json lists it off — Postgres may still start via the feature path."
+      : "";
     return {
       name: "Shared platform Postgres",
       didPass: true,
       isSkipped: true,
       message:
-        "Shared platform Postgres will not start: database-management is off and no resource depends on postgres or database-management",
+        "Shared platform Postgres will not start: database-management is off and no resource depends on postgres or database-management." +
+        focusWarning,
     };
   }
 
   if (evaluation.reason === "feature" && evaluation.dependsOnUsers.length === 0) {
+    const source =
+      evaluation.featureOnFromTiltfile || evaluation.featureOnFromSpecMaster
+        ? " (generated Tiltfile/spec.master)"
+        : "";
     return {
       name: "Shared platform Postgres",
       didPass: true,
-      message:
-        "Shared platform Postgres will start because the database-management feature is enabled (project-wide; not a tdk up selection)",
+      message: `Shared platform Postgres will start because the database-management feature is enabled${source} (project-wide; not a tdk up selection)`,
     };
   }
 
