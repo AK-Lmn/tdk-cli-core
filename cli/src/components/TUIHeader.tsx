@@ -14,49 +14,76 @@ export const TUIHeader: React.FC<TUIHeaderProps> = ({
   terminalWidth,
   version,
 }) => {
-  const title = terminalWidth < 80 ? `TDK v${version}` : `TDK NEON EDITION v${version}`;
-  const resourceLabel = `${String(resourceCount)} resource${resourceCount === 1 ? "" : "s"} discovered`;
-  const compactHeading = `${title} | ${resourceLabel}`;
+  const compact = terminalWidth < 80;
+  const title = compact ? `TDK v${version}` : `▓▒░ TDK NEON EDITION v${version} ░▒▓`;
+  const resourceLabel = `${resourceCount} resource${resourceCount === 1 ? "" : "s"} discovered`;
   const paddingX = terminalWidth >= 28 ? 1 : 0;
+  const contentWidth = Math.max(1, terminalWidth - paddingX * 2);
 
-  if (terminalWidth < 80) {
-    const contentWidth = Math.max(1, terminalWidth - paddingX * 2);
-    const splitHeading = compactHeading.length > contentWidth;
+  if (compact) {
+    const splitHeading = title.length + " | ".length + resourceLabel.length > contentWidth;
 
     return (
       <Box flexDirection="column" paddingX={paddingX} width={terminalWidth}>
         {splitHeading ? (
           <>
-            <Text color="cyan" bold>
-              {title}
-            </Text>
-            <Text color="green">{resourceLabel}</Text>
+            <Box width={contentWidth}>
+              <Text color="cyan" bold wrap="truncate-end">
+                {title}
+              </Text>
+            </Box>
+            <Box width={contentWidth}>
+              <Text color="green" wrap="truncate-end">
+                {resourceLabel}
+              </Text>
+            </Box>
           </>
         ) : (
-          <Text>
-            <Text color="cyan" bold>
-              {title}
+          <Box width={contentWidth}>
+            <Text wrap="truncate-end">
+              <Text color="cyan" bold>
+                {title}
+              </Text>
+              <Text color="gray"> | </Text>
+              <Text color="green">{resourceLabel}</Text>
             </Text>
-            <Text color="gray"> | </Text>
-            <Text color="green">{resourceLabel}</Text>
-          </Text>
+          </Box>
         )}
-        <Text color="white" wrap="truncate-end">
-          {projectRoot}
-        </Text>
+        <Box width={contentWidth}>
+          <Text color="white" wrap="truncate-end">
+            {projectRoot}
+          </Text>
+        </Box>
       </Box>
     );
   }
 
-  const rootWidth = Math.max(
-    1,
-    terminalWidth -
-      paddingX * 2 -
-      title.length -
-      " | ".length -
-      " | ".length -
-      resourceLabel.length,
-  );
+  const separatorsWidth = " | ".length * 2;
+  const headingWidth = title.length + resourceLabel.length + separatorsWidth;
+
+  if (headingWidth >= contentWidth) {
+    return (
+      <Box flexDirection="column" paddingX={paddingX} width={terminalWidth}>
+        <Box width={contentWidth}>
+          <Text color="cyan" bold wrap="truncate-end">
+            {title}
+          </Text>
+        </Box>
+        <Box width={contentWidth}>
+          <Text color="green" wrap="truncate-end">
+            {resourceLabel}
+          </Text>
+        </Box>
+        <Box width={contentWidth}>
+          <Text color="white" wrap="truncate-end">
+            {projectRoot}
+          </Text>
+        </Box>
+      </Box>
+    );
+  }
+
+  const rootWidth = contentWidth - headingWidth;
 
   return (
     <Box flexDirection="row" paddingX={paddingX} width={terminalWidth}>
@@ -64,7 +91,7 @@ export const TUIHeader: React.FC<TUIHeaderProps> = ({
         {title}
       </Text>
       <Text color="gray"> | </Text>
-      <Box flexShrink={1} width={rootWidth}>
+      <Box flexShrink={0} width={rootWidth}>
         <Text color="white" wrap="truncate-end">
           {projectRoot}
         </Text>

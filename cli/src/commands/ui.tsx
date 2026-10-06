@@ -609,12 +609,8 @@ const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) => {
     return <ErrorScreen error={error} onRetry={refresh} />;
   }
 
-  if (services.length === 0) {
-    return <EmptyState message={message} />;
-  }
-
-  return (
-    <Box flexDirection="column" height={stdout.rows || 24}>
+  const header = (
+    <>
       <TUIHeader
         projectRoot={projectRoot}
         resourceCount={services.length}
@@ -625,6 +621,21 @@ const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) => {
       <Box paddingX={1}>
         <Text color="gray">{"─".repeat(getTerminalRuleWidth(terminalWidth))}</Text>
       </Box>
+    </>
+  );
+
+  if (services.length === 0) {
+    return (
+      <Box flexDirection="column" height={stdout.rows || 24}>
+        {header}
+        <EmptyState message={message} />
+      </Box>
+    );
+  }
+
+  return (
+    <Box flexDirection="column" height={stdout.rows || 24}>
+      {header}
 
       {isSearching && (
         <Box paddingX={1} height={1}>
