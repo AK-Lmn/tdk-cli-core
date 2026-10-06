@@ -13,6 +13,7 @@ import {
   checkFrontendBackendUrls,
   checkMigrationsInApi,
   checkNatsBroker,
+  checkPrismaConsistency,
   checkResourcePackageJson,
   checkServiceUrlPorts,
   checkSharedPlatformPostgres,
@@ -440,6 +441,172 @@ describe("checkSharedPlatformPostgres", () => {
     const result = checkSharedPlatformPostgres(root);
     expect(result.didPass).toBe(true);
     expect(result.message).toContain("billing-api");
+  });
+});
+
+describe("checkPrismaConsistency", () => {
+  const schema =
+    'generator client { provider = "prisma-client-js" }\ndatasource db { provider = "postgresql" }\n';
+  const config =
+    'import { defineConfig, env } from "prisma/config"; export default defineConfig({ datasource: { url: env("DATABASE_URL") } });\n';
+  const packages = { dependencies: { prisma: "7.5.0", "@prisma/client": "7.5.0" } };
+
+  function validProject(overrides: Record<string, unknown> = {}): void {
+    resource(
+      "app",
+      "orders-api-migrator",
+      { appType: "migrator", port: 7000, featuresEnabled: ["prisma"], dependsOn: ["postgres"] },
+      {
+        "package.json": JSON.stringify(packages),
+        "prisma/schema.prisma": schema,
+        "prisma.config.ts": config,
+      },
+    );
+    resource(
+      "app",
+      "orders-api",
+      {
+        appType: "backend",
+        port: 4000,
+        featuresEnabled: ["prisma"],
+        dependsOn: ["orders-api-migrator"],
+        ...overrides,
+      },
+      {
+        "package.json": JSON.stringify(packages),
+        "prisma/schema.prisma": schema,
+        "prisma.config.ts": config,
+      },
+    );
+  }
+
+  it("passes one valid Prisma 7 API and migrator shape", () => {
+    validProject();
+    const result = checkPrismaConsistency(root);
+    expect(result.didPass).toBe(true);
+    expect(result.message).not.toContain("Prisma 8");
+  });
+
+  it("fails when prisma packages are missing", () => {
+    validProject();
+    writeFileSync(
+      join(root, "services/app/orders-api/package.json"),
+      JSON.stringify({ dependencies: {} }),
+    );
+    expect(checkPrismaConsistency(root).didPass).toBe(false);
+  });
+
+  it("fails when Prisma package majors differ", () => {
+    validProject();
+    writeFileSync(
+      join(root, "services/app/orders-api/package.json"),
+      JSON.stringify({ dependencies: { prisma: "7.5.0", "@prisma/client": "6.19.3" } }),
+    );
+    expect(checkPrismaConsistency(root).didPass).toBe(false);
+  });
+
+  it("fails when either Prisma major is not 7", () => {
+    validProject();
+    writeFileSync(
+      join(root, "services/app/orders-api/package.json"),
+      JSON.stringify({ dependencies: { prisma: "8.0.0", "@prisma/client": "8.0.0" } }),
+    );
+    expect(checkPrismaConsistency(root).didPass).toBe(false);
+  });
+
+  it("fails the legacy features key", () => {
+    validProject({ featuresEnabled: [], features: ["prisma"] });
+    expect(checkPrismaConsistency(root).didPass).toBe(false);
+  });
+
+  it("fails when schema.prisma is missing", () => {
+    validProject();
+    rmSync(join(root, "services/app/orders-api/prisma/schema.prisma"));
+    expect(checkPrismaConsistency(root).didPass).toBe(false);
+  });
+
+  it("fails when schema provider is not postgresql", () => {
+    validProject();
+    writeFileSync(
+      join(root, "services/app/orders-api/prisma/schema.prisma"),
+      'datasource db { provider = "mysql" }',
+    );
+    expect(checkPrismaConsistency(root).didPass).toBe(false);
+  });
+
+  it("fails when schema still owns url or directUrl", () => {
+    validProject();
+    writeFileSync(
+      join(root, "services/app/orders-api/prisma/schema.prisma"),
+      `${schema} datasource db { url = env("DATABASE_URL") }`,
+    );
+    expect(checkPrismaConsistency(root).didPass).toBe(false);
+  });
+
+  it("fails when Prisma config is missing or has the wrong URL", () => {
+    validProject();
+    rmSync(join(root, "services/app/orders-api/prisma.config.ts"));
+    expect(checkPrismaConsistency(root).didPass).toBe(false);
+  });
+
+  it("fails when the migrator does not depend on Postgres", () => {
+    validProject();
+    writeFileSync(
+      join(root, "services/app/orders-api-migrator/service.json"),
+      JSON.stringify({
+        appName: "orders-api-migrator",
+        appType: "migrator",
+        featuresEnabled: ["prisma"],
+        dependsOn: [],
+      }),
+    );
+    expect(checkPrismaConsistency(root).didPass).toBe(false);
+  });
+
+  it("fails when the API does not depend on its migrator", () => {
+    validProject({ dependsOn: [] });
+    expect(checkPrismaConsistency(root).didPass).toBe(false);
+  });
+
+  it("fails when the API start script migrates", () => {
+    validProject();
+    writeFileSync(
+      join(root, "services/app/orders-api/package.json"),
+      JSON.stringify({ ...packages, scripts: { start: "prisma migrate deploy && bun start" } }),
+    );
+    expect(checkPrismaConsistency(root).didPass).toBe(false);
+  });
+
+  it("allows prisma generate when the Prisma 7 schema and packages are present", () => {
+    validProject();
+    writeFileSync(
+      join(root, "services/app/orders-api/Dockerfile"),
+      "FROM oven/bun\nRUN prisma generate\n",
+    );
+    expect(checkPrismaConsistency(root).didPass).toBe(true);
+  });
+
+  it("fails when shared Postgres will not start", () => {
+    validProject();
+    writeFileSync(
+      join(root, "services/app/orders-api-migrator/service.json"),
+      JSON.stringify({
+        appName: "orders-api-migrator",
+        appType: "migrator",
+        featuresEnabled: ["prisma"],
+        dependsOn: [],
+      }),
+    );
+    writeFileSync(
+      join(root, "services/app/orders-api/service.json"),
+      JSON.stringify({
+        appName: "orders-api",
+        appType: "backend",
+        featuresEnabled: ["prisma"],
+        dependsOn: ["orders-api-migrator"],
+      }),
+    );
+    expect(checkPrismaConsistency(root).didPass).toBe(false);
   });
 });
 
