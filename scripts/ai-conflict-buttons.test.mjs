@@ -25,6 +25,7 @@ describe("buildPrompt", () => {
       prUrl: url,
       headOwner: "xiehuanyi",
       headBranch: "feat/ui-keyboard-navigation-round2",
+      baseBranch: "main",
       prNumber: 645,
       body: "Fixes #449.\n",
     });
@@ -44,9 +45,12 @@ describe("buildPrompt", () => {
       prUrl: url,
       headOwner: "odykyi",
       headBranch: "fix/thing",
+      baseBranch: "release",
       prNumber: 7,
       body: "no issue",
     });
+    assert.ok(prompt.includes("merge origin/release"));
+    assert.ok(prompt.includes("Keep release's changes."));
     assert.ok(prompt.includes("open a replacement PR."));
     assert.ok(!prompt.includes("Fixes #"));
   });
@@ -64,7 +68,12 @@ describe("buildButtonsHtml", () => {
     assert.ok(html.includes("Resolve%20conflict-111111"));
     assert.ok(html.includes("logo=x"));
     assert.ok(html.includes("logo=anthropic"));
-    assert.ok(html.includes("fill%3D%22%23fff%22") || html.includes("fill%3D%22%23fff%22".toLowerCase()) || html.includes("svg"));
+    assert.ok(html.includes("logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2C"));
+    const codexSrc = html.match(/\[!\[Codex\]\(([^)]+)\)/)?.[1] ?? "";
+    const logoParam = new URL(codexSrc).searchParams.get("logo") ?? "";
+    const decoded = Buffer.from(logoParam.split("base64,")[1] ?? "", "base64").toString("utf8");
+    assert.ok(decoded.includes('fill="#fff"'));
+    assert.ok(decoded.includes('viewBox="0 0 24 24"'));
   });
 });
 
@@ -73,6 +82,7 @@ describe("buildComment", () => {
     prUrl: url,
     headOwner: "xiehuanyi",
     headBranch: "feat/ui-keyboard-navigation-round2",
+    baseBranch: "main",
     prNumber: 645,
     body: "Fixes #449.",
   };

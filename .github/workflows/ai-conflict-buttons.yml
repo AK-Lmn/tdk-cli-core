@@ -39,6 +39,7 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
           HEAD_OWNER: ${{ github.event.pull_request.head.repo.owner.login }}
           HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+          BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
         run: |
           set -euo pipefail
           test -f scripts/ai-conflict-buttons.mjs
@@ -65,9 +66,9 @@ jobs:
           set -euo pipefail
           test -f scripts/ai-conflict-buttons.mjs
           gh pr list --repo "${GITHUB_REPOSITORY}" --state open --limit 100 \
-            --json number,url,headRefName,headRepositoryOwner \
-            --jq '.[] | [.number, .url, .headRepositoryOwner.login, .headRefName] | @tsv' |
-          while IFS=$'\t' read -r number url owner branch; do
-            export PR_NUMBER="$number" PR_URL="$url" HEAD_OWNER="$owner" HEAD_BRANCH="$branch"
+            --json number,url,headRefName,headRepositoryOwner,baseRefName \
+            --jq '.[] | [.number, .url, (.headRepositoryOwner.login // ""), .headRefName, .baseRefName] | @tsv' |
+          while IFS=$'\t' read -r number url owner branch base; do
+            export PR_NUMBER="$number" PR_URL="$url" HEAD_OWNER="$owner" HEAD_BRANCH="$branch" BASE_BRANCH="$base"
             bash scripts/ai-conflict-buttons-comment.sh || echo "PR #${number} skipped"
           done

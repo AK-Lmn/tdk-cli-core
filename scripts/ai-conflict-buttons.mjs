@@ -2,8 +2,8 @@
 // Pure transform for the AI conflict-resolve comment. The workflow posts or
 // updates one PR comment; this file only builds that comment body.
 //
-// Env: PR_URL, PR_NUMBER, HEAD_OWNER, HEAD_BRANCH, PR_BODY_FILE, CONFLICTING, OUT_FILE
-// Or:  node scripts/ai-conflict-buttons.mjs --url U --number N --owner O --branch B --body-file X --conflicting true --out-file Y
+// Env: PR_URL, PR_NUMBER, HEAD_OWNER, HEAD_BRANCH, BASE_BRANCH, PR_BODY_FILE, CONFLICTING, OUT_FILE
+// Or:  node scripts/ai-conflict-buttons.mjs --url U --number N --owner O --branch B --base main --body-file X --conflicting true --out-file Y
 import { readFileSync, writeFileSync } from "node:fs";
 
 export const MARKER = "<!-- ai-conflict-buttons -->";
@@ -15,9 +15,10 @@ export function closingIssue(body) {
   return match ? match[1] : "";
 }
 
-export function buildPrompt({ prUrl, headOwner, headBranch, prNumber, body }) {
+export function buildPrompt({ prUrl, headOwner, headBranch, baseBranch, prNumber, body }) {
   const owner = (headOwner ?? "").trim();
   const branch = (headBranch ?? "").trim();
+  const base = (baseBranch ?? "").trim() || "main";
   const number = String(prNumber ?? "").trim();
   const issue = closingIssue(body);
   const replacement = issue
@@ -25,8 +26,8 @@ export function buildPrompt({ prUrl, headOwner, headBranch, prNumber, body }) {
     : "open a replacement PR";
   return [
     `Resolve the merge conflict on ${prUrl}.`,
-    `Fetch ${owner} ${branch} and merge origin/main.`,
-    "Keep the changes from that branch. Keep main's changes.",
+    `Fetch ${owner} ${branch} and merge origin/${base}.`,
+    `Keep the changes from that branch. Keep ${base}'s changes.`,
     "Rebuild cli/dist.",
     `Push to ${branch} if allowed, otherwise push fix/${number}-conflict and ${replacement}.`,
   ].join(" ");
@@ -86,6 +87,7 @@ function parseArgs(argv) {
     else if (a === "--number") out.number = argv[++i];
     else if (a === "--owner") out.owner = argv[++i];
     else if (a === "--branch") out.branch = argv[++i];
+    else if (a === "--base") out.baseBranch = argv[++i];
     else if (a === "--body-file") out.bodyFile = argv[++i];
     else if (a === "--conflicting") out.conflicting = argv[++i];
     else if (a === "--out-file") out.outFile = argv[++i];
@@ -101,6 +103,7 @@ if (opts.bodyFile && opts.outFile) {
     prNumber: opts.number ?? "",
     headOwner: opts.owner ?? "",
     headBranch: opts.branch ?? "",
+    baseBranch: opts.baseBranch ?? "",
     body,
     conflicting: opts.conflicting,
   });
