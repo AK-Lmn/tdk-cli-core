@@ -53,11 +53,13 @@ function dependencyMajor(value) {
     return match ? Number(match[1]) : undefined;
 }
 function prismaSchemaFindings(path) {
-    const text = readText(path);
-    if (text === undefined)
+    const raw = readText(path);
+    if (raw === undefined)
         return ["missing prisma/schema.prisma"];
+    const text = raw.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
     const findings = [];
-    if (!/provider\s*=\s*["']postgresql["']/.test(text))
+    const datasource = text.match(/datasource\s+\w+\s*\{([^}]*)\}/)?.[1] ?? "";
+    if (!/provider\s*=\s*["']postgresql["']/.test(datasource))
         findings.push("schema provider is not postgresql");
     if (/\b(?:url|directUrl)\s*=/.test(text))
         findings.push("schema still declares url/directUrl");
@@ -70,7 +72,8 @@ function prismaConfigFindings(resourcePath) {
     if (!path)
         return ["missing prisma.config.ts or generated Prisma config"];
     const text = readText(path) ?? "";
-    if (!/datasource\s*:\s*\{[\s\S]*url\s*:\s*env\(["']DATABASE_URL["']\)/.test(text)) {
+    const datasource = text.match(/datasource\s*:\s*\{([^}]*)\}/)?.[1] ?? "";
+    if (!/url\s*:\s*(?:env\(["']DATABASE_URL["']\)|process\.env\.DATABASE_URL)\s*,?/.test(datasource)) {
         return ['Prisma config datasource.url is not env("DATABASE_URL")'];
     }
     return [];
@@ -79,6 +82,14 @@ function prismaConfigFindings(resourcePath) {
 export function checkPrismaConsistency(projectRoot = findProjectRoot() ?? process.cwd()) {
     const resources = discoverResourcesFromRoot(projectRoot);
     const prismaResources = resources.filter((resource) => resource.config?.featuresEnabled?.includes("prisma"));
+    if (prismaResources.length === 0) {
+        return {
+            name: "Prisma 7 consistency",
+            didPass: true,
+            isSkipped: true,
+            message: "No resources enable Prisma; Prisma consistency checks were skipped",
+        };
+    }
     const findings = [];
     const migrators = resources.filter((resource) => resource.config?.appType === "migrator");
     for (const resource of resources) {
