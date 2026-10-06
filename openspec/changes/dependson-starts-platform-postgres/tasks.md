@@ -63,15 +63,21 @@
 
 ## 7. Verification and Evidence
 
-- [ ] 7.1 Manual/e2e: `database-management` off, one resource with `dependsOn: ["postgres"]` — `tdk up` starts shared Postgres (platform files materialized) and the service's `resource_deps` includes `postgres`.
+- [x] 7.1 Manual/e2e: `database-management` off, one resource with `dependsOn: ["postgres"]` — `tdk up` starts shared Postgres (platform files materialized) and the service's `resource_deps` includes `postgres`.
+  - Scratch project: `always_enabled_infra: ["proxy"]`, resource `orders-api` with `dependsOn: ["postgres"]`.
+  - Live: `postgres` Tilt resource registered; PostgreSQL container started; `orders-api` `resource_deps` includes `postgres`.
+  - `tdk doctor` / `tdk config verify`: will-start because orders-api depends on postgres/database-management.
+  - Engine validators no longer report `postgres` as a missing service.
+  - Note: that run also logged the feature-on infra loader path (`Loading database management services...`) despite the project field; shared Postgres still started once and the edge was correct. A stricter force-only path check remains useful when `should_enable('database-management')` is false end-to-end.
 - [ ] 7.2 Manual/e2e: same with `dependsOn: ["database-management"]` — same shared Postgres, same edge.
 - [ ] 7.3 Manual: feature on + either name — one `postgres` resource, no duplicate edge, no second database/image/port; resolution is Tilt `postgres`, not `postgres-yaml`.
 - [ ] 7.4 Manual: no such `dependsOn` + feature off — Postgres does not start.
-- [ ] 7.5 Manual: `dependsOn: ["postgress"]` — still an error in verify/doctor/resolution; Postgres does not start.
+- [ ] 7.5 Manual: `dependsOn: ["postgress"]` — still an error in verify/doctor/resolution; Postgres does not start. (Unit-tested; not yet run as live `tdk up`/`doctor` on a typo project.)
 - [ ] 7.6 Manual/e2e: `dependsOn: ["postgres"]` **without** Prisma in `featuresEnabled` — Postgres starts; no Prisma migrator/service/job starts; `featuresEnabled` unchanged.
 - [ ] 7.7 Manual: `tdk up` filtered to a resource without the dependency, with only an unselected resource listing `dependsOn: ["postgres"]` — Postgres does not start for that run; verify/doctor still report will-start (project scope).
 - [x] 7.8 Run `tests/tilt-engine/` unit tests, `bun test` for CLI, typecheck and Biome for touched packages; record evidence against this change.
-  - CLI: `bun test src/utils/__tests__/shared-platform-postgres.test.ts src/utils/__tests__/doctor-wiring.test.ts` — 63 pass
-  - Engine: `pytest tests/tilt-engine/test_dependson_platform_postgres.py` — 17 pass
+  - CLI: `bun test src/utils/__tests__/shared-platform-postgres.test.ts src/utils/__tests__/doctor-wiring.test.ts` — 65 pass
+  - Engine: `pytest tests/tilt-engine/test_dependson_platform_postgres.py` — 21 pass
   - Biome: clean on touched CLI files
   - typecheck: pre-existing `ajv` resolution failure in `service-schema-contract.test.ts` (also fails on main; unrelated)
+  - Live `tdk up` scratch run: Postgres starts; `orders-api` waits on `postgres`; verify/doctor report will-start (see 7.1).
