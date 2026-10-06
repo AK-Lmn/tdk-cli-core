@@ -6,12 +6,28 @@
  * evaluate the project resource set they already inspect (no tdk up filter).
  * Both surfaces use this same predicate shape over their own resource set.
  *
+ * Feature state is read from project.json **and** the generated Tiltfile /
+ * spec.master when present, because a stock `tdk up` focus pass expands
+ * CORE_INFRA → database-management even when project.json omits it.
+ *
  * Spec: openspec/changes/dependson-starts-platform-postgres
  */
 export declare const POSTGRES_DEPENDENCY_NAMES: readonly ["postgres", "database-management"];
 export declare function isSharedPlatformPostgresDependency(name: string): boolean;
 export interface SharedPlatformPostgresEvaluation {
+    /** Feature on per project.json + generated Tiltfile/spec.master when present. */
     featureOn: boolean;
+    /** project.json always_enabled_infra / enabledStacks only (pre-generate). */
+    featureOnFromProjectJson: boolean;
+    /** Generated Tiltfile ALWAYS_ENABLED_INFRA includes database-management. */
+    featureOnFromTiltfile: boolean;
+    /** spec.master RESOURCE_DEFAULTS has database-management: True. */
+    featureOnFromSpecMaster: boolean;
+    /**
+     * True when default focus/CORE_INFRA expansion would enable database-management
+     * on a typical `tdk up` even if project.json says off (INFRA_STACK_MAP).
+     */
+    focusWouldEnableDatabaseManagement: boolean;
     /** Resource names whose dependsOn lists postgres or database-management. */
     dependsOnUsers: string[];
     willStart: boolean;
@@ -23,17 +39,8 @@ export interface SharedPlatformPostgresEvaluation {
     }>;
 }
 /**
- * True when the database-management feature is on for this project.
- *
- * Matches the generated Tiltfile's `should_enable('database-management')`:
- * 1. any phases.*.enabledStacks entry includes database-management, OR
- * 2. effective always_enabled_infra includes it — field when present,
- *    otherwise DEFAULT_ALWAYS_ENABLED_INFRA (same default the generator
- *    bakes into ALWAYS_ENABLED_INFRA; Tiltfile then returns
- *    RESOURCE_DEFAULTS.get(name, True) for those names).
- *
- * An omitted always_enabled_infra field is therefore feature-ON, not OFF.
- * Explicit field without database-management + no enabledStacks entry is OFF.
+ * True when database-management is on for this project from project.json
+ * **or** the generated Tiltfile/spec.master when those files exist.
  */
 export declare function databaseManagementEnabled(projectRoot: string): boolean;
 /**
@@ -41,6 +48,12 @@ export declare function databaseManagementEnabled(projectRoot: string): boolean;
  *
  * willStart = featureOn OR any inspected project resource depends on either name.
  * Resource set is project scope (discoverResourcesFromRoot), NOT tdk up --only.
+ *
+ * Also reports focusWouldEnableDatabaseManagement so doctor/verify can warn that
+ * default focus expands CORE_INFRA → database-management even when project.json
+ * says the feature is off (the 7.1 gap).
  */
 export declare function evaluateSharedPlatformPostgres(projectRoot: string): SharedPlatformPostgresEvaluation;
+/** Human-readable will-start / will-not-start sentence shared by doctor + verify. */
+export declare function sharedPlatformPostgresMessage(evaluation: SharedPlatformPostgresEvaluation): string;
 //# sourceMappingURL=shared-platform-postgres.d.ts.map

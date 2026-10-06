@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { DEFAULT_ALWAYS_ENABLED_INFRA } from "./project-config-defaults.js";
 import { discoverResourcesFromRoot } from "./services.js";
@@ -9,6 +9,10 @@ import { discoverResourcesFromRoot } from "./services.js";
  * The engine start path is selection-bounded (tdk up --only); verify/doctor
  * evaluate the project resource set they already inspect (no tdk up filter).
  * Both surfaces use this same predicate shape over their own resource set.
+ *
+ * Feature state is read from project.json **and** the generated Tiltfile /
+ * spec.master when present, because a stock `tdk up` focus pass expands
+ * CORE_INFRA → database-management even when project.json omits it.
  *
  * Spec: openspec/changes/dependson-starts-platform-postgres
  */
@@ -25,20 +29,37 @@ function readProjectJson(projectRoot) {
         return undefined;
     }
 }
-/**
- * True when the database-management feature is on for this project.
- *
- * Matches the generated Tiltfile's `should_enable('database-management')`:
- * 1. any phases.*.enabledStacks entry includes database-management, OR
- * 2. effective always_enabled_infra includes it — field when present,
- *    otherwise DEFAULT_ALWAYS_ENABLED_INFRA (same default the generator
- *    bakes into ALWAYS_ENABLED_INFRA; Tiltfile then returns
- *    RESOURCE_DEFAULTS.get(name, True) for those names).
- *
- * An omitted always_enabled_infra field is therefore feature-ON, not OFF.
- * Explicit field without database-management + no enabledStacks entry is OFF.
- */
-export function databaseManagementEnabled(projectRoot) {
+function readTextIfExists(path) {
+    try {
+        return existsSync(path) ? readFileSync(path, "utf-8") : undefined;
+    }
+    catch {
+        return undefined;
+    }
+}
+function parseStarlarkStringList(source, name) {
+    const re = new RegExp(`${name}\\s*=\\s*\\[([^\\]]*)\\]`);
+    const m = source.match(re);
+    if (!m)
+        return undefined;
+    return [...m[1].matchAll(/"([^"]+)"|'([^']+)'/g)].map((x) => x[1] ?? x[2] ?? "");
+}
+function tiltfileAlwaysEnabledInfra(projectRoot) {
+    const path = join(projectRoot, ".tdk", ".tdk-out", "Tiltfile");
+    const text = readTextIfExists(path);
+    if (!text)
+        return undefined;
+    return parseStarlarkStringList(text, "ALWAYS_ENABLED_INFRA");
+}
+function specMasterHasDatabaseManagement(projectRoot) {
+    const path = join(projectRoot, ".tdk", ".tdk-out", "spec.master");
+    const text = readTextIfExists(path);
+    if (text === undefined)
+        return undefined;
+    // PRE_ALPHA/DEFAULTS style: "database-management": True
+    return /"database-management"\s*:\s*True/.test(text);
+}
+function projectJsonFeatureOn(projectRoot) {
     const parsed = readProjectJson(projectRoot);
     if (!parsed)
         return false;
@@ -51,6 +72,20 @@ export function databaseManagementEnabled(projectRoot) {
     }
     const alwaysEnabled = parsed.always_enabled_infra ?? DEFAULT_ALWAYS_ENABLED_INFRA;
     return Array.isArray(alwaysEnabled) && alwaysEnabled.includes("database-management");
+}
+/**
+ * True when database-management is on for this project from project.json
+ * **or** the generated Tiltfile/spec.master when those files exist.
+ */
+export function databaseManagementEnabled(projectRoot) {
+    if (projectJsonFeatureOn(projectRoot))
+        return true;
+    const fromTilt = tiltfileAlwaysEnabledInfra(projectRoot);
+    if (Array.isArray(fromTilt) && fromTilt.includes("database-management"))
+        return true;
+    if (specMasterHasDatabaseManagement(projectRoot) === true)
+        return true;
+    return false;
 }
 /** Known names for unknown-dependsOn detection: discovered services/stacks + project stacks/infra. */
 function knownDependsonNames(projectRoot) {
@@ -78,6 +113,11 @@ function knownDependsonNames(projectRoot) {
                 known.add(entry);
         }
     }
+    const fromTilt = tiltfileAlwaysEnabledInfra(projectRoot);
+    if (Array.isArray(fromTilt)) {
+        for (const entry of fromTilt)
+            known.add(entry);
+    }
     return known;
 }
 /**
@@ -85,9 +125,20 @@ function knownDependsonNames(projectRoot) {
  *
  * willStart = featureOn OR any inspected project resource depends on either name.
  * Resource set is project scope (discoverResourcesFromRoot), NOT tdk up --only.
+ *
+ * Also reports focusWouldEnableDatabaseManagement so doctor/verify can warn that
+ * default focus expands CORE_INFRA → database-management even when project.json
+ * says the feature is off (the 7.1 gap).
  */
 export function evaluateSharedPlatformPostgres(projectRoot) {
-    const featureOn = databaseManagementEnabled(projectRoot);
+    const featureOnFromProjectJson = projectJsonFeatureOn(projectRoot);
+    const fromTilt = tiltfileAlwaysEnabledInfra(projectRoot);
+    const featureOnFromTiltfile = Array.isArray(fromTilt) && fromTilt.includes("database-management");
+    const featureOnFromSpecMaster = specMasterHasDatabaseManagement(projectRoot) === true;
+    const featureOn = featureOnFromProjectJson || featureOnFromTiltfile || featureOnFromSpecMaster;
+    // Default focus always pulls CORE_INFRA (postgres → database-management).
+    // True when project.json does not already enable the feature — the surprise case.
+    const focusWouldEnableDatabaseManagement = !featureOnFromProjectJson;
     const known = knownDependsonNames(projectRoot);
     const dependsOnUsers = [];
     const unknownDependsOnNames = [];
@@ -113,6 +164,32 @@ export function evaluateSharedPlatformPostgres(projectRoot) {
         : dependsOnUsers.length > 0
             ? "dependsOn"
             : "none";
-    return { featureOn, dependsOnUsers, willStart, reason, unknownDependsOnNames };
+    return {
+        featureOn,
+        featureOnFromProjectJson,
+        featureOnFromTiltfile,
+        featureOnFromSpecMaster,
+        focusWouldEnableDatabaseManagement,
+        dependsOnUsers,
+        willStart,
+        reason,
+        unknownDependsOnNames,
+    };
+}
+/** Human-readable will-start / will-not-start sentence shared by doctor + verify. */
+export function sharedPlatformPostgresMessage(evaluation) {
+    const projectScopeNote = " (project resource set; tdk up may select a subset and not start Postgres)";
+    if (!evaluation.willStart) {
+        const focusNote = evaluation.focusWouldEnableDatabaseManagement
+            ? " Note: default focus/CORE_INFRA expansion would enable database-management on a typical tdk up even when project.json lists it off."
+            : "";
+        return `Shared platform Postgres will not start for this project.json/generated Tiltfile state (no database-management feature, no selected dependsOn).${focusNote}`;
+    }
+    const why = evaluation.reason === "feature"
+        ? `the database-management feature is enabled${evaluation.featureOnFromTiltfile || evaluation.featureOnFromSpecMaster
+            ? " (generated Tiltfile/spec.master)"
+            : ""}`
+        : `resource(s) ${evaluation.dependsOnUsers.join(", ")} depend on postgres/database-management`;
+    return `Shared platform Postgres will start because ${why}${projectScopeNote}`;
 }
 //# sourceMappingURL=shared-platform-postgres.js.map

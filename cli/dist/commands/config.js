@@ -210,7 +210,10 @@ export const configCommand = new Command("config")
             // Feature-on alone is not new behavior — print gray so default projects are not noisy.
             // dependsOn is the reason Postgres starts when the feature is off — green.
             if (sharedPostgres.reason === "feature" && sharedPostgres.dependsOnUsers.length === 0) {
-                console.log(chalk.gray("ℹ️  Postgres will start because database-management is enabled (project-wide; not a tdk up selection)"));
+                const source = sharedPostgres.featureOnFromTiltfile || sharedPostgres.featureOnFromSpecMaster
+                    ? " (generated Tiltfile/spec.master)"
+                    : "";
+                console.log(chalk.gray(`ℹ️  Postgres will start because database-management is enabled${source} (project-wide; not a tdk up selection)`));
             }
             else if (sharedPostgres.reason === "feature") {
                 console.log(chalk.yellow(`ℹ️  Postgres will start because database-management is enabled and resource(s) ${sharedPostgres.dependsOnUsers.join(", ")} depend on postgres/database-management (project resource set; tdk up may select a subset)`));
@@ -218,6 +221,9 @@ export const configCommand = new Command("config")
             else {
                 console.log(chalk.green(`ℹ️  Postgres will start because resource(s) ${sharedPostgres.dependsOnUsers.join(", ")} depend on postgres/database-management (project resource set; tdk up may select a subset)`));
             }
+        }
+        else if (sharedPostgres.focusWouldEnableDatabaseManagement) {
+            console.log(chalk.yellow("ℹ️  Postgres will not start from project.json/generated Tiltfile, but default focus/CORE_INFRA expansion would enable database-management on a typical tdk up"));
         }
         if (result.valid && sharedPostgresErrors.length === 0) {
             console.log(chalk.green("✅ All files are in sync!"));
