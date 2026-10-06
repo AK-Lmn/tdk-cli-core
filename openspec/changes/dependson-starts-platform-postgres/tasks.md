@@ -15,10 +15,10 @@
 - [x] 2.3 Register the existing `postgres` Tilt resource through the same infra loader path the feature uses.
 - [x] 2.4 Feature-on start path stays: one `postgres` resource, same compose, same port (when the feature is on). Do **not** claim feature-on is fully unchanged — resolution and verify/doctor still change when either name is present.
 - [x] 2.5 Leave the feature-off + no such `dependsOn` path unchanged: Postgres does not start; no `postgres` resource registered solely because of `dependsOn`.
-- [x] 2.6 Add tests: feature off + `dependsOn: ["postgres"]` starts Postgres with platform files present; feature off + `dependsOn: ["database-management"]` same; feature off + no dependency does not start Postgres. (Unit coverage: resolution + edge + force-path source guards + ctx idempotency; full register_compose materialize path needs a richer Tilt harness.)
+- [x] 2.6 Add tests: feature off + `dependsOn: ["postgres"]` starts Postgres with platform files present; feature off + `dependsOn: ["database-management"]` same; feature off + no dependency does not start Postgres. Full Tilt register and materialize paths now run in `test_dependson_platform_postgres.py`.
 - [x] 2.6b Force-start is idempotent across selected services: guard on `ctx['_shared_platform_postgres_force_started']` (Tilt freezes module globals). Two selected dependents call `force_start_shared_platform_postgres_once` once.
-- [ ] 2.7 Add tests: empty `dependsOn: []` does not start Postgres; two selected dependents start Postgres once; feature on + either name does not create a second DB/image/port.
-- [ ] 2.8 Add tests: materialized compose uses existing image/host-port/network conventions; no second host port; no per-service compose project for shared Postgres.
+- [x] 2.7 Add tests: empty `dependsOn: []` does not start Postgres; two selected dependents start Postgres once; feature on + either name does not create a second DB/image/port. Tilt tests cover empty and two dependents; manual 7.3 covers feature-on registration.
+- [x] 2.8 Add tests: materialized compose uses existing image/host-port/network conventions; no second host port; no per-service compose project for shared Postgres. The real force-path test checks one platform Compose with the existing image, port, container, and network.
 - [x] 2.9 Add tests: with feature **on**, `dependsOn: ["postgres"]` / `["database-management"]` resolve to Tilt `postgres`, not `postgres-yaml` (resolution changes in both feature states).
 
 ## 3. Engine: Dependency Edge
@@ -34,7 +34,7 @@
 - [x] 4.1 Evaluate `dependsOn` for the **engine start path** only against resources in the current `tdk up` selection.
 - [x] 4.2 A dependency on an unselected resource MUST NOT start Postgres when no selected resource depends on either name.
 - [x] 4.3 Unselected dependents MUST NOT receive a `postgres` edge solely because another selected resource listed it.
-- [ ] 4.4 Add tests: unselected `dependsOn: ["postgres"]` does not start Postgres; selected one does; partial selection starts Postgres for selected dependents only and does not edge S1 because of S2. (Selection bound is structural: force-start only runs inside `register_compose_resources`, which `apply.star` calls only for enabled/selected services. Full multi-service selection harness still pending.)
+- [x] 4.4 Add tests: unselected `dependsOn: ["postgres"]` does not start Postgres; selected one does; partial selection starts Postgres for selected dependents only and does not edge S1 because of S2. The multi-service Tilt registration test covers selected and unselected siblings; manual 7.7 covers the generated Tiltfile focus filter.
 
 ## 5. Engine: Prisma Non-Start Regression
 
@@ -78,12 +78,12 @@
       - **No** second force-start for `orders-api` (ctx guard); both resources still get `postgres` in `resource_deps`
     - `ctx` identity: Tiltfile builds `TILT_CONTEXT` once and passes the same dict to every `Orchestrator.apply_service` (`cli/templates/Tiltfile.hbs`). The ctx guard holds across services for that run.
   - **Implication for default `tdk up`:** focus mode enables `database-management` via `CORE_INFRA`, so Postgres still starts (feature path) and the edge is correct; the dependsOn force path runs when that feature is actually off (focus off / non-focus bring-up).
-- [ ] 7.2 Manual/e2e: same with `dependsOn: ["database-management"]` — same shared Postgres, same edge. (Unit-tested resolution; live path exercised in 7.1 two-tenant scratch as second name on billing-api, but not a dedicated single-name case.)
-- [ ] 7.3 Manual: feature on + either name — one `postgres` resource, no duplicate edge, no second database/image/port; resolution is Tilt `postgres`, not `postgres-yaml`.
-- [ ] 7.4 Manual: no such `dependsOn` + feature off — Postgres does not start.
-- [ ] 7.5 Manual: `dependsOn: ["postgress"]` — still an error in verify/doctor/resolution; Postgres does not start. (Unit-tested; not yet run as live `tdk up`/`doctor` on a typo project.)
-- [ ] 7.6 Manual/e2e: `dependsOn: ["postgres"]` **without** Prisma in `featuresEnabled` — Postgres starts; no Prisma migrator/service/job starts; `featuresEnabled` unchanged.
-- [ ] 7.7 Manual: `tdk up` filtered to a resource without the dependency, with only an unselected resource listing `dependsOn: ["postgres"]` — Postgres does not start for that run; verify/doctor still report will-start (project scope).
+- [x] 7.2 Manual/e2e: feature off + only `orders-api` listing `dependsOn: ["database-management"]`. In a scratch project with the platform Compose removed, `tilt alpha tiltfile-result` materialized it, registered one `postgres` resource, and gave `orders-api` one `postgres` edge; `billing-api` had none. Verify and doctor reported the dependency reason.
+- [x] 7.3 Manual: explicit feature on + `dependsOn: ["postgres", "database-management"]` in one resource. Tilt registered exactly one `postgres`, no `postgres-yaml`, and one `postgres` edge; the sole platform Compose used `postgres:16-alpine`, host port `15432`, and the project database network.
+- [x] 7.4 Manual: both `dependsOn` lists empty, feature off, platform Compose removed. Tilt registered no `postgres` or `postgres-yaml`, no app Postgres edges, and did not recreate the Compose. Verify's `sharedPlatformPostgres.willStart` was false.
+- [x] 7.5 Manual: `dependsOn: ["postgress"]`, feature off. Verify returned an unknown-name error; doctor named `postgress` and said Postgres will not start. Tilt's verbose evaluation reported `Missing service: postgress` and an ignored unknown `postgress-yaml` edge; no Postgres resource or Compose appeared. Tilt evaluation itself exited 0, consistent with its existing unknown-resource warning path.
+- [x] 7.6 Manual/e2e: `dependsOn: ["postgres"]`, `featuresEnabled: []`, feature off. Tilt materialized the one platform Compose and registered `postgres` with one dependent edge; no Prisma or migrator Tilt manifest appeared, and `service.json` kept `featuresEnabled: []`.
+- [x] 7.7 Manual: scratch focus with `--focus=billing-api`, where only unselected `orders-api` depends on Postgres and database-management is held off. Tilt enabled only `billing-api`, registered no Postgres, and did not create its Compose; verify still reported `willStart: true` and doctor said Postgres will start for the project resource set. Selecting `orders-api` instead registered Postgres; selecting both with only `billing-api` dependent gave only billing the Postgres edge. The scratch Tiltfile held database-management off because normal focus adds `CORE_INFRA` and turns that feature on; these runs verify the selection-bound force path when the feature is actually off.
 - [x] 7.8 Run `tests/tilt-engine/` unit tests, `bun test` for CLI, typecheck and Biome for touched packages; record evidence against this change.
   - CLI: `bun test src/utils/__tests__/shared-platform-postgres.test.ts src/utils/__tests__/doctor-wiring.test.ts` — 65 pass
   - Engine: `pytest tests/tilt-engine/test_dependson_platform_postgres.py` — 21 pass

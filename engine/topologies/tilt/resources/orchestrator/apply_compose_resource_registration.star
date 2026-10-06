@@ -37,11 +37,18 @@ def manifest_needs_shared_platform_postgres(manifest):
     return _manifest_needs_shared_platform_postgres(manifest)
 
 
+def selected_for_shared_platform_postgres(name, ctx):
+    """Use the same focus selection later passed to set_enabled_resources."""
+    if not ctx.get('focus_mode', False):
+        return True
+    return name in (ctx.get('focus_enabled_resources') or [])
+
+
 def force_start_shared_platform_postgres_once(ctx, should_enable, resource_name=""):
     """Force-start shared platform Postgres at most once per Tiltfile evaluation.
 
-    `register_compose_resources` runs per selected service; two services that both
-    `dependsOn` postgres/database-management would otherwise call
+    `register_compose_resources` runs per stack and can see unselected nested
+    services; two selected services that both `dependsOn` Postgres would otherwise call
     `Infra.force_start_postgres` twice (docker_compose + dc_resource each time).
     Module-level mutable flags are unusable — Tilt freezes Starlark globals — so
     the guard lives on `ctx`, a dict the Tiltfile already owns for this run.
@@ -667,8 +674,9 @@ def register_compose_resources(resource_config, ctx, runtime_flags, manifest_sta
                 all_services_map[res_name] = svc
 
     # Selection-bound shared platform Postgres start signal.
-    # Only resources in THIS registration (the current tdk up selection) are
-    # evaluated. When database-management is off and any selected resource's
+    # Only enabled resources in THIS stack are evaluated. Registration sees
+    # unselected siblings before Tilt's enabled-resource filter runs.
+    # When database-management is off and any selected resource's
     # manifest depends on postgres/database-management, force-start the shared
     # platform Postgres via the existing infra loader (materializes
     # services/platform/database-management/docker-compose.yml + registers the
@@ -677,6 +685,8 @@ def register_compose_resources(resource_config, ctx, runtime_flags, manifest_sta
     # guards on ctx so two selected dependents do not register postgres twice.
     if not should_enable('database-management'):
         for res in resource_config.get('resources', []):
+            if not selected_for_shared_platform_postgres(res.get('name', ''), ctx):
+                continue
             res_manifest = resource_manifests.get(res['name'], {})
             if manifest_needs_shared_platform_postgres(res_manifest):
                 print("DEBUG COMPOSE: selected '{}' dependsOn shared platform Postgres; force-starting postgres".format(res.get('name', '')))
@@ -738,11 +748,17 @@ def register_compose_resources(resource_config, ctx, runtime_flags, manifest_sta
                 ))
 
         resource_entries.append(entry)
-        resource_configs.append(_build_resource_config(
+        built_config = _build_resource_config(
             res, manifest, resource_config, full_res_path, infra_deps,
             config_gen_resources, resource_manifests, runtime_flags, all_services_map,
             ctx.get('project_root', ''),
-        ))
+        )
+        # A focused run still registers disabled siblings before Tilt applies
+        # set_enabled_resources. Do not leave their edge pointing at a Postgres
+        # resource that this evaluation did not register.
+        if not should_enable('database-management') and not ctx.get('_shared_platform_postgres_force_started', False):
+            built_config['res_deps'] = [dep for dep in built_config['res_deps'] if dep != 'postgres']
+        resource_configs.append(built_config)
 
     print("DEBUG COMPOSE: Calling Docker.app_compose for '{}' with write_fn={}".format(resource_name, write_file))
     Docker.app_compose(resource_path, resource_entries, write_file)

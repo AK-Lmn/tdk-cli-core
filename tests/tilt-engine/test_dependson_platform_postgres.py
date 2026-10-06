@@ -8,6 +8,7 @@ instead of inspecting source text, plus source-text guards for the force-start p
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -22,13 +23,14 @@ ORCHESTRATOR_DIR = REPO_ROOT / "engine" / "topologies" / "tilt" / "resources" / 
 ORCHESTRATOR = ORCHESTRATOR_DIR / "apply_compose_resource_registration.star"
 SHARED_MODULE = REPO_ROOT / "engine" / "topologies" / "tilt" / "resources" / "shared-platform-postgres.star"
 INFRA_LOADER = REPO_ROOT / "engine" / "topologies" / "tilt" / "resources" / "infra-loader.star"
+UTILS = REPO_ROOT / "engine" / "topologies" / "tilt" / "common" / "utils.star"
 VALIDATORS = REPO_ROOT / "engine" / "topologies" / "tilt" / "generators" / "validators.star"
 INTEGRATION = REPO_ROOT / "engine" / "topologies" / "tilt" / "manifest" / "integration.star"
 MANIFEST_VALIDATOR = REPO_ROOT / "engine" / "topologies" / "tilt" / "manifest" / "validator.star"
 RESULT_MARKER = "Error in fail: RESULT"
 
 
-def run_starlark(tmp_path: Path, body: str) -> dict:
+def run_starlark(tmp_path: Path, body: str, env: dict[str, str] | None = None) -> dict:
     """Run `body` in a Tiltfile; `body` must assign a dict to `r`. `@ORCHESTRATOR` is the orchestrator module dir."""
     tiltfile = tmp_path / "Tiltfile"
     tiltfile.write_text(
@@ -40,6 +42,7 @@ def run_starlark(tmp_path: Path, body: str) -> dict:
         capture_output=True,
         text=True,
         timeout=180,
+        env={**os.environ, **(env or {})},
     )
     output = proc.stdout + proc.stderr
     assert RESULT_MARKER in output, output[-3000:]
@@ -170,6 +173,103 @@ def test_force_start_once_skips_when_already_started_on_ctx(tmp_path):
         "r = {'skipped': force_start_shared_platform_postgres_once(ctx, should_off, 'orders-api')}\n",
     )
     assert result["skipped"] is False
+
+
+@TILT_REQUIRED
+def test_generated_writer_can_materialize_shared_postgres_compose(tmp_path):
+    """A missing platform Compose must be writable through the real Tilt writer."""
+    compose = tmp_path / "services/platform/database-management/docker-compose.yml"
+    result = run_starlark(
+        tmp_path,
+        "load('" + str(UTILS) + "', 'Utils')\n"
+        "os.environ['TDK_PROJECT_ROOT'] = config.main_dir\n"
+        "Utils.write_file_if_changed('services/platform/database-management/docker-compose.yml', 'services:\\n  postgres: {}\\n')\n"
+        "r = {'written': True}\n",
+    )
+    assert result["written"] is True
+    assert compose.read_text() == "services:\n  postgres: {}\n"
+
+
+@TILT_REQUIRED
+def test_force_start_two_dependents_materializes_one_existing_platform_compose(tmp_path):
+    """Exercise the real force path, including Compose generation and the ctx guard."""
+    project_config = tmp_path / ".tdk/project.json"
+    project_config.parent.mkdir()
+    project_config.write_text('{"project":{"name":"shared-postgres-fixture"}}\n')
+    (tmp_path / ".env").write_text("DB_PASSWORD=test-password\n")
+    result = run_starlark(
+        tmp_path,
+        "load('@ORCHESTRATOR/apply_compose_resource_registration.star', 'force_start_shared_platform_postgres_once')\n"
+        "load('" + str(UTILS) + "', 'Utils')\n"
+        "def feature_off(name):\n    return False\n"
+        "ctx = {'project_root': config.main_dir, 'write_file': Utils.write_file_if_changed}\n"
+        "first = force_start_shared_platform_postgres_once(ctx, feature_off, 'orders-api')\n"
+        "second = force_start_shared_platform_postgres_once(ctx, feature_off, 'billing-api')\n"
+        "r = {'first': first, 'second': second, 'registered': ctx.get('_shared_platform_postgres_force_started', False)}\n",
+        env={"TDK_PROJECT_ROOT": str(tmp_path)},
+    )
+    assert result == {"first": True, "second": False, "registered": True}
+    compose = tmp_path / "services/platform/database-management/docker-compose.yml"
+    content = compose.read_text()
+    assert content.count("  postgres:\n") == 1
+    assert "image: postgres:16-alpine" in content
+    assert '"15432:5432"' in content
+    assert "name: shared_postgres_fixture_database" in content
+    assert "container_name: shared_postgres_fixture_postgres" in content
+    assert list(tmp_path.rglob("docker-compose.yml")) == [compose]
+
+
+@TILT_REQUIRED
+def test_focus_selection_identifies_only_selected_dependents(tmp_path):
+    result = run_starlark(
+        tmp_path,
+        "load('@ORCHESTRATOR/apply_compose_resource_registration.star', 'selected_for_shared_platform_postgres')\n"
+        "ctx = {'focus_mode': True, 'focus_enabled_resources': ['billing-api']}\n"
+        "r = {'orders': selected_for_shared_platform_postgres('orders-api', ctx), "
+        "'billing': selected_for_shared_platform_postgres('billing-api', ctx), "
+        "'both': [selected_for_shared_platform_postgres(name, {'focus_mode': True, 'focus_enabled_resources': ['orders-api', 'billing-api']}) for name in ['orders-api', 'billing-api']], "
+        "'unfiltered': selected_for_shared_platform_postgres('orders-api', {'focus_mode': False})}\n",
+    )
+    assert result == {"orders": False, "billing": True, "both": [True, True], "unfiltered": True}
+
+
+@TILT_REQUIRED
+@pytest.mark.parametrize(
+    ("selected", "billing_depends_on", "should_start"),
+    [
+        (["billing-api"], [], False),
+        (["billing-api"], ["database-management"], True),
+        (["orders-api"], [], True),
+        (["orders-api", "billing-api"], [], True),
+        (["orders-api", "billing-api"], ["database-management"], True),
+    ],
+)
+def test_stack_registration_starts_postgres_only_for_selected_dependent(
+    tmp_path, selected, billing_depends_on, should_start
+):
+    """A stack contains both siblings, but only a selected dependent can force start."""
+    project_config = tmp_path / ".tdk/project.json"
+    project_config.parent.mkdir()
+    project_config.write_text('{"project":{"name":"selection-fixture"}}\n')
+    (tmp_path / ".env").write_text("DB_PASSWORD=test-password\n")
+    result = run_starlark(
+        tmp_path,
+        "load('@ORCHESTRATOR/apply_compose_resource_registration.star', 'register_compose_resources')\n"
+        "load('" + str(UTILS) + "', 'Utils')\n"
+        "def feature_off(name):\n    return False\n"
+        "resource_config = {'name': 'app', 'path': 'services/app', 'resources': [{'name': 'orders-api'}, {'name': 'billing-api'}]}\n"
+        "manifest_state = {'resource_manifests': {'orders-api': {'appType': 'infra', 'dependsOn': ['postgres']}, 'billing-api': {'appType': 'infra', 'dependsOn': "
+        + repr(billing_depends_on)
+        + "}}, 'config_gen_resources': {}}\n"
+        "ctx = {'project_root': config.main_dir, 'write_file': Utils.write_file_if_changed, 'should_enable': feature_off, 'focus_mode': True, 'focus_enabled_resources': "
+        + repr(selected)
+        + "}\n"
+        "register_compose_resources(resource_config, ctx, {'auto_init_apps': True}, manifest_state)\n"
+        "r = {'started': ctx.get('_shared_platform_postgres_force_started', False)}\n",
+        env={"TDK_PROJECT_ROOT": str(tmp_path)},
+    )
+    assert result["started"] is should_start
+    assert (tmp_path / "services/platform/database-management/docker-compose.yml").exists() is should_start
 
 
 def _make_should_enable(enabled: set[str]):
