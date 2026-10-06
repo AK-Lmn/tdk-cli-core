@@ -13,61 +13,64 @@ export const ResourceTable: React.FC<ResourceTableProps> = ({ resources, maxWidt
   }
 
   const narrowMode = maxWidth < 80;
+  const tableContentWidth = Math.max(1, Math.floor(maxWidth) - 4);
+  const extraWidth = tableContentWidth - (narrowMode ? 19 : 26);
+  const nameWidth = 4 + Math.floor(extraWidth * (narrowMode ? 0.37 : 0.29));
+  const stackWidth = 5 + Math.floor(extraWidth * (narrowMode ? 0.22 : 0.2));
+  const typeWidth = 4 + Math.floor(extraWidth * (narrowMode ? 0.2 : 0.13));
+  const statusWidth = narrowMode
+    ? tableContentWidth - nameWidth - stackWidth - typeWidth
+    : 6 + Math.floor(extraWidth * 0.17);
+  const createdWidth = narrowMode
+    ? 0
+    : tableContentWidth - nameWidth - stackWidth - typeWidth - statusWidth;
 
   return (
     <Box flexDirection="column">
       <Box flexDirection="row" borderStyle="single" borderColor="gray" paddingX={1}>
-        <Box width={narrowMode ? 20 : 25}>
-          <Text bold>Logical ID</Text>
+        <Box width={nameWidth}>
+          <Text bold>Name</Text>
         </Box>
-        {!narrowMode && (
-          <Box width={20}>
-            <Text bold>Physical ID</Text>
-          </Box>
-        )}
-        <Box width={12}>
+        <Box width={stackWidth}>
+          <Text bold>Stack</Text>
+        </Box>
+        <Box width={typeWidth}>
           <Text bold>Type</Text>
         </Box>
-        <Box width={15}>
+        <Box width={statusWidth}>
           <Text bold>Status</Text>
         </Box>
         {!narrowMode && (
-          <Box width={20}>
+          <Box width={createdWidth}>
             <Text bold>Created</Text>
           </Box>
         )}
       </Box>
 
-      {resources.map((resource, index) => {
+      {resources.map((resource) => {
         const statusColor = getStatusColor(resource.status);
-        const statusIcon = getStatusIcon(resource.status);
-        const _isEven = index % 2 === 0;
+        const statusLabel = `${getStatusIcon(resource.status)} ${resource.status}`;
+        const stackName = resource.stack && resource.stack !== "unknown" ? resource.stack : "-";
 
         return (
           <Box key={resource.name} flexDirection="row" paddingX={1}>
-            <Box width={narrowMode ? 20 : 25}>
-              <Text>{truncate(resource.name, narrowMode ? 18 : 23)}</Text>
+            <Box width={nameWidth}>
+              <Text>{truncate(resource.name, Math.max(3, nameWidth - 1))}</Text>
+            </Box>
+            <Box width={stackWidth}>
+              <Text color="gray">{truncate(stackName, Math.max(3, stackWidth - 1))}</Text>
+            </Box>
+            <Box width={typeWidth}>
+              <Text color="cyan">{truncate(resource.type, Math.max(3, typeWidth - 1))}</Text>
+            </Box>
+            <Box width={statusWidth}>
+              <Text color={statusColor}>{truncate(statusLabel, Math.max(3, statusWidth - 1))}</Text>
             </Box>
             {!narrowMode && (
-              <Box width={20}>
+              <Box width={createdWidth}>
                 <Text color="gray">
-                  {resource.stack && resource.stack !== "unknown"
-                    ? truncate(`${resource.stack}/${resource.name}`, 18)
-                    : truncate(resource.name, 18)}
+                  {truncate(formatShortDate(resource.createdAt), Math.max(3, createdWidth - 1))}
                 </Text>
-              </Box>
-            )}
-            <Box width={12}>
-              <Text color="cyan">{resource.type}</Text>
-            </Box>
-            <Box width={15}>
-              <Text color={statusColor}>
-                {statusIcon} {resource.status}
-              </Text>
-            </Box>
-            {!narrowMode && (
-              <Box width={20}>
-                <Text color="gray">{formatShortDate(resource.createdAt)}</Text>
               </Box>
             )}
           </Box>
