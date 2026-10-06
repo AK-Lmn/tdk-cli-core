@@ -342,7 +342,7 @@ describe("checkSharedPlatformPostgres", () => {
     writeGeneratedFocus();
     const result = checkSharedPlatformPostgres(root);
     expect(result.isWarning).toBe(true);
-    expect(result.isSkipped).toBe(false);
+    expect(result.isSkipped).toBeFalsy();
     expect(result.message).toContain("default tdk up takes the feature path");
   });
 
@@ -492,6 +492,14 @@ describe("checkPrismaConsistency", () => {
     const result = checkPrismaConsistency(root);
     expect(result.didPass).toBe(true);
     expect(result.isSkipped).toBe(true);
+  });
+
+  it("fails a legacy features prisma key even without featuresEnabled", () => {
+    resource("app", "api", { appType: "backend", port: 4000, features: ["prisma"] });
+    const result = checkPrismaConsistency(root);
+    expect(result.didPass).toBe(false);
+    expect(result.isSkipped).toBeFalsy();
+    expect(result.message).toContain("use featuresEnabled");
   });
 
   it("accepts the generated process.env.DATABASE_URL config", () => {

@@ -91,14 +91,6 @@ export function checkPrismaConsistency(
   const prismaResources = resources.filter((resource) =>
     resource.config?.featuresEnabled?.includes("prisma"),
   );
-  if (prismaResources.length === 0) {
-    return {
-      name: "Prisma 7 consistency",
-      didPass: true,
-      isSkipped: true,
-      message: "No resources enable Prisma; Prisma consistency checks were skipped",
-    };
-  }
   const findings: string[] = [];
   const migrators = resources.filter((resource) => resource.config?.appType === "migrator");
 
@@ -111,6 +103,22 @@ export function checkPrismaConsistency(
     ) {
       findings.push(`${resource.name}: use featuresEnabled, not features, for Prisma`);
     }
+  }
+
+  if (prismaResources.length === 0) {
+    return findings.length === 0
+      ? {
+          name: "Prisma 7 consistency",
+          didPass: true,
+          isSkipped: true,
+          message: "No resources enable Prisma; Prisma consistency checks were skipped",
+        }
+      : {
+          name: "Prisma 7 consistency",
+          didPass: false,
+          message: `${formatCount(findings.length, "Prisma consistency error")}:\n    ${findings.join("\n    ")}`,
+          fix: "Use featuresEnabled to opt into the validated Prisma 7 shape",
+        };
   }
 
   for (const resource of prismaResources) {
