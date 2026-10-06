@@ -28,7 +28,7 @@ tdk projects --json --check   # Machine-readable CI validation (exit 0/1; 1 also
 
 **Creates:**
 - ⚙️ `TILT_RESOURCE_DEFAULTS.star` — Platform config (ports 3000-4999, health checks, memory limits)
-- 🔧 `TILT_TECH_STACK.star` — Tech stack lock (Bun v1.2, Vite v5, Prisma v7, NATS v2)
+- ⚙️ `TILT_TECH_STACK.star` — Platform technology labels and compatibility checks, not version pins. See [the tech stack guide](../docs/tech-stack-lock.md).
 
 ---
 
