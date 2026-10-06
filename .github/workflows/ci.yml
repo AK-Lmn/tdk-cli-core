@@ -45,7 +45,7 @@ jobs:
               - '.github/workflows/**'
 
   spellcheck:
-    name: Spell check
+    name: 🔤 Spell check
     runs-on: ubuntu-latest
     timeout-minutes: 1
     steps:
@@ -294,7 +294,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 1 # every job finishes in under 20s; fail fast if one hangs
     if: always()
-    needs: [lint, typecheck, test, package-smoke, secret-scan, dependency-review, workflow-audit]
+    needs: [lint, spellcheck, typecheck, test, package-smoke, secret-scan, dependency-review, workflow-audit]
     steps:
       - name: Render summary
         env:

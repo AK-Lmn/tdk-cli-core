@@ -9,6 +9,12 @@ extend-exclude = [
   "docs/assets/demo.svg",
 ]
 
+[default]
+extend-ignore-re = [
+  # Keep intentionally imperfect recorded speech as evidence.
+  '(?Rm)^.*<!--\s*spellchecker:disable-line\s*-->$',
+]
+
 [default.extend-words]
 # Valid alternate spelling used for the parser error class.
 unparseable = "unparseable"

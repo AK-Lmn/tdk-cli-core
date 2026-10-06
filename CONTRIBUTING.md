@@ -21,7 +21,7 @@ If you pick an issue, leave a comment before starting so two people do not do th
 
 ## Spell check
 
-Run `typos` from the repository root to check spelling.
+Install the pinned checker with `cargo install typos-cli --version 1.50.3`, then run `typos` from the repository root to check spelling.
 
 ## Labels
 
