@@ -57,7 +57,7 @@ export declare function createByoServiceJson(name: string, stack: string, port: 
     exposeViaProxy?: boolean | undefined;
     restart?: string | undefined;
 };
-export declare function createPackageJson(name: string, type: string, frameworkId?: string): {
+export declare function createPackageJson(name: string, type: string, frameworkId?: string, prismaEnabled?: boolean): {
     name: string;
     version: string;
     type: string;
@@ -72,7 +72,8 @@ export declare function createPackageJson(name: string, type: string, frameworkI
         "lint:fix": string;
     };
     dependencies: {
-        [x: string]: string;
+        prisma?: string | undefined;
+        "@prisma/client"?: string | undefined;
     };
     devDependencies: {
         "@types/bun": string;

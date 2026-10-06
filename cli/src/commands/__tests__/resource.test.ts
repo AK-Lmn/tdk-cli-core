@@ -73,6 +73,12 @@ describe("resource command", () => {
       expect(serviceJson.$schema).toBe("https://tdk-landscape.github.io/schema.service.json");
     });
 
+    it("adds the Prisma feature to the service manifest when requested", () => {
+      const serviceJson = createServiceJson("orders-api", "backend", "main", 3001, ["prisma"]);
+      expect(serviceJson.featuresEnabled).toContain("prisma");
+      expect(serviceJson.dependsOn).toEqual([]);
+    });
+
     it("should create valid frontend service.json using createServiceJson", () => {
       const name = "test-frontend";
       const type = "frontend";
@@ -121,6 +127,11 @@ describe("resource command", () => {
   });
 
   describe("package.json template", () => {
+    it("pins Prisma 7 packages when Prisma is enabled", () => {
+      const service = createPackageJson("orders-api", "backend", undefined, true);
+      expect(service.dependencies).toMatchObject({ prisma: "^7.5.0", "@prisma/client": "^7.5.0" });
+      expect(service.scripts.start).toBe("bun run dist/index.js");
+    });
     it("should create backend package.json with Hono using createPackageJson", () => {
       const name = "test-backend";
       const type = "backend";
