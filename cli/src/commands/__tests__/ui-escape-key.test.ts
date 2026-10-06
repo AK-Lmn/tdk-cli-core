@@ -70,6 +70,6 @@ describe("ui escape key", () => {
   it("renders the message in EmptyState", () => {
     const empty = ui.slice(ui.indexOf("const EmptyState"), ui.indexOf("const TUIApp"));
     expect(empty).toContain("({ message })");
-    expect(empty).toContain("▓▒░ {message} ░▒▓");
+    expect(empty).toContain("{theme.bannerStart} {message} {theme.bannerEnd}");
   });
 });

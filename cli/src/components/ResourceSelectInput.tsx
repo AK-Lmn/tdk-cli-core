@@ -2,6 +2,7 @@ import { Box, measureElement, Text, useInput } from "ink";
 import type React from "react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ResourceSelectInputProps } from "../types/index.js";
+import { useTUITheme } from "./ui-theme.js";
 
 // Keys match what ink-select-input handled: up/down or k/j (wrapping), 1-9 to pick, Enter to select.
 export const ResourceSelectInput: React.FC<ResourceSelectInputProps> = ({
@@ -13,6 +14,7 @@ export const ResourceSelectInput: React.FC<ResourceSelectInputProps> = ({
   isActive = true,
   maxVisibleItems = items.length,
 }) => {
+  const theme = useTUITheme();
   const listRef = useRef<Parameters<typeof measureElement>[0] | null>(null);
   const [selected, setSelected] = useState(() =>
     Math.max(0, Math.min(highlightedIndex, items.length - 1)),
@@ -56,13 +58,16 @@ export const ResourceSelectInput: React.FC<ResourceSelectInputProps> = ({
         return (
           <Box key={item.value} width={width}>
             <Text wrap="truncate-end">
-              <Text color={isSelected ? "cyan" : undefined}>
-                {isSelected ? "\u2593\u2592\u2591 " : "    "}
+              <Text
+                color={isSelected ? theme.selectedForeground : theme.muted}
+                backgroundColor={isSelected ? theme.selectedBackground : undefined}
+              >
+                {isSelected ? `${theme.selectionMarker} ` : "    "}
               </Text>
               <Text
-                color={isSelected ? "cyan" : "white"}
-                bold={isSelected}
-                backgroundColor={isSelected ? "black" : undefined}
+                color={isSelected ? theme.selectedForeground : theme.foreground}
+                bold={isSelected || theme.highContrast}
+                backgroundColor={isSelected ? theme.selectedBackground : undefined}
               >
                 {item.label}
               </Text>

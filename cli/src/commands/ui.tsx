@@ -11,6 +11,7 @@ import {
   TUIHeader,
 } from "../components/index.js";
 import { TABS } from "../components/TabBar.js";
+import { createTUITheme, TUIThemeContext, useTUITheme } from "../components/ui-theme.js";
 import type {
   DiscoveredResource,
   DiscoveredStack,
@@ -36,75 +37,85 @@ import { getListRowFromMouseY, getTerminalRuleWidth } from "../utils/terminal-la
 import { isTiltAvailable } from "../utils/tilt.js";
 
 // biome-ignore lint/correctness/noUnusedFunctionParameters: reserved callback prop kept in the component API
-const HelpPanel: React.FC<HelpPanelProps> = ({ onClose }) => (
-  <Box
-    borderStyle="single"
-    borderColor="cyan"
-    paddingX={2}
-    paddingY={1}
-    flexDirection="column"
-    width={60}
-  >
-    <Text bold color="cyan">
-      Keyboard Shortcuts
-    </Text>
-    <Box marginY={1} flexDirection="column">
-      <Text bold underline>
-        Navigation
+const HelpPanel: React.FC<HelpPanelProps> = ({ onClose }) => {
+  const theme = useTUITheme();
+  return (
+    <Box
+      {...(theme.ascii ? {} : { borderStyle: "single" as const, borderColor: theme.accent })}
+      paddingX={2}
+      paddingY={1}
+      flexDirection="column"
+      width={60}
+    >
+      <Text bold color={theme.accent}>
+        Keyboard Shortcuts
       </Text>
-      <Text> ↑/↓ or j/k Navigate list items</Text>
-      <Text> g/G or Home/End First/last item</Text>
-      <Text> PgUp/PgDn Move one page</Text>
-      <Text> Enter Select item / Open detail</Text>
-      <Text> Space Toggle expand (tree view)</Text>
-      <Text> Tab Next tab</Text>
-      <Text>
-        {" "}
-        {TABS[0].shortcut}-{TABS[TABS.length - 1].shortcut} Direct tab access
-      </Text>
+      <Box marginY={1} flexDirection="column">
+        <Text bold underline color={theme.foreground}>
+          Navigation
+        </Text>
+        <Text color={theme.foreground}>
+          {theme.ascii
+            ? " [UP/DOWN] or j/k Navigate list items"
+            : " \u2191/\u2193 or j/k Navigate list items"}
+        </Text>
+        <Text color={theme.foreground}> g/G or Home/End First/last item</Text>
+        <Text color={theme.foreground}> PgUp/PgDn Move one page</Text>
+        <Text color={theme.foreground}> Enter Select item / Open detail</Text>
+        <Text color={theme.foreground}> Tab Next tab</Text>
+        <Text color={theme.foreground}>
+          {" "}
+          {TABS[0].shortcut}-{TABS[TABS.length - 1].shortcut} Direct tab access
+        </Text>
 
-      <Box marginTop={1}>
-        <Text bold underline>
-          Actions
+        <Box marginTop={1}>
+          <Text bold underline color={theme.foreground}>
+            Actions
+          </Text>
+        </Box>
+        <Text color={theme.foreground}> m Toggle mouse support</Text>
+        <Text color={theme.foreground}> t Toggle tooltips</Text>
+        <Text color={theme.foreground}> e Toggle enabled/disabled services</Text>
+        <Text color={theme.foreground}> r Refresh data</Text>
+        <Text color={theme.foreground}> / Search/filter</Text>
+        <Text color={theme.foreground}> ? Show this help</Text>
+        <Text color={theme.foreground}>
+          {theme.ascii ? " q Quit | Esc Back" : " q Quit \u2502 Esc Back"}
         </Text>
       </Box>
-      <Text> m Toggle mouse support</Text>
-      <Text> t Toggle tooltips</Text>
-      <Text> e Toggle enabled/disabled services</Text>
-      <Text> r Refresh data</Text>
-      <Text> / Search/filter</Text>
-      <Text> ? Show this help</Text>
-      <Text> q Quit │ Esc Back</Text>
+      <Box marginTop={1}>
+        <Text color={theme.muted} dimColor={theme.dimMuted}>
+          Press any key to close...
+        </Text>
+      </Box>
     </Box>
-    <Box marginTop={1}>
-      <Text color="gray" dimColor>
-        Press any key to close...
-      </Text>
-    </Box>
-  </Box>
-);
+  );
+};
 
 const SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+const ASCII_SPINNER_FRAMES = ["-", "/", "|", "\\"];
 
 export const LoadingScreen: React.FC<LoadingScreenProps> = ({
   message = "Discovering resources...",
   animated = true,
 }) => {
+  const theme = useTUITheme();
+  const spinnerFrames = theme.ascii ? ASCII_SPINNER_FRAMES : SPINNER_FRAMES;
   const [frame, setFrame] = useState(0);
   useEffect(() => {
     if (!animated) return;
-    const timer = setInterval(() => setFrame((f) => (f + 1) % SPINNER_FRAMES.length), 80);
+    const timer = setInterval(() => setFrame((f) => (f + 1) % spinnerFrames.length), 80);
     return () => clearInterval(timer);
-  }, [animated]);
+  }, [animated, spinnerFrames.length]);
 
   return (
     <Box flexDirection="column" padding={2}>
-      <Text bold color="cyan">
-        ▓▒░ TDK NEON EDITION ░▒▓
+      <Text bold color={theme.accent}>
+        {theme.bannerStart} TDK NEON EDITION {theme.bannerEnd}
       </Text>
       <Box marginY={1} />
-      <Text>
-        {animated && <Text color="cyan">{SPINNER_FRAMES[frame]} </Text>}
+      <Text color={theme.foreground}>
+        {animated && <Text color={theme.accent}>{spinnerFrames[frame]} </Text>}
         {message}
       </Text>
     </Box>
@@ -112,47 +123,58 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
 };
 
 // biome-ignore lint/correctness/noUnusedFunctionParameters: reserved callback prop kept in the component API
-const ErrorScreen: React.FC<ErrorScreenProps> = ({ error, onRetry }) => (
-  <Box flexDirection="column" padding={2} alignItems="center">
-    <Text bold color="red">
-      Could Not Load Services
-    </Text>
-    <Box marginY={1} />
-    <Text color="red">✗ {error}</Text>
-    <Box marginY={1} />
-    <Text color="gray">Troubleshooting:</Text>
-    <Text color="gray"> 1. Check that every service.json is valid JSON</Text>
-    <Text color="gray"> 2. Run tdk from your project (the folder with the Tiltfile)</Text>
-    <Text color="gray"> 3. Try: tdk status --verbose</Text>
-    <Box marginY={1} />
-    <Text color="cyan">Press [r] to retry or [q] to quit</Text>
-  </Box>
-);
+const ErrorScreen: React.FC<ErrorScreenProps> = ({ error, onRetry }) => {
+  const theme = useTUITheme();
+  return (
+    <Box flexDirection="column" padding={2} alignItems="center">
+      <Text bold color={theme.error}>
+        Could Not Load Services
+      </Text>
+      <Box marginY={1} />
+      <Text color={theme.error}>
+        {theme.ascii ? "[x]" : "\u2717"} {error}
+      </Text>
+      <Box marginY={1} />
+      <Text color={theme.muted}>Troubleshooting:</Text>
+      <Text color={theme.muted}> 1. Check that every service.json is valid JSON</Text>
+      <Text color={theme.muted}> 2. Run tdk from your project (the folder with the Tiltfile)</Text>
+      <Text color={theme.muted}> 3. Try: tdk status --verbose</Text>
+      <Box marginY={1} />
+      <Text color={theme.accent}>Press [r] to retry or [q] to quit</Text>
+    </Box>
+  );
+};
 
-const EmptyState: React.FC<{ message?: string }> = ({ message }) => (
-  <Box flexDirection="column" padding={2} alignItems="center">
-    <Text bold color="yellow">
-      No Services Found
-    </Text>
-    <Box marginY={1} />
-    <Text color="gray">◉ No service.json files found</Text>
-    <Box marginY={1} />
-    <Text>To get started:</Text>
-    <Text> 1. Run: tdk project</Text>
-    <Text> 2. Run: tdk resource api --type backend</Text>
-    <Box marginY={1} />
-    <Text color="cyan">Press [r] to refresh or [q] to quit</Text>
-    {/* The top-level Esc hint has to be visible here too — with no services this is the
+const EmptyState: React.FC<{ message?: string }> = ({ message }) => {
+  const theme = useTUITheme();
+  return (
+    <Box flexDirection="column" padding={2} alignItems="center">
+      <Text bold color={theme.warning}>
+        No Services Found
+      </Text>
+      <Box marginY={1} />
+      <Text color={theme.muted}>{theme.ascii ? "[*]" : "\u25c9"} No service.json files found</Text>
+      <Box marginY={1} />
+      <Text color={theme.foreground}>To get started:</Text>
+      <Text color={theme.foreground}> 1. Run: tdk project</Text>
+      <Text color={theme.foreground}> 2. Run: tdk resource api --type backend</Text>
+      <Box marginY={1} />
+      <Text color={theme.accent}>Press [r] to refresh or [q] to quit</Text>
+      {/* The top-level Esc hint has to be visible here too — with no services this is the
         whole screen, and without this line the hint was set but never drawn. */}
-    {message && (
-      <Box paddingX={1} height={1}>
-        <Text color="cyan">▓▒░ {message} ░▒▓</Text>
-      </Box>
-    )}
-  </Box>
-);
+      {message && (
+        <Box paddingX={1} height={1}>
+          <Text color={theme.accent}>
+            {theme.bannerStart} {message} {theme.bannerEnd}
+          </Text>
+        </Box>
+      )}
+    </Box>
+  );
+};
 
 export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) => {
+  const theme = useTUITheme();
   const { exit } = useApp();
   const { stdout } = useStdout();
   const { stdin, setRawMode } = useStdin();
@@ -644,7 +666,9 @@ export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) =>
       />
 
       <Box paddingX={1}>
-        <Text color="gray">{"─".repeat(getTerminalRuleWidth(terminalWidth))}</Text>
+        <Text color={theme.muted}>
+          {(theme.ascii ? "-" : "\u2500").repeat(getTerminalRuleWidth(terminalWidth))}
+        </Text>
       </Box>
     </>
   );
@@ -664,39 +688,40 @@ export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) =>
 
       {isSearching && (
         <Box paddingX={1} height={1}>
-          <Text color="yellow">Search: {searchQuery}_</Text>
-          {searchStatus && <Text color="gray" dimColor>{`   ${searchStatus.summary}`}</Text>}
+          <Text color={theme.warning}>Search: {searchQuery}_</Text>
+          {searchStatus && (
+            <Text
+              color={theme.muted}
+              dimColor={theme.dimMuted}
+            >{`   ${searchStatus.summary}`}</Text>
+          )}
         </Box>
       )}
 
       {searchStatus?.emptyMessage && (
         <Box paddingX={1} height={1}>
-          <Text color="gray">{searchStatus.emptyMessage}</Text>
+          <Text color={theme.muted}>{searchStatus.emptyMessage}</Text>
         </Box>
       )}
 
       {!isSearching && message && (
         <Box paddingX={1} height={1}>
-          <Text color="cyan">▓▒░ {message} ░▒▓</Text>
+          <Text color={theme.accent}>
+            {theme.bannerStart} {message} {theme.bannerEnd}
+          </Text>
         </Box>
       )}
 
       {!isSearching && !message && showTooltips && !showHelp && (
         <Box paddingX={1} height={1}>
-          <Text color="gray" dimColor>
-            {activeTab === "overview" && selectedStack
-              ? `Stack "${selectedStack}" selected. [Enter] view │ [Esc] back │ [e] ${showEnabledOnly ? "show all" : "enabled only"} │ [?] help`
-              : activeTab === "overview" && !selectedStack
-                ? `[↑/↓] Navigate │ [Enter] Select │ [e] ${showEnabledOnly ? "show all" : "enabled only"} │ [?] help`
-                : activeTab === "resources"
-                  ? `[Tab] Tabs │ [r] Refresh │ [/] Search │ [e] ${showEnabledOnly ? "show all" : "enabled only"} │ [?] help`
-                  : activeTab === "files" && selectedService
-                    ? `Service "${selectedService}" │ [Space] Expand │ [Esc] Back │ [e] ${showEnabledOnly ? "show all" : "enabled only"} │ [?] help`
-                    : activeTab === "files"
-                      ? `Select service to view files │ [e] ${showEnabledOnly ? "show all" : "enabled only"} │ [?] help`
-                      : activeTab === "config"
-                        ? `View configurations │ [e] ${showEnabledOnly ? "show all" : "enabled only"} │ [?] help`
-                        : `[Tab] Next │ [${TABS[0].shortcut}-${TABS[TABS.length - 1].shortcut}] Tabs │ [e] ${showEnabledOnly ? "show all" : "enabled only"} │ [?] help │ [q] Quit`}
+          <Text color={theme.muted} dimColor={theme.dimMuted}>
+            {createHelpHint(
+              activeTab,
+              selectedStack,
+              selectedService,
+              showEnabledOnly,
+              theme.ascii,
+            )}
           </Text>
         </Box>
       )}
@@ -722,8 +747,8 @@ export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) =>
               {activeTab === "overview" && (
                 <>
                   <Box marginBottom={1}>
-                    <Text bold color="gray">
-                      ┌─ Stacks ─
+                    <Text bold color={theme.muted}>
+                      {theme.ascii ? "[ Stacks ]" : "┌─ Stacks ─"}
                     </Text>
                   </Box>
                   <Box marginTop={1} flexGrow={1}>
@@ -743,13 +768,13 @@ export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) =>
               {activeTab === "resources" && (
                 <>
                   <Box marginBottom={1}>
-                    <Text bold color="gray">
-                      ┌─ Resources ─
+                    <Text bold color={theme.muted}>
+                      {theme.ascii ? "[ Resources ]" : "┌─ Resources ─"}
                     </Text>
                   </Box>
                   {selectedStackData ? (
                     <>
-                      <Text color="gray">Stack: {selectedStackData.stack.name}</Text>
+                      <Text color={theme.muted}>Stack: {selectedStackData.stack.name}</Text>
                       <Box marginTop={1}>
                         <ResourceTable
                           resources={selectedStackData.metadata.resources}
@@ -759,7 +784,7 @@ export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) =>
                     </>
                   ) : (
                     <>
-                      <Text color="gray">Select a stack to view resources</Text>
+                      <Text color={theme.muted}>Select a stack to view resources</Text>
                       <Box marginTop={1}>
                         <ResourceSelectInput
                           items={items}
@@ -779,20 +804,20 @@ export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) =>
               {activeTab === "files" && (
                 <>
                   <Box marginBottom={1}>
-                    <Text bold color="gray">
-                      ┌─ Autogenerated Files ─
+                    <Text bold color={theme.muted}>
+                      {theme.ascii ? "[ Autogenerated Files ]" : "┌─ Autogenerated Files ─"}
                     </Text>
                   </Box>
                   {selectedServiceData ? (
                     <>
-                      <Text color="gray">Service: {selectedServiceData.service.name}</Text>
+                      <Text color={theme.muted}>Service: {selectedServiceData.service.name}</Text>
                       <Box marginTop={1}>
                         <FileTree nodes={fileTreeNodes} selectedPath={selectedFile || undefined} />
                       </Box>
                     </>
                   ) : (
                     <>
-                      <Text color="gray">Select a service to view files</Text>
+                      <Text color={theme.muted}>Select a service to view files</Text>
                       <Box marginTop={1}>
                         <ResourceSelectInput
                           items={items}
@@ -812,15 +837,21 @@ export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) =>
               {activeTab === "config" && (
                 <>
                   <Box marginBottom={1}>
-                    <Text bold color="gray">
-                      ┌─ Configuration ─
+                    <Text bold color={theme.muted}>
+                      {theme.ascii ? "[ Configuration ]" : "┌─ Configuration ─"}
                     </Text>
                   </Box>
                   {selectedServiceData ? (
                     <Box marginTop={1} flexDirection="column">
-                      <Text color="cyan">{selectedServiceData.service.configPath}</Text>
-                      <Box marginTop={1} borderStyle="single" borderColor="gray" paddingX={1}>
-                        <Text color="gray" wrap="wrap">
+                      <Text color={theme.accent}>{selectedServiceData.service.configPath}</Text>
+                      <Box
+                        marginTop={1}
+                        {...(theme.ascii
+                          ? {}
+                          : { borderStyle: "single" as const, borderColor: theme.border })}
+                        paddingX={1}
+                      >
+                        <Text color={theme.muted} wrap="wrap">
                           {JSON.stringify(selectedServiceData.service.config, null, 2).slice(
                             0,
                             1000,
@@ -830,7 +861,7 @@ export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) =>
                     </Box>
                   ) : (
                     <>
-                      <Text color="gray">Select a service to view configuration</Text>
+                      <Text color={theme.muted}>Select a service to view configuration</Text>
                       <Box marginTop={1}>
                         <ResourceSelectInput
                           items={items}
@@ -861,34 +892,44 @@ export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) =>
           </Box>
 
           <Box
-            borderStyle="single"
-            borderColor="gray"
+            {...(theme.ascii ? {} : { borderStyle: "single" as const, borderColor: theme.border })}
             paddingX={1}
             height={3}
             flexDirection="column"
             marginTop={1}
           >
             <Box justifyContent="space-between">
-              <Text color="cyan" bold>
-                ▓▒░ {activeTab}
+              <Text color={theme.accent} bold>
+                {theme.bannerStart} {activeTab}
               </Text>
-              <Text color="green">
-                ● {services.filter((s: DiscoveredResource) => s.stack).length} in stack
+              <Text color={theme.success}>
+                {theme.ascii ? "[+]" : "\u25cf"}{" "}
+                {services.filter((s: DiscoveredResource) => s.stack).length} in stack
               </Text>
-              <Text color="yellow">
-                ○ {services.filter((s: DiscoveredResource) => !s.stack).length} no stack
+              <Text color={theme.warning}>
+                {theme.ascii ? "-" : "\u25cb"}{" "}
+                {services.filter((s: DiscoveredResource) => !s.stack).length} no stack
               </Text>
             </Box>
             <Box justifyContent="space-between">
-              <Text color="gray">Stacks: {stacks.length}</Text>
-              <Text color="gray">Services: {services.length}</Text>
-              <Text color="gray">
-                🖱️ {mouseEnabled ? "ON" : "OFF"} │ ℹ️ {showTooltips ? "ON" : "OFF"} │
-                <Text color={showEnabledOnly ? "green" : "yellow"}>
-                  {showEnabledOnly ? "✓ enabled" : "✓ all"}
+              <Text color={theme.muted}>Stacks: {stacks.length}</Text>
+              <Text color={theme.muted}>Services: {services.length}</Text>
+              <Text color={theme.muted}>
+                {theme.ascii ? "Mouse" : "🖱️"} {mouseEnabled ? "ON" : "OFF"}
+                {theme.ascii ? " | " : " \u2502 "}
+                {theme.ascii ? "Info" : "ℹ️"} {showTooltips ? "ON" : "OFF"}
+                {theme.ascii ? " | " : " \u2502 "}
+                <Text color={showEnabledOnly ? theme.success : theme.warning}>
+                  {showEnabledOnly
+                    ? theme.ascii
+                      ? "[+] enabled"
+                      : "\u2713 enabled"
+                    : theme.ascii
+                      ? "[+] all"
+                      : "\u2713 all"}
                 </Text>
-                {" │ "}
-                [?] Help │ [q] Quit
+                {theme.ascii ? " | " : " \u2502 "}
+                [?] Help{theme.ascii ? " | " : " \u2502 "}[q] Quit
               </Text>
             </Box>
           </Box>
@@ -898,13 +939,57 @@ export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) =>
   );
 };
 
+/** Compose footer guidance for the current tab and terminal character set. */
+function createHelpHint(
+  activeTab: TabId,
+  selectedStack: string | null,
+  selectedService: string | null,
+  showEnabledOnly: boolean,
+  ascii: boolean,
+): string {
+  const separator = ascii ? " | " : " \u2502 ";
+  const enabledHint = `[e] ${showEnabledOnly ? "show all" : "enabled only"}`;
+  const common = [enabledHint, "[?] help"];
+  const tabRange = `${TABS[0].shortcut}-${TABS[TABS.length - 1].shortcut}`;
+
+  if (activeTab === "overview") {
+    const introduction = selectedStack
+      ? `Stack "${selectedStack}" selected. [Enter] view`
+      : `${ascii ? "[UP/DOWN]" : "[\u2191/\u2193]"} Navigate`;
+    const controls = selectedStack ? ["[Esc] back", ...common] : ["[Enter] Select", ...common];
+    return [introduction, ...controls].join(separator);
+  }
+  if (activeTab === "resources") {
+    return ["[Tab] Tabs", "[r] Refresh", "[/] Search", ...common].join(separator);
+  }
+  if (activeTab === "files" && selectedService) {
+    return [`Service "${selectedService}"`, "[Esc] Back", ...common].join(separator);
+  }
+  if (activeTab === "files") {
+    return ["Select service to view files", ...common].join(separator);
+  }
+  if (activeTab === "config") {
+    return ["View configurations", ...common].join(separator);
+  }
+  return ["[Tab] Next", `[${tabRange}] Tabs`, ...common, "[q] Quit"].join(separator);
+}
+
+const TUIRoot: React.FC<{ animated?: boolean; highContrast?: boolean }> = ({
+  animated,
+  highContrast,
+}) => (
+  <TUIThemeContext.Provider value={createTUITheme(Boolean(highContrast))}>
+    <TUIApp animated={animated} />
+  </TUIThemeContext.Provider>
+);
+
 export const uiCommand = new Command("ui")
   .description("Interactive TUI for managing stacks and services (Neon Edition)")
   .alias("interactive")
   .option("-v, --verbose", "Enable verbose output", false)
   .option("--no-animations", "Disable animations")
   .option("--high-contrast", "Enable high contrast mode")
-  .action(async (options: { animations: boolean }) => {
+  .action(async (options: { animations: boolean; highContrast: boolean }) => {
     const tiltAvailable = await isTiltAvailable();
     if (!tiltAvailable) {
       errorFactories.tiltNotInstalled().exit();
@@ -912,5 +997,7 @@ export const uiCommand = new Command("ui")
 
     requireProjectRoot();
     // The app has no Static content, so its live layout starts at row 1 in the alternate screen.
-    render(<TUIApp animated={options.animations} />, { alternateScreen: true });
+    render(<TUIRoot animated={options.animations} highContrast={options.highContrast} />, {
+      alternateScreen: true,
+    });
   });

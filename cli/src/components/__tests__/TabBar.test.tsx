@@ -5,6 +5,7 @@ import { TabBar } from "../TabBar.js";
 const ANSI_SGR = new RegExp([String.fromCharCode(0x1b), "\\[[0-?]*[ -/]*[@-~]"].join(""), "g");
 const rule = String.fromCharCode(0x2500);
 const decoration = String.fromCharCode(0x2593, 0x2592, 0x2591);
+const bannerEnd = String.fromCharCode(0x2591, 0x2592, 0x2593);
 
 function renderTabBar(width: number, compact?: boolean): string {
   return renderToString(
@@ -19,25 +20,25 @@ describe.each([
     expectedRuleWidth: 56,
     expectedActive: "[1] OVER",
     expectedOther: "[2] RESO",
-    decorated: false,
+    expectedDecorationCount: 1,
   },
   {
     width: 80,
     expectedRuleWidth: 76,
     expectedActive: "[1] OVERVIEW",
     expectedOther: "[2] RESOURCES",
-    decorated: false,
+    expectedDecorationCount: 0,
   },
   {
     width: 120,
     expectedRuleWidth: 100,
     expectedActive: "[1] OVERVIEW",
     expectedOther: "[2] RESOURCES",
-    decorated: true,
+    expectedDecorationCount: 1,
   },
 ])(
   "TabBar at $width columns",
-  ({ width, expectedRuleWidth, expectedActive, expectedOther, decorated }) => {
+  ({ width, expectedRuleWidth, expectedActive, expectedOther, expectedDecorationCount }) => {
     it("uses shared rule sizing and fitting tab density", () => {
       const output = renderTabBar(width);
       const ruleLines = output
@@ -46,7 +47,8 @@ describe.each([
       expect(ruleLines).toHaveLength(2);
       expect(output).toContain(expectedActive);
       expect(output).toContain(expectedOther);
-      expect(output.includes(decoration)).toBe(decorated);
+      expect(output.split(decoration).length - 1).toBe(expectedDecorationCount);
+      expect(output.includes(bannerEnd)).toBe(width >= 100);
       expect(output.split(/\r?\n/).every((line) => Array.from(line).length <= width)).toBe(true);
     });
   },

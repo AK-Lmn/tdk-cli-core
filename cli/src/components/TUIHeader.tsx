@@ -1,5 +1,6 @@
 import { Box, Text } from "ink";
 import type React from "react";
+import { useTUITheme } from "./ui-theme.js";
 
 interface TUIHeaderProps {
   projectRoot: string;
@@ -14,8 +15,11 @@ export const TUIHeader: React.FC<TUIHeaderProps> = ({
   terminalWidth,
   version,
 }) => {
+  const theme = useTUITheme();
   const compact = terminalWidth < 80;
-  const title = compact ? `TDK v${version}` : `▓▒░ TDK NEON EDITION v${version} ░▒▓`;
+  const title = compact
+    ? `TDK v${version}`
+    : `${theme.bannerStart} TDK NEON EDITION v${version} ${theme.bannerEnd}`;
   const resourceLabel = `${resourceCount} resource${resourceCount === 1 ? "" : "s"} discovered`;
   const paddingX = terminalWidth >= 28 ? 1 : 0;
   const contentWidth = Math.max(1, terminalWidth - paddingX * 2);
@@ -28,12 +32,12 @@ export const TUIHeader: React.FC<TUIHeaderProps> = ({
         {splitHeading ? (
           <>
             <Box width={contentWidth}>
-              <Text color="cyan" bold wrap="truncate-end">
+              <Text color={theme.accent} bold wrap="truncate-end">
                 {title}
               </Text>
             </Box>
             <Box width={contentWidth}>
-              <Text color="green" wrap="truncate-end">
+              <Text color={theme.success} wrap="truncate-end">
                 {resourceLabel}
               </Text>
             </Box>
@@ -41,16 +45,16 @@ export const TUIHeader: React.FC<TUIHeaderProps> = ({
         ) : (
           <Box width={contentWidth}>
             <Text wrap="truncate-end">
-              <Text color="cyan" bold>
+              <Text color={theme.accent} bold>
                 {title}
               </Text>
-              <Text color="gray"> | </Text>
-              <Text color="green">{resourceLabel}</Text>
+              <Text color={theme.muted}> | </Text>
+              <Text color={theme.success}>{resourceLabel}</Text>
             </Text>
           </Box>
         )}
         <Box width={contentWidth}>
-          <Text color="white" wrap="truncate-end">
+          <Text color={theme.foreground} wrap="truncate-end">
             {projectRoot}
           </Text>
         </Box>
@@ -65,17 +69,17 @@ export const TUIHeader: React.FC<TUIHeaderProps> = ({
     return (
       <Box flexDirection="column" paddingX={paddingX} width={terminalWidth}>
         <Box width={contentWidth}>
-          <Text color="cyan" bold wrap="truncate-end">
+          <Text color={theme.accent} bold wrap="truncate-end">
             {title}
           </Text>
         </Box>
         <Box width={contentWidth}>
-          <Text color="green" wrap="truncate-end">
+          <Text color={theme.success} wrap="truncate-end">
             {resourceLabel}
           </Text>
         </Box>
         <Box width={contentWidth}>
-          <Text color="white" wrap="truncate-end">
+          <Text color={theme.foreground} wrap="truncate-end">
             {projectRoot}
           </Text>
         </Box>
@@ -87,17 +91,17 @@ export const TUIHeader: React.FC<TUIHeaderProps> = ({
 
   return (
     <Box flexDirection="row" paddingX={paddingX} width={terminalWidth}>
-      <Text color="cyan" bold>
+      <Text color={theme.accent} bold>
         {title}
       </Text>
-      <Text color="gray"> | </Text>
+      <Text color={theme.muted}> | </Text>
       <Box flexShrink={0} width={rootWidth}>
-        <Text color="white" wrap="truncate-end">
+        <Text color={theme.foreground} wrap="truncate-end">
           {projectRoot}
         </Text>
       </Box>
-      <Text color="gray"> | </Text>
-      <Text color="green">{resourceLabel}</Text>
+      <Text color={theme.muted}> | </Text>
+      <Text color={theme.success}>{resourceLabel}</Text>
     </Box>
   );
 };
