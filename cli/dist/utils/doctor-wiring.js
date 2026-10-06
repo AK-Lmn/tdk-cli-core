@@ -82,14 +82,6 @@ function prismaConfigFindings(resourcePath) {
 export function checkPrismaConsistency(projectRoot = findProjectRoot() ?? process.cwd()) {
     const resources = discoverResourcesFromRoot(projectRoot);
     const prismaResources = resources.filter((resource) => resource.config?.featuresEnabled?.includes("prisma"));
-    if (prismaResources.length === 0) {
-        return {
-            name: "Prisma 7 consistency",
-            didPass: true,
-            isSkipped: true,
-            message: "No resources enable Prisma; Prisma consistency checks were skipped",
-        };
-    }
     const findings = [];
     const migrators = resources.filter((resource) => resource.config?.appType === "migrator");
     for (const resource of resources) {
@@ -99,6 +91,21 @@ export function checkPrismaConsistency(projectRoot = findProjectRoot() ?? proces
             !resource.config?.featuresEnabled?.includes("prisma")) {
             findings.push(`${resource.name}: use featuresEnabled, not features, for Prisma`);
         }
+    }
+    if (prismaResources.length === 0) {
+        return findings.length === 0
+            ? {
+                name: "Prisma 7 consistency",
+                didPass: true,
+                isSkipped: true,
+                message: "No resources enable Prisma; Prisma consistency checks were skipped",
+            }
+            : {
+                name: "Prisma 7 consistency",
+                didPass: false,
+                message: `${formatCount(findings.length, "Prisma consistency error")}:\n    ${findings.join("\n    ")}`,
+                fix: "Use featuresEnabled to opt into the validated Prisma 7 shape",
+            };
     }
     for (const resource of prismaResources) {
         const dependencies = packageJson(resource.path).dependencies;
