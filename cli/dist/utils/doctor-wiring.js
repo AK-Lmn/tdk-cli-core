@@ -118,9 +118,8 @@ export function checkPrismaConsistency(projectRoot = findProjectRoot() ?? proces
                 findings.push(`${resource.name}: API start script must not run prisma migrate`);
             }
             const dockerfile = join(resource.path, resource.config?.dockerfile ?? "Dockerfile");
-            if (fileMigrations(dockerfile, true) ||
-                /prisma\s+generate/.test(readText(dockerfile) ?? "")) {
-                findings.push(`${resource.name}: API image/startup must not run Prisma migration or generate`);
+            if (fileMigrations(dockerfile, true)) {
+                findings.push(`${resource.name}: API image/startup must not run Prisma migrations`);
             }
         }
     }

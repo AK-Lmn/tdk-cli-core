@@ -577,13 +577,13 @@ describe("checkPrismaConsistency", () => {
     expect(checkPrismaConsistency(root).didPass).toBe(false);
   });
 
-  it("fails when the API Dockerfile runs prisma generate", () => {
+  it("allows prisma generate when the Prisma 7 schema and packages are present", () => {
     validProject();
     writeFileSync(
       join(root, "services/app/orders-api/Dockerfile"),
       "FROM oven/bun\nRUN prisma generate\n",
     );
-    expect(checkPrismaConsistency(root).didPass).toBe(false);
+    expect(checkPrismaConsistency(root).didPass).toBe(true);
   });
 
   it("fails when shared Postgres will not start", () => {
