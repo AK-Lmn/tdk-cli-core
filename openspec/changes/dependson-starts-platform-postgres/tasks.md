@@ -66,20 +66,19 @@
 ## 7. Verification and Evidence
 
 - [x] 7.1 Manual/e2e: `database-management` off, one resource with `dependsOn: ["postgres"]` — `tdk up` starts shared Postgres (platform files materialized) and the service's `resource_deps` includes `postgres`.
-  - **Force path proven** (scratch project `/tmp/tdk-force-pg-5HrK`):
-    - `project.json`: `always_enabled_infra: ["proxy"]`; no `database-management` in any `enabledStacks`; resource `orders-api` with `dependsOn: ["postgres"]`.
-    - Regenerated Tiltfile: `ALWAYS_ENABLED_INFRA = ["proxy"]`; `spec.master` has `"orders-api": True` and no `database-management`.
-    - Default `tdk up` still logs `UBER-STYLE FOCUS MODE ACTIVATED` and expands `CORE_INFRA` → `INFRA_STACK_MAP["postgres"] = "database-management"`, so focus mode force-enables the feature even when `project.json` omits it. That is why earlier runs showed `Loading database management services...` after a fresh Tiltfile — not a stale Tiltfile.
-    - **Force-path run:** generated Tiltfile only (scratch) set `FOCUS_MODE = False` after `Config.apply_focus` so `should_enable('database-management')` stays false. Evidence in `/tmp/force-pg-up5.log`:
+  - **Force path proven on `560e5ca`** (scratch `/tmp/tdk-force-560b-5TEQ`):
+    - `project.json`: `always_enabled_infra: ["proxy"]`; `pre_alpha`: `["proxy","app","orders-api","billing-api"]`; no `database-management`.
+    - Regenerated Tiltfile: `ALWAYS_ENABLED_INFRA = ["proxy"]`; extension includes `force_start_shared_platform_postgres_once`.
+    - Scratch Tiltfile only: `FOCUS_MODE = False` after `Config.apply_focus` (default focus expands `CORE_INFRA` → `database-management`).
+    - Evidence (`/tmp/f560b-up.log`):
       - `DEBUG INFRA: database-management not enabled`
-      - `DEBUG COMPOSE: selected 'orders-api' dependsOn shared platform Postgres; force-starting postgres`
+      - `DEBUG COMPOSE: force-starting shared platform Postgres once (selected 'billing-api' dependsOn)`
       - `Force-starting shared platform Postgres (selected dependsOn postgres/database-management)`
-      - `Loading postgres compose from .../services/platform/database-management/docker-compose.yml`
       - **No** `Loading database management services...`
-      - `dc_resource for 'orders-api' with deps=["orders-api-config-gen", "postgres"]`
-    - Environment noise: Docker address pools exhausted on `init-networks` in this host; not a force-path failure.
+      - **No** second force-start for `orders-api` (ctx guard); both resources still get `postgres` in `resource_deps`
+    - `ctx` identity: Tiltfile builds `TILT_CONTEXT` once and passes the same dict to every `Orchestrator.apply_service` (`cli/templates/Tiltfile.hbs`). The ctx guard holds across services for that run.
   - **Implication for default `tdk up`:** focus mode enables `database-management` via `CORE_INFRA`, so Postgres still starts (feature path) and the edge is correct; the dependsOn force path runs when that feature is actually off (focus off / non-focus bring-up).
-- [ ] 7.2 Manual/e2e: same with `dependsOn: ["database-management"]` — same shared Postgres, same edge.
+- [ ] 7.2 Manual/e2e: same with `dependsOn: ["database-management"]` — same shared Postgres, same edge. (Unit-tested resolution; live path exercised in 7.1 two-tenant scratch as second name on billing-api, but not a dedicated single-name case.)
 - [ ] 7.3 Manual: feature on + either name — one `postgres` resource, no duplicate edge, no second database/image/port; resolution is Tilt `postgres`, not `postgres-yaml`.
 - [ ] 7.4 Manual: no such `dependsOn` + feature off — Postgres does not start.
 - [ ] 7.5 Manual: `dependsOn: ["postgress"]` — still an error in verify/doctor/resolution; Postgres does not start. (Unit-tested; not yet run as live `tdk up`/`doctor` on a typo project.)
