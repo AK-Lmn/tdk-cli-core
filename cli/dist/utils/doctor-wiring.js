@@ -362,12 +362,21 @@ export function checkNatsBroker(projectRoot = findProjectRoot() ?? process.cwd()
  *
  * Uses the same evaluateSharedPlatformPostgres predicate as `tdk config verify`.
  * Resource set is the project discovery set those commands already inspect —
- * not a `tdk up` filter. Unknown dependsOn names (typos like `postgress`)
- * stay errors. Does NOT report postgres/database-management as missing services
- * and does NOT claim Prisma will start.
+ * not a `tdk up` filter. A resource that depends on Postgres while you bring up
+ * a different one still makes this report will-start; the engine start path is
+ * selection-bounded and may not start Postgres for that run. Unknown dependsOn
+ * names (typos like `postgress`) stay errors. Does NOT report
+ * postgres/database-management as missing services and does NOT claim Prisma
+ * will start.
  */
 export function checkSharedPlatformPostgres(projectRoot = findProjectRoot() ?? process.cwd()) {
     const evaluation = evaluateSharedPlatformPostgres(projectRoot);
+    const projectScopeNote = " (project resource set; tdk up may select a subset and not start Postgres)";
+    const willStartSuffix = evaluation.willStart
+        ? ` Postgres will start because ${evaluation.reason === "feature"
+            ? "database-management is enabled"
+            : `resource(s) ${evaluation.dependsOnUsers.join(", ")} depend on postgres/database-management`}${projectScopeNote}`
+        : " Postgres will not start (database-management is off and no project resource depends on postgres/database-management)";
     if (evaluation.unknownDependsOnNames.length > 0) {
         const list = evaluation.unknownDependsOnNames
             .map(({ resource, name }) => `"${name}" (from ${resource})`)
@@ -375,7 +384,7 @@ export function checkSharedPlatformPostgres(projectRoot = findProjectRoot() ?? p
         return {
             name: "Shared platform Postgres",
             didPass: false,
-            message: `${formatCount(evaluation.unknownDependsOnNames.length, "unknown dependsOn name")}: ${list}. These are not known services or stacks, and are not the shared platform database names (postgres, database-management)`,
+            message: `${formatCount(evaluation.unknownDependsOnNames.length, "unknown dependsOn name")}: ${list}. These are not known services or stacks, and are not the shared platform database names (postgres, database-management).${willStartSuffix}`,
             fix: 'Use "postgres" or "database-management" in dependsOn for the shared platform database, or fix the name to match an existing service',
         };
     }
@@ -391,7 +400,7 @@ export function checkSharedPlatformPostgres(projectRoot = findProjectRoot() ?? p
         return {
             name: "Shared platform Postgres",
             didPass: true,
-            message: "Shared platform Postgres will start because the database-management feature is enabled",
+            message: "Shared platform Postgres will start because the database-management feature is enabled (project-wide; not a tdk up selection)",
         };
     }
     const reason = evaluation.reason === "feature"
@@ -400,7 +409,7 @@ export function checkSharedPlatformPostgres(projectRoot = findProjectRoot() ?? p
     return {
         name: "Shared platform Postgres",
         didPass: true,
-        message: `Shared platform Postgres will start because ${reason}`,
+        message: `Shared platform Postgres will start because ${reason}${projectScopeNote}`,
     };
 }
 export function parseTiltProcesses(psOutput) {
