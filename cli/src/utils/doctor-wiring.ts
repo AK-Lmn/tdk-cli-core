@@ -431,6 +431,9 @@ export function checkSharedPlatformPostgres(
   const evaluation = evaluateSharedPlatformPostgres(projectRoot);
   const projectScopeNote =
     " (project resource set; tdk up may select a subset and not start Postgres)";
+  const focusWarning = evaluation.focusWouldEnableDatabaseManagement
+    ? " Warning: generated Tiltfile default focus expands CORE_INFRA to database-management while project.json has it off; default tdk up takes the feature path."
+    : "";
 
   if (evaluation.unknownDependsOnNames.length > 0) {
     const list = evaluation.unknownDependsOnNames
@@ -446,22 +449,20 @@ export function checkSharedPlatformPostgres(
     return {
       name: "Shared platform Postgres",
       didPass: false,
-      message: `${formatCount(evaluation.unknownDependsOnNames.length, "unknown dependsOn name")}: ${list}. These are not known services or stacks, and are not the shared platform database names (postgres, database-management).${willStartSuffix}`,
+      message: `${formatCount(evaluation.unknownDependsOnNames.length, "unknown dependsOn name")}: ${list}. These are not known services or stacks, and are not the shared platform database names (postgres, database-management).${willStartSuffix}${focusWarning}`,
       fix: 'Use "postgres" or "database-management" in dependsOn for the shared platform database, or fix the name to match an existing service',
     };
   }
 
   if (!evaluation.willStart) {
-    const focusWarning = evaluation.focusWouldEnableDatabaseManagement
-      ? " Warning: default focus/CORE_INFRA expansion enables database-management on a typical tdk up even when project.json lists it off — Postgres may still start via the feature path."
-      : "";
     return {
       name: "Shared platform Postgres",
       didPass: true,
-      isSkipped: true,
-      message:
-        "Shared platform Postgres will not start: database-management is off and no resource depends on postgres or database-management." +
-        focusWarning,
+      isWarning: Boolean(focusWarning),
+      isSkipped: !focusWarning,
+      message: focusWarning
+        ? focusWarning.trim()
+        : "Shared platform Postgres will not start: database-management is off and no resource depends on postgres or database-management.",
     };
   }
 
@@ -473,7 +474,8 @@ export function checkSharedPlatformPostgres(
     return {
       name: "Shared platform Postgres",
       didPass: true,
-      message: `Shared platform Postgres will start because the database-management feature is enabled${source} (project-wide; not a tdk up selection)`,
+      isWarning: Boolean(focusWarning),
+      message: `Shared platform Postgres will start because the database-management feature is enabled${source} (project-wide; not a tdk up selection).${focusWarning}`,
     };
   }
 
@@ -484,7 +486,8 @@ export function checkSharedPlatformPostgres(
   return {
     name: "Shared platform Postgres",
     didPass: true,
-    message: `Shared platform Postgres will start because ${reason}${projectScopeNote}`,
+    isWarning: Boolean(focusWarning),
+    message: `Shared platform Postgres will start because ${reason}${projectScopeNote}${focusWarning}`,
   };
 }
 

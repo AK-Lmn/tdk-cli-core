@@ -59,6 +59,24 @@ function specMasterHasDatabaseManagement(projectRoot) {
     // PRE_ALPHA/DEFAULTS style: "database-management": True
     return /"database-management"\s*:\s*True/.test(text);
 }
+function generatedDefaultFocusEnablesDatabaseManagement(projectRoot) {
+    const output = join(projectRoot, ".tdk", ".tdk-out");
+    const tiltfile = readTextIfExists(join(output, "Tiltfile"));
+    const spec = readTextIfExists(join(output, "spec.master"));
+    const config = readTextIfExists(join(output, "tdk-cli-ext", "discovery", "config.star"));
+    const profiles = readTextIfExists(join(output, "tdk-cli-ext", "engine", "topologies", "tilt", "config", "profiles.star"));
+    if (!tiltfile || !spec || !config || !profiles)
+        return false;
+    const preAlpha = spec.match(/PRE_ALPHA_RESOURCES\s*=\s*\{([^}]*)\}/)?.[1];
+    const coreInfra = parseStarlarkStringList(config, "CORE_INFRA");
+    return (/FOCUS_MODE\s*,\s*FOCUS_ENABLED_ALL\s*,\s*FOCUS_ENABLED_RESOURCES\s*=\s*Config\.apply_focus\(cfg\)/.test(tiltfile) &&
+        /if FOCUS_MODE and FOCUS_ENABLED_ALL\s*:/.test(tiltfile) &&
+        /"[^"]+"\s*:\s*True|'[^']+'\s*:\s*True/.test(preAlpha ?? "") &&
+        (coreInfra?.includes("postgres") ?? false) &&
+        /["']postgres["']\s*:\s*["']database-management["']/.test(config) &&
+        /for infra in CORE_INFRA_EXPORT\s*:/.test(profiles) &&
+        /needed\[INFRA_STACK_MAP_EXPORT\[infra\]\]\s*=\s*True/.test(profiles));
+}
 function projectJsonFeatureOn(projectRoot) {
     const parsed = readProjectJson(projectRoot);
     if (!parsed)
@@ -136,9 +154,7 @@ export function evaluateSharedPlatformPostgres(projectRoot) {
     const featureOnFromTiltfile = Array.isArray(fromTilt) && fromTilt.includes("database-management");
     const featureOnFromSpecMaster = specMasterHasDatabaseManagement(projectRoot) === true;
     const featureOn = featureOnFromProjectJson || featureOnFromTiltfile || featureOnFromSpecMaster;
-    // Default focus always pulls CORE_INFRA (postgres → database-management).
-    // True when project.json does not already enable the feature — the surprise case.
-    const focusWouldEnableDatabaseManagement = !featureOnFromProjectJson;
+    const focusWouldEnableDatabaseManagement = !featureOnFromProjectJson && generatedDefaultFocusEnablesDatabaseManagement(projectRoot);
     const known = knownDependsonNames(projectRoot);
     const dependsOnUsers = [];
     const unknownDependsOnNames = [];

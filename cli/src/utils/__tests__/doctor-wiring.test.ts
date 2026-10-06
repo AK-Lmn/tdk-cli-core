@@ -1,8 +1,11 @@
 import type { execSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { TemplateEngine } from "../../generator/template-engine.js";
+import type { ProjectConfig } from "../../types/index.js";
 import {
   checkDockerNetworkCapacity,
   checkDuplicateResourceNames,
@@ -230,6 +233,33 @@ describe("checkNatsBroker", () => {
 });
 
 describe("checkSharedPlatformPostgres", () => {
+  function writeGeneratedFocus(preAlphaStacks: string[] = ["app"]): void {
+    const repoRoot = fileURLToPath(new URL("../../../../", import.meta.url));
+    const config = {
+      ...featureOffProjectJson(),
+      project: { name: "reports-demo", version: "1.0.0" },
+      discovery: { paths: ["services/*/*"] },
+      optional_infra: {},
+      phases: {
+        ...(featureOffProjectJson().phases as Record<string, unknown>),
+        pre_alpha: { name: "Pre-Alpha", description: "", enabledStacks: preAlphaStacks },
+      },
+    } as ProjectConfig;
+    const generated = new TemplateEngine(join(repoRoot, "cli", "templates")).generateAll(config);
+    const output = join(root, ".tdk", ".tdk-out");
+    mkdirSync(output, { recursive: true });
+    writeFileSync(join(output, "Tiltfile"), generated.Tiltfile);
+    writeFileSync(join(output, "spec.master"), generated["spec.master"]);
+    for (const relativePath of [
+      "discovery/config.star",
+      "engine/topologies/tilt/config/profiles.star",
+    ]) {
+      const destination = join(output, "tdk-cli-ext", relativePath);
+      mkdirSync(join(destination, ".."), { recursive: true });
+      copyFileSync(join(repoRoot, relativePath), destination);
+    }
+  }
+
   function writeProjectJson(config: Record<string, unknown>): void {
     writeFileSync(join(root, ".tdk", "project.json"), JSON.stringify(config));
   }
@@ -304,6 +334,35 @@ describe("checkSharedPlatformPostgres", () => {
     expect(result.didPass).toBe(true);
     expect(result.isSkipped).toBe(true);
     expect(result.message).toContain("will not start");
+  });
+
+  it("warns from generated default focus when project.json has database-management off", () => {
+    resource("app", "api", { appType: "backend", port: 4000 });
+    writeGeneratedFocus();
+    const result = checkSharedPlatformPostgres(root);
+    expect(result.isWarning).toBe(true);
+    expect(result.isSkipped).toBe(false);
+    expect(result.message).toContain("default tdk up takes the feature path");
+  });
+
+  it("warns about the feature path even when a project dependency suggests the force path", () => {
+    resource("app", "orders-api", {
+      appType: "backend",
+      port: 4000,
+      dependsOn: ["postgres"],
+    });
+    writeGeneratedFocus();
+    const result = checkSharedPlatformPostgres(root);
+    expect(result.isWarning).toBe(true);
+    expect(result.message).toContain("depend on postgres/database-management");
+    expect(result.message).toContain("default tdk up takes the feature path");
+  });
+
+  it("does not claim default focus enables the feature before generation or with empty focus", () => {
+    resource("app", "api", { appType: "backend", port: 4000 });
+    expect(checkSharedPlatformPostgres(root).message).not.toContain("default tdk up");
+    writeGeneratedFocus([]);
+    expect(checkSharedPlatformPostgres(root).message).not.toContain("default tdk up");
   });
 
   it("fails on unknown typo dependsOn names and still reports will-start", () => {
