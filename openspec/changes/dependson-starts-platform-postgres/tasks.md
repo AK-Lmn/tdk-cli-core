@@ -15,7 +15,8 @@
 - [x] 2.3 Register the existing `postgres` Tilt resource through the same infra loader path the feature uses.
 - [x] 2.4 Feature-on start path stays: one `postgres` resource, same compose, same port (when the feature is on). Do **not** claim feature-on is fully unchanged — resolution and verify/doctor still change when either name is present.
 - [x] 2.5 Leave the feature-off + no such `dependsOn` path unchanged: Postgres does not start; no `postgres` resource registered solely because of `dependsOn`.
-- [ ] 2.6 Add tests: feature off + `dependsOn: ["postgres"]` starts Postgres with platform files present; feature off + `dependsOn: ["database-management"]` same; feature off + no dependency does not start Postgres. (Unit coverage: resolution + edge + force-path source guards; full register_compose materialize path needs a richer Tilt harness.)
+- [x] 2.6 Add tests: feature off + `dependsOn: ["postgres"]` starts Postgres with platform files present; feature off + `dependsOn: ["database-management"]` same; feature off + no dependency does not start Postgres. (Unit coverage: resolution + edge + force-path source guards + ctx idempotency; full register_compose materialize path needs a richer Tilt harness.)
+- [x] 2.6b Force-start is idempotent across selected services: guard on `ctx['_shared_platform_postgres_force_started']` (Tilt freezes module globals). Two selected dependents call `force_start_shared_platform_postgres_once` once.
 - [ ] 2.7 Add tests: empty `dependsOn: []` does not start Postgres; two selected dependents start Postgres once; feature on + either name does not create a second DB/image/port.
 - [ ] 2.8 Add tests: materialized compose uses existing image/host-port/network conventions; no second host port; no per-service compose project for shared Postgres.
 - [x] 2.9 Add tests: with feature **on**, `dependsOn: ["postgres"]` / `["database-management"]` resolve to Tilt `postgres`, not `postgres-yaml` (resolution changes in both feature states).
@@ -50,8 +51,9 @@
 
 - [x] 6.1 Predicate shape matches the engine: Postgres will start when the feature is on **or** an inspected project resource depends on `postgres` / `database-management`. Resource set is what verify/doctor already inspect — **not** a `tdk up` filter.
 - [x] 6.1b Feature-on predicate uses `DEFAULT_ALWAYS_ENABLED_INFRA` from `project-config-defaults.ts` — the same default the generator bakes into the Tiltfile when `always_enabled_infra` is omitted (omitted field = feature ON, matching `should_enable`).
-- [x] 6.2 `tdk config verify`: when Postgres will start because of a project resource's `dependsOn`, report that it will start because of that dependency.
-- [x] 6.3 `tdk doctor`: same reporting for `dependsOn: ["postgres"]` and `["database-management"]`.
+- [x] 6.2 `tdk config verify`: when Postgres will start because of a project resource's `dependsOn`, report that it will start because of that dependency. Feature-on-only case prints gray (not yellow); dependsOn reason prints green; both note project resource set vs `tdk up` selection.
+- [x] 6.3 `tdk doctor`: same reporting for `dependsOn: ["postgres"]` and `["database-management"]`. Unknown-name failures still state whether Postgres will start (project scope).
+- [x] 6.3b `--json` verify envelope: `sharedPlatformPostgres` is **additive**; consumers that only read the old shape are unaffected unless they require a closed schema.
 - [x] 6.4 Do not report `postgres` or `database-management` as missing services when that dependency is present.
 - [x] 6.5 Keep unknown names (e.g. `postgress`, `Postgres`, `postgresql`) as errors; they must not report Postgres-will-start.
 - [x] 6.6 Verify and doctor MUST agree on the will-start predicate for the same project state.

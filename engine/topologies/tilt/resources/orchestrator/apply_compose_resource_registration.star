@@ -23,11 +23,9 @@ load('../shared-platform-postgres.star',
 load('./builders/typescript.star', 'TypescriptBuilders')
 
 
-# Public aliases for shared platform Postgres helpers (Starlark load does not
-# re-export loaded names; these wrappers let tests and callers load them from
-# this module). Canonical definitions live in shared-platform-postgres.star.
-SHARED_POSTGRES_DEPENDENCY_NAMES = ["postgres", "database-management"]
-
+# Public wrappers for shared platform Postgres helpers. Starlark `load` does not
+# re-export loaded names. Canonical list + predicates live in
+# shared-platform-postgres.star — do not hardcode a second copy of the names here.
 
 def is_shared_platform_postgres_dependency(name):
     """True when a dependsOn name is one of the shared platform Postgres aliases."""
@@ -37,6 +35,36 @@ def is_shared_platform_postgres_dependency(name):
 def manifest_needs_shared_platform_postgres(manifest):
     """True when a manifest's dependsOn lists postgres or database-management."""
     return _manifest_needs_shared_platform_postgres(manifest)
+
+
+def force_start_shared_platform_postgres_once(ctx, should_enable, resource_name=""):
+    """Force-start shared platform Postgres at most once per Tiltfile evaluation.
+
+    `register_compose_resources` runs per selected service; two services that both
+    `dependsOn` postgres/database-management would otherwise call
+    `Infra.force_start_postgres` twice (docker_compose + dc_resource each time).
+    Module-level mutable flags are unusable — Tilt freezes Starlark globals — so
+    the guard lives on `ctx`, a dict the Tiltfile already owns for this run.
+
+    Returns True when this call performed the force-start, False when it skipped
+    (already started this run, or database-management is already on).
+    """
+    if ctx.get('_shared_platform_postgres_force_started', False):
+        print("DEBUG COMPOSE: shared platform Postgres already force-started this run; skip for '{}'".format(resource_name))
+        return False
+    if should_enable('database-management'):
+        return False
+    project_root_for_env = ctx.get('project_root', '')
+    root_prefix = (project_root_for_env + '/') if project_root_for_env else ''
+    env_candidate = (project_root_for_env + '/.env') if project_root_for_env else '.env'
+    env_file = _env_file_if_exists(env_candidate)
+    write_fn = ctx.get('write_file', None)
+    if write_fn == None:
+        fail("dependsOn postgres/database-management on selected resource '{}' requires ctx.write_file to materialize services/platform/database-management/docker-compose.yml".format(resource_name))
+    print("DEBUG COMPOSE: force-starting shared platform Postgres once (selected '{}' dependsOn)".format(resource_name))
+    Infra.force_start_postgres(should_enable, root_prefix=root_prefix, env_file=env_file, write_fn=write_fn)
+    ctx['_shared_platform_postgres_force_started'] = True
+    return True
 
 
 def _env_file_if_exists(env_file):
@@ -645,21 +673,14 @@ def register_compose_resources(resource_config, ctx, runtime_flags, manifest_sta
     # platform Postgres via the existing infra loader (materializes
     # services/platform/database-management/docker-compose.yml + registers the
     # existing `postgres` Tilt resource). Does NOT open migrators/provision-db/Prisma.
-    # write_fn is mandatory here: the force path fails the run if compose cannot
-    # be materialized (no silent skip that leaves Tilt waiting on a bare name).
+    # Idempotent across services: force_start_shared_platform_postgres_once
+    # guards on ctx so two selected dependents do not register postgres twice.
     if not should_enable('database-management'):
         for res in resource_config.get('resources', []):
             res_manifest = resource_manifests.get(res['name'], {})
             if manifest_needs_shared_platform_postgres(res_manifest):
                 print("DEBUG COMPOSE: selected '{}' dependsOn shared platform Postgres; force-starting postgres".format(res.get('name', '')))
-                project_root_for_env = ctx.get('project_root', '')
-                root_prefix = (project_root_for_env + '/') if project_root_for_env else ''
-                env_candidate = (project_root_for_env + '/.env') if project_root_for_env else '.env'
-                env_file = _env_file_if_exists(env_candidate)
-                write_fn = ctx.get('write_file', None)
-                if write_fn == None:
-                    fail("dependsOn postgres/database-management on selected resource '{}' requires ctx.write_file to materialize services/platform/database-management/docker-compose.yml".format(res.get('name', '')))
-                Infra.force_start_postgres(should_enable, root_prefix=root_prefix, env_file=env_file, write_fn=write_fn)
+                force_start_shared_platform_postgres_once(ctx, should_enable, res.get('name', ''))
                 break
 
     resource_entries = []

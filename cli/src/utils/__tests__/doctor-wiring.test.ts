@@ -306,15 +306,34 @@ describe("checkSharedPlatformPostgres", () => {
     expect(result.message).toContain("will not start");
   });
 
-  it("fails on unknown typo dependsOn names", () => {
+  it("fails on unknown typo dependsOn names and still reports will-start", () => {
     resource("app", "orders-api", {
       appType: "backend",
       port: 4000,
       dependsOn: ["postgress"],
     });
+    resource("app", "billing-api", {
+      appType: "backend",
+      port: 4100,
+      dependsOn: ["postgres"],
+    });
     const result = checkSharedPlatformPostgres(root);
     expect(result.didPass).toBe(false);
     expect(result.message).toContain('"postgress" (from orders-api)');
+    expect(result.message).toContain("Postgres will start");
+    expect(result.message).toContain("project resource set");
+  });
+
+  it("reports project-scope on the will-start success message", () => {
+    resource("app", "orders-api", {
+      appType: "backend",
+      port: 4000,
+      dependsOn: ["postgres"],
+    });
+    const result = checkSharedPlatformPostgres(root);
+    expect(result.didPass).toBe(true);
+    expect(result.message).toContain("project resource set");
+    expect(result.message).toContain("tdk up may select a subset");
   });
 
   it("does not report postgres as a missing service when the dependency is present", () => {

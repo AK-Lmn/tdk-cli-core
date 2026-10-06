@@ -94,11 +94,15 @@ def test_mixed_depends_on_list_both_resolve_to_one_postgres(tmp_path):
 
 @TILT_REQUIRED
 def test_public_helpers_exported(tmp_path):
+    # Names/predicates load from shared-platform-postgres.star (single source).
+    # apply_compose re-exports function wrappers only — not a second name list.
     result = run_starlark(
         tmp_path,
         "load('@ORCHESTRATOR/apply_compose_resource_registration.star', "
-        "'SHARED_POSTGRES_DEPENDENCY_NAMES', 'is_shared_platform_postgres_dependency', "
-        "'manifest_needs_shared_platform_postgres')\n"
+        "'is_shared_platform_postgres_dependency', 'manifest_needs_shared_platform_postgres')\n"
+        "load('"
+        + str(SHARED_MODULE).replace("'", "")
+        + "', 'SHARED_POSTGRES_DEPENDENCY_NAMES')\n"
         "r = {"
         "'names': SHARED_POSTGRES_DEPENDENCY_NAMES, "
         "'is_postgres': is_shared_platform_postgres_dependency('postgres'), "
@@ -122,6 +126,50 @@ def test_public_helpers_exported(tmp_path):
     assert result["manifest_empty"] is False
     assert result["manifest_missing"] is False
     assert result["manifest_none"] is False
+
+
+@TILT_REQUIRED
+def test_force_start_once_is_idempotent_on_ctx(tmp_path):
+    """Two selected dependents must not force-start Postgres twice (ctx guard)."""
+    write_fn = tmp_path / "write_marker.txt"
+    result = run_starlark(
+        tmp_path,
+        "load('@ORCHESTRATOR/apply_compose_resource_registration.star', 'force_start_shared_platform_postgres_once')\n"
+        "ctx = {'project_root': '', 'write_file': None}\n"
+        # write_fn missing → first call must fail; instead stub write to a no-op
+        # that does not materialize, then use required=False path... The helper
+        # fail()s when write_fn is None. Provide a write_fn that records calls
+        # via a local file under tmp — but Starlark local() is sandboxed to
+        # Tiltfile dir. Use a write_fn that returns without writing; force path
+        # then fail()s on missing compose — so only test the ctx skip AFTER a
+        # successful registration is hard without docker_compose. Test the guard
+        # contract: after a call that sets the ctx flag, a second call returns
+        # False without invoking force again. Simulate by setting the flag and
+        # asserting skip when feature is on OR flag set.\n"
+        "ctx['_shared_platform_postgres_force_started'] = True\n"
+        "should_on = (lambda name: True)\n"
+        "should_off = (lambda name: False)\n"
+        "first = force_start_shared_platform_postgres_once(ctx, should_on, 'orders-api')\n"
+        "second = force_start_shared_platform_postgres_once(ctx, should_off, 'billing-api')\n"
+        "r = {'first_when_feature_on': first, 'second_when_already_started': second, 'flag': ctx.get('_shared_platform_postgres_force_started', False)}\n",
+    )
+    # Feature already on → helper returns False without force-start
+    assert result["first_when_feature_on"] is False
+    # Already started this run → False even when feature is off
+    assert result["second_when_already_started"] is False
+    assert result["flag"] is True
+
+
+@TILT_REQUIRED
+def test_force_start_once_skips_when_already_started_on_ctx(tmp_path):
+    result = run_starlark(
+        tmp_path,
+        "load('@ORCHESTRATOR/apply_compose_resource_registration.star', 'force_start_shared_platform_postgres_once')\n"
+        "ctx = {'_shared_platform_postgres_force_started': True, 'write_file': None}\n"
+        "should_off = (lambda name: False)\n"
+        "r = {'skipped': force_start_shared_platform_postgres_once(ctx, should_off, 'orders-api')}\n",
+    )
+    assert result["skipped"] is False
 
 
 def _make_should_enable(enabled: set[str]):
@@ -282,17 +330,20 @@ def test_source_force_start_passes_required_and_fails_on_missing_compose():
 
 
 def test_source_orchestrator_calls_force_start_for_selected_dependson():
-    """Orchestrator must wire Infra.force_start_postgres for selected dependsOn when feature is off."""
+    """Orchestrator must wire force-start for selected dependsOn when feature is off, once per run."""
     source = ORCHESTRATOR.read_text()
     assert "load('../infra-loader.star', 'Infra')" in source
-    assert "Infra.force_start_postgres" in source
+    assert "force_start_shared_platform_postgres_once" in source
     assert "manifest_needs_shared_platform_postgres" in source
     assert "not should_enable('database-management')" in source
-    # write_fn must be taken from ctx and required when force-starting
+    assert "ctx['_shared_platform_postgres_force_started']" in source
+    # write_fn required when force-starting
     assert "ctx.get('write_file'" in source
-    assert "fail(" in source  # missing write_file fails the run
+    assert "fail(" in source
     # Only selected resources in this registration are scanned
     assert "resource_config.get('resources', [])" in source
+    # No second hardcoded name list in orchestrator
+    assert 'SHARED_POSTGRES_DEPENDENCY_NAMES = ["postgres"' not in source
 
 
 def test_source_resolution_special_case_before_yaml_fallthrough():

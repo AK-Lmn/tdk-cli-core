@@ -273,20 +273,25 @@ export const configCommand = new Command("config")
           }
 
           if (sharedPostgres.willStart) {
+            // Project resource set (discoverResourcesFromRoot), not a tdk up --only filter.
+            // Feature-on alone is not new behavior — print gray so default projects are not noisy.
+            // dependsOn is the reason Postgres starts when the feature is off — green.
             if (sharedPostgres.reason === "feature" && sharedPostgres.dependsOnUsers.length === 0) {
               console.log(
-                chalk.yellow("ℹ️  Postgres will start because database-management is enabled"),
+                chalk.gray(
+                  "ℹ️  Postgres will start because database-management is enabled (project-wide; not a tdk up selection)",
+                ),
               );
             } else if (sharedPostgres.reason === "feature") {
               console.log(
                 chalk.yellow(
-                  `ℹ️  Postgres will start because database-management is enabled and resource(s) ${sharedPostgres.dependsOnUsers.join(", ")} depend on postgres/database-management`,
+                  `ℹ️  Postgres will start because database-management is enabled and resource(s) ${sharedPostgres.dependsOnUsers.join(", ")} depend on postgres/database-management (project resource set; tdk up may select a subset)`,
                 ),
               );
             } else {
               console.log(
                 chalk.green(
-                  `ℹ️  Postgres will start because resource(s) ${sharedPostgres.dependsOnUsers.join(", ")} depend on postgres/database-management`,
+                  `ℹ️  Postgres will start because resource(s) ${sharedPostgres.dependsOnUsers.join(", ")} depend on postgres/database-management (project resource set; tdk up may select a subset)`,
                 ),
               );
             }
