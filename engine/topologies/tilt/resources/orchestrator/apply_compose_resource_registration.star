@@ -15,32 +15,28 @@ load('../../../platform/docker/networking/sablier_container_cycle.star', 'sablie
 # Shared platform Postgres force-start path. infra-loader.star must not load
 # apply_compose (no circular load): it only loads platform/docker + registries.
 load('../infra-loader.star', 'Infra')
+load('../shared-platform-postgres.star',
+     _shared_postgres_names = 'SHARED_POSTGRES_DEPENDENCY_NAMES',
+     _is_shared_platform_postgres_dependency = 'is_shared_platform_postgres_dependency',
+     _manifest_needs_shared_platform_postgres = 'manifest_needs_shared_platform_postgres')
 
 load('./builders/typescript.star', 'TypescriptBuilders')
 
 
-# === SHARED PLATFORM POSTGRES (openspec/changes/dependson-starts-platform-postgres) ===
-# `dependsOn` names that mean the one shared platform Postgres Tilt resource.
-# These resolve to literal 'postgres' in BOTH feature states — never 'postgres-yaml'.
+# Public aliases for shared platform Postgres helpers (Starlark load does not
+# re-export loaded names; these wrappers let tests and callers load them from
+# this module). Canonical definitions live in shared-platform-postgres.star.
 SHARED_POSTGRES_DEPENDENCY_NAMES = ["postgres", "database-management"]
 
 
 def is_shared_platform_postgres_dependency(name):
     """True when a dependsOn name is one of the shared platform Postgres aliases."""
-    return name in SHARED_POSTGRES_DEPENDENCY_NAMES
+    return _is_shared_platform_postgres_dependency(name)
 
 
 def manifest_needs_shared_platform_postgres(manifest):
     """True when a manifest's dependsOn lists postgres or database-management."""
-    if type(manifest) != 'dict':
-        return False
-    deps = manifest.get('dependsOn')
-    if not deps or type(deps) != 'list':
-        return False
-    for dep in deps:
-        if is_shared_platform_postgres_dependency(dep):
-            return True
-    return False
+    return _manifest_needs_shared_platform_postgres(manifest)
 
 
 def _env_file_if_exists(env_file):

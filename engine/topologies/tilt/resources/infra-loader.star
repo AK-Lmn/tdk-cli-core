@@ -111,31 +111,28 @@ def _ensure_database_management_compose(root_prefix, write_fn):
             write_fn(compose_file, _generate_database_management_compose())
     return compose_file
 
-# Starlark globals cannot be rebound, so the idempotent-registration flag lives
-# in a mutable container. Written by both the feature-on path and the
-# force-start path so shared platform Postgres is registered at most once.
-_POSTGRES_REGISTERED = {"flag": False}
+# No module-level mutable registration flag: Tilt freezes Starlark globals after
+# module load, so writing a key on a global dict raises "cannot insert into
+# frozen hash table". Feature-on (`_load_database_management`) and force-start
+# (`force_start_platform_postgres`) are mutually exclusive via should_enable —
+# the orchestrator only force-starts when database-management is off — so each
+# Tiltfile evaluation registers `postgres` at most once on its own path.
 
 
 def _register_platform_postgres(should_enable, root_prefix="", env_file=None, write_fn=None, required=False):
     """Materialize the platform compose and register the shared `postgres` Tilt resource.
 
     Does NOT load messaging, kafka, redis, nats, provision-db, or Prisma.
-    Idempotent: returns immediately when `_POSTGRES_REGISTERED` is already set.
 
     When `required` is true (dependsOn force-start path), a missing compose after
     ensure is a hard failure — not a silent skip — so Tilt never waits on a
     `postgres` resource that has no compose definition.
     """
-    if _POSTGRES_REGISTERED["flag"]:
-        print("DEBUG INFRA: platform postgres already registered, skipping")
-        return
     postgres_compose = _ensure_database_management_compose(root_prefix, write_fn)
     if _file_exists(postgres_compose):
         print("DEBUG INFRA: Loading postgres compose from {}".format(postgres_compose))
         _docker_compose(postgres_compose, env_file)
         dc_resource('postgres', labels=['infra.tools'], resource_deps=['init-networks'], auto_init=True)
-        _POSTGRES_REGISTERED["flag"] = True
         return
     message = "Shared platform Postgres compose was not materialized at {}".format(postgres_compose)
     if required:
@@ -154,9 +151,6 @@ def force_start_platform_postgres(should_enable, root_prefix="", env_file=None, 
     (`ctx['write_file']`) so `services/platform/database-management/docker-compose.yml`
     is materialized when missing. A failed materialize fails the run.
     """
-    if _POSTGRES_REGISTERED["flag"]:
-        print("DEBUG INFRA: force_start_platform_postgres called but postgres is already registered")
-        return
     if env_file == None:
         candidate_env_file = root_prefix + '.env' if root_prefix else '.env'
         env_file = candidate_env_file if _file_exists(candidate_env_file) else None

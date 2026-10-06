@@ -20,7 +20,11 @@ TILT_REQUIRED = pytest.mark.skipif(shutil.which("tilt") is None, reason="tilt CL
 REPO_ROOT = Path(__file__).resolve().parents[2]
 ORCHESTRATOR_DIR = REPO_ROOT / "engine" / "topologies" / "tilt" / "resources" / "orchestrator"
 ORCHESTRATOR = ORCHESTRATOR_DIR / "apply_compose_resource_registration.star"
+SHARED_MODULE = REPO_ROOT / "engine" / "topologies" / "tilt" / "resources" / "shared-platform-postgres.star"
 INFRA_LOADER = REPO_ROOT / "engine" / "topologies" / "tilt" / "resources" / "infra-loader.star"
+VALIDATORS = REPO_ROOT / "engine" / "topologies" / "tilt" / "generators" / "validators.star"
+INTEGRATION = REPO_ROOT / "engine" / "topologies" / "tilt" / "manifest" / "integration.star"
+MANIFEST_VALIDATOR = REPO_ROOT / "engine" / "topologies" / "tilt" / "manifest" / "validator.star"
 RESULT_MARKER = "Error in fail: RESULT"
 
 
@@ -237,7 +241,9 @@ def test_source_force_start_platform_postgres_exists_and_does_not_load_messaging
     source = INFRA_LOADER.read_text()
     assert "def force_start_platform_postgres(" in source
     assert "force_start_postgres = force_start_platform_postgres" in source
-    assert "_POSTGRES_REGISTERED" in source
+    # Tilt freezes Starlark globals — no mutable registration flag assignment.
+    assert '_POSTGRES_REGISTERED["flag"] = True' not in source
+    assert '_POSTGRES_REGISTERED = ' not in source
     start_idx = source.find("def force_start_platform_postgres(")
     register_idx = source.find("def _register_platform_postgres(")
     load_idx = source.find("def _load_database_management(")
@@ -269,7 +275,7 @@ def test_source_force_start_passes_required_and_fails_on_missing_compose():
     assert register_idx != -1 and force_idx != -1
     register_body = source[register_idx:force_idx]
     force_body = source[force_idx:load_idx]
-    assert "required=False" in register_body or "required=" in register_body
+    assert "required=" in register_body
     assert "fail(" in register_body
     assert "required=True" in force_body
     assert "write_fn" in force_body
