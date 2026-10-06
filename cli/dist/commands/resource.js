@@ -171,7 +171,14 @@ export function createPackageJson(name, type, frameworkId, prismaEnabled = false
         dependencies: {
             ...(isFrontend ? {} : (backendFramework?.dependencies ?? { hono: "^4.0.0" })),
             ...(framework?.dependencies ?? {}),
-            ...(prismaEnabled ? { prisma: "^7.5.0", "@prisma/client": "^7.5.0" } : {}),
+            ...(prismaEnabled
+                ? {
+                    prisma: "^7.5.0",
+                    "@prisma/client": "^7.5.0",
+                    "@prisma/adapter-pg": "^7.5.0",
+                    pg: "^8.13.0",
+                }
+                : {}),
         },
         devDependencies: {
             "@types/bun": "^1.4.2",
@@ -187,6 +194,22 @@ export function createPackageJson(name, type, frameworkId, prismaEnabled = false
         },
     };
 }
+export const PRISMA_SCHEMA_TEMPLATE = `generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+`;
+export const PRISMA_CONFIG_TEMPLATE = `export default {
+  schema: "prisma/schema.prisma",
+  datasource: {
+    url: process.env.DATABASE_URL,
+  },
+};
+`;
 export function createResourceTsconfig(resourceType, frameworkId) {
     const framework = resolveFrontendFramework(resourceType, frameworkId);
     const backendFramework = resolveBackendFramework(resourceType, frameworkId);
@@ -824,14 +847,14 @@ This file contains the resource configuration for TDK.
                 {
                     type: "text",
                     filename: "prisma/schema.prisma",
-                    content: 'generator client { provider = "prisma-client-js" }\n\ndatasource db { provider = "postgresql" }\n',
+                    content: PRISMA_SCHEMA_TEMPLATE,
                     description: "Generating Prisma schema",
                     emoji: "🧬",
                 },
                 {
                     type: "text",
                     filename: "prisma.config.ts",
-                    content: "export default { datasource: { url: process.env.DATABASE_URL } };\n",
+                    content: PRISMA_CONFIG_TEMPLATE,
                     description: "Generating Prisma config",
                     emoji: "⚙️",
                 },
@@ -840,14 +863,14 @@ This file contains the resource configuration for TDK.
                 {
                     type: "text",
                     filename: "prisma/schema.prisma",
-                    content: 'generator client { provider = "prisma-client-js" }\n\ndatasource db { provider = "postgresql" }\n',
+                    content: PRISMA_SCHEMA_TEMPLATE,
                     description: "Generating Prisma schema",
                     emoji: "🧬",
                 },
                 {
                     type: "text",
                     filename: "prisma.config.ts",
-                    content: "export default { datasource: { url: process.env.DATABASE_URL } };\n",
+                    content: PRISMA_CONFIG_TEMPLATE,
                     description: "Generating Prisma config",
                     emoji: "⚙️",
                 },
