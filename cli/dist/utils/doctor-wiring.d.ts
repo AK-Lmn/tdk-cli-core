@@ -24,6 +24,16 @@ export declare function checkFrontendBackendUrls(projectRoot?: string): CheckRes
  */
 export declare function checkMigrationsInApi(projectRoot?: string): CheckResult;
 export declare function checkNatsBroker(projectRoot?: string): CheckResult;
+/**
+ * Shared platform Postgres will-start reporting.
+ *
+ * Uses the same evaluateSharedPlatformPostgres predicate as `tdk config verify`.
+ * Resource set is the project discovery set those commands already inspect —
+ * not a `tdk up` filter. Unknown dependsOn names (typos like `postgress`)
+ * stay errors. Does NOT report postgres/database-management as missing services
+ * and does NOT claim Prisma will start.
+ */
+export declare function checkSharedPlatformPostgres(projectRoot?: string): CheckResult;
 interface TiltProcess {
     pid: number;
     root: string;
