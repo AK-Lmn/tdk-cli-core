@@ -20,3 +20,5 @@ extend-ignore-re = [
 unparseable = "unparseable"
 # Product name in contributor outreach metadata.
 mirrord = "mirrord"
+# Intentional invalid dependency spelling in negative OpenSpec examples.
+postgress = "postgress"
