@@ -223,7 +223,10 @@ export interface Tab {
 export interface TabBarProps {
   activeTab: TabId;
   onTabChange: (tab: TabId) => void;
+  /** Retained for callers using the original fixed-width layout. */
   compact?: boolean;
+  /** Enables the responsive layout when provided. */
+  terminalWidth?: number;
 }
 
 // Reuse BaseTooltipProps instead of duplicating
@@ -245,6 +248,8 @@ export interface ResourceSelectInputProps {
   items: SelectItem[];
   onSelect: (item: SelectItem) => void;
   highlightedIndex: number;
+  width: number;
+  onLayout?: (listTop: number) => void;
 }
 
 export interface FileNode {

@@ -30,6 +30,7 @@ import {
   getStackMetadata,
 } from "../utils/services.js";
 import { createStatusMessageController } from "../utils/status-message.js";
+import { getListRowFromMouseY, getTerminalRuleWidth } from "../utils/terminal-layout.js";
 import { isTiltAvailable } from "../utils/tilt.js";
 
 // biome-ignore lint/correctness/noUnusedFunctionParameters: reserved callback prop kept in the component API
@@ -160,6 +161,7 @@ const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) => {
   const [terminalWidth, setTerminalWidth] = useState(stdout.columns || 120);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [mouseEnabled, setMouseEnabled] = useState(true);
+  const [listTop, setListTop] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showTooltips, setShowTooltips] = useState(true);
@@ -299,6 +301,14 @@ const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) => {
   }, [activeTab, filteredStacks, filteredServices, selectedStackData, selectedServiceData]);
 
   const items = getItems();
+  const selectableListVisible =
+    !loading &&
+    !error &&
+    !showHelp &&
+    (activeTab === "overview" ||
+      (activeTab === "resources" && !selectedStackData) ||
+      (activeTab === "files" && !selectedServiceData) ||
+      (activeTab === "config" && !selectedServiceData));
 
   // Only the stack and service lists are filtered by the query; drilled-in views are not.
   const searchList =
@@ -381,8 +391,8 @@ const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) => {
         const isLeftClick = (btn & 0b11) === 0;
 
         if (isLeftClick && !release) {
-          // Calculate row in the list (header takes ~6 lines)
-          const listRow = y - 7; // Adjust for header, tabs, and borders
+          const listRow =
+            selectableListVisible && listTop !== null ? getListRowFromMouseY(y, listTop) : -1;
 
           if (listRow >= 0 && listRow < items.length) {
             setHighlightedIndex(listRow);
@@ -401,7 +411,7 @@ const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) => {
       stdin.off("data", handleMouseData);
       stdin.removeAllListeners("data");
     };
-  }, [stdin, items, mouseEnabled, handleSelect]);
+  }, [stdin, items, listTop, selectableListVisible, mouseEnabled, handleSelect]);
 
   const handleResize = useCallback(() => {
     setTerminalWidth(stdout.columns || 120);
@@ -588,8 +598,7 @@ const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) => {
   }, [selectedServiceData, services]);
 
   const showSidebar = terminalWidth > 100;
-  const compactTabBar = terminalWidth < 100;
-  const compact = terminalWidth < 80;
+  const mainPanelWidth = showSidebar ? terminalWidth - 45 : terminalWidth - 4;
 
   if (loading) {
     return <LoadingScreen message="Discovering resources..." animated={animated} />;
@@ -618,7 +627,7 @@ const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) => {
       </Box>
 
       <Box paddingX={1}>
-        <Text color="gray">{"─".repeat(compact ? 60 : Math.min(terminalWidth - 4, 100))}</Text>
+        <Text color="gray">{"─".repeat(getTerminalRuleWidth(terminalWidth))}</Text>
       </Box>
 
       {isSearching && (
@@ -671,15 +680,15 @@ const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) => {
       {!showHelp && (
         <>
           <Box marginTop={1}>
-            <TabBar activeTab={activeTab} onTabChange={setActiveTab} compact={compactTabBar} />
+            <TabBar
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              terminalWidth={terminalWidth}
+            />
           </Box>
 
           <Box flexDirection="row" paddingX={1} flexGrow={1}>
-            <Box
-              flexDirection="column"
-              flexGrow={1}
-              width={showSidebar ? terminalWidth - 45 : terminalWidth - 4}
-            >
+            <Box flexDirection="column" flexGrow={1} width={mainPanelWidth}>
               {activeTab === "overview" && (
                 <>
                   <Box marginBottom={1}>
@@ -692,6 +701,8 @@ const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) => {
                       items={items}
                       onSelect={handleSelect}
                       highlightedIndex={highlightedIndex}
+                      width={mainPanelWidth}
+                      onLayout={setListTop}
                     />
                   </Box>
                 </>
@@ -722,6 +733,8 @@ const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) => {
                           items={items}
                           onSelect={handleSelect}
                           highlightedIndex={highlightedIndex}
+                          width={mainPanelWidth}
+                          onLayout={setListTop}
                         />
                       </Box>
                     </>
@@ -764,6 +777,8 @@ const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) => {
                           items={items}
                           onSelect={handleSelect}
                           highlightedIndex={highlightedIndex}
+                          width={mainPanelWidth}
+                          onLayout={setListTop}
                         />
                       </Box>
                     </>
@@ -798,6 +813,8 @@ const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) => {
                           items={items}
                           onSelect={handleSelect}
                           highlightedIndex={highlightedIndex}
+                          width={mainPanelWidth}
+                          onLayout={setListTop}
                         />
                       </Box>
                     </>
@@ -869,5 +886,6 @@ export const uiCommand = new Command("ui")
     }
 
     requireProjectRoot();
-    render(<TUIApp animated={options.animations} />);
+    // The app has no Static content, so its live layout starts at row 1 in the alternate screen.
+    render(<TUIApp animated={options.animations} />, { alternateScreen: true });
   });
