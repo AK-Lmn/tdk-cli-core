@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import { Box, render, Text, useApp, useInput, useStdin, useStdout } from "ink";
 import type React from "react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   DetailPanel,
   FileTree,
@@ -37,6 +37,12 @@ import { singleFlight } from "../utils/single-flight.js";
 import { createStatusMessageController } from "../utils/status-message.js";
 import { getListRowFromMouseY, getTerminalRuleWidth } from "../utils/terminal-layout.js";
 import { isTiltAvailable } from "../utils/tilt.js";
+import type { TiltEventSnapshot, TiltResourceSummary } from "../utils/tilt-events.js";
+import {
+  loadTiltEvents,
+  stripTerminalControls,
+  TiltEventsLoadError,
+} from "../utils/tilt-events.js";
 import {
   applyServiceStates,
   fetchServiceStates,
@@ -180,6 +186,34 @@ const EmptyState: React.FC<{ message?: string }> = ({ message }) => {
   );
 };
 
+function formatResourceStatus(resource: TiltResourceSummary): string {
+  const statuses: string[] = [];
+  if (resource.runtimeStatus) statuses.push(`Runtime ${resource.runtimeStatus}`);
+  if (resource.updateStatus) statuses.push(`Update ${resource.updateStatus}`);
+  if (resource.hasPendingChanges) statuses.push("Changes pending");
+  return statuses.join("; ") || "No status reported";
+}
+
+function formatEventTime(value?: string): string {
+  if (!value) return "Current";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? value.slice(0, 20)
+    : date
+        .toISOString()
+        .replace("T", " ")
+        .replace(/\.\d{3}Z$/, "Z");
+}
+
+function formatEventDetails(value: string, width: number): string {
+  const normalized = stripTerminalControls(value).replace(/\s+/g, " ").trim();
+  const suffix = "...";
+  const maxLength = Math.max(suffix.length + 8, Math.floor(width) - 2);
+  return normalized.length > maxLength
+    ? normalized.slice(0, maxLength - suffix.length).trimEnd() + suffix
+    : normalized;
+}
+
 export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) => {
   const theme = useTUITheme();
   const { exit } = useApp();
@@ -210,6 +244,12 @@ export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) =>
   const [error, setError] = useState<string | null>(null);
   const [showTooltips, setShowTooltips] = useState(true);
   const [showEnabledOnly, setShowEnabledOnly] = useState(true);
+  const [eventSnapshot, setEventSnapshot] = useState<TiltEventSnapshot | null>(null);
+  const [eventLoadState, setEventLoadState] = useState<
+    "idle" | "loading" | "ready" | "unavailable" | "error"
+  >("idle");
+  const [eventLoadError, setEventLoadError] = useState<string | null>(null);
+  const eventRequestRef = useRef(0);
 
   const statusMessage = useMemo(() => createStatusMessageController(setMessage), []);
   useEffect(() => () => statusMessage.dispose(), [statusMessage]);
@@ -259,9 +299,38 @@ export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) =>
     }
   }, []);
 
+  const refreshEvents = useCallback(async (): Promise<void> => {
+    const requestId = ++eventRequestRef.current;
+    setEventLoadState("loading");
+    setEventLoadError(null);
+    try {
+      const snapshot = await loadTiltEvents();
+      if (requestId !== eventRequestRef.current) return;
+      setEventSnapshot(snapshot);
+      setEventLoadState("ready");
+    } catch (error) {
+      if (requestId !== eventRequestRef.current) return;
+      setEventSnapshot(null);
+      if (error instanceof TiltEventsLoadError && error.kind === "unavailable") {
+        setEventLoadState("unavailable");
+        return;
+      }
+      setEventLoadError(error instanceof Error ? error.message : String(error));
+      setEventLoadState("error");
+    }
+  }, []);
+
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    if (activeTab !== "events") return;
+    void refreshEvents();
+    return () => {
+      eventRequestRef.current += 1;
+    };
+  }, [activeTab, refreshEvents]);
 
   const selectedStackData = useMemo(() => {
     if (!selectedStack) return null;
@@ -568,7 +637,9 @@ export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) =>
     }
 
     if (input === "r") {
-      if (refresh()) {
+      if (activeTab === "events") {
+        void refreshEvents();
+      } else if (refresh()) {
         statusMessage.show("Data refreshed", 1500);
       }
       return;
@@ -702,15 +773,6 @@ export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) =>
     </>
   );
 
-  if (services.length === 0) {
-    return (
-      <Box flexDirection="column" height={stdout.rows || 24}>
-        {header}
-        <EmptyState message={message} />
-      </Box>
-    );
-  }
-
   return (
     <Box flexDirection="column" height={stdout.rows || 24}>
       {header}
@@ -773,26 +835,29 @@ export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) =>
 
           <Box flexDirection="row" paddingX={1} flexGrow={1}>
             <Box flexDirection="column" flexGrow={1} width={mainPanelWidth}>
-              {activeTab === "overview" && (
-                <>
-                  <Box marginBottom={1}>
-                    <Text bold color={theme.muted}>
-                      {theme.ascii ? "[ Stacks ]" : "┌─ Stacks ─"}
-                    </Text>
-                  </Box>
-                  <Box marginTop={1} flexGrow={1}>
-                    <ResourceSelectInput
-                      items={items}
-                      onSelect={handleSelect}
-                      highlightedIndex={highlightedIndex}
-                      isActive={!isSearching}
-                      maxVisibleItems={pageSize}
-                      width={mainPanelWidth}
-                      onLayout={handleListLayout}
-                    />
-                  </Box>
-                </>
-              )}
+              {activeTab === "overview" &&
+                (services.length === 0 ? (
+                  <EmptyState message={message} />
+                ) : (
+                  <>
+                    <Box marginBottom={1}>
+                      <Text bold color={theme.muted}>
+                        Stacks
+                      </Text>
+                    </Box>
+                    <Box marginTop={1} flexGrow={1}>
+                      <ResourceSelectInput
+                        items={items}
+                        onSelect={handleSelect}
+                        highlightedIndex={highlightedIndex}
+                        isActive={!isSearching}
+                        maxVisibleItems={pageSize}
+                        width={mainPanelWidth}
+                        onLayout={handleListLayout}
+                      />
+                    </Box>
+                  </>
+                ))}
 
               {activeTab === "resources" && (
                 <>
@@ -862,6 +927,94 @@ export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) =>
                     </>
                   )}
                 </>
+              )}
+
+              {activeTab === "events" && (
+                <Box flexDirection="column" flexGrow={1}>
+                  <Box marginBottom={1}>
+                    <Text bold color={theme.muted}>
+                      {theme.ascii ? "[ Event Timeline ]" : "┌─ Event Timeline ─"}
+                    </Text>
+                  </Box>
+                  {(eventLoadState === "idle" || eventLoadState === "loading") && (
+                    <Text color={theme.muted}>Loading Tilt events...</Text>
+                  )}
+                  {eventLoadState === "unavailable" && (
+                    <Box flexDirection="column">
+                      <Text color={theme.warning}>
+                        Tilt is not running or its UI is unreachable.
+                      </Text>
+                      <Text color={theme.muted}>
+                        Start the stack with tdk up, then press [r] to retry.
+                      </Text>
+                    </Box>
+                  )}
+                  {eventLoadState === "error" && (
+                    <Box flexDirection="column">
+                      <Text color={theme.error}>Could not load Tilt events.</Text>
+                      <Text color={theme.muted}>
+                        {formatEventDetails(eventLoadError ?? "Unknown Tilt error", mainPanelWidth)}
+                      </Text>
+                      <Text color={theme.muted}>Press [r] to retry.</Text>
+                    </Box>
+                  )}
+                  {eventLoadState === "ready" && (
+                    <>
+                      {eventSnapshot && eventSnapshot.resources.length > 0 && (
+                        <Box flexDirection="column" marginBottom={1}>
+                          <Text bold color={theme.muted}>
+                            Current resources
+                          </Text>
+                          {eventSnapshot.resources.slice(0, 12).map((resource) => (
+                            <Text key={resource.name} color={theme.accent}>
+                              {resource.name}: {formatResourceStatus(resource)}
+                            </Text>
+                          ))}
+                          {eventSnapshot.resources.length > 12 && (
+                            <Text color={theme.muted}>Showing first 12 resources</Text>
+                          )}
+                        </Box>
+                      )}
+                      <Text bold color={theme.muted}>
+                        Recent events
+                      </Text>
+                      {eventSnapshot && eventSnapshot.events.length > 20 && (
+                        <Text color={theme.muted}>Showing first 20 events</Text>
+                      )}
+                      {eventSnapshot?.events.length ? (
+                        <Box flexDirection="column" marginTop={1}>
+                          {eventSnapshot.events.slice(0, 20).map((event) => (
+                            <Box key={event.id} flexDirection="column" marginBottom={1}>
+                              <Text
+                                color={
+                                  event.kind === "failed"
+                                    ? theme.error
+                                    : event.kind === "warning"
+                                      ? theme.warning
+                                      : event.kind === "running"
+                                        ? theme.info
+                                        : theme.success
+                                }
+                              >
+                                {formatEventTime(event.occurredAt)} {event.resourceName}{" "}
+                                {event.title}
+                              </Text>
+                              {event.details && (
+                                <Text color={theme.muted}>
+                                  {formatEventDetails(event.details, mainPanelWidth)}
+                                </Text>
+                              )}
+                            </Box>
+                          ))}
+                        </Box>
+                      ) : (
+                        <Text color={theme.muted}>
+                          No recent build events are available from Tilt yet.
+                        </Text>
+                      )}
+                    </>
+                  )}
+                </Box>
               )}
 
               {activeTab === "config" && (
@@ -997,6 +1150,9 @@ function createHelpHint(
   }
   if (activeTab === "files") {
     return ["Select service to view files", ...common].join(separator);
+  }
+  if (activeTab === "events") {
+    return ["[r] Refresh events", "[Tab] Next", "[?] help", "[q] Quit"].join(separator);
   }
   if (activeTab === "config") {
     return ["View configurations", ...common].join(separator);

@@ -214,7 +214,7 @@ export interface ProjectConfig {
   overrides?: Record<string, JsonValue>;
 }
 
-export type TabId = "overview" | "resources" | "files" | "config";
+export type TabId = "overview" | "resources" | "events" | "files" | "config";
 
 export interface Tab {
   id: TabId;

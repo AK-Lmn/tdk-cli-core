@@ -5,8 +5,9 @@ import { useTUITheme } from "./ui-theme.js";
 export const TABS = [
     { id: "overview", label: "OVERVIEW", shortcut: "1" },
     { id: "resources", label: "RESOURCES", shortcut: "2" },
-    { id: "files", label: "FILES", shortcut: "3" },
-    { id: "config", label: "CONFIG", shortcut: "4" },
+    { id: "events", label: "EVENTS", shortcut: "3" },
+    { id: "files", label: "FILES", shortcut: "4" },
+    { id: "config", label: "CONFIG", shortcut: "5" },
 ];
 export const TabBar = ({ activeTab, compact = false, terminalWidth }) => {
     const theme = useTUITheme();
