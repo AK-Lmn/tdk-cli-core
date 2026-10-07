@@ -172,7 +172,7 @@ export const networksCommand = new Command("networks")
         }
         const discovery = createDiscoveryContext();
         if (options.stack && !stackExists(options.stack, discovery.resources)) {
-            const error = errorFactories.stackNotFound(options.stack);
+            const error = errorFactories.stackNotFound(options.stack, discovery.stackNames);
             if (options.json || options.jsonLegacy)
                 throw error;
             error.exit();
