@@ -44,6 +44,83 @@ describe("generated project .env", () => {
   });
 });
 
+describe("parseEnv Compose-compatible parsing", () => {
+  it("matches the issue cases across BOM and CRLF input", () => {
+    const content = [
+      "\uFEFFA=1 # inline comment",
+      "# whole-line comment",
+      'B="x y" # c',
+      'E="line\\nbreak"',
+      'M="he said \\"hi\\""',
+      "export H=1",
+      "I = 2",
+      "J=",
+      "K=first",
+      "K=second",
+      "L=postgres://u:p=ss@h/db",
+      "C='a#b'",
+      "D=a#b",
+      "Q='line\\nbreak'",
+      "S='Let\\'s go!'",
+    ].join("\r\n");
+
+    expect([...envValidator.parseEnv(content)]).toEqual([
+      ["A", "1"],
+      ["B", "x y"],
+      ["E", "line\nbreak"],
+      ["M", 'he said "hi"'],
+      ["H", "1"],
+      ["I", "2"],
+      ["J", ""],
+      ["K", "second"],
+      ["L", "postgres://u:p=ss@h/db"],
+      ["C", "a#b"],
+      ["D", "a#b"],
+      ["Q", "line\\nbreak"],
+      ["S", "Let's go!"],
+    ]);
+  });
+
+  it("keeps empty values empty when followed by an inline comment", () => {
+    expect([...envValidator.parseEnv("N= # c\nVALUE= foo # c\n")]).toEqual([
+      ["N", ""],
+      ["VALUE", "foo"],
+    ]);
+  });
+
+  it("decodes the specified double-quoted escapes", () => {
+    const quote = String.fromCharCode(34);
+    const content = [
+      "VALUE=",
+      quote,
+      "line\\nnext\\r\\ttab",
+      "\\",
+      quote,
+      "quote",
+      "\\\\",
+      "slash",
+      "\\$dollar",
+      quote,
+    ].join("");
+
+    expect(envValidator.parseEnv(content).get("VALUE")).toBe(
+      'line\nnext\r\ttab"quote\\slash$dollar',
+    );
+  });
+});
+
+describe("Compose-compatible .env consumers", () => {
+  it("does not report a false database password mismatch for an inline comment", () => {
+    writeEnv(
+      "DB_PASSWORD=abc123 # developer note\nDATABASE_URL=postgresql://postgres:abc123@postgres:5432/app_dev\n",
+    );
+
+    expect(envValidator.validateEnvFile(root).warnings).not.toContain(
+      "DATABASE_URL carries a different password than DB_PASSWORD; the database container uses DB_PASSWORD",
+    );
+  });
+});
+
 describe("validateEnvFile parsing", () => {
   it("recognises names written with an export prefix", () => {
     writeEnv("export TILT_ENV=dev\nexport DB_PASSWORD=x\nexport JWT_SECRET=y\n");

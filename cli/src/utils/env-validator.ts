@@ -71,22 +71,53 @@ function generatedValue(name: string, password: string): string {
   return REQUIRED_ENV_VARS.find((v) => v.name === name)?.default ?? "";
 }
 
-/** Strips one layer of matching quotes, like a dotenv parser would. */
-function unquote(raw: string): string {
+function parseEnvValue(raw: string): string {
   const value = raw.trim();
-  if (value.length >= 2) {
-    const first = value[0];
-    if ((first === '"' || first === "'") && value[value.length - 1] === first) {
-      return value.slice(1, -1);
+  const quote = value[0];
+
+  if (quote === '"' || quote === "'") {
+    let escaped = false;
+    for (let index = 1; index < value.length; index += 1) {
+      const char = value[index];
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (char === "\\") {
+        escaped = true;
+        continue;
+      }
+      if (char === quote) {
+        const quoted = value.slice(1, index);
+        if (quote === '"') {
+          const escapes: Record<string, string> = {
+            n: "\n",
+            r: "\r",
+            t: "\t",
+            '"': '"',
+            "\\": "\\",
+            $: "$",
+          };
+          return quoted.replace(
+            /\\([nrt"\\$])/g,
+            (_match, escapedChar: string) => escapes[escapedChar] ?? escapedChar,
+          );
+        }
+        return quoted.replace(/\\'/g, "'");
+      }
     }
+    return value;
   }
-  return value;
+
+  const commentIndex = raw.search(/\s#/);
+  return (commentIndex === -1 ? raw : raw.slice(0, commentIndex)).trim();
 }
 
-/** Parses the assignments in a dotenv file: `NAME=value` and `export NAME=value`, ignoring comments and blank lines. */
+/** Parses the Compose-compatible subset used by TDK for project environment files. */
 export function parseEnv(content: string): Map<string, string> {
   const result = new Map<string, string>();
-  for (const rawLine of content.split(/\r?\n/)) {
+  const normalized = content.startsWith("\uFEFF") ? content.slice(1) : content;
+  for (const rawLine of normalized.split(/\r?\n/)) {
     const line = rawLine.trim();
     if (!line || line.startsWith("#")) continue;
     const assignment = line.startsWith("export ") ? line.slice("export ".length).trim() : line;
@@ -94,7 +125,7 @@ export function parseEnv(content: string): Map<string, string> {
     if (equals <= 0) continue;
     const name = assignment.slice(0, equals).trim();
     if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) continue;
-    result.set(name, unquote(assignment.slice(equals + 1)));
+    result.set(name, parseEnvValue(assignment.slice(equals + 1)));
   }
   return result;
 }

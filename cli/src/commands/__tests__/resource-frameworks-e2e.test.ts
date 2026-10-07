@@ -167,9 +167,17 @@ describe("frontend resource framework selection", () => {
     expect(cliPackage.dependencies).not.toHaveProperty("vue");
     expect(cliPackage.dependencies).not.toHaveProperty("@vitejs/plugin-vue");
     expect(vueTsconfig.compilerOptions).not.toHaveProperty("jsx");
-    expect(readFileSync(join(vuePath, "Dockerfile"), "utf-8")).toBe(
-      readFileSync(join(reactPath, "Dockerfile"), "utf-8"),
-    );
+    const normalizeDockerfilePorts = (dockerfile: string) =>
+      dockerfile
+        .replace(/^ENV PORT=\d+$/m, "ENV PORT=<PORT>")
+        .replace(/^EXPOSE \d+$/m, "EXPOSE <PORT>");
+    const vueDockerfile = readFileSync(join(vuePath, "Dockerfile"), "utf-8");
+    const reactDockerfile = readFileSync(join(reactPath, "Dockerfile"), "utf-8");
+    expect(vueDockerfile).toContain(`ENV PORT=${vueService.port}`);
+    expect(vueDockerfile).toContain(`EXPOSE ${vueService.port}`);
+    expect(reactDockerfile).toContain(`ENV PORT=${reactService.port}`);
+    expect(reactDockerfile).toContain(`EXPOSE ${reactService.port}`);
+    expect(normalizeDockerfilePorts(vueDockerfile)).toBe(normalizeDockerfilePorts(reactDockerfile));
     expect(readdirSync(vuePath).sort()).toEqual([
       "Dockerfile",
       "index.html",

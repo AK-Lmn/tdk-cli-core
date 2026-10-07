@@ -23,7 +23,10 @@ Nothing secret is ever written to a generated file. Generated files are checked 
 | `JWT_SECRET` | Signs `local-jwt` tokens. Generated per project (64 hex characters), never shared between projects. |
 | `VERDACCIO_URL_DOCKER`, `VERDACCIO_URL` | Only used by Verdaccio, a premium feature. Not required. |
 
-`.env` is parsed as dotenv: `export NAME=value` works, quotes are removed, and a quoted empty value (`NAME=""`) counts as empty.
+The project `.env` parser follows the Compose-compatible subset used by this CLI: `export NAME=value` works; unquoted inline
+comments are stripped only when `#` is preceded by whitespace; quoted values end at their matching quote and ignore the rest of the
+line. Double-quoted values decode `\n`, `\r`, `\t`, `\"`, `\\`, and `\$`. Single-quoted values remain literal, with `\'` accepted for an
+embedded quote. Variable interpolation, colon separators, and multiline values are not implemented here; Compose remains responsible for container interpolation. `NAME=""` and `NAME=''` count as empty.
 `tdk doctor` reports a missing required key, an empty one, and a `DATABASE_URL` whose password differs from `DB_PASSWORD`.
 
 ## Params

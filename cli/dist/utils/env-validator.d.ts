@@ -7,7 +7,7 @@ export interface EnvVariable {
     /** Written by `completeEnvFile` when a project's .env lacks it (a generated value, or the default). */
     complete?: boolean;
 }
-/** Parses the assignments in a dotenv file: `NAME=value` and `export NAME=value`, ignoring comments and blank lines. */
+/** Parses the Compose-compatible subset used by TDK for project environment files. */
 export declare function parseEnv(content: string): Map<string, string>;
 export declare function generateEnvFile(): string;
 export declare function validateEnvFile(projectRoot: string): {
