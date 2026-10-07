@@ -83,6 +83,7 @@ curl -fsSL https://tdk-landscape.github.io/install.sh | sh
 
 ## Docs
 
+- [CLI command cheat sheet](cli/README.md#cheat-sheet)
 - [Documentation index](docs/README.md)
 - [Pilot TDK on a real repository](docs/adopt-tdk.md)
 - [FAQ for agencies and multi-client teams](docs/faq-teams.md)

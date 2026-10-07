@@ -6,6 +6,23 @@ TDK CLI starts local services; it is not a deploy and not a Compose file. Define
 
 New to contributing? Start with the [step-by-step contributor guide](../docs/contributing/README.md). To add a Vite frontend framework, see the [frontend provider guide](../docs/frontend-framework-providers.md).
 
+## Cheat sheet
+
+Run in a project with Bun, Docker, and Tilt. On Windows, run the CLI in WSL2.
+
+| Command | When to use it |
+| --- | --- |
+| `tdk project --yes` | Create a project with the default setup. |
+| `tdk resource api --type backend --stack api --yes` | Scaffold `api` directly into the `api` stack. |
+| `tdk stack api` | Assign unstacked resources to `api` interactively. |
+| `tdk stacks --services` | See which resources belong to each stack. |
+| `tdk resources --ports` | Check resource assignments and port mappings. |
+| `tdk up api` | Start services in the `api` stack. |
+| `tdk status` | Check the current stack and service state. |
+| `tdk down --force` | Stop all services without a confirmation prompt. |
+| `tdk doctor --no-ping` | Check readiness without pinging service health endpoints. |
+| `tdk projects --check` | Validate project configuration before CI. |
+
 ---
 
 ## 🏗️ Project-Stack-Resource Commands
