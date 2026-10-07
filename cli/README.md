@@ -47,8 +47,18 @@ tdk stack api
 tdk stack order
 
 # ▶️ Start/stop a stack
-tdk up api           # 🚀 Start api stack
-tdk down                  # ⏹️  Stop all services
+tdk up api                     # 🚀 Start api stack
+tdk up                         # 🚀 Start all stacks
+tdk up --dry-run               # 🔍 Preview services and URLs without starting
+tdk up --quiet                 # 🤫 Suppress non-essential output (-q)
+tdk up --verbose               # 📝 Verbose output (shows runtime assets, Tilt logs) (-v)
+tdk up --force                 # ⚡ Kill existing Tilt process before starting (-f)
+
+tdk down                       # ⏹️  Stop all services and Tilt
+tdk down --force               # ⚡ Skip confirmation (-f)
+tdk down --dry-run             # 🔍 Show the command without stopping resources
+tdk down --verbose             # 📝 Verbose output (-v)
+tdk down --prune-networks      # 🧹 Also remove unattached Docker networks for this project
 ```
 
 ---
@@ -182,7 +192,11 @@ cd ../api-app && bun install
 tdk up api
 
 # 5️⃣  Check status
-tdk status
+tdk status                     # 📋 Overview of stacks and resources
+tdk status --stacks            # 🗂️  Show stack information (default)
+tdk status --tilt              # 🔍 Query active Tilt resource status
+tdk status --verbose           # 📝 Detailed resource breakdowns per stack (-v)
+tdk status --json              # 🤖 Machine-readable JSON status report
 tdk resources --stack api
 ```
 
