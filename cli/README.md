@@ -236,7 +236,17 @@ if Determinism.is_deterministic_mode():
 Cold first run: `npx @tdk-landscape/tdk-cli-core`; diagnostics: `npx @tdk-landscape/tdk-cli-core doctor`.
 
 ```bash
-🔧 tdk doctor
+# Check local environment and project readiness
+tdk doctor
+
+# Skip pinging running services' /health endpoints
+tdk doctor --no-ping
+
+# Custom per-service ping timeout in milliseconds (default: 1500)
+tdk doctor --ping-timeout 3000
+
+# Machine-readable JSON readiness report
+tdk doctor --json
 ```
 
 Checks for:
@@ -247,6 +257,18 @@ Checks for:
 - ✅ Tiltfile present
 - ✅ Master config files exist
 - ✅ Docker Engine 25+ and Docker Compose 2.20.2+ (generated healthchecks use `start_interval`)
+
+### Options & Exit Codes
+
+- `--no-ping`: Skip pinging running services' `/health` endpoints. Useful when checking host tools or static configurations without probing runtime services.
+- `--ping-timeout <ms>`: Per-service health check timeout in milliseconds (must be a positive integer, defaults to `1500`).
+
+When checks fail, `tdk doctor` prints each issue with `✗` in red along with actionable remediation steps marked with `ℹ Fix: ...`.
+
+**Exit codes:**
+- `0`: All required checks passed (warnings permitted).
+- `1`: One or more blocking checks failed; environment or project needs fixing.
+- `2`: Invalid CLI usage or option validation failure (e.g., non-positive `--ping-timeout`).
 
 ### Container footprint
 
