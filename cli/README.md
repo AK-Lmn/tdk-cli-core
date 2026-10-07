@@ -242,7 +242,7 @@ tdk doctor
 # Skip pinging running services' /health endpoints
 tdk doctor --no-ping
 
-# Custom per-service ping timeout in milliseconds (default: 1500)
+# Custom per-service ping timeout in milliseconds (default: 5000)
 tdk doctor --ping-timeout 3000
 
 # Machine-readable JSON readiness report
@@ -261,7 +261,7 @@ Checks for:
 ### Options & Exit Codes
 
 - `--no-ping`: Skip pinging running services' `/health` endpoints. Useful when checking host tools or static configurations without probing runtime services.
-- `--ping-timeout <ms>`: Per-service health check timeout in milliseconds (must be a positive integer, defaults to `1500`).
+- `--ping-timeout <ms>`: Per-service health check timeout in milliseconds (must be a positive integer, defaults to `5000`).
 
 When checks fail, `tdk doctor` prints each issue with `✗` in red. It prints `ℹ Fix: ...` when a check provides remediation.
 
