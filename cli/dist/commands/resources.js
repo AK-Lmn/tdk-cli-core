@@ -33,7 +33,7 @@ export const resourcesCommand = new Command("resources")
         }
         const discovery = createDiscoveryContext();
         if (options.stack && !stackExists(options.stack, discovery.resources)) {
-            const error = errorFactories.stackNotFound(options.stack);
+            const error = errorFactories.stackNotFound(options.stack, discovery.stackNames);
             if (options.json)
                 writeMachineError(error);
             error.exit();

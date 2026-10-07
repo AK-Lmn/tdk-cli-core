@@ -32,6 +32,7 @@ import {
 } from "../utils/host-port-config.js";
 import { formatHostPortPlan } from "../utils/host-port-plan.js";
 import { createJsonEmitter } from "../utils/json-output.js";
+import { toMachineError } from "../utils/machine-output.js";
 import { findProjectRoot, getPackageVersion } from "../utils/paths.js";
 import { findAvailablePort } from "../utils/port-assignment.js";
 import { formatPortFallbackNotice } from "../utils/port-fallback-notice.js";
@@ -245,17 +246,34 @@ export const upCommand = new Command("up")
       const foundRoot = options.dryRun ? requireProjectRoot() : findProjectRoot();
       const projectRoot = foundRoot ?? process.cwd();
       const discoveredResources = discoverResourcesStrict();
+      let discoveredStacks: ReturnType<typeof discoverStacks> | undefined;
+      let discoveredStackNames: string[] = [];
+      if (!options.only || stackName) {
+        discoveredStacks = discoverStacks(discoveredResources);
+        discoveredStackNames = discoveredStacks.map((stack) => stack.name);
+      }
       // Reject a bad request before anything below can write to the project (.env, runtime assets, .tdk/project.json).
       if (options.only) {
-        if (stackName && !stackExists(stackName)) errorFactories.stackNotFound(stackName).exit();
+        if (stackName && !stackExists(stackName)) {
+          const error = errorFactories.stackNotFound(stackName, discoveredStackNames);
+          emit?.({ ok: false }, [toMachineError(error).error]);
+          error.exit();
+        }
         const candidates = stackName
           ? discoveredResources.filter((resource) => resource.stack === stackName)
           : discoveredResources;
         const unknown = findUnknownServices(options.only, candidates);
         if (unknown.length > 0) {
-          const message = `Unknown service ${unknown.join(", ")}. Valid names: ${candidates.map((s) => s.name).join(", ")}`;
-          emit?.({ ok: false }, [{ code: "UNKNOWN_SERVICE", message }]);
-          showErrorAndExit(message, 2);
+          const validNames = candidates.map((service) => service.name);
+          const error = errorFactories.unknownServices(unknown, validNames);
+          emit?.({ ok: false }, [
+            {
+              code: "UNKNOWN_SERVICE",
+              message: error.message,
+              ...(error.suggestions.length > 0 ? { suggestions: error.suggestions } : {}),
+            },
+          ]);
+          error.exit();
         }
       }
       // Also under --dry-run: the check only reads, and a dry run should show what a real run would refuse.
@@ -304,14 +322,16 @@ export const upCommand = new Command("up")
       if (stackName) {
         servicesToStart = discoveredResources.filter((resource) => resource.stack === stackName);
         if (servicesToStart.length === 0) {
-          errorFactories.stackNotFound(stackName).exit();
+          const error = errorFactories.stackNotFound(stackName, discoveredStackNames);
+          emit?.({ ok: false }, [toMachineError(error).error]);
+          error.exit();
         }
 
         focusServiceNames = servicesToStart.map((s) => s.name);
         stackDescription = `stack "${stackName}"`;
       } else {
         servicesToStart = discoveredResources;
-        const allStacks = discoverStacks(discoveredResources);
+        const allStacks = discoveredStacks ?? discoverStacks(discoveredResources);
         stackDescription = `all stacks (${formatCount(allStacks.length, "stack")}, ${formatCount(servicesToStart.length, "service")})`;
       }
 
