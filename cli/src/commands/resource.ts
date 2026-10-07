@@ -566,6 +566,7 @@ export const resourceCommand = new Command("resource")
             ),
         });
       }
+
       const frontendFramework = resolveFrontendFramework(
         resourceType,
         frameworkOption,

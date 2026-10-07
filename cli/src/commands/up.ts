@@ -15,6 +15,7 @@ import {
 } from "../utils/agent-host.js";
 import { handleDryRun } from "../utils/command-helpers.js";
 import { getDeferredResourceNames } from "../utils/doctor-runtime.js";
+import { checkDriftGate } from "../utils/drift-gate.js";
 import { completeEnvFile } from "../utils/env-validator.js";
 import {
   errorFactories,
@@ -459,6 +460,13 @@ export const upCommand = new Command("up")
           wait: (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)),
         },
       );
+
+      // Verify generated files before starting Tilt
+      checkDriftGate({
+        projectRoot,
+        ignoreDrift: options.ignoreDrift,
+        quiet: options.quiet,
+      });
 
       if (!options.quiet) {
         console.log(chalk.gray("\nRunning tilt up..."));
