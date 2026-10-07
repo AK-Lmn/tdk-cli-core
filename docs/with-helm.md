@@ -11,7 +11,7 @@ Local:   tdk up shop      → containers on the laptop, *.localhost
 Cluster: helm upgrade …   → Deployment/Service in Kubernetes
 ```
 
-TDK runs many services on your laptop with Docker + Tilt. Helm still deploys the cluster.
+TDK CLI — start services on your laptop.
 
 TDK is the local development inner loop. It scaffolds services, generates local Dockerfile layers and Tilt configuration, starts local proxy/Postgres services, and lets you choose which local services to run. Helm and your cluster tooling own replicas, readiness/liveness probes, ingress class and hosts, PVCs, node selectors, IRSA, HPA, and other production policy.
 

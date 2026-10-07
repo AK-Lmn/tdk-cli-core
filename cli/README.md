@@ -1,6 +1,6 @@
 # 🚀 TDK CLI — start services on your laptop
 
-TDK CLI starts local services; it is not a deploy and not a Compose file. Define services in `service.json`, then run `tdk up`. No Kubernetes is needed on the machine. If your existing Helm, Compose, or Tilt workflow already works locally, keep using it.
+TDK CLI — start services on your laptop. It is not a deploy and not a Compose file. Define services in `service.json`, then run `tdk up`. No Kubernetes is needed on the machine. If your existing Helm, Compose, or Tilt workflow already works locally, keep using it.
 
 > Command reference for the `tdk` CLI. See the **[main README](../README.md)** for onboarding and the **[Helm handoff guide](../docs/with-helm.md)** for the local-development/production boundary.
 

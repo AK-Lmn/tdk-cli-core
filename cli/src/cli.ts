@@ -33,7 +33,7 @@ const program = new Command();
 
 program
   .name("tdk")
-  .description("Tilt Development Kit - Project/Stack/Resource management")
+  .description("TDK CLI — start services on your laptop.")
   .version(pkg.version, "-v, --version", "Display version number")
   .option("--verbose", "Enable verbose output", false)
   .configureOutput({

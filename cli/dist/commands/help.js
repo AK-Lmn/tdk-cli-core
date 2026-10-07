@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import pkg from "../../package.json" with { type: "json" };
 const TDK_BANNER = `
-  ${chalk.bold.cyan("tdk")} ${chalk.gray(`v${pkg.version}`)}  ${chalk.white("TDK runs many services locally with Docker + Tilt; Helm deploys the cluster")}
+  ${chalk.bold.cyan("tdk")} ${chalk.gray(`v${pkg.version}`)}  ${chalk.white("TDK CLI — start services on your laptop.")}
 `;
 const COMMAND_GROUPS = [
     {

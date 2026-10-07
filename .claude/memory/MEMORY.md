@@ -12,6 +12,7 @@ Hard-won, repo-specific facts for anyone (human or agent) working here. Keep ent
 - Do not leave `.skip` on a failing test; fix the code or the setup.
 
 ## PR and CI traps
+- 2026-10-08 (#443): In the Windows sparse checkout, project-templates.test.ts fails because its examples/ fixture is omitted, while tilt.test.ts expects POSIX / paths. Report those failures as checkout/platform-specific rather than as a Linux full-checkout baseline.
 - `cli/dist/` is gitignored but tracked file by file: after `npm run build`, `git add -f` new dist files. A missing one fails `README quickstart on a clean machine` with `ERR_MODULE_NOT_FOUND`.
 - Never commit a `cli/node_modules` symlink (`.gitignore` does not match a symlink). It stalls `bun install` and makes Lint/Test/Typecheck look cancelled.
 - Open every PR against `main`; no stacked PRs (a stacked PR merged into a squash-merged base never reaches `main`). After a merge, check the files exist on `origin/main`.
