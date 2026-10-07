@@ -263,12 +263,12 @@ Checks for:
 - `--no-ping`: Skip pinging running services' `/health` endpoints. Useful when checking host tools or static configurations without probing runtime services.
 - `--ping-timeout <ms>`: Per-service health check timeout in milliseconds (must be a positive integer, defaults to `1500`).
 
-When checks fail, `tdk doctor` prints each issue with `✗` in red along with actionable remediation steps marked with `ℹ Fix: ...`.
+When checks fail, `tdk doctor` prints each issue with `✗` in red. It prints `ℹ Fix: ...` when a check provides remediation.
 
 **Exit codes:**
 - `0`: All required checks passed (warnings permitted).
 - `1`: One or more blocking checks failed; environment or project needs fixing.
-- `2`: Invalid CLI usage or option validation failure (e.g., non-positive `--ping-timeout`).
+- `2`: Invalid CLI usage, option validation failure (e.g., non-positive `--ping-timeout`), or internal doctor-check error.
 
 ### Container footprint
 
