@@ -14,6 +14,7 @@ import {
   WEBCONTAINER_UP_MESSAGE,
 } from "../utils/agent-host.js";
 import { handleDryRun } from "../utils/command-helpers.js";
+import { STANDARD_PORTS } from "../utils/constants.js";
 import { getDeferredResourceNames } from "../utils/doctor-runtime.js";
 import { completeEnvFile } from "../utils/env-validator.js";
 import {
@@ -443,7 +444,7 @@ export const upCommand = new Command("up")
       exportHostPortPlan(hostPortPlan);
       writeSavedHostPortPlan(projectRoot, hostPortPlan);
 
-      const basePort = 10350;
+      const basePort = STANDARD_PORTS.tiltUi;
       const watchedPort = configuredTiltPort ?? basePort;
       const candidatePorts = options.only ? [...new Set([basePort, watchedPort])] : [watchedPort];
       const running: number[] = [];

@@ -302,6 +302,7 @@ Checks for:
 - `--ping-timeout <ms>`: Per-service health check timeout in milliseconds (must be a positive integer, defaults to `5000`).
 
 When checks fail, `tdk doctor` prints each issue with `✗` in red. It prints `ℹ Fix: ...` when a check provides remediation.
+The general Tilt-resource fix points to the URL printed by `tdk up`; the default port can be auto-switched when occupied, and `TILT_PORT` can override it.
 
 **Exit codes:**
 - `0`: All required checks passed (warnings permitted).

@@ -2,6 +2,7 @@ import { execFileSync, execSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { join } from "node:path";
+import { STANDARD_PORTS } from "./constants.js";
 import { formatCount } from "./formatting.js";
 import { findProjectRoot } from "./paths.js";
 import { isApiServiceType } from "./resource-kind.js";
@@ -590,7 +591,9 @@ export function checkTiltResourceHealth(exec = execSync) {
     const hasRegistryFailure = ordered.some((failure) => isRegistryRelatedBuildError(failure.error) ||
         isRegistryRelatedBuildError(summarizeTiltBuildError(failure.error)));
     const hasKafkaRuntimeFailure = described.some(({ why }) => /Kafka broker unreachable|kafka:9092/i.test(why));
-    let fix = "Open http://localhost:10350, inspect the red resources, fix the listed errors, then `tilt trigger <resource>` or re-run `tdk up`.";
+    let fix = "Open the Tilt UI URL printed by tdk up (default port " +
+        STANDARD_PORTS.tiltUi +
+        " when TILT_PORT is unset), inspect the red resources, fix the listed errors, then `tilt trigger <resource>` or re-run `tdk up`.";
     if (hasPortConflict) {
         fix =
             "Free the conflicting host port (usually 80/443): `docker ps --filter publish=80` then `docker stop <other-traefik>`. Re-trigger Traefik in the Tilt UI or run `tdk up` again.";

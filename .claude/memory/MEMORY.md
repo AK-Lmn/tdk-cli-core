@@ -11,6 +11,8 @@ Hard-won, repo-specific facts for anyone (human or agent) working here. Keep ent
 - A red test must be red for the right reason: temporarily remove the fix and read the failure. Common ways a test is red wrongly: a JS template literal evaluating `${...}`, JSON `true`/`null` pasted into Starlark (`True`/`None`), a too-narrow regex.
 - Do not leave `.skip` on a failing test; fix the code or the setup.
 
+- 2026-10-08 (#88): In doctor-runtime tests on Windows, runHostCommand uses execFileSync instead of the injected exec callback; mock execFileSync or stub process.platform when a test needs to provide command output.
+
 ## PR and CI traps
 - 2026-10-08 (#443): In the Windows sparse checkout, project-templates.test.ts fails because its examples/ fixture is omitted, while tilt.test.ts expects POSIX / paths. Report those failures as checkout/platform-specific rather than as a Linux full-checkout baseline.
 - `cli/dist/` is gitignored but tracked file by file: after `npm run build`, `git add -f` new dist files. A missing one fails `README quickstart on a clean machine` with `ERR_MODULE_NOT_FOUND`.

@@ -1,7 +1,8 @@
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { STANDARD_PORTS } from "../../utils/constants.js";
 import {
   checkHostPorts,
   checkIngressPorts,
@@ -624,6 +625,43 @@ describe("doctor ingress + tilt runtime checks", () => {
     expect(result.message).toContain("port 80");
     expect(result.message).toContain("pending");
     expect(result.fix).toMatch(/docker ps --filter publish=80|Free the conflicting/);
+  });
+
+  it("points to the URL printed by tdk up when Tilt resources fail", () => {
+    const payload = {
+      items: [
+        {
+          metadata: { name: "api" },
+          status: { updateStatus: "error", runtimeStatus: "unknown" },
+        },
+      ],
+    };
+
+    const originalProcess = process;
+    vi.stubGlobal(
+      "process",
+      new Proxy(originalProcess, {
+        get(target, property) {
+          if (property === "platform") return "linux";
+          const value = Reflect.get(target, property, target);
+          return typeof value === "function" ? value.bind(target) : value;
+        },
+      }),
+    );
+
+    try {
+      const result = checkTiltResourceHealth(((command: string) => {
+        if (command.includes("tilt get uiresources -o json")) return JSON.stringify(payload);
+        return "";
+      }) as never);
+
+      expect(result.didPass).toBe(false);
+      expect(result.fix).toContain("Open the Tilt UI URL printed by tdk up");
+      expect(result.fix).toContain(`default port ${STANDARD_PORTS.tiltUi} when TILT_PORT is unset`);
+      expect(result.fix).not.toContain("localhost:10350");
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it("separates sablier.deferStart resources from genuinely pending ones", () => {
