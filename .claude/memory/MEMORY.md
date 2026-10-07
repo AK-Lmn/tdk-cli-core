@@ -31,6 +31,7 @@ Hard-won, repo-specific facts for anyone (human or agent) working here. Keep ent
 - Env and secrets: no JWT in generated files; Compose takes `JWT_SECRET` from the project `.env`; `completeEnvFile` appends missing keys and never rotates.
 
 ## Housekeeping
+- 2026-10-07 (#670): The archived public `tdk` root (`1714637`) is separate from the filtered `tdk-cli` history imported into `main`. Keep README chronology clear about both histories and the later repository and npm dates.
 - Verification scripts must remove every tag of `app_<project>` images (Tilt adds a `tilt-<hash>` tag) and the project's containers and networks.
 - `PAGES_SYNC_TOKEN` is not set, so the schema publish workflow succeeds but does nothing.
 - npm publication can succeed before cached registry metadata shows the new version (2026-10-05, importer 0.1.1): wait for ordinary `npm view` and fresh-cache `npx` to see it before removing release gates; verify the registry tarball against the workflow artifact.
