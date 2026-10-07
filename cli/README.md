@@ -56,7 +56,7 @@ tdk up --force                 # ⚡ Kill existing Tilt process before starting 
 
 tdk down                       # ⏹️  Stop all services and Tilt
 tdk down --force               # ⚡ Skip confirmation (-f)
-tdk down --dry-run             # 🔍 Preview what would be stopped
+tdk down --dry-run             # 🔍 Show the command without stopping resources
 tdk down --verbose             # 📝 Verbose output (-v)
 tdk down --prune-networks      # 🧹 Also remove unattached Docker networks for this project
 ```
@@ -193,7 +193,6 @@ tdk up api
 
 # 5️⃣  Check status
 tdk status                     # 📋 Overview of stacks and resources
-tdk status --resources         # 📦 Show all discovered resources
 tdk status --stacks            # 🗂️  Show stack information (default)
 tdk status --tilt              # 🔍 Query active Tilt resource status
 tdk status --verbose           # 📝 Detailed resource breakdowns per stack (-v)
