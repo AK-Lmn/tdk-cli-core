@@ -581,6 +581,13 @@ export const resourceCommand = new Command("resource")
       // Check if resource already exists
       const isExistingResource = existsSync(fullPath);
       const hasServiceJson = existsSync(resolve(fullPath, "service.json"));
+
+      if (resourceType === "sdk" && !hasServiceJson) {
+        throw new TdkError(`No service.json in ${finalResourcePath}`, [
+          'Add one with "appType": "sdk", then run this again to register it',
+        ]);
+      }
+
       const shouldRegisterExisting =
         options.registerExisting ||
         resourceType === "sdk" ||

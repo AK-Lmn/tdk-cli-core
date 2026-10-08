@@ -663,6 +663,28 @@ describe("resource command non-interactive mode", () => {
     }
   });
 
+  it("fails clearly when an SDK has no service.json to register", () => {
+    const projectRoot = createResourceProject();
+    try {
+      const result = runResourceCli(projectRoot, [
+        "r-sdk",
+        "--type",
+        "sdk",
+        "--stack",
+        "shop",
+        "--yes",
+      ]);
+      const output = result.stdout + result.stderr;
+
+      expect(result.status).toBe(1);
+      expect(output).toContain("No service.json in packages/r-sdk");
+      expect(output).toContain('Add one with "appType": "sdk", then run this again to register it');
+      expect(existsSync(join(projectRoot, "packages", "r-sdk"))).toBe(false);
+    } finally {
+      rmSync(projectRoot, { recursive: true, force: true });
+    }
+  });
+
   it("accepts confirmation input piped through stdin without --yes", () => {
     const projectRoot = createResourceProject();
     try {
