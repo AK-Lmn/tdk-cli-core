@@ -14,8 +14,10 @@ import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const execSyncMock = vi.fn();
+const execFileSyncMock = vi.fn();
 vi.mock("node:child_process", () => ({
   execSync: (...args: unknown[]) => execSyncMock(...args),
+  execFileSync: (...args: unknown[]) => execFileSyncMock(...args),
 }));
 vi.mock("../../utils/tar.js", () => ({
   extractTarball: (_data: Buffer, destination: string) => {
@@ -29,6 +31,8 @@ const {
   isWritable,
   parseChecksums,
   upgradeViaBinary,
+  upgradeViaNpm,
+  upgradeViaBun,
   windowsNpmUpgradeMessage,
 } = await import("../upgrade.js");
 
@@ -178,6 +182,66 @@ describe("upgradeViaBinary", () => {
       expect(isWritable(installDir)).toBe(false);
     } finally {
       chmodSync(installDir, 0o755);
+    }
+  });
+});
+
+describe("package-manager upgrade failures", () => {
+  it("does not switch to the GitHub default branch when npm install fails", async () => {
+    execSyncMock.mockReset();
+    const npmStderr = "npm error code EACCES: permission denied\n";
+    execSyncMock.mockImplementationOnce(() => {
+      const error = new Error("Command failed: npm install -g @tdk-landscape/tdk-cli-core@latest");
+      Object.assign(error, { stderr: Buffer.from(npmStderr) });
+      throw error;
+    });
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const stderr = vi.spyOn(process.stderr, "write").mockReturnValue(true);
+
+    try {
+      const ok = await upgradeViaNpm();
+      expect(ok).toBe(false);
+      expect(execSyncMock).toHaveBeenCalledTimes(1);
+      expect(String(execSyncMock.mock.calls[0]?.[0])).toBe(
+        "npm install -g @tdk-landscape/tdk-cli-core@latest",
+      );
+      expect(execSyncMock.mock.calls[0]?.[1]).toMatchObject({
+        stdio: ["inherit", "inherit", "pipe"],
+      });
+      expect(stderr).toHaveBeenCalledWith(npmStderr);
+      const output = log.mock.calls.flat().map(String).join("\n");
+      expect(output).toContain("npm install -g @tdk-landscape/tdk-cli-core@latest");
+      expect(output).toContain("docs.npmjs.com");
+      expect(output).not.toContain("github:");
+      expect(output).not.toContain("Upgraded successfully");
+    } finally {
+      stderr.mockRestore();
+      log.mockRestore();
+    }
+  });
+
+  it("does not switch to the GitHub default branch when Bun install fails", async () => {
+    execFileSyncMock.mockReset();
+    execFileSyncMock.mockImplementationOnce(() => {
+      throw new Error("registry unavailable");
+    });
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    try {
+      const ok = await upgradeViaBun();
+      expect(ok).toBe(false);
+      expect(execFileSyncMock).toHaveBeenCalledTimes(1);
+      expect(execFileSyncMock.mock.calls[0]?.[1]).toEqual([
+        "install",
+        "-g",
+        "@tdk-landscape/tdk-cli-core@latest",
+      ]);
+      const output = log.mock.calls.flat().map(String).join("\n");
+      expect(output).toContain("bun install -g @tdk-landscape/tdk-cli-core@latest");
+      expect(output).not.toContain("github:");
+      expect(output).not.toContain("Upgraded successfully");
+    } finally {
+      log.mockRestore();
     }
   });
 });

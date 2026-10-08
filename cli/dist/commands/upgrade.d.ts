@@ -17,6 +17,8 @@ export interface BinaryRelease {
 export declare function parseChecksums(text: string): Map<string, string>;
 export declare function isWritable(path: string): boolean;
 export declare function upgradeViaBinary(tdkPath: string, release: BinaryRelease): Promise<boolean>;
+export declare function upgradeViaNpm(): Promise<boolean>;
+export declare function upgradeViaBun(): Promise<boolean>;
 export declare const upgradeCommand: Command;
 export {};
 //# sourceMappingURL=upgrade.d.ts.map
