@@ -145,6 +145,46 @@ it("navigates with vim keys and terminal page/home/end sequences while search re
   }
 });
 
+it("uses the shared keymap for footer hints and the help panel", async () => {
+  const io = streams();
+  io.stdout.rows = 40;
+  loadTiltEventsMock.mockReset().mockResolvedValue({ resources: [], events: [] });
+  const app = render(<TUIApp animated={false} />, {
+    stdin: io.stdin,
+    stdout: io.stdout,
+    stderr: io.stderr,
+    interactive: true,
+    exitOnCtrlC: false,
+    patchConsole: false,
+  });
+  const send = async (key: string) => {
+    io.stdin.write(key);
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    await app.waitUntilRenderFlush();
+  };
+  const output = () => io.output().replace(ANSI_SGR, "");
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    await app.waitUntilRenderFlush();
+    expect(output()).toContain("[Enter or Space] Select");
+    expect(output()).toContain("[e] show all");
+    await send("3");
+    await new Promise((resolve) => setTimeout(resolve, 2100));
+    await app.waitUntilRenderFlush();
+    expect(output()).toContain("[Tab/Shift+Tab] Tabs");
+    await send("?");
+    expect(output()).toContain("Keyboard Shortcuts");
+    expect(output()).toContain("Tab/Shift+Tab Next / previous tab");
+    expect(output()).toContain("1-5 Direct tab access");
+    expect(output()).toContain("Enter or Space Select item / Open detail");
+  } finally {
+    app.unmount();
+    io.stdin.destroy();
+    io.stdout.destroy();
+    io.stderr.destroy();
+  }
+});
+
 it("renders Tilt events and refreshes them with r", async () => {
   const snapshot = {
     resources: [{ name: "api", runtimeStatus: "OK", updateStatus: "OK", hasPendingChanges: false }],

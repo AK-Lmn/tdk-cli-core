@@ -43,6 +43,7 @@ import {
   stripTerminalControls,
   TiltEventsLoadError,
 } from "../utils/tilt-events.js";
+import { formatUiKeyHint, formatUiKeyNames, UI_KEYMAP } from "../utils/ui-keymap.js";
 import {
   applyServiceStates,
   fetchServiceStates,
@@ -64,37 +65,18 @@ const HelpPanel: React.FC<HelpPanelProps> = ({ onClose }) => {
         Keyboard Shortcuts
       </Text>
       <Box marginY={1} flexDirection="column">
-        <Text bold underline color={theme.foreground}>
-          Navigation
-        </Text>
-        <Text color={theme.foreground}>
-          {theme.ascii
-            ? " [UP/DOWN] or j/k Navigate list items"
-            : " \u2191/\u2193 or j/k Navigate list items"}
-        </Text>
-        <Text color={theme.foreground}> g/G or Home/End First/last item</Text>
-        <Text color={theme.foreground}> PgUp/PgDn Move one page</Text>
-        <Text color={theme.foreground}> Enter Select item / Open detail</Text>
-        <Text color={theme.foreground}> Tab Next tab</Text>
-        <Text color={theme.foreground}>
-          {" "}
-          {TABS[0].shortcut}-{TABS[TABS.length - 1].shortcut} Direct tab access
-        </Text>
-
-        <Box marginTop={1}>
-          <Text bold underline color={theme.foreground}>
-            Actions
-          </Text>
-        </Box>
-        <Text color={theme.foreground}> m Toggle mouse support</Text>
-        <Text color={theme.foreground}> t Toggle tooltips</Text>
-        <Text color={theme.foreground}> e Toggle enabled/disabled services</Text>
-        <Text color={theme.foreground}> r Refresh data</Text>
-        <Text color={theme.foreground}> / Search/filter</Text>
-        <Text color={theme.foreground}> ? Show this help</Text>
-        <Text color={theme.foreground}>
-          {theme.ascii ? " q Quit | Esc Back" : " q Quit \u2502 Esc Back"}
-        </Text>
+        {(["Navigation", "Actions"] as const).map((group) => (
+          <Box key={group} marginTop={group === "Actions" ? 1 : 0} flexDirection="column">
+            <Text bold underline color={theme.foreground}>
+              {group}
+            </Text>
+            {UI_KEYMAP.filter((shortcut) => shortcut.group === group).map((shortcut) => (
+              <Text key={shortcut.id} color={theme.foreground}>
+                {` ${formatUiKeyNames(shortcut.id, theme.ascii)} ${shortcut.label}`}
+              </Text>
+            ))}
+          </Box>
+        ))}
       </Box>
       <Box marginTop={1}>
         <Text color={theme.muted} dimColor={theme.dimMuted}>
@@ -570,6 +552,7 @@ export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) =>
     };
   }, [stdout, handleResize]);
 
+  // Keep this dispatcher in sync with UI_KEYMAP; the shared map drives the help panel and footer.
   useInput((input, key) => {
     if (error) {
       if (input === "r" || input === "R") {
@@ -1130,34 +1113,59 @@ function createHelpHint(
   showEnabledOnly: boolean,
   ascii: boolean,
 ): string {
-  const separator = ascii ? " | " : " \u2502 ";
-  const enabledHint = `[e] ${showEnabledOnly ? "show all" : "enabled only"}`;
-  const common = [enabledHint, "[?] help"];
-  const tabRange = `${TABS[0].shortcut}-${TABS[TABS.length - 1].shortcut}`;
+  const separator = ascii ? " | " : " │ ";
+  const enabledHint = formatUiKeyHint(
+    "toggle-enabled",
+    showEnabledOnly ? "show all" : "enabled only",
+    ascii,
+  );
+  const common = [enabledHint, formatUiKeyHint("help", "help", ascii)];
+  const cycleTabs = formatUiKeyHint("cycle-tabs", "Tabs", ascii);
 
   if (activeTab === "overview") {
     const introduction = selectedStack
-      ? `Stack "${selectedStack}" selected. [Enter] view`
-      : `${ascii ? "[UP/DOWN]" : "[\u2191/\u2193]"} Navigate`;
-    const controls = selectedStack ? ["[Esc] back", ...common] : ["[Enter] Select", ...common];
+      ? 'Stack "' + selectedStack + '" selected. ' + formatUiKeyHint("select", "view", ascii)
+      : formatUiKeyHint("list-navigation", "Navigate", ascii);
+    const controls = selectedStack
+      ? [formatUiKeyHint("back", "back", ascii), ...common]
+      : [formatUiKeyHint("select", "Select", ascii), ...common];
     return [introduction, ...controls].join(separator);
   }
   if (activeTab === "resources") {
-    return ["[Tab] Tabs", "[r] Refresh", "[/] Search", ...common].join(separator);
+    return [
+      cycleTabs,
+      formatUiKeyHint("refresh", "Refresh", ascii),
+      formatUiKeyHint("search", "Search", ascii),
+      ...common,
+    ].join(separator);
   }
   if (activeTab === "files" && selectedService) {
-    return [`Service "${selectedService}"`, "[Esc] Back", ...common].join(separator);
+    return [
+      'Service "' + selectedService + '"',
+      formatUiKeyHint("back", "Back", ascii),
+      ...common,
+    ].join(separator);
   }
   if (activeTab === "files") {
     return ["Select service to view files", ...common].join(separator);
   }
   if (activeTab === "events") {
-    return ["[r] Refresh events", "[Tab] Next", "[?] help", "[q] Quit"].join(separator);
+    return [
+      formatUiKeyHint("refresh", "Refresh events", ascii),
+      formatUiKeyHint("cycle-tabs", "Tabs", ascii),
+      formatUiKeyHint("help", "help", ascii),
+      formatUiKeyHint("quit", "Quit", ascii),
+    ].join(separator);
   }
   if (activeTab === "config") {
     return ["View configurations", ...common].join(separator);
   }
-  return ["[Tab] Next", `[${tabRange}] Tabs`, ...common, "[q] Quit"].join(separator);
+  return [
+    formatUiKeyHint("cycle-tabs", "Tabs", ascii),
+    formatUiKeyHint("direct-tabs", "Tabs", ascii),
+    ...common,
+    formatUiKeyHint("quit", "Quit", ascii),
+  ].join(separator);
 }
 
 const TUIRoot: React.FC<{ animated?: boolean; highContrast?: boolean }> = ({

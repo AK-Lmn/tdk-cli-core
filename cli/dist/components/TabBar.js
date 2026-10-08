@@ -1,14 +1,9 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { Box, Text } from "ink";
 import { getTabBarDensity, getTerminalRuleWidth } from "../utils/terminal-layout.js";
+import { TABS } from "../utils/ui-keymap.js";
 import { useTUITheme } from "./ui-theme.js";
-export const TABS = [
-    { id: "overview", label: "OVERVIEW", shortcut: "1" },
-    { id: "resources", label: "RESOURCES", shortcut: "2" },
-    { id: "events", label: "EVENTS", shortcut: "3" },
-    { id: "files", label: "FILES", shortcut: "4" },
-    { id: "config", label: "CONFIG", shortcut: "5" },
-];
+export { TABS };
 export const TabBar = ({ activeTab, compact = false, terminalWidth }) => {
     const theme = useTUITheme();
     const responsive = terminalWidth !== undefined;

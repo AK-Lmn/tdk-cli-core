@@ -1,16 +1,11 @@
 import { Box, Text } from "ink";
 import type React from "react";
-import type { Tab, TabBarProps } from "../types/index.js";
+import type { TabBarProps } from "../types/index.js";
 import { getTabBarDensity, getTerminalRuleWidth } from "../utils/terminal-layout.js";
+import { TABS } from "../utils/ui-keymap.js";
 import { useTUITheme } from "./ui-theme.js";
 
-export const TABS: Tab[] = [
-  { id: "overview", label: "OVERVIEW", shortcut: "1" },
-  { id: "resources", label: "RESOURCES", shortcut: "2" },
-  { id: "events", label: "EVENTS", shortcut: "3" },
-  { id: "files", label: "FILES", shortcut: "4" },
-  { id: "config", label: "CONFIG", shortcut: "5" },
-];
+export { TABS };
 
 export const TabBar: React.FC<TabBarProps> = ({ activeTab, compact = false, terminalWidth }) => {
   const theme = useTUITheme();

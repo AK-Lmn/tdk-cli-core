@@ -14,13 +14,12 @@ import { createStatusMessageController } from "../utils/status-message.js";
 import { getListRowFromMouseY, getTerminalRuleWidth } from "../utils/terminal-layout.js";
 import { isTiltAvailable } from "../utils/tilt.js";
 import { loadTiltEvents, stripTerminalControls, TiltEventsLoadError, } from "../utils/tilt-events.js";
+import { formatUiKeyHint, formatUiKeyNames, UI_KEYMAP } from "../utils/ui-keymap.js";
 import { applyServiceStates, fetchServiceStates, } from "../utils/ui-service-state.js";
 // biome-ignore lint/correctness/noUnusedFunctionParameters: reserved callback prop kept in the component API
 const HelpPanel = ({ onClose }) => {
     const theme = useTUITheme();
-    return (_jsxs(Box, { ...(theme.ascii ? {} : { borderStyle: "single", borderColor: theme.accent }), paddingX: 2, paddingY: 1, flexDirection: "column", width: 60, children: [_jsx(Text, { bold: true, color: theme.accent, children: "Keyboard Shortcuts" }), _jsxs(Box, { marginY: 1, flexDirection: "column", children: [_jsx(Text, { bold: true, underline: true, color: theme.foreground, children: "Navigation" }), _jsx(Text, { color: theme.foreground, children: theme.ascii
-                            ? " [UP/DOWN] or j/k Navigate list items"
-                            : " \u2191/\u2193 or j/k Navigate list items" }), _jsx(Text, { color: theme.foreground, children: " g/G or Home/End First/last item" }), _jsx(Text, { color: theme.foreground, children: " PgUp/PgDn Move one page" }), _jsx(Text, { color: theme.foreground, children: " Enter Select item / Open detail" }), _jsx(Text, { color: theme.foreground, children: " Tab Next tab" }), _jsxs(Text, { color: theme.foreground, children: [" ", TABS[0].shortcut, "-", TABS[TABS.length - 1].shortcut, " Direct tab access"] }), _jsx(Box, { marginTop: 1, children: _jsx(Text, { bold: true, underline: true, color: theme.foreground, children: "Actions" }) }), _jsx(Text, { color: theme.foreground, children: " m Toggle mouse support" }), _jsx(Text, { color: theme.foreground, children: " t Toggle tooltips" }), _jsx(Text, { color: theme.foreground, children: " e Toggle enabled/disabled services" }), _jsx(Text, { color: theme.foreground, children: " r Refresh data" }), _jsx(Text, { color: theme.foreground, children: " / Search/filter" }), _jsx(Text, { color: theme.foreground, children: " ? Show this help" }), _jsx(Text, { color: theme.foreground, children: theme.ascii ? " q Quit | Esc Back" : " q Quit \u2502 Esc Back" })] }), _jsx(Box, { marginTop: 1, children: _jsx(Text, { color: theme.muted, dimColor: theme.dimMuted, children: "Press any key to close..." }) })] }));
+    return (_jsxs(Box, { ...(theme.ascii ? {} : { borderStyle: "single", borderColor: theme.accent }), paddingX: 2, paddingY: 1, flexDirection: "column", width: 60, children: [_jsx(Text, { bold: true, color: theme.accent, children: "Keyboard Shortcuts" }), _jsx(Box, { marginY: 1, flexDirection: "column", children: ["Navigation", "Actions"].map((group) => (_jsxs(Box, { marginTop: group === "Actions" ? 1 : 0, flexDirection: "column", children: [_jsx(Text, { bold: true, underline: true, color: theme.foreground, children: group }), UI_KEYMAP.filter((shortcut) => shortcut.group === group).map((shortcut) => (_jsx(Text, { color: theme.foreground, children: ` ${formatUiKeyNames(shortcut.id, theme.ascii)} ${shortcut.label}` }, shortcut.id)))] }, group))) }), _jsx(Box, { marginTop: 1, children: _jsx(Text, { color: theme.muted, dimColor: theme.dimMuted, children: "Press any key to close..." }) })] }));
 };
 const SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
 const ASCII_SPINNER_FRAMES = ["-", "/", "|", "\\"];
@@ -392,6 +391,7 @@ export const TUIApp = ({ animated = true }) => {
             stdout.off("resize", handleResize);
         };
     }, [stdout, handleResize]);
+    // Keep this dispatcher in sync with UI_KEYMAP; the shared map drives the help panel and footer.
     useInput((input, key) => {
         if (error) {
             if (input === "r" || input === "R") {
@@ -581,33 +581,54 @@ export const TUIApp = ({ animated = true }) => {
 };
 /** Compose footer guidance for the current tab and terminal character set. */
 function createHelpHint(activeTab, selectedStack, selectedService, showEnabledOnly, ascii) {
-    const separator = ascii ? " | " : " \u2502 ";
-    const enabledHint = `[e] ${showEnabledOnly ? "show all" : "enabled only"}`;
-    const common = [enabledHint, "[?] help"];
-    const tabRange = `${TABS[0].shortcut}-${TABS[TABS.length - 1].shortcut}`;
+    const separator = ascii ? " | " : " │ ";
+    const enabledHint = formatUiKeyHint("toggle-enabled", showEnabledOnly ? "show all" : "enabled only", ascii);
+    const common = [enabledHint, formatUiKeyHint("help", "help", ascii)];
+    const cycleTabs = formatUiKeyHint("cycle-tabs", "Tabs", ascii);
     if (activeTab === "overview") {
         const introduction = selectedStack
-            ? `Stack "${selectedStack}" selected. [Enter] view`
-            : `${ascii ? "[UP/DOWN]" : "[\u2191/\u2193]"} Navigate`;
-        const controls = selectedStack ? ["[Esc] back", ...common] : ["[Enter] Select", ...common];
+            ? 'Stack "' + selectedStack + '" selected. ' + formatUiKeyHint("select", "view", ascii)
+            : formatUiKeyHint("list-navigation", "Navigate", ascii);
+        const controls = selectedStack
+            ? [formatUiKeyHint("back", "back", ascii), ...common]
+            : [formatUiKeyHint("select", "Select", ascii), ...common];
         return [introduction, ...controls].join(separator);
     }
     if (activeTab === "resources") {
-        return ["[Tab] Tabs", "[r] Refresh", "[/] Search", ...common].join(separator);
+        return [
+            cycleTabs,
+            formatUiKeyHint("refresh", "Refresh", ascii),
+            formatUiKeyHint("search", "Search", ascii),
+            ...common,
+        ].join(separator);
     }
     if (activeTab === "files" && selectedService) {
-        return [`Service "${selectedService}"`, "[Esc] Back", ...common].join(separator);
+        return [
+            'Service "' + selectedService + '"',
+            formatUiKeyHint("back", "Back", ascii),
+            ...common,
+        ].join(separator);
     }
     if (activeTab === "files") {
         return ["Select service to view files", ...common].join(separator);
     }
     if (activeTab === "events") {
-        return ["[r] Refresh events", "[Tab] Next", "[?] help", "[q] Quit"].join(separator);
+        return [
+            formatUiKeyHint("refresh", "Refresh events", ascii),
+            formatUiKeyHint("cycle-tabs", "Tabs", ascii),
+            formatUiKeyHint("help", "help", ascii),
+            formatUiKeyHint("quit", "Quit", ascii),
+        ].join(separator);
     }
     if (activeTab === "config") {
         return ["View configurations", ...common].join(separator);
     }
-    return ["[Tab] Next", `[${tabRange}] Tabs`, ...common, "[q] Quit"].join(separator);
+    return [
+        formatUiKeyHint("cycle-tabs", "Tabs", ascii),
+        formatUiKeyHint("direct-tabs", "Tabs", ascii),
+        ...common,
+        formatUiKeyHint("quit", "Quit", ascii),
+    ].join(separator);
 }
 const TUIRoot = ({ animated, highContrast, }) => (_jsx(TUIThemeContext.Provider, { value: createTUITheme(Boolean(highContrast)), children: _jsx(TUIApp, { animated: animated }) }));
 export const uiCommand = new Command("ui")
