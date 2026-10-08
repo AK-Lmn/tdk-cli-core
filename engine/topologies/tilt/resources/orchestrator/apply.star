@@ -4,6 +4,7 @@
 # Purpose: thin coordinator for service apply lifecycle.
 # =============================================================================
 
+load("../../common/utils_debug.star", "debug_log")
 load('../databases.star', 'Database')
 load('./apply_runtime_flags.star', 'RuntimeFlags')
 load('./apply_resource_validation.star', 'ResourceValidation')
@@ -38,7 +39,7 @@ def apply_app_service(resource_config, ctx):
         for nested in resource_config.get('resources', []):
             nested_name = nested.get('name', '')
             if nested_name and should_enable(nested_name):
-                print("DEBUG APPLY: stack '{}' not individually enabled, but nested service '{}' is - proceeding".format(resource_name, nested_name))
+                debug_log("APPLY: stack '{}' not individually enabled, but nested service '{}' is - proceeding".format(resource_name, nested_name))
                 service_enabled = True
                 break
 

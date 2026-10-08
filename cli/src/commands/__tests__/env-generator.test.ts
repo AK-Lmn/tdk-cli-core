@@ -19,12 +19,15 @@ if (process.env.TDK_REQUIRE_TILT === "1" && !hasTilt) {
 const temporaryDirs: string[] = [];
 
 /** Evaluates a Tiltfile. A failed `fail(...)` check makes tilt exit non-zero and puts the message in stderr. */
-function evaluateTiltfile(source: string, env: Record<string, string> = {}) {
+function evaluateTiltfile(source: string, env: Record<string, string> = {}, verbose = false) {
   const directory = mkdtempSync(join(tmpdir(), "tdk-env-generator-"));
   temporaryDirs.push(directory);
   const tiltfile = join(directory, "Tiltfile");
   writeFileSync(tiltfile, source);
-  return spawnSync("tilt", ["alpha", "tiltfile-result", "-f", tiltfile], {
+  const args = ["alpha", "tiltfile-result"];
+  if (verbose) args.push("--verbose");
+  args.push("-f", tiltfile);
+  return spawnSync("tilt", args, {
     cwd: repoRoot,
     encoding: "utf-8",
     timeout: 25000,
@@ -319,3 +322,25 @@ if 'AUTH_MODE=local-jwt' not in env_file or 'AUTH_MODE=local-jwt' not in entry: 
     });
   },
 );
+
+const debugStar = star("topologies", "tilt", "common", "utils_debug.star");
+
+describe.skipIf(!hasTilt)("Starlark debug logging", () => {
+  const source = `load(${debugStar}, 'debug_log')\ndebug_log('TDK_DEBUG_SENTINEL')\n`;
+
+  it("is silent when TDK_DEBUG is disabled and logs when set to 1", () => {
+    const normal = evaluateTiltfile(source, { TDK_DEBUG: "0", TILT_DEBUG: "0" }, true);
+    expect(normal.status, normal.stderr).toBe(0);
+    expect(normal.stdout + normal.stderr).not.toContain("TDK_DEBUG_SENTINEL");
+
+    const debug = evaluateTiltfile(source, { TDK_DEBUG: "1", TILT_DEBUG: "0" }, true);
+    expect(debug.status, debug.stderr).toBe(0);
+    expect(debug.stdout + debug.stderr).toContain("TDK_DEBUG_SENTINEL");
+  });
+
+  it("continues to accept TILT_DEBUG as a legacy alias", () => {
+    const debug = evaluateTiltfile(source, { TDK_DEBUG: "", TILT_DEBUG: "1" }, true);
+    expect(debug.status, debug.stderr).toBe(0);
+    expect(debug.stdout + debug.stderr).toContain("TDK_DEBUG_SENTINEL");
+  });
+});

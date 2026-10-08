@@ -18,6 +18,7 @@
 #   Infra.load_all(should_enable_fn)
 # =============================================================================
 
+load("../common/utils_debug.star", "debug_log")
 load("../../platform/docker/constants.star", "PlatformDockerConstants")
 load("../../platform/docker/compose/traefik_standalone.star", "generate_standalone_traefik_compose")
 load("../../platform/docker/networking/sablier_container_cycle.star", "sablier_middleware_suffix")
@@ -130,14 +131,14 @@ def _register_platform_postgres(should_enable, root_prefix="", env_file=None, wr
     """
     postgres_compose = _ensure_database_management_compose(root_prefix, write_fn)
     if _file_exists(postgres_compose):
-        print("DEBUG INFRA: Loading postgres compose from {}".format(postgres_compose))
+        debug_log("INFRA: Loading postgres compose from {}".format(postgres_compose))
         _docker_compose(postgres_compose, env_file)
         dc_resource('postgres', labels=['infra.tools'], resource_deps=['init-networks'], auto_init=True)
         return
     message = "Shared platform Postgres compose was not materialized at {}".format(postgres_compose)
     if required:
         fail(message + " (write_fn present: {}). Refusing to register a postgres Tilt resource with no compose.".format(write_fn != None))
-    print("DEBUG INFRA: Skipping postgres (compose file not found): {}".format(message))
+    debug_log("INFRA: Skipping postgres (compose file not found): {}".format(message))
 
 
 def force_start_platform_postgres(should_enable, root_prefix="", env_file=None, write_fn=None):
@@ -161,7 +162,7 @@ def force_start_platform_postgres(should_enable, root_prefix="", env_file=None, 
 def _load_database_management(should_enable, root_prefix="", env_file=None, write_fn=None):
     """Load database and messaging infrastructure."""
     if not should_enable('database-management'):
-        print("DEBUG INFRA: database-management not enabled")
+        debug_log("INFRA: database-management not enabled")
         return
 
     print("🗃️  Loading database management services...")
@@ -172,7 +173,7 @@ def _load_database_management(should_enable, root_prefix="", env_file=None, writ
     # Load messaging if compose file exists
     messaging_compose = root_prefix + 'services/platform/messaging/docker-compose.yml'
     if _file_exists(messaging_compose):
-        print("DEBUG INFRA: Loading messaging compose from {}".format(messaging_compose))
+        debug_log("INFRA: Loading messaging compose from {}".format(messaging_compose))
         _docker_compose(messaging_compose, env_file)
         # Register only services present in the project compose file. Minimal
         # NATS-only examples should not need to add an unrelated Redis broker.
@@ -181,7 +182,7 @@ def _load_database_management(should_enable, root_prefix="", env_file=None, writ
         if _compose_has_service(messaging_compose, 'nats'):
             dc_resource('nats', labels=['infra.messaging'], auto_init=True)
     else:
-        print("DEBUG INFRA: Skipping messaging (compose file not found)")
+        debug_log("INFRA: Skipping messaging (compose file not found)")
 
     # Only create kafka resources if debezium is enabled AND messaging exists
     cdc_enabled = should_enable('debezium')
@@ -211,7 +212,7 @@ def _load_infisical(should_enable, root_prefix="", env_file=None):
 
     compose_file = root_prefix + 'docker-compose.infisical.yml'
     if not _file_exists(compose_file):
-        print("DEBUG INFRA: Skipping Infisical (compose file not found)")
+        debug_log("INFRA: Skipping Infisical (compose file not found)")
         return
 
     print("🔐 Loading Infisical...")
@@ -254,7 +255,7 @@ def _load_standalone_traefik(root_prefix, env_file, write_fn):
 def _load_proxy(should_enable, root_prefix="", env_file=None, write_fn=None):
     """Load Traefik reverse proxy with proper health check sequencing."""
     if not should_enable('proxy'):
-        print("DEBUG INFRA: proxy not enabled")
+        debug_log("INFRA: proxy not enabled")
         return
 
     compose_files = [
@@ -266,7 +267,7 @@ def _load_proxy(should_enable, root_prefix="", env_file=None, write_fn=None):
     ]
     missing = [path for path in compose_files if not _file_exists(path)]
     if missing:
-        print("DEBUG INFRA: Platform proxy compose missing ({}), using standalone Traefik".format(missing[0]))
+        debug_log("INFRA: Platform proxy compose missing ({}), using standalone Traefik".format(missing[0]))
         _load_standalone_traefik(root_prefix, env_file, write_fn)
         return
 
@@ -422,11 +423,11 @@ def load_all_infrastructure(should_enable, fix_docker_networks_fn=None, docker_p
     """
     # Initialize networks first
     if fix_docker_networks_fn:
-        print("DEBUG INFRA: Initializing networks...")
+        debug_log("INFRA: Initializing networks...")
         _init_networks(fix_docker_networks_fn)
-        print("DEBUG INFRA: Networks initialized")
+        debug_log("INFRA: Networks initialized")
     else:
-        print("DEBUG INFRA: SKIPPING network initialization (no fix_docker_networks_fn)")
+        debug_log("INFRA: SKIPPING network initialization (no fix_docker_networks_fn)")
 
     # These stacks both define an `elasticsearch` resource (and host port 9200).
     # Running both at once causes compose/resource collisions and unstable startup.

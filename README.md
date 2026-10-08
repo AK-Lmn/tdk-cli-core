@@ -105,6 +105,9 @@ curl -fsSL https://tdk-landscape.github.io/install.sh | sh
 - Helm is your whole development workflow and you do not want local services on Docker.
 - You do not want `service.json` manifests and generated local configuration.
 
+## Troubleshooting
+Set `TDK_DEBUG=1` before running `tdk up --verbose` to include Starlark debug logs in Tilt output.
+
 ## Docs
 
 - [CLI command cheat sheet](cli/README.md#cheat-sheet)

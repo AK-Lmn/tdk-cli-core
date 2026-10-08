@@ -318,11 +318,11 @@ def write_file_if_changed(file_path, content):
     existing = str(existing_blob).rstrip()
 
     if existing == expected:
-        print("DEBUG WRITE: Skipping {} (no changes)".format(file_path))
+        debug_log("WRITE: Skipping {} (no changes)".format(file_path))
     else:
-        print("DEBUG WRITE: Writing {} bytes to {}".format(len(expected), file_path))
+        debug_log("WRITE: Writing {} bytes to {}".format(len(expected), file_path))
         _write_generated_file(file_path, expected)
-        print("DEBUG WRITE: Completed {}".format(file_path))
+        debug_log("WRITE: Completed {}".format(file_path))
 
     # Keep a generated-content snapshot beside the service outputs. `tdk config verify`
     # compares these snapshots with the files and the source manifest, detecting both
