@@ -1,7 +1,9 @@
 import { Command } from "commander";
 import type { CheckResult } from "../types/index.js";
+import { checkStarlarkLoadExports } from "../utils/doctor-starlark.js";
 import { type ExecAsync } from "../utils/exec-async.js";
 export { checkIngressPorts, checkPrivateNpmRegistry, checkTiltResourceHealth, summarizeServiceProbes, summarizeTiltBuildError, } from "../utils/doctor-runtime.js";
+export { checkStarlarkLoadExports };
 export declare const DOCTOR_FIXES: {
     readonly dockerMissing: "See https://docs.docker.com/get-docker/";
     readonly dockerDaemonDown: "Start Docker Desktop, OrbStack, or Colima, then retry: tdk doctor";
@@ -44,7 +46,6 @@ export declare function checkTdkVersion(currentVersion?: string): CheckResult;
  */
 export declare function checkResourceDiscovery(): CheckResult;
 export declare function checkGeneratedProjectRuntimeAssets(): CheckResult;
-export declare function checkStarlarkLoadExports(): CheckResult;
 export declare function checkTypeScriptTypeDependencies(): CheckResult;
 export declare function checkFrontendDockerPreflight(): CheckResult;
 export declare const doctorCommand: Command;

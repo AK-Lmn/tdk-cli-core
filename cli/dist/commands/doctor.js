@@ -1,6 +1,6 @@
 import { execFileSync, execSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { dirname, join, normalize, relative } from "node:path";
+import { join, normalize, relative } from "node:path";
 import chalk from "chalk";
 import { Command } from "commander";
 import { hasVerdaccioLicense } from "../generator/extension-fetch.js";
@@ -10,6 +10,7 @@ import { MASTER_CONFIG_FILES, REQUIRED_PACKAGE_SCRIPTS } from "../utils/constant
 import { isPathDiscovered, readDiscoveryPaths } from "../utils/discovery-paths.js";
 import { collectDoctorChecks, createDoctorReport, getDoctorExitCode, } from "../utils/doctor-report.js";
 import { checkHealthRoutes, checkIngressPorts, checkPrivateNpmRegistry, checkTiltResourceHealth, projectConfigEnablesVerdaccio, summarizeServiceProbes, } from "../utils/doctor-runtime.js";
+import { checkStarlarkLoadExports } from "../utils/doctor-starlark.js";
 import { checkDockerNetworkCapacity, checkDuplicateResourceNames, checkDuplicateResourcePorts, checkFrontendBackendUrls, checkMigrationsInApi, checkNatsBroker, checkPrismaConsistency, checkResourcePackageJson, checkServiceUrlPorts, checkSharedPlatformPostgres, checkSharedStackRoutes, checkTiltInstances, } from "../utils/doctor-wiring.js";
 import { validateEnvFile } from "../utils/env-validator.js";
 import { execAsync, isExecTimeout } from "../utils/exec-async.js";
@@ -24,6 +25,7 @@ import { discoverResourcesFromRoot } from "../utils/services.js";
 import { evaluateTdkVersionFloor } from "../utils/tdk-version.js";
 import { findOnPath } from "../utils/which.js";
 export { checkIngressPorts, checkPrivateNpmRegistry, checkTiltResourceHealth, summarizeServiceProbes, summarizeTiltBuildError, } from "../utils/doctor-runtime.js";
+export { checkStarlarkLoadExports };
 // A wedged Docker daemon makes `docker ps` block forever instead of failing,
 // and doctor is exactly the tool people run when their environment is broken.
 const EXEC_TIMEOUT_MS = 10_000;
@@ -565,132 +567,6 @@ export function checkGeneratedProjectRuntimeAssets() {
         didPass: false,
         message: `Generated Dockerfiles reference missing project runtime assets:\n    ${problems.join("\n    ")}`,
         fix: "Run `tdk project --yes` (or `tdk config regenerate`) with an updated TDK. `tdk up` also refreshes these assets before starting Tilt.",
-    };
-}
-function findPrivateStarlarkLoadExports(content) {
-    const privateExports = new Set();
-    const loadCallPattern = /^load\s*\(([\s\S]*?)\)/gm;
-    for (const loadMatch of content.matchAll(loadCallPattern)) {
-        const args = loadMatch[1] ?? "";
-        const quotedValuePattern = /["']([^"']+)["']/g;
-        const quotedValues = Array.from(args.matchAll(quotedValuePattern), (match) => match[1]);
-        // First quoted arg is the module path. Later quoted args are exported names
-        // or alias targets, and Starlark refuses to export names beginning with "_".
-        for (const value of quotedValues.slice(1)) {
-            if (value.startsWith("_")) {
-                privateExports.add(value);
-            }
-        }
-    }
-    return Array.from(privateExports).sort();
-}
-function resolveStarlarkLoadTarget(file, modulePath, projectRoot) {
-    if (modulePath === "ext://tdk-cli") {
-        return join(projectRoot, ".tdk", ".tdk-out", "tdk-cli-ext", "Tiltfile");
-    }
-    if (modulePath.startsWith(".") || (!modulePath.includes("://") && !modulePath.startsWith("@"))) {
-        return normalize(join(dirname(file), modulePath));
-    }
-    return null;
-}
-function findMissingRelativeStarlarkLoads(file, content, projectRoot) {
-    const missing = [];
-    const loadCallPattern = /^load\s*\(([\s\S]*?)\)/gm;
-    for (const loadMatch of content.matchAll(loadCallPattern)) {
-        const args = loadMatch[1] ?? "";
-        const moduleMatch = args.match(/["']([^"']+)["']/);
-        const modulePath = moduleMatch?.[1];
-        if (!modulePath) {
-            continue;
-        }
-        const resolved = resolveStarlarkLoadTarget(file, modulePath, projectRoot);
-        if (!resolved) {
-            continue;
-        }
-        if (!existsSync(resolved)) {
-            missing.push(`${file}: ${modulePath} -> ${resolved}`);
-        }
-    }
-    return missing;
-}
-function findRelativeStarlarkLoadTargets(file, content, projectRoot) {
-    const targets = [];
-    const loadCallPattern = /^load\s*\(([\s\S]*?)\)/gm;
-    for (const loadMatch of content.matchAll(loadCallPattern)) {
-        const args = loadMatch[1] ?? "";
-        const moduleMatch = args.match(/["']([^"']+)["']/);
-        const modulePath = moduleMatch?.[1];
-        if (modulePath) {
-            const target = resolveStarlarkLoadTarget(file, modulePath, projectRoot);
-            if (target) {
-                targets.push(target);
-            }
-        }
-    }
-    return targets;
-}
-function collectReachableStarlarkFiles(entryFile, projectRoot) {
-    const visited = new Set();
-    const pending = [entryFile];
-    while (pending.length > 0) {
-        const file = pending.pop();
-        if (!file || visited.has(file) || !existsSync(file)) {
-            continue;
-        }
-        visited.add(file);
-        const content = readFileSync(file, "utf-8");
-        for (const target of findRelativeStarlarkLoadTargets(file, content, projectRoot)) {
-            if (!visited.has(target)) {
-                pending.push(target);
-            }
-        }
-    }
-    return Array.from(visited).sort();
-}
-export function checkStarlarkLoadExports() {
-    const projectRoot = findProjectRoot() ?? process.cwd();
-    const entryFile = join(projectRoot, ".tdk", ".tdk-out", "Tiltfile");
-    if (!existsSync(entryFile)) {
-        return {
-            name: "Starlark Load Exports",
-            didPass: true,
-            isSkipped: true,
-            message: "No generated Tiltfile to check",
-        };
-    }
-    const privateExportProblems = [];
-    const missingLoadProblems = [];
-    const reachableFiles = collectReachableStarlarkFiles(entryFile, projectRoot);
-    for (const file of reachableFiles) {
-        const content = readFileSync(file, "utf-8");
-        const privateExports = findPrivateStarlarkLoadExports(content);
-        if (privateExports.length > 0) {
-            privateExportProblems.push(`${file}: ${privateExports.join(", ")}`);
-        }
-        for (const missingLoad of findMissingRelativeStarlarkLoads(file, content, projectRoot)) {
-            missingLoadProblems.push(missingLoad);
-        }
-    }
-    if (privateExportProblems.length === 0 && missingLoadProblems.length === 0) {
-        const fileCount = formatCount(reachableFiles.length, "reachable Starlark file");
-        return {
-            name: "Starlark Load Exports",
-            didPass: true,
-            message: `${fileCount} ${reachableFiles.length === 1 ? "has" : "have"} valid load exports and paths`,
-        };
-    }
-    const sections = [];
-    if (privateExportProblems.length > 0) {
-        sections.push(`Private exported symbols:\n    ${privateExportProblems.join("\n    ")}`);
-    }
-    if (missingLoadProblems.length > 0) {
-        sections.push(`Missing relative load targets:\n    ${missingLoadProblems.join("\n    ")}`);
-    }
-    return {
-        name: "Starlark Load Exports",
-        didPass: false,
-        message: `Starlark load() issues will stop Tilt before services start:\n    ${sections.join("\n\n    ")}`,
-        fix: "Regenerate with a current TDK (`tdk config regenerate`). If the issue remains, rename loaded symbols without leading underscores and update stale load paths.",
     };
 }
 function checkStartupScripts() {
