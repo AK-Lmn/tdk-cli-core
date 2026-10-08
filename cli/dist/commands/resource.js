@@ -12,7 +12,7 @@ import { hasDddLicense } from "../generator/extension-fetch.js";
 import { getDockerfileTemplate, getTestTemplate, getWorkerIndexTemplate, } from "../generator/resource-templates.js";
 import { CREATABLE_RESOURCE_TYPES } from "../types/index.js";
 import { assertValid, confirmOrCancel } from "../utils/command-helpers.js";
-import { SERVICE_JSON } from "../utils/constants.js";
+import { BRING_YOUR_OWN_TYPE, SERVICE_JSON } from "../utils/constants.js";
 import { chooseResourcePath, isPathDiscovered, readDiscoveryPaths, } from "../utils/discovery-paths.js";
 import { errorFactories, requireProjectRoot, runCommand, TdkError } from "../utils/errors.js";
 import { writeFilesWithProgress } from "../utils/file-helpers.js";
@@ -56,7 +56,7 @@ export const TYPE_SPECIFIC = {
     mcp: {
         healthCheckPath: "/health",
     },
-    "bring-your-own": {
+    [BRING_YOUR_OWN_TYPE]: {
         healthCheckPath: "/health",
     },
 };
@@ -124,7 +124,7 @@ export function createByoServiceJson(name, stack, port, options) {
         $schema: SERVICE_MANIFEST_SCHEMA_URL,
         schemaVersion: SERVICE_MANIFEST_SCHEMA_VERSION,
         appName: name,
-        appType: "bring-your-own",
+        appType: BRING_YOUR_OWN_TYPE,
         stack,
         port,
         healthCheckPath: options.healthCheckPath,
@@ -252,7 +252,7 @@ export const TSCONFIG_TEMPLATE = {
 export { getBackendIndexTemplate };
 /** Resource types `tdk resource --type` accepts; `byo` is an alias of `bring-your-own`. */
 export function parseResourceType(type) {
-    const normalized = type === "byo" ? "bring-your-own" : type;
+    const normalized = type === "byo" ? BRING_YOUR_OWN_TYPE : type;
     const validTypes = [...CREATABLE_RESOURCE_TYPES, "sdk"];
     if (!validTypes.includes(normalized)) {
         throw new TdkError(`Unknown resource type "${type}". Supported types: ${validTypes.join(", ")}.`, [`Use one of: ${validTypes.join(", ")}`, "Omit --type to create a backend"]);
@@ -413,7 +413,7 @@ export const resourceCommand = new Command("resource")
                 frontend: `apps/${resourceName}`,
                 worker: `workers/${resourceName}`,
                 mcp: `services/${stackName}/${resourceName}`,
-                "bring-your-own": `services/${stackName}/${resourceName}`,
+                [BRING_YOUR_OWN_TYPE]: `services/${stackName}/${resourceName}`,
                 sdk: `packages/${resourceName}`,
             };
             finalResourcePath = defaultPaths[resourceType];
@@ -444,14 +444,14 @@ export const resourceCommand = new Command("resource")
         const shouldRegisterExisting = options.registerExisting ||
             resourceType === "sdk" ||
             (isExistingResource && hasServiceJson);
-        if (isExistingResource && !shouldRegisterExisting && resourceType !== "bring-your-own") {
+        if (isExistingResource && !shouldRegisterExisting && resourceType !== BRING_YOUR_OWN_TYPE) {
             errorFactories.directoryExists(fullPath).exit();
         }
         const nextPort = resourceType === "sdk"
             ? 0
             : assignPort(resourceType, allResources);
         if (options.restart !== undefined) {
-            if (resourceType !== "bring-your-own") {
+            if (resourceType !== BRING_YOUR_OWN_TYPE) {
                 throw new TdkError("--restart can only be used with --type bring-your-own.", [
                     "Add --type bring-your-own, or drop --restart",
                 ]);
@@ -462,7 +462,7 @@ export const resourceCommand = new Command("resource")
                 ]);
             }
         }
-        const assignedPort = resourceType === "bring-your-own"
+        const assignedPort = resourceType === BRING_YOUR_OWN_TYPE
             ? resolveByoPort(options.port, nextPort, allResources)
             : nextPort;
         console.log(chalk.gray("\nResource details:"));
@@ -507,7 +507,7 @@ export const resourceCommand = new Command("resource")
             return;
         }
         // Handle bring-your-own type
-        if (resourceType === "bring-your-own") {
+        if (resourceType === BRING_YOUR_OWN_TYPE) {
             console.log(chalk.blue("\n📁 Creating bring-your-own resource..."));
             // Parse port option
             const port = assignedPort;

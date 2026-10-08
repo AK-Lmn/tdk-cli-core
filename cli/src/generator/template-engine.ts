@@ -8,7 +8,7 @@ import Handlebars from "handlebars";
 import { PLATFORM_STANDARDS } from "../config/platform-standards.js";
 import type { JsonValue, ProjectConfig } from "../types/index.js";
 import { writeTextFileAtomic } from "../utils/atomic-write.js";
-import { TILTIGNORE_FILE } from "../utils/constants.js";
+import { DATABASE_MANAGEMENT_FEATURE, TILTIGNORE_FILE } from "../utils/constants.js";
 import { writeTextFile } from "../utils/file-helpers.js";
 import { assertTdkGeneratedPath } from "../utils/generated-paths.js";
 import { DEFAULT_ALWAYS_ENABLED_INFRA } from "../utils/project-config-defaults.js";
@@ -100,6 +100,7 @@ interface GeneratorContext {
 const RESOURCE_DESCRIPTIONS: Record<string, string> = {
   proxy: "Traefik reverse proxy",
   verdaccio: "Private npm registry",
+  // This key is emitted into spec.master, so it must stay the literal stack id.
   "database-management": "PostgreSQL database",
 };
 
@@ -578,10 +579,10 @@ export async function generateMasterConfigs(
     console.log(`✓ Generated: .tdk/.tdk-out/${filename}`);
   }
 
-  if (isStackFeatureEnabledInStacks(projectConfig.phases, "database-management")) {
+  if (isStackFeatureEnabledInStacks(projectConfig.phases, DATABASE_MANAGEMENT_FEATURE)) {
     const composePath = assertTdkGeneratedPath(
       projectRoot,
-      path.join("services", "platform", "database-management", "docker-compose.yml"),
+      path.join("services", "platform", DATABASE_MANAGEMENT_FEATURE, "docker-compose.yml"),
     );
     const composeDir = path.dirname(composePath);
     fs.mkdirSync(composeDir, { recursive: true });

@@ -27,7 +27,7 @@ import type {
 } from "../types/index.js";
 import { CREATABLE_RESOURCE_TYPES } from "../types/index.js";
 import { assertValid, confirmOrCancel } from "../utils/command-helpers.js";
-import { SERVICE_JSON } from "../utils/constants.js";
+import { BRING_YOUR_OWN_TYPE, SERVICE_JSON } from "../utils/constants.js";
 import {
   chooseResourcePath,
   isPathDiscovered,
@@ -100,7 +100,7 @@ export const TYPE_SPECIFIC: Record<CreatableResourceType, TypeSpecificConfig> = 
   mcp: {
     healthCheckPath: "/health",
   },
-  "bring-your-own": {
+  [BRING_YOUR_OWN_TYPE]: {
     healthCheckPath: "/health",
   },
 };
@@ -198,7 +198,7 @@ export function createByoServiceJson(
     $schema: SERVICE_MANIFEST_SCHEMA_URL,
     schemaVersion: SERVICE_MANIFEST_SCHEMA_VERSION,
     appName: name,
-    appType: "bring-your-own",
+    appType: BRING_YOUR_OWN_TYPE,
     stack,
     port,
     healthCheckPath: options.healthCheckPath,
@@ -346,7 +346,7 @@ export { getBackendIndexTemplate };
 
 /** Resource types `tdk resource --type` accepts; `byo` is an alias of `bring-your-own`. */
 export function parseResourceType(type: string): CreatableResourceType | "sdk" {
-  const normalized = type === "byo" ? "bring-your-own" : type;
+  const normalized = type === "byo" ? BRING_YOUR_OWN_TYPE : type;
   const validTypes: readonly string[] = [...CREATABLE_RESOURCE_TYPES, "sdk"];
   if (!validTypes.includes(normalized)) {
     throw new TdkError(
@@ -551,7 +551,7 @@ export const resourceCommand = new Command("resource")
           frontend: `apps/${resourceName}`,
           worker: `workers/${resourceName}`,
           mcp: `services/${stackName}/${resourceName}`,
-          "bring-your-own": `services/${stackName}/${resourceName}`,
+          [BRING_YOUR_OWN_TYPE]: `services/${stackName}/${resourceName}`,
           sdk: `packages/${resourceName}`,
         };
         finalResourcePath = defaultPaths[resourceType];
@@ -596,7 +596,7 @@ export const resourceCommand = new Command("resource")
         resourceType === "sdk" ||
         (isExistingResource && hasServiceJson);
 
-      if (isExistingResource && !shouldRegisterExisting && resourceType !== "bring-your-own") {
+      if (isExistingResource && !shouldRegisterExisting && resourceType !== BRING_YOUR_OWN_TYPE) {
         errorFactories.directoryExists(fullPath).exit();
       }
 
@@ -608,7 +608,7 @@ export const resourceCommand = new Command("resource")
               allResources,
             );
       if (options.restart !== undefined) {
-        if (resourceType !== "bring-your-own") {
+        if (resourceType !== BRING_YOUR_OWN_TYPE) {
           throw new TdkError("--restart can only be used with --type bring-your-own.", [
             "Add --type bring-your-own, or drop --restart",
           ]);
@@ -620,7 +620,7 @@ export const resourceCommand = new Command("resource")
         }
       }
       const assignedPort =
-        resourceType === "bring-your-own"
+        resourceType === BRING_YOUR_OWN_TYPE
           ? resolveByoPort(options.port, nextPort, allResources)
           : nextPort;
 
@@ -677,7 +677,7 @@ export const resourceCommand = new Command("resource")
       }
 
       // Handle bring-your-own type
-      if (resourceType === "bring-your-own") {
+      if (resourceType === BRING_YOUR_OWN_TYPE) {
         console.log(chalk.blue("\n📁 Creating bring-your-own resource..."));
 
         // Parse port option
