@@ -8,4 +8,5 @@ WORKDIR /work/app
 RUN groupadd --gid 1000 app && useradd --uid 1000 --gid app --no-create-home app
 RUN chown -R app:app /work/app
 USER app
+HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 CMD bash -c "exec 3<>/dev/tcp/127.0.0.1/${PORT:-3000}" || exit 1
 CMD ["bun", "run", "dev"]
