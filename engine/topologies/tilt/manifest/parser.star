@@ -73,23 +73,105 @@ def parse(content, path=""):
         warnings=warnings,
     )
 
+# Characters allowed in the string fields that are written into generated Compose, Traefik and NATS config as they are. A line break
+# or YAML syntax in one of them adds keys to the generated service (GHSA-phgf-pww4-7jxc). Keep in step with GENERATED_STRING_FIELDS
+# in cli/src/utils/service-manifest.ts.
+_ALPHANUM = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+_PATH_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789/-"
+_GENERATED_STRING_RULES = [
+    # (field path, allowed characters, required first character or "")
+    (['healthCheckPath'], _PATH_CHARS, '/'),
+    (['traefik', 'host'], _ALPHANUM + '.-', ''),
+    (['traefik', 'pathPrefix'], _PATH_CHARS, '/'),
+    (['traefik', 'healthCheck'], _PATH_CHARS, '/'),
+    (['nats', 'queueGroup'], _ALPHANUM + '_.-', ''),
+    (['databaseName'], _ALPHANUM + '_-', ''),
+    (['stack'], _ALPHANUM + '_-', ''),
+    (['image'], _ALPHANUM + '._/:@-', ''),
+]
+
+def generated_string_error(manifest, resource_path=""):
+    """
+    Return an error message if a value that is written into generated config has unsafe characters, else None.
+
+    The value is not echoed, because it may contain the line break that makes it dangerous.
+    """
+    for keys, allowed, first in _GENERATED_STRING_RULES:
+        value = manifest
+        for key in keys:
+            value = value.get(key) if type(value) == "dict" else None
+        if value == None or value == "":
+            continue
+        field = '.'.join(keys)
+        where = " in " + resource_path if resource_path else ""
+        if type(value) != "string":
+            return "MANIFEST ERROR: '{}' must be a string{}".format(field, where)
+        if first and not value.startswith(first):
+            return "MANIFEST ERROR: '{}' must start with '{}'{}".format(field, first, where)
+        for c in value.elems():
+            if c not in allowed:
+                return "MANIFEST ERROR: '{}' has characters that are not allowed (no spaces, line breaks or YAML syntax){}".format(field, where)
+    return _line_break_error(manifest, resource_path)
+
+# Line breaks (including the Unicode ones YAML 1.1 honours) and other control characters.
+_LINE_BREAK_OR_CONTROL = [chr(i) for i in range(32)] + [chr(127), "\u0085", " ", " "]
+
+def _has_line_break(text):
+    for bad in _LINE_BREAK_OR_CONTROL:
+        if bad in text:
+            return True
+    return False
+
+def _line_break_error(manifest, resource_path):
+    """
+    Many more values than _GENERATED_STRING_RULES reach generated config (port, appName, dockerfile, buildContext, basePath, envVars,
+    ...). A key can only be added through a line break, so no string key or value may contain one. `smoke` is skipped: it is never
+    written into generated config. Keep in step with lineBreakErrors in cli/src/utils/service-manifest.ts.
+    """
+    where = " in " + resource_path if resource_path else ""
+    pending = [(value, key) for key, value in manifest.items() if key != 'smoke']
+    for key in manifest.keys():
+        if type(key) == "string" and _has_line_break(key):
+            return "MANIFEST ERROR: a key contains a line break{}".format(where)
+    # Starlark has no recursion or while loops; a service.json never nests anywhere near this many values.
+    for _ in range(100000):
+        if not pending:
+            return None
+        value, field = pending.pop()
+        if type(value) == "string":
+            if _has_line_break(value):
+                return "MANIFEST ERROR: '{}' must not contain line breaks or control characters{}".format(field, where)
+        elif type(value) == "list":
+            for index, item in enumerate(value):
+                pending.append((item, "{}[{}]".format(field, index)))
+        elif type(value) == "dict":
+            for key, item in value.items():
+                if type(key) == "string" and _has_line_break(key):
+                    return "MANIFEST ERROR: a key in '{}' contains a line break{}".format(field, where)
+                pending.append((item, "{}.{}".format(field, key)))
+    return "MANIFEST ERROR: service.json is nested too deeply{}".format(where)
+
 def normalize(manifest, resource_path=""):
     """
     Normalize manifest with default values and computed fields.
-    
+
     Args:
         manifest: Raw parsed manifest dict
         resource_path: Resource directory path for context
-    
+
     Returns:
         Normalized manifest dict with all fields populated
     """
     normalized = {}
     warnings = []
-    
+
     # Copy all existing fields
     for key, value in manifest.items():
         normalized[key] = value
+
+    unsafe_field_error = generated_string_error(normalized, resource_path)
+    if unsafe_field_error:
+        fail(unsafe_field_error)
 
     # 1. Apply defaults for missing fields
     for field, default_value in MANIFEST_DEFAULTS.items():
@@ -391,6 +473,7 @@ def get_resource_type_description(manifest):
 ManifestParser = struct(
     parse=parse,
     normalize=normalize,
+    generated_string_error=generated_string_error,
     extract_resource_path=extract_resource_path,
     extract_stack=extract_stack_from_path,
     parse_traefik=parse_traefik_config,

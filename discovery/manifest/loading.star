@@ -8,6 +8,7 @@
 # Priority: service.json → synthesize from path
 # =============================================================================
 
+load('../../engine/topologies/tilt/manifest/parser.star', 'generated_string_error')
 load('../../engine/topologies/tilt/manifest/constants.star',
      'MANIFEST_DEFAULTS',
      'DEFAULT_SYNCS',
@@ -100,6 +101,10 @@ def load_manifest(resource_path, persist_to_disk=False):
     
     if content and str(content).strip():
         manifest = decode_json(content)
+        # Refuse service.json values that would add keys to generated config (GHSA-phgf-pww4-7jxc)
+        unsafe_field_error = generated_string_error(manifest, manifest_full_path) if type(manifest) == "dict" else None
+        if unsafe_field_error:
+            fail(unsafe_field_error)
         manifest_source = 'service.json'
         manifest_path = manifest_full_path
     else:

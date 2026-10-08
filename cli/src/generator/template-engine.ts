@@ -8,7 +8,10 @@ import { writeTextFileAtomic } from "../utils/atomic-write.js";
 import { writeTextFile } from "../utils/file-helpers.js";
 import { assertTdkGeneratedPath } from "../utils/generated-paths.js";
 import { DEFAULT_ALWAYS_ENABLED_INFRA } from "../utils/project-config-defaults.js";
-import { validateServiceManifestFile } from "../utils/service-manifest.js";
+import {
+  generatedFieldErrorsForFile,
+  validateServiceManifestFile,
+} from "../utils/service-manifest.js";
 import { discoverResourcesFromRoot, discoverServiceManifestPaths } from "../utils/services.js";
 import { isStackFeatureEnabledInStacks } from "../utils/stack-features.js";
 import { hasSablierLicense, hasVerdaccioLicense } from "./extension-fetch.js";
@@ -504,6 +507,20 @@ export async function generateMasterConfigs(
   options: GenerateMasterConfigsOptions = {},
 ): Promise<void> {
   const projectConfig = readProjectConfig(projectRoot);
+
+  // Refuse before writing anything: a service.json value with a line break or YAML syntax would add keys to the generated compose
+  // file (GHSA-phgf-pww4-7jxc).
+  const unsafeFields = discoverServiceManifestPaths(projectRoot).flatMap((manifestPath) =>
+    generatedFieldErrorsForFile(
+      manifestPath,
+      path.relative(projectRoot, manifestPath).split(path.sep).join("/"),
+    ),
+  );
+  if (unsafeFields.length > 0) {
+    throw new Error(
+      `Refusing to generate config from unsafe service.json values:\n${unsafeFields.map((error) => `  ${error}`).join("\n")}`,
+    );
+  }
 
   await warnIfSablierUnlicensed(projectRoot);
 

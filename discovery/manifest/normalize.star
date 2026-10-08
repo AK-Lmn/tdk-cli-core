@@ -5,6 +5,7 @@
 # Purpose: Normalize manifests and provide helper accessors
 # =============================================================================
 
+load('../../engine/topologies/tilt/manifest/parser.star', 'generated_string_error')
 load('./constants.star', 'MANIFEST_DEFAULTS', 'MANIFEST_FILENAME')
 load('./loading.star', 'apply_manifest_defaults', 'check_prisma_folder', 'get_default_syncs_for_type')
 load('./validation.star', 'validate_manifest')
@@ -56,6 +57,11 @@ def _load_and_normalize(manifest_path, warn_only=True):
             print("   ⚠️  Invalid JSON in manifest: " + manifest_path)
             return None
         fail("Invalid JSON in manifest: " + manifest_path)
+
+    # Refuse service.json values that would add keys to generated config (GHSA-phgf-pww4-7jxc)
+    unsafe_field_error = generated_string_error(manifest, manifest_path) if type(manifest) == "dict" else None
+    if unsafe_field_error:
+        fail(unsafe_field_error)
     
     # Validate
     issues = validate_manifest(manifest)

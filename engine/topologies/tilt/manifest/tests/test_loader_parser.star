@@ -307,6 +307,67 @@ def _test_manifest_merging():
     print("✅ Manifest merging tests complete\n")
 
 # =============================================================================
+# TEST SUITE: Values written into generated config (GHSA-phgf-pww4-7jxc)
+# =============================================================================
+
+def _test_generated_string_fields():
+    """A line break or YAML syntax in a field that reaches generated compose output must be rejected."""
+    base = {'appName': 'api', 'stack': 'shop', 'traefik': {'pathPrefix': '/api/v1/shop-management'}}
+
+    assert_equal(None, ManifestParser.generated_string_error(base), "Clean manifest has no generated-field error")
+
+    safe = {
+        'appName': 'api',
+        'stack': 'shop-1',
+        'healthCheckPath': '/api/v1/health',
+        'databaseName': 'TDK_shop',
+        'image': 'ghcr.io/acme/app:1.0',
+        'traefik': {'host': 'shop.backend.my-project.local', 'pathPrefix': '/api/v1/shop', 'healthCheck': '/health'},
+        'nats': {'queueGroup': 'shop_backend_svc'},
+    }
+    assert_equal(None, ManifestParser.generated_string_error(safe), "Safe values are accepted")
+
+    hostile = [
+        {'healthCheckPath': '/health\n    privileged: true'},
+        {'healthCheckPath': '/health"'},
+        {'traefik': {'host': 'a.local\n    privileged: true', 'pathPrefix': '/api'}},
+        {'traefik': {'pathPrefix': '/api/v1/x\n    network_mode: host'}},
+        {'traefik': {'pathPrefix': '/api', 'healthCheck': '/h\n    volumes: []'}},
+        {'traefik': {'pathPrefix': '/api'}, 'nats': {'queueGroup': 'g: true'}},
+        {'traefik': {'pathPrefix': '/api'}, 'databaseName': 'TDK_x\n  privileged: true'},
+        {'traefik': {'pathPrefix': '/api'}, 'stack': 'shop # comment'},
+        {'traefik': {'pathPrefix': '/api'}, 'image': 'app\n    privileged: true'},
+        {'traefik': {'pathPrefix': '/api'}, 'healthCheckPath': 'health'},
+        {'traefik': {'pathPrefix': '/api'}, 'healthCheckPath': 42},
+    ]
+    for manifest in hostile:
+        assert_not_none(ManifestParser.generated_string_error(manifest), "Rejects unsafe value: " + str(manifest))
+
+    # The message names the field and never echoes the value
+    message = ManifestParser.generated_string_error(hostile[0], 'services/shop/api')
+    assert_true("healthCheckPath" in message, "Error names the field")
+    assert_true("\n" not in message, "Error does not echo the value")
+
+    # Fields outside the allowlist also reach generated config, so a line break anywhere is refused
+    clean = {'appName': 'api', 'stack': 'shop', 'traefik': {'pathPrefix': '/api'}}
+    line_breaks = [
+        {'port': '4000\n    privileged: true'},
+        {'appName': 'api\n    privileged: true'},
+        {'dockerfile': 'Dockerfile\r    privileged: true'},
+        {'buildContext': 'src\u2028privileged: true'},
+        {'envVars': [{'name': 'A', 'value': 'v\n    privileged: true'}]},
+        {'params': {'a\n    privileged': 'x'}},
+    ]
+    for extra in line_breaks:
+        manifest = dict(clean)
+        manifest.update(extra)
+        assert_not_none(ManifestParser.generated_string_error(manifest), "Rejects a line break: " + repr(extra))
+
+    smoke = dict(clean)
+    smoke['smoke'] = {'via': '/api', 'create': {'body': '{\n}'}}
+    assert_equal(None, ManifestParser.generated_string_error(smoke), "smoke is never written into generated config")
+
+# =============================================================================
 # TEST SUITE: Get Normalized Convenience Function
 # =============================================================================
 
@@ -366,12 +427,13 @@ def run_tests():
     _test_loader_functions()
     _test_parser_functions()
     _test_parse_and_normalize()
-    _test_domain_extraction()
+    _test_stack_extraction()
     _test_frontend_normalization()
     _test_traefik_config()
     _test_manifest_merging()
     _test_get_normalized()
     _test_resource_description()
+    _test_generated_string_fields()
     
     # Print results
     print("\n" + "="*70)

@@ -19,6 +19,7 @@ DEFAULTS = {}
 # === END INLINED CONSTANTS ===
 
 
+load("./parser.star", "generated_string_error")
 load("./constants.star",
     "MANIFEST_FILENAME",
     "MANIFEST_DEFAULTS",
@@ -63,6 +64,12 @@ def load_from_file(path):
     
     if manifest == None:
         return struct(manifest=None, error="Invalid manifest: " + path)
+
+    # Refuse service.json values that would add keys to generated config (GHSA-phgf-pww4-7jxc). Every Tilt discovery path loads service.json here.
+    if type(manifest) == "dict":
+        unsafe_field_error = generated_string_error(manifest, path)
+        if unsafe_field_error:
+            fail(unsafe_field_error)
     
     # An `mcp` resource is a Model Context Protocol server: an HTTP service on Bun that is built, routed and health-checked
     # exactly like a backend. Every backend code path keys off appType == 'backend', so normalise here, once, at the single

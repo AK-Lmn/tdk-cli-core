@@ -230,6 +230,34 @@ describe("template-engine", () => {
       }
     };
 
+    it("refuses to generate when a service.json value would add keys to the compose file (GHSA-phgf-pww4-7jxc)", async () => {
+      const projectRoot = await setup();
+      try {
+        const serviceDir = path.join(projectRoot, "services", "shop", "api");
+        fs.mkdirSync(serviceDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(serviceDir, "service.json"),
+          JSON.stringify({
+            schemaVersion: 1,
+            appName: "api",
+            appType: "backend",
+            stack: "shop",
+            port: 4000,
+            healthCheckPath: "/health\n    privileged: true",
+          }),
+        );
+
+        await withEnv(async () => {
+          await expect(generateMasterConfigs(projectRoot)).rejects.toThrow(
+            "Refusing to generate config from unsafe service.json values:\n  services/shop/api/service.json.healthCheckPath",
+          );
+        });
+        expect(fs.existsSync(path.join(projectRoot, ".tdk", ".tdk-out"))).toBe(false);
+      } finally {
+        fs.rmSync(projectRoot, { recursive: true, force: true });
+      }
+    });
+
     it("restores an edited TDK-generated root .tiltignore only when discarding hand edits", async () => {
       const projectRoot = await setup();
       try {

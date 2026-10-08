@@ -397,7 +397,7 @@ describe("bring-your-own resource type", () => {
     }
   });
 
-  it("reports an unknown --only name before aggregating malformed stack data", async () => {
+  it("refuses a malformed stack before aggregating it, so it cannot reach generated config", async () => {
     await createByo();
     addResource("other", "backend", "store", 4100);
     const malformedPath = join(tempDir, "services", "broken", "service");
@@ -428,13 +428,12 @@ describe("bring-your-own resource type", () => {
         .parseAsync(["node", "tdk", "--only", "missing", "--dry-run", "--json"], { from: "node" })
         .catch(() => {});
 
-      expect(exit).toHaveBeenCalledWith(2);
-      expect(emitted).toHaveLength(1);
-      expect(emitted[0]?.data).toEqual({ ok: false });
-      expect(emitted[0]?.errors?.[0]).toMatchObject({
-        code: "UNKNOWN_SERVICE",
-        message: expect.stringContaining("Unknown service missing"),
-      });
+      // A non-string stack is an invalid service.json (GHSA-phgf-pww4-7jxc), so discovery stops before the --only check.
+      expect(exit).toHaveBeenCalledWith(1);
+      expect(error).toHaveBeenCalledWith(expect.stringContaining("Invalid service.json at"));
+      expect(error).toHaveBeenCalledWith(
+        expect.stringContaining("service.json.stack: expected a string"),
+      );
     } finally {
       error.mockRestore();
       exit.mockRestore();
