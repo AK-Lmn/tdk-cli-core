@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock findProjectRoot to return a controlled path for all tests
@@ -20,7 +21,7 @@ describe("getTiltfilePath", () => {
   it("should return correct tiltfile path for valid project", async () => {
     const { getTiltfilePath } = await import("../tilt.js");
     const tiltfilePath = getTiltfilePath();
-    expect(tiltfilePath).toBe("/fake/project/.tdk/.tdk-out/Tiltfile");
+    expect(tiltfilePath).toBe(join("/fake/project", ".tdk", ".tdk-out", "Tiltfile"));
   });
 
   it("should not have double slashes in path", async () => {
@@ -40,9 +41,23 @@ describe("getTiltfilePath error", () => {
     vi.clearAllMocks();
   });
 
-  it("should throw when not in a TDK project", async () => {
+  it("should throw the shared not-in-project error with suggestions", async () => {
     const { getTiltfilePath } = await import("../tilt.js");
-    expect(() => getTiltfilePath()).toThrow("Not in a TDK project");
+    let error: unknown;
+    try {
+      getTiltfilePath();
+    } catch (caught) {
+      error = caught;
+    }
+
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toBe(
+      "Could not find project root (no .tdk/project.json found)",
+    );
+    expect((error as { suggestions: string[] }).suggestions).toEqual([
+      "Run this from within a TDK project",
+      "Run `tdk project --yes` to initialize a new project",
+    ]);
   });
 });
 
@@ -61,7 +76,7 @@ describe("buildTiltUpArgs", () => {
     expect(args).toContain("-f");
     const fIndex = args.indexOf("-f");
     expect(fIndex).toBeGreaterThanOrEqual(0);
-    expect(args[fIndex + 1]).toContain(".tdk/.tdk-out/Tiltfile");
+    expect(args[fIndex + 1]).toContain(join(".tdk", ".tdk-out", "Tiltfile"));
   });
 
   it("should include service names in order", async () => {

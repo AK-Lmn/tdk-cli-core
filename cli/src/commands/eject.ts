@@ -3,7 +3,7 @@ import { join } from "node:path";
 import chalk from "chalk";
 import { Command } from "commander";
 import { confirmOrCancel } from "../utils/command-helpers.js";
-import { runCommand } from "../utils/errors.js";
+import { errorFactories, runCommand } from "../utils/errors.js";
 import { findProjectRoot } from "../utils/paths.js";
 
 // Same location `tdk up` hands to Tilt (see getTiltfilePath in utils/tilt.ts), relative to the project root.
@@ -57,7 +57,7 @@ export const ejectCommand = new Command("eject")
     await runCommand(async () => {
       const projectRoot = findProjectRoot();
       if (!projectRoot) {
-        throw new Error("tdk eject: no .tdk/project.json in this directory or parents");
+        throw errorFactories.notInProject();
       }
       const generatedPaths = [".tdk/.tdk-out"];
       const presentPaths = generatedPaths.filter((path) => existsSync(join(projectRoot, path)));

@@ -71,7 +71,7 @@ describe("tdk eject", () => {
 
     const dryRunOutput = output.join("\n");
     expect(dryRunOutput).toContain("Generated files, left where they are (git-ignored):");
-    expect(dryRunOutput).toContain(".tdk/.tdk-out/Tiltfile");
+    expect(dryRunOutput).toContain(join(".tdk", ".tdk-out", "Tiltfile"));
     expect(dryRunOutput).toContain(
       "Root Tiltfile, left where it is (not generated, not git-ignored):\n  Tiltfile\nFiles written:",
     );
@@ -144,9 +144,10 @@ describe("tdk eject", () => {
     const exit = vi.spyOn(process, "exit").mockImplementation((() => undefined) as never);
     try {
       await ejectCommand.parseAsync(["node", "tdk", "--dry-run"], { from: "node" });
-      expect(error).toHaveBeenCalledWith(
-        expect.stringContaining("tdk eject: no .tdk/project.json in this directory or parents"),
-      );
+      const output = error.mock.calls.flat().join("\n");
+      expect(output).toContain("Could not find project root (no .tdk/project.json found)");
+      expect(output).toContain("Run this from within a TDK project");
+      expect(output).toContain("Run `tdk project --yes` to initialize a new project");
       expect(exit).toHaveBeenCalledWith(1);
     } finally {
       error.mockRestore();

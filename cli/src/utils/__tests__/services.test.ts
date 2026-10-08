@@ -358,22 +358,27 @@ describe("clearMetadataCache", () => {
 });
 
 describe("error message consistency between services and tilt", () => {
-  it("should have distinct error messages for missing project root", async () => {
+  it("shares the same error message when the project root is missing", async () => {
     vi.mocked(findProjectRoot).mockReturnValue(null);
     const { discoverResources } = await import("../services.js");
     const { getTiltfilePath } = await import("../tilt.js");
 
+    let serviceError: Error | undefined;
     try {
       discoverResources();
-    } catch (err) {
-      expect((err as Error).message).toMatch(/project root/i);
+    } catch (error) {
+      serviceError = error as Error;
     }
 
+    let tiltError: Error | undefined;
     try {
       getTiltfilePath();
-    } catch (err) {
-      expect((err as Error).message).toMatch(/TDK project/i);
+    } catch (error) {
+      tiltError = error as Error;
     }
+
+    expect(serviceError?.message).toBe("Could not find project root (no .tdk/project.json found)");
+    expect(tiltError?.message).toBe(serviceError?.message);
   });
 });
 

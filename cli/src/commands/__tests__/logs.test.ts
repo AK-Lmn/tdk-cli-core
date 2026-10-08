@@ -5,7 +5,9 @@ const tilt = vi.hoisted(() => ({
   isTiltAvailable: vi.fn(async () => true),
   runTilt: vi.fn(),
 }));
+const paths = vi.hoisted(() => ({ findProjectRoot: vi.fn() }));
 vi.mock("../../utils/tilt.js", () => ({ ...tilt, getTiltfilePath: () => "Tiltfile" }));
+vi.mock("../../utils/paths.js", () => paths);
 
 import { logsCommand } from "../logs.js";
 
@@ -22,6 +24,7 @@ interface Envelope {
 }
 
 let out: string[];
+let errors: string[];
 let exit: ReturnType<typeof vi.spyOn>;
 
 async function run(...args: string[]): Promise<{ envelope: Envelope; code: number | null }> {
@@ -41,10 +44,15 @@ async function run(...args: string[]): Promise<{ envelope: Envelope; code: numbe
 
 beforeEach(() => {
   out = [];
+  errors = [];
   vi.spyOn(console, "log").mockImplementation((line) => void out.push(String(line)));
-  vi.spyOn(console, "error").mockImplementation(() => {});
+  vi.spyOn(console, "error").mockImplementation(
+    (...parts) => void errors.push(parts.map(String).join(" ")),
+  );
   exit = vi.spyOn(process, "exit");
+  paths.findProjectRoot.mockReturnValue("/project");
   tilt.isTiltAvailable.mockResolvedValue(true);
+  tilt.isTiltAvailable.mockClear();
   tilt.runTilt.mockReset();
 });
 afterEach(() => {
@@ -69,6 +77,53 @@ describe("tdk logs --json", () => {
     expect(args).toEqual(expect.arrayContaining(["--tail", "5", "--json"]));
     expect(args).not.toContain("-f");
     expect(args).not.toContain("--follow");
+  });
+
+  it("returns one shared not-in-project error envelope before checking Tilt", async () => {
+    paths.findProjectRoot.mockReturnValue(null);
+
+    const { envelope, code } = await run();
+
+    expect(code).toBe(1);
+    expect(out).toHaveLength(1);
+    expect(envelope).toMatchObject({
+      schemaVersion: 1,
+      data: null,
+      errors: [
+        {
+          code: "COMMAND_FAILED",
+          message: "Could not find project root (no .tdk/project.json found)",
+          suggestions: [
+            "Run this from within a TDK project",
+            "Run `tdk project --yes` to initialize a new project",
+          ],
+        },
+      ],
+    });
+    expect(tilt.isTiltAvailable).not.toHaveBeenCalled();
+    expect(tilt.runTilt).not.toHaveBeenCalled();
+  });
+
+  it("prints shared not-in-project suggestions in text mode before checking Tilt", async () => {
+    paths.findProjectRoot.mockReturnValue(null);
+    let code: number | null = null;
+    exit.mockImplementation(((exitCode: number) => {
+      code ??= exitCode;
+      throw new Error("exit");
+    }) as never);
+
+    try {
+      await logsCommand.parseAsync([], { from: "user" });
+    } catch {
+      // The mocked process.exit ends the command under test.
+    }
+
+    expect(code).toBe(1);
+    expect(errors.join("\n")).toContain("Could not find project root (no .tdk/project.json found)");
+    expect(errors.join("\n")).toContain("Run this from within a TDK project");
+    expect(errors.join("\n")).toContain("Run `tdk project --yes` to initialize a new project");
+    expect(tilt.isTiltAvailable).not.toHaveBeenCalled();
+    expect(tilt.runTilt).not.toHaveBeenCalled();
   });
 
   it("passes service names after `--` so they cannot be read as flags", async () => {

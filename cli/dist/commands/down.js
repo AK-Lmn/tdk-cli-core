@@ -3,8 +3,9 @@ import { Command } from "commander";
 import { readProjectConfig } from "../generator/template-engine.js";
 import { handleDryRun } from "../utils/command-helpers.js";
 import { pruneProjectNetworks, stopProjectTiltUp, waitForTiltUpExit, } from "../utils/down-cleanup.js";
-import { handleTiltFailure, withTiltCheck } from "../utils/errors.js";
+import { errorFactories, handleTiltFailure, withTiltCheck } from "../utils/errors.js";
 import { createJsonEmitter } from "../utils/json-output.js";
+import { writeMachineError } from "../utils/machine-output.js";
 import { findProjectRoot } from "../utils/paths.js";
 import { discoverResources, discoverStacks } from "../utils/services.js";
 import { buildTiltDownArgs, getTiltfilePath, runTilt } from "../utils/tilt.js";
@@ -48,6 +49,12 @@ export const downCommand = new Command("down")
     .option("--dry-run", "Show what would be stopped without stopping", false)
     .option("--json", "Print one JSON object on stdout; implies quiet human output", false)
     .action(async (options) => {
+    if (!findProjectRoot()) {
+        const projectRootError = errorFactories.notInProject();
+        if (options.json)
+            writeMachineError(projectRootError);
+        projectRootError.exit();
+    }
     const emit = options.json ? createJsonEmitter("DOWN_FAILED", "tdk down") : undefined;
     await withTiltCheck(async () => {
         if (emit && options.dryRun) {

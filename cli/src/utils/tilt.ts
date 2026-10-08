@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { join } from "node:path";
 import type { TiltCommandResult } from "../types/index.js";
+import { errorFactories } from "./errors.js";
 import { findProjectRoot } from "./paths.js";
 import { findOnPath } from "./which.js";
 
@@ -68,7 +69,7 @@ export async function isTiltAvailable(): Promise<boolean> {
 export function getTiltfilePath(): string {
   const projectRoot = findProjectRoot();
   if (!projectRoot) {
-    throw new Error("Not in a TDK project (no .tdk/project.json found)");
+    throw errorFactories.notInProject();
   }
 
   return join(projectRoot, ".tdk", ".tdk-out", "Tiltfile");

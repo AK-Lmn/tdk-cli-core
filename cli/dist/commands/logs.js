@@ -61,17 +61,23 @@ export const logsCommand = new Command("logs")
         fail("USAGE", "--port must be a valid port number", 2);
     const tail = Number(options.tail);
     const services = options.service ?? [];
-    try {
-        secrets = envSecretValues(findProjectRoot() ?? process.cwd());
-    }
-    catch (error) {
-        if (!(error instanceof EnvUnreadableError))
-            throw error;
-        fail("ENV_UNREADABLE", error.message, 1, [
-            "Fix the read permission on .env, or move it out of the project",
-        ]);
-    }
     const action = async () => {
+        const projectRoot = findProjectRoot();
+        if (!projectRoot) {
+            // Same code `writeMachineError` gives this error in `down`, `stacks` and `resources`.
+            const error = errorFactories.notInProject();
+            return fail("COMMAND_FAILED", error.message, error.exitCode, error.suggestions);
+        }
+        try {
+            secrets = envSecretValues(projectRoot);
+        }
+        catch (error) {
+            if (!(error instanceof EnvUnreadableError))
+                throw error;
+            fail("ENV_UNREADABLE", error.message, 1, [
+                "Fix the read permission on .env, or move it out of the project",
+            ]);
+        }
         if (!(await isTiltAvailable())) {
             fail("TILT_MISSING", "Tilt is not installed. Run: tdk doctor");
         }
