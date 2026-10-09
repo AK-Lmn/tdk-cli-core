@@ -12,6 +12,7 @@ import {
 import type { CheckResult } from "../types/index.js";
 import { BUN_FLOOR_LABEL, bunMeetsFloor } from "./bun-floor.js";
 import { projectNeedsBun } from "./bun-requirement.js";
+import { PROJECT_JSON } from "./constants.js";
 import { checkNatsBroker } from "./doctor-wiring.js";
 import { getHostPortPlan } from "./host-port-config.js";
 import { findProjectRoot } from "./paths.js";
@@ -175,7 +176,7 @@ export async function runColdPreflight(opts: { cwd?: string } = {}): Promise<Pre
     if (usesPrisma(projectRoot)) {
       let dbUp = false;
       try {
-        const config = JSON.parse(readFileSync(join(projectRoot, ".tdk", "project.json"), "utf-8"));
+        const config = JSON.parse(readFileSync(join(projectRoot, ".tdk", PROJECT_JSON), "utf-8"));
         const projectName = String(config?.project?.name ?? "").replace(/-/g, "_");
         if (projectName) {
           const running = execFileSync(
