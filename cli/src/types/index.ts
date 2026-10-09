@@ -395,7 +395,6 @@ export type PortAssignableResourceType = Extract<
   "backend" | "frontend" | "worker" | "migrator" | "mcp" | "bring-your-own"
 >;
 
-
 // ============================================================================
 // Config Types (consolidated from commands/config.ts)
 // ============================================================================
@@ -410,10 +409,6 @@ export type MasterConfigFileName =
  * Eliminates the need for 'as MasterConfigFileName' assertion.
  */
 export function isMasterConfigFileName(filename: string): filename is MasterConfigFileName {
-  const validNames: readonly string[] = [
-    TECH_STACK_FILE,
-    RESOURCE_DEFAULTS_FILE,
-    "spec.master",
-  ];
+  const validNames: readonly string[] = [TECH_STACK_FILE, RESOURCE_DEFAULTS_FILE, "spec.master"];
   return validNames.includes(filename);
 }
