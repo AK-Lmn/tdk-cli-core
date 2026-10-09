@@ -298,22 +298,22 @@ export const upCommand = new Command("up")
         const serviceNames = servicesToStart.map((s) => s.name);
         if (!options.quiet) {
             console.log(chalk.blue(`${options.dryRun ? "Would start" : "Starting"} ${formatCount(serviceNames.length, "service")} from ${stackDescription}...`));
-            serviceNames.forEach((name) => {
+            for (const name of serviceNames) {
                 console.log(chalk.gray(`  - ${name}`));
-            });
+            }
             const { appBase, apiBase } = resolveSubdomainBases(hostPortPlan.ingressHttp);
             const frontends = servicesToStart.filter((s) => s.config?.appType === "frontend");
             const backends = servicesToStart.filter((s) => isApiServiceType(s.config?.appType));
             if (frontends.length > 0) {
                 console.log(chalk.blue("\n🌍 Frontend URLs:"));
-                frontends.forEach((svc) => {
+                for (const svc of frontends) {
                     const basePath = svc.config?.basePath ?? `/${svc.name}`;
                     console.log(chalk.gray(`  - ${svc.name}: ${appBase}${chalk.cyan(appendHealthPath(basePath))}`));
-                });
+                }
             }
             if (backends.length > 0) {
                 console.log(chalk.blue("\n🔧 Backend API URLs:"));
-                backends.forEach((svc) => {
+                for (const svc of backends) {
                     const servicePathName = svc.name.replace(/-api$/, "");
                     const apiPath = svc.config?.apiPath ?? `/api/${servicePathName}`;
                     const sablier = svc.config?.sablier;
@@ -321,7 +321,7 @@ export const upCommand = new Command("up")
                         ? chalk.dim(" (deferred — starts on first request)")
                         : "";
                     console.log(chalk.gray(`  - ${svc.name}: ${apiBase}${chalk.cyan(appendHealthPath(apiPath))}${deferredTag}`));
-                });
+                }
             }
         }
         const focusTargets = options.only ?? (stackName ? [stackName] : undefined);

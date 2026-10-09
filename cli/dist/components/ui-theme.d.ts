@@ -20,6 +20,7 @@ export interface TUITheme {
     bannerStart: string;
     bannerEnd: string;
     selectionMarker: string;
+    separator: string;
     fileColors: Record<FileType, TUIColor>;
 }
 type TUIEnvironment = {

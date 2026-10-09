@@ -31,10 +31,12 @@ export function extractTarball(data, destDir) {
             throw new Error(`tar extraction failed: ${fallback.stderr?.toString() || result.stderr?.toString() || "unknown error"}`);
         }
         const entries = readdirSync(fallbackDir);
+        const [only] = entries;
         const sourceDir = entries.length === 1 &&
-            existsSync(join(fallbackDir, entries[0])) &&
-            statSync(join(fallbackDir, entries[0])).isDirectory()
-            ? join(fallbackDir, entries[0])
+            only !== undefined &&
+            existsSync(join(fallbackDir, only)) &&
+            statSync(join(fallbackDir, only)).isDirectory()
+            ? join(fallbackDir, only)
             : fallbackDir;
         for (const entry of readdirSync(sourceDir)) {
             renameSync(join(sourceDir, entry), join(destDir, entry));

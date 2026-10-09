@@ -31,8 +31,9 @@ export const ResourceSelectInput = ({ items, onSelect, highlightedIndex, width, 
             if (item)
                 onSelect(item);
         }
-        if (key.return)
-            onSelect(items[selected]);
+        const current = items[selected];
+        if (key.return && current)
+            onSelect(current);
     }, { isActive });
     return (_jsx(Box, { ref: listRef, flexDirection: "column", width: width, children: items.slice(firstVisible, firstVisible + visibleCount).map((item, index) => {
             const isSelected = firstVisible + index === selected;

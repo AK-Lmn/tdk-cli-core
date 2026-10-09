@@ -1084,9 +1084,9 @@ export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) =>
               <Text color={theme.muted}>Services: {services.length}</Text>
               <Text color={theme.muted}>
                 {theme.ascii ? "Mouse" : "🖱️"} {mouseEnabled ? "ON" : "OFF"}
-                {theme.ascii ? " | " : " \u2502 "}
+                {theme.separator}
                 {theme.ascii ? "Info" : "ℹ️"} {showTooltips ? "ON" : "OFF"}
-                {theme.ascii ? " | " : " \u2502 "}
+                {theme.separator}
                 <Text color={showEnabledOnly ? theme.success : theme.warning}>
                   {showEnabledOnly
                     ? theme.ascii
@@ -1096,8 +1096,10 @@ export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) =>
                       ? "[+] all"
                       : "\u2713 all"}
                 </Text>
-                {theme.ascii ? " | " : " \u2502 "}
-                [?] Help{theme.ascii ? " | " : " \u2502 "}[q] Quit
+                {theme.separator}
+                {formatUiKeyHint("help", "Help", theme.ascii)}
+                {theme.separator}
+                {formatUiKeyHint("quit", "Quit", theme.ascii)}
               </Text>
             </Box>
           </Box>

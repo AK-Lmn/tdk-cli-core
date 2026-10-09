@@ -25,6 +25,7 @@ export interface TUITheme {
   bannerStart: string;
   bannerEnd: string;
   selectionMarker: string;
+  separator: string;
   fileColors: Record<FileType, TUIColor>;
 }
 
@@ -128,6 +129,7 @@ export function createTUITheme(
     bannerStart: ascii ? ">>>" : "\u2593\u2592\u2591",
     bannerEnd: ascii ? "<<<" : "\u2591\u2592\u2593",
     selectionMarker: ascii ? ">>>" : "\u2593\u2592\u2591",
+    separator: ascii ? " | " : " \u2502 ",
   };
 }
 

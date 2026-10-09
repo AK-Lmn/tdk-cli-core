@@ -188,9 +188,9 @@ function showError(message: string, context?: string, suggestions?: string[]): v
 
   if (suggestions && suggestions.length > 0) {
     console.error(chalk.yellow("\n💡 Suggestions:"));
-    suggestions.forEach((s) => {
+    for (const s of suggestions) {
       console.error(chalk.cyan(`   → ${s}`));
-    });
+    }
   }
 }
 
