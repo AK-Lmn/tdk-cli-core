@@ -27,6 +27,9 @@ export const TILTIGNORE_FILE = ".tiltignore";
 // Manifest file name for a resource, used by discovery and the resource command.
 export const SERVICE_JSON = "service.json";
 
+// Configuration file name for a project, stored under .tdk/project.json.
+export const PROJECT_JSON = "project.json";
+
 export const MASTER_CONFIG_FILES = [
   "TILT_TECH_STACK.star",
   "TILT_RESOURCE_DEFAULTS.star",
