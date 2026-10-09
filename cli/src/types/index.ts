@@ -393,12 +393,14 @@ export type PortAssignableResourceType = Extract<
   "backend" | "frontend" | "worker" | "migrator" | "mcp" | "bring-your-own"
 >;
 
+import { TECH_STACK_FILE } from "../utils/constants.js";
+
 // ============================================================================
 // Config Types (consolidated from commands/config.ts)
 // ============================================================================
 
 export type MasterConfigFileName =
-  | "TILT_TECH_STACK.star"
+  | typeof TECH_STACK_FILE
   | "TILT_RESOURCE_DEFAULTS.star"
   | "spec.master";
 
@@ -408,7 +410,7 @@ export type MasterConfigFileName =
  */
 export function isMasterConfigFileName(filename: string): filename is MasterConfigFileName {
   const validNames: readonly string[] = [
-    "TILT_TECH_STACK.star",
+    TECH_STACK_FILE,
     "TILT_RESOURCE_DEFAULTS.star",
     "spec.master",
   ];

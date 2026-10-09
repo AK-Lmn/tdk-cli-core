@@ -17,8 +17,9 @@ export const DATABASE_MANAGEMENT_FEATURE = "database-management";
 export const TILTIGNORE_FILE = ".tiltignore";
 // Manifest file name for a resource, used by discovery and the resource command.
 export const SERVICE_JSON = "service.json";
+export const TECH_STACK_FILE = "TILT_TECH_STACK.star";
 export const MASTER_CONFIG_FILES = [
-    "TILT_TECH_STACK.star",
+    TECH_STACK_FILE,
     "TILT_RESOURCE_DEFAULTS.star",
     "spec.master",
 ];
