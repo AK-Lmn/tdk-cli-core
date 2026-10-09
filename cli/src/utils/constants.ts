@@ -45,6 +45,9 @@ export const RESOURCE_DEFAULTS_FILE = "TILT_RESOURCE_DEFAULTS.star";
 // import it everywhere it's needed.
 export const PROJECT_JSON = "project.json";
 
+// Manifest file name for Node / JavaScript packages and root workspace.
+export const PACKAGE_JSON = "package.json";
+
 export const MASTER_CONFIG_FILES = [
   TECH_STACK_FILE,
   RESOURCE_DEFAULTS_FILE,

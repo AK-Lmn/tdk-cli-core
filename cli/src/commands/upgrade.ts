@@ -18,6 +18,7 @@ import { basename, dirname, join, resolve, win32 } from "node:path";
 import { fileURLToPath } from "node:url";
 import chalk from "chalk";
 import { Command } from "commander";
+import { PACKAGE_JSON } from "../utils/constants.js";
 import { getErrorMessage, logVerbose, showErrorAndExit } from "../utils/errors.js";
 import { showCancelled } from "../utils/formatting.js";
 import { getPackageVersion } from "../utils/paths.js";
@@ -458,7 +459,7 @@ async function upgradeViaGit(path: string): Promise<boolean> {
       timeout: 30000,
     });
 
-    if (existsSync(join(path, "cli", "package.json"))) {
+    if (existsSync(join(path, "cli", PACKAGE_JSON))) {
       spinner.text = "Rebuilding CLI...";
       execFileSync(findOnPath("bun") ?? "bun", ["install"], {
         cwd: join(path, "cli"),
