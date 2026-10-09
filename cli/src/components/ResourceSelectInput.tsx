@@ -48,7 +48,8 @@ export const ResourceSelectInput: React.FC<ResourceSelectInputProps> = ({
         const item = items[Number(input) - 1];
         if (item) onSelect(item);
       }
-      if (key.return) onSelect(items[selected]);
+      const current = items[selected];
+      if (key.return && current) onSelect(current);
     },
     { isActive },
   );

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 import { PassThrough } from "node:stream";
 import { Box, render, renderToString, Text } from "ink";
+import type { ReactElement } from "react";
 import { describe, expect, it } from "vitest";
 import { getListRowFromMouseY } from "../../utils/terminal-layout.js";
 import { ResourceSelectInput } from "../ResourceSelectInput.js";
@@ -121,4 +122,54 @@ it("keeps controlled selection after a same-length list refresh", async () => {
     streams.stdout.destroy();
     streams.stderr.destroy();
   }
+});
+
+async function pressEnterAfter(
+  first: ReactElement,
+  second: ReactElement | undefined,
+): Promise<void> {
+  const streams = createStreams(80);
+  Object.assign(streams.stdin, { ref: () => {}, unref: () => {} });
+  const app = render(first, { ...streams, exitOnCtrlC: false, patchConsole: false });
+  try {
+    await app.waitUntilRenderFlush();
+    if (second) {
+      app.rerender(second);
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      await app.waitUntilRenderFlush();
+    }
+    streams.stdin.write("\r");
+    await new Promise((resolve) => setTimeout(resolve, 30));
+  } finally {
+    app.unmount();
+    streams.stdin.destroy();
+    streams.stdout.destroy();
+    streams.stderr.destroy();
+  }
+}
+
+it("does not call onSelect when Enter is pressed on an empty list", async () => {
+  const selected: string[] = [];
+  await pressEnterAfter(
+    <ResourceSelectInput
+      items={[]}
+      onSelect={(item) => selected.push(item.value)}
+      highlightedIndex={0}
+      width={80}
+    />,
+    undefined,
+  );
+  expect(selected).toEqual([]);
+});
+
+it("clamps the selection when the list shrinks before Enter", async () => {
+  const selected: string[] = [];
+  const onSelect = (item: { value: string }) => selected.push(item.value);
+  const items = (count: number) =>
+    Array.from({ length: count }, (_, i) => ({ value: `item-${i}`, label: `item-${i}` }));
+  await pressEnterAfter(
+    <ResourceSelectInput items={items(3)} onSelect={onSelect} highlightedIndex={2} width={80} />,
+    <ResourceSelectInput items={items(1)} onSelect={onSelect} highlightedIndex={2} width={80} />,
+  );
+  expect(selected).toEqual(["item-0"]);
 });
