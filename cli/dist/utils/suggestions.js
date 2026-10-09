@@ -1,16 +1,20 @@
 // Copyright (c) 2026 TDK Landscape contributors
 // SPDX-License-Identifier: MIT
+// Every cell is written before it is read, so the fallback never changes the result.
+function cell(row, index) {
+    return row[index] ?? 0;
+}
 function levenshteinDistance(left, right) {
     let previousRow = Array.from({ length: right.length + 1 }, (_, index) => index);
     for (let leftIndex = 1; leftIndex <= left.length; leftIndex++) {
         const currentRow = [leftIndex];
         for (let rightIndex = 1; rightIndex <= right.length; rightIndex++) {
             const substitutionCost = left[leftIndex - 1] === right[rightIndex - 1] ? 0 : 1;
-            currentRow[rightIndex] = Math.min(currentRow[rightIndex - 1] + 1, previousRow[rightIndex] + 1, previousRow[rightIndex - 1] + substitutionCost);
+            currentRow[rightIndex] = Math.min(cell(currentRow, rightIndex - 1) + 1, cell(previousRow, rightIndex) + 1, cell(previousRow, rightIndex - 1) + substitutionCost);
         }
         previousRow = currentRow;
     }
-    return previousRow[right.length];
+    return cell(previousRow, right.length);
 }
 function isAdjacentTransposition(left, right) {
     if (left.length !== right.length)

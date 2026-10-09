@@ -23,7 +23,7 @@ export const TABS: Tab[] = [
   { id: "config", label: "CONFIG", shortcut: "5" },
 ];
 
-const tabRange = `${TABS[0].shortcut}-${TABS[TABS.length - 1].shortcut}`;
+const tabRange = `${TABS.at(0)?.shortcut}-${TABS.at(-1)?.shortcut}`;
 
 const uiKeymap = [
   {
