@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import Handlebars from "handlebars";
 import { PLATFORM_STANDARDS } from "../config/platform-standards.js";
 import { writeTextFileAtomic } from "../utils/atomic-write.js";
-import { DATABASE_MANAGEMENT_FEATURE, TILTIGNORE_FILE } from "../utils/constants.js";
+import { DATABASE_MANAGEMENT_FEATURE, PROJECT_JSON, TILTIGNORE_FILE } from "../utils/constants.js";
 import { writeTextFile } from "../utils/file-helpers.js";
 import { assertTdkGeneratedPath } from "../utils/generated-paths.js";
 import { DEFAULT_ALWAYS_ENABLED_INFRA } from "../utils/project-config-defaults.js";
@@ -365,7 +365,7 @@ function normalizeProjectConfig(value) {
 export class ProjectConfigNotFoundError extends Error {
 }
 export function readProjectConfig(projectRoot) {
-    const projectJsonPath = path.join(projectRoot, ".tdk", "project.json");
+    const projectJsonPath = path.join(projectRoot, ".tdk", PROJECT_JSON);
     if (!fs.existsSync(projectJsonPath)) {
         throw new ProjectConfigNotFoundError(`Project config not found: ${projectJsonPath}. Run 'tdk project --yes' first.`);
     }
