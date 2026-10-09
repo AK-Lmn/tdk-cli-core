@@ -1,5 +1,7 @@
 // Copyright (c) 2026 TDK Landscape contributors
 // SPDX-License-Identifier: MIT
+import { TECH_STACK_FILE } from "../utils/constants.js";
+
 export interface DiscoveredResource {
   name: string;
   path: string;
@@ -392,8 +394,6 @@ export type PortAssignableResourceType = Extract<
   CreatableResourceType,
   "backend" | "frontend" | "worker" | "migrator" | "mcp" | "bring-your-own"
 >;
-
-import { TECH_STACK_FILE } from "../utils/constants.js";
 
 // ============================================================================
 // Config Types (consolidated from commands/config.ts)

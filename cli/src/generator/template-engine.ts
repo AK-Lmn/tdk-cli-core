@@ -10,6 +10,7 @@ import type { JsonValue, ProjectConfig } from "../types/index.js";
 import { writeTextFileAtomic } from "../utils/atomic-write.js";
 import {
   DATABASE_MANAGEMENT_FEATURE,
+  PROJECT_JSON,
   TECH_STACK_FILE,
   TILTIGNORE_FILE,
 } from "../utils/constants.js";
@@ -437,7 +438,7 @@ function normalizeProjectConfig(value: unknown): ProjectConfig | null {
 export class ProjectConfigNotFoundError extends Error {}
 
 export function readProjectConfig(projectRoot: string): ProjectConfig {
-  const projectJsonPath = path.join(projectRoot, ".tdk", "project.json");
+  const projectJsonPath = path.join(projectRoot, ".tdk", PROJECT_JSON);
 
   if (!fs.existsSync(projectJsonPath)) {
     throw new ProjectConfigNotFoundError(

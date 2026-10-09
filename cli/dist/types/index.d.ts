@@ -1,3 +1,4 @@
+import { TECH_STACK_FILE } from "../utils/constants.js";
 export interface DiscoveredResource {
     name: string;
     path: string;
@@ -287,7 +288,6 @@ export interface PackageInfo {
     fullPackage: JsonObject;
 }
 export type PortAssignableResourceType = Extract<CreatableResourceType, "backend" | "frontend" | "worker" | "migrator" | "mcp" | "bring-your-own">;
-import { TECH_STACK_FILE } from "../utils/constants.js";
 export type MasterConfigFileName = typeof TECH_STACK_FILE | "TILT_RESOURCE_DEFAULTS.star" | "spec.master";
 /**
  * Type guard to validate filename is a known master config file.

@@ -29,6 +29,9 @@ export const SERVICE_JSON = "service.json";
 
 export const TECH_STACK_FILE = "TILT_TECH_STACK.star";
 
+// Configuration file name for a project, stored under .tdk/project.json.
+export const PROJECT_JSON = "project.json";
+
 export const MASTER_CONFIG_FILES = [
   TECH_STACK_FILE,
   "TILT_RESOURCE_DEFAULTS.star",
