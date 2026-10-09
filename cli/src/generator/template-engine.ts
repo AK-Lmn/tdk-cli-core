@@ -10,7 +10,9 @@ import type { JsonValue, ProjectConfig } from "../types/index.js";
 import { writeTextFileAtomic } from "../utils/atomic-write.js";
 import {
   DATABASE_MANAGEMENT_FEATURE,
+  PROJECT_JSON,
   RESOURCE_DEFAULTS_FILE,
+  TECH_STACK_FILE,
   TILTIGNORE_FILE,
 } from "../utils/constants.js";
 import { writeTextFile } from "../utils/file-helpers.js";
@@ -70,7 +72,7 @@ function getEmbeddedTemplates(): Record<string, string> {
     embeddedTemplatesCache = {
       [TILTIGNORE_FILE]: loadTemplate(".tiltignore.hbs"),
       [RESOURCE_DEFAULTS_FILE]: loadTemplate("TILT_RESOURCE_DEFAULTS.star.hbs"),
-      "TILT_TECH_STACK.star": loadTemplate("TILT_TECH_STACK.star.hbs"),
+      [TECH_STACK_FILE]: loadTemplate("TILT_TECH_STACK.star.hbs"),
       Tiltfile: loadTemplate("Tiltfile.hbs"),
       "spec.master": loadTemplate("spec.master.hbs"),
     };
@@ -229,7 +231,7 @@ export class TemplateEngine {
   }
 
   generateTechStack(context: GeneratorContext): string {
-    const template = this.loadTemplate("TILT_TECH_STACK.star");
+    const template = this.loadTemplate(TECH_STACK_FILE);
     return template(context);
   }
 
@@ -437,7 +439,7 @@ function normalizeProjectConfig(value: unknown): ProjectConfig | null {
 export class ProjectConfigNotFoundError extends Error {}
 
 export function readProjectConfig(projectRoot: string): ProjectConfig {
-  const projectJsonPath = path.join(projectRoot, ".tdk", "project.json");
+  const projectJsonPath = path.join(projectRoot, ".tdk", PROJECT_JSON);
 
   if (!fs.existsSync(projectJsonPath)) {
     throw new ProjectConfigNotFoundError(

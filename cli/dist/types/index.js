@@ -1,3 +1,6 @@
+// Copyright (c) 2026 TDK Landscape contributors
+// SPDX-License-Identifier: MIT
+import { RESOURCE_DEFAULTS_FILE, TECH_STACK_FILE } from "../utils/constants.js";
 export const RESOURCE_CONFIG_APP_TYPES = [
     "backend",
     "frontend",
@@ -18,14 +21,13 @@ export const CREATABLE_RESOURCE_TYPES = [
 export function isCreatableResourceType(value) {
     return (typeof value === "string" && CREATABLE_RESOURCE_TYPES.includes(value));
 }
-import { RESOURCE_DEFAULTS_FILE } from "../utils/constants.js";
 /**
  * Type guard to validate filename is a known master config file.
  * Eliminates the need for 'as MasterConfigFileName' assertion.
  */
 export function isMasterConfigFileName(filename) {
     const validNames = [
-        "TILT_TECH_STACK.star",
+        TECH_STACK_FILE,
         RESOURCE_DEFAULTS_FILE,
         "spec.master",
     ];

@@ -1,3 +1,4 @@
+import { RESOURCE_DEFAULTS_FILE, TECH_STACK_FILE } from "../utils/constants.js";
 export interface DiscoveredResource {
     name: string;
     path: string;
@@ -287,8 +288,7 @@ export interface PackageInfo {
     fullPackage: JsonObject;
 }
 export type PortAssignableResourceType = Extract<CreatableResourceType, "backend" | "frontend" | "worker" | "migrator" | "mcp" | "bring-your-own">;
-import { RESOURCE_DEFAULTS_FILE } from "../utils/constants.js";
-export type MasterConfigFileName = "TILT_TECH_STACK.star" | typeof RESOURCE_DEFAULTS_FILE | "spec.master";
+export type MasterConfigFileName = typeof TECH_STACK_FILE | typeof RESOURCE_DEFAULTS_FILE | "spec.master";
 /**
  * Type guard to validate filename is a known master config file.
  * Eliminates the need for 'as MasterConfigFileName' assertion.
