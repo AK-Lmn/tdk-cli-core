@@ -84,34 +84,35 @@ export function colorizeByStatus(text: string, status: StatusValue): string {
   return STATUS_CATEGORY_CONFIG[getStatusCategory(status)].chalkFn(text);
 }
 
-const EMPTY_STATE_CONFIG: Record<string, { singular: string; command: string; context?: string }> =
-  {
-    resources: {
-      singular: "resource",
-      command: "tdk resource <name>",
-      context: "\nTo create a resource:",
-    },
-    stacks: {
-      singular: "stack",
-      command: "tdk stack <stack-name>",
-      context: "\nTo create a stack, use:",
-    },
-    services: {
-      singular: "service",
-      command: "tdk resource <name>",
-      context: "\nTo create a service:",
-    },
-    "stack-services": {
-      singular: "service",
-      command: "tdk resource <name> --stack <stack-name>",
-      context: "\nTo add services to this stack:",
-    },
-  };
+type EmptyStateItemType = "resources" | "stacks" | "services" | "stack-services";
 
-export function showEmptyState(
-  itemType: "resources" | "stacks" | "services" | "stack-services",
-  filterContext?: string,
-): void {
+const EMPTY_STATE_CONFIG: Record<
+  EmptyStateItemType,
+  { singular: string; command: string; context?: string }
+> = {
+  resources: {
+    singular: "resource",
+    command: "tdk resource <name>",
+    context: "\nTo create a resource:",
+  },
+  stacks: {
+    singular: "stack",
+    command: "tdk stack <stack-name>",
+    context: "\nTo create a stack, use:",
+  },
+  services: {
+    singular: "service",
+    command: "tdk resource <name>",
+    context: "\nTo create a service:",
+  },
+  "stack-services": {
+    singular: "service",
+    command: "tdk resource <name> --stack <stack-name>",
+    context: "\nTo add services to this stack:",
+  },
+};
+
+export function showEmptyState(itemType: EmptyStateItemType, filterContext?: string): void {
   const config = EMPTY_STATE_CONFIG[itemType];
 
   if (filterContext) {

@@ -4,8 +4,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } fr
 import { resolve } from "node:path";
 import chalk from "chalk";
 export function writeFilesWithProgress(basePath, tasks, onProgress) {
-    for (let i = 0; i < tasks.length; i++) {
-        const task = tasks[i];
+    for (const [i, task] of tasks.entries()) {
         console.log(chalk.blue(`${task.emoji} ${task.description}...`));
         if (task.type === "json") {
             writeJsonFileInDir(basePath, task.filename, task.content);

@@ -10,9 +10,7 @@ export function writeFilesWithProgress(
   tasks: FileGenerationTask[],
   onProgress?: (task: FileGenerationTask, index: number, total: number) => void,
 ): void {
-  for (let i = 0; i < tasks.length; i++) {
-    const task = tasks[i];
-
+  for (const [i, task] of tasks.entries()) {
     console.log(chalk.blue(`${task.emoji} ${task.description}...`));
 
     if (task.type === "json") {
