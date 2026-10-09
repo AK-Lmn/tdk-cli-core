@@ -29,6 +29,8 @@ export const SERVICE_JSON = "service.json";
 
 export const TECH_STACK_FILE = "TILT_TECH_STACK.star";
 
+export const RESOURCE_DEFAULTS_FILE = "TILT_RESOURCE_DEFAULTS.star";
+
 // TDK project manifest file name. The canonical project config lives at
 // `<project-root>/.tdk/project.json` — discovery, doctor, generator, config
 // edits, and stack-features all read/write it. Referenced by value across
@@ -39,7 +41,7 @@ export const PROJECT_JSON = "project.json";
 
 export const MASTER_CONFIG_FILES = [
   TECH_STACK_FILE,
-  "TILT_RESOURCE_DEFAULTS.star",
+  RESOURCE_DEFAULTS_FILE,
   "spec.master",
 ] as const;
 
