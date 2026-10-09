@@ -149,9 +149,9 @@ function showError(message, context, suggestions) {
     }
     if (suggestions && suggestions.length > 0) {
         console.error(chalk.yellow("\n💡 Suggestions:"));
-        suggestions.forEach((s) => {
+        for (const s of suggestions) {
             console.error(chalk.cyan(`   → ${s}`));
-        });
+        }
     }
 }
 export function handleTiltFailure(command, exitCode) {
