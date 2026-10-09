@@ -287,7 +287,8 @@ export interface PackageInfo {
     fullPackage: JsonObject;
 }
 export type PortAssignableResourceType = Extract<CreatableResourceType, "backend" | "frontend" | "worker" | "migrator" | "mcp" | "bring-your-own">;
-export type MasterConfigFileName = "TILT_TECH_STACK.star" | "TILT_RESOURCE_DEFAULTS.star" | "spec.master";
+import { RESOURCE_DEFAULTS_FILE } from "../utils/constants.js";
+export type MasterConfigFileName = "TILT_TECH_STACK.star" | typeof RESOURCE_DEFAULTS_FILE | "spec.master";
 /**
  * Type guard to validate filename is a known master config file.
  * Eliminates the need for 'as MasterConfigFileName' assertion.

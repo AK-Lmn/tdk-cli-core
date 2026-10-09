@@ -27,9 +27,11 @@ export const TILTIGNORE_FILE = ".tiltignore";
 // Manifest file name for a resource, used by discovery and the resource command.
 export const SERVICE_JSON = "service.json";
 
+export const RESOURCE_DEFAULTS_FILE = "TILT_RESOURCE_DEFAULTS.star";
+
 export const MASTER_CONFIG_FILES = [
   "TILT_TECH_STACK.star",
-  "TILT_RESOURCE_DEFAULTS.star",
+  RESOURCE_DEFAULTS_FILE,
   "spec.master",
 ] as const;
 

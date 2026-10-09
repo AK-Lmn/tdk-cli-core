@@ -18,6 +18,7 @@ export const CREATABLE_RESOURCE_TYPES = [
 export function isCreatableResourceType(value) {
     return (typeof value === "string" && CREATABLE_RESOURCE_TYPES.includes(value));
 }
+import { RESOURCE_DEFAULTS_FILE } from "../utils/constants.js";
 /**
  * Type guard to validate filename is a known master config file.
  * Eliminates the need for 'as MasterConfigFileName' assertion.
@@ -25,7 +26,7 @@ export function isCreatableResourceType(value) {
 export function isMasterConfigFileName(filename) {
     const validNames = [
         "TILT_TECH_STACK.star",
-        "TILT_RESOURCE_DEFAULTS.star",
+        RESOURCE_DEFAULTS_FILE,
         "spec.master",
     ];
     return validNames.includes(filename);
