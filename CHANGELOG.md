@@ -2,7 +2,7 @@
 
 Notable changes to the `tdk` CLI. Versions match [npm](https://www.npmjs.com/package/@tdk-landscape/tdk-cli-core?activeTab=versions) and the [binary releases](https://github.com/tdk-landscape/tdk-cli-releases/releases).
 
-## Unreleased
+## 1.3.131 (2026-10-12)
 
 - `healthCheckPath` is optional for `appType: "bring-your-own"` in `service.json`, so a service that is not HTTP (Postgres, Redis, MinIO, an SMTP relay) no longer needs a made-up `"/"` to validate. Without it TDK sends no HTTP probe to the service and gives its Traefik route no health check; the container counts as healthy once Docker reports it running. `port` stays required, and a set `healthCheckPath` behaves as before. Fixes #1086.
 - `tdk up` now publishes Traefik on host port 80 (and 443) when they are free, so routed URLs read `http://app.<project>.localhost/<app>` instead of `...localhost:8080/<app>`. It always wanted 80 but only ever tried 8080-8180. On macOS the free-port check treated the kernel's refusal of a non-root bind below 1024 as "busy", although Docker Desktop publishes those ports itself; that also made `TDK_HTTP_PORT=80` fail with "already in use". A project whose saved plan is on 8080 moves to 80 on its next `tdk up` once 80 is free. On Linux and WSL2 a non-root user cannot check port 80, so the 8080-8180 range is kept there. Printed URLs no longer end in `:80`.
