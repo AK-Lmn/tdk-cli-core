@@ -185,6 +185,11 @@ def normalize(manifest, resource_path=""):
     # Compute appType from path if missing
     if not normalized.get('appType'):
         normalized['appType'] = _determine_app_type(normalized, resource_path)
+
+    # A bring-your-own service may not speak HTTP (a database, a mail relay). Its health path is optional, so do not invent /health
+    # for it. Only an explicit healthCheckPath in service.json gives it one.
+    if normalized['appType'] == 'bring-your-own' and 'healthCheckPath' not in manifest:
+        normalized.pop('healthCheckPath', None)
     
     # Compute stack from path if missing
     if not normalized.get('stack'):

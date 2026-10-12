@@ -180,6 +180,9 @@ def _generate_single_backend_entry(resource_path, resource_name, res, manifest, 
     db_url_with_fallback = PlatformDockerConstants.get_compose_env_database_url(db_name)
     
     health_path = manifest.get('healthCheckPath', HEALTH_CHECK_PATH) if manifest else HEALTH_CHECK_PATH
+    # A bring-your-own service without healthCheckPath may not serve HTTP. None means no HTTP probe: no Traefik health check labels.
+    if manifest and manifest.get('appType') == 'bring-your-own' and not manifest.get('healthCheckPath'):
+        health_path = None
     
     traefik_cfg = manifest.get('traefik', {}) if manifest else {}
     traefik_host = traefik_cfg.get('host', stack + '.backend.' + _PROJECT_NAME + '.local')

@@ -60,7 +60,7 @@ Any app that fits the contract below can run as a bring-your-own resource. Fasti
 
 1. **Listen on the port in `service.json`.** The generated Compose service sets `PORT` to that value, and also sets `DATABASE_URL`, so read the port from the environment instead of hard-coding it.
 2. **Bind to `0.0.0.0`.** Traefik reaches the container over the Docker network, so a server that only binds `127.0.0.1` is unreachable.
-3. **Answer HTTP 200 on `healthCheckPath`** (default `/health`; change it with `--health-path`). Traefik uses this check. TDK does not add a Compose `curl` health check for bring-your-own services, so the image does not need `curl`.
+3. **Answer HTTP 200 on `healthCheckPath`, if the service speaks HTTP.** Set it with `--health-path`. Traefik uses this check. TDK does not add a Compose `curl` health check for bring-your-own services, so the image does not need `curl`. A service that is not HTTP (a database, a mail relay, an SSH host) can leave `healthCheckPath` out of `service.json`: TDK then sends no HTTP probe to it and no Traefik health check, and the container counts as healthy once Docker reports it running.
 4. **Provide the image.** Either a `Dockerfile` or `--image`. The Docker build context is the resource directory, so `COPY` paths are relative to it.
 
 ### Worked example: Fastify

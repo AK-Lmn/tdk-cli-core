@@ -419,6 +419,19 @@ def _test_resource_description():
 # MAIN
 # =============================================================================
 
+def _test_byo_health_path_is_optional():
+    """A bring-your-own service without healthCheckPath gets none; /health is only the default for HTTP types."""
+    print("\n🧪 Testing bring-your-own health path is optional...")
+
+    byo = ManifestParser.normalize({'appType': 'bring-your-own', 'appName': 'postgres', 'stack': 'shop', 'port': 4500}, 'services/shop/postgres')
+    assert_true('healthCheckPath' not in byo, "BYO without healthCheckPath gets no default /health")
+
+    byo_http = ManifestParser.normalize({'appType': 'bring-your-own', 'appName': 'web', 'stack': 'shop', 'port': 4501, 'healthCheckPath': '/status'}, 'services/shop/web')
+    assert_equal('/status', byo_http.get('healthCheckPath'), "BYO keeps an explicit healthCheckPath")
+
+    backend = ManifestParser.normalize({'appType': 'backend', 'appName': 'api', 'stack': 'shop', 'port': 4000}, 'services/shop/api')
+    assert_equal('/health', backend.get('healthCheckPath'), "Backends still default to /health")
+
 def run_tests():
     """Run all Phase 2 integration tests."""
     print("\n" + "="*70)
@@ -436,6 +449,7 @@ def run_tests():
     _test_get_normalized()
     _test_resource_description()
     _test_generated_string_fields()
+    _test_byo_health_path_is_optional()
     
     # Print results
     print("\n" + "="*70)

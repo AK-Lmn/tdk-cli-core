@@ -247,3 +247,27 @@ describe("publishing the schema from main", () => {
     expect(publishWorkflow).toContain("GITHUB_STEP_SUMMARY");
   });
 });
+
+describe("bring-your-own health path", () => {
+  const byo = manifest({
+    appName: "postgres",
+    appType: "bring-your-own",
+    port: 4500,
+    dockerfile: "Dockerfile",
+  });
+
+  it("accepts a bring-your-own service without healthCheckPath, for a service that is not HTTP", () => {
+    expect(validateService(byo)).toBe(true);
+  });
+
+  it("still requires port for a bring-your-own service", () => {
+    const withoutPort: Record<string, unknown> = { ...byo };
+    delete withoutPort.port;
+    expect(validateService(withoutPort)).toBe(false);
+  });
+
+  it("keeps the healthCheckPath pattern when a bring-your-own service sets one", () => {
+    expect(validateService({ ...byo, healthCheckPath: "/health" })).toBe(true);
+    expect(validateService({ ...byo, healthCheckPath: "health" })).toBe(false);
+  });
+});

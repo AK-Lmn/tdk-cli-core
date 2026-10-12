@@ -300,12 +300,14 @@ def _apply_manifest_defaults(manifest, resource_path):
         root_api_path = result.get('apiPath')
         default_path_prefix = root_api_path if root_api_path else '/api/' + stack
         
+        # A bring-your-own service without healthCheckPath may not serve HTTP, so it gets no default Traefik health path.
+        default_health_path = None if app_type == 'bring-your-own' else HEALTH_CHECK_PATH
         computed_traefik = {
             'host': stack + '.backend.' + PlatformDockerConstants.PROJECT_NAME + '.local',
             'pathPrefix': default_path_prefix,
             # Follows healthCheckPath so a manifest that only sets that keeps one
             # path for both probes; `traefik.healthCheck` overrides just Traefik's.
-            'healthCheck': result.get('healthCheckPath') or HEALTH_CHECK_PATH,
+            'healthCheck': result.get('healthCheckPath') or default_health_path,
         }
         
         # Check for overrides
@@ -319,6 +321,8 @@ def _apply_manifest_defaults(manifest, resource_path):
             'pathPrefix': existing_traefik.get('pathPrefix', computed_traefik['pathPrefix']),
             'healthCheck': existing_traefik.get('healthCheck', computed_traefik['healthCheck']),
         }
+        if result['traefik']['healthCheck'] == None:
+            result['traefik'].pop('healthCheck')
     
     # 🎯 SMART NATS CONFIG
     if result['useNats']:

@@ -164,22 +164,31 @@ def get_backend_traefik_labels(
             middleware_config=middleware_config,
         )
 
-    labels = """      - "{traefik_enable_label}"
-{backend_router_labels}      - "traefik.http.services.{traefik_resource_name}.loadbalancer.server.port={internal_port}"
-      - "traefik.http.services.{traefik_resource_name}.loadbalancer.healthcheck.path={health_path}"
+    # No health path (a bring-your-own service that does not speak HTTP): Traefik balances without an active HTTP probe rather than
+    # probing a path the service never serves.
+    traefik_healthcheck_labels = ""
+    if health_path:
+        traefik_healthcheck_labels = """      - "traefik.http.services.{traefik_resource_name}.loadbalancer.healthcheck.path={health_path}"
       - "traefik.http.services.{traefik_resource_name}.loadbalancer.healthcheck.interval={health_interval}"
       - "traefik.http.services.{traefik_resource_name}.loadbalancer.healthcheck.timeout={health_timeout}"
       - "traefik.http.services.{traefik_resource_name}.loadbalancer.healthcheck.followredirects=false"
-      - "traefik.docker.network={traefik_network}"
+""".format(
+            traefik_resource_name=traefik_resource_name,
+            health_path=health_path,
+            health_interval=TRAEFIK_HEALTHCHECK_INTERVAL,
+            health_timeout=TRAEFIK_HEALTHCHECK_TIMEOUT,
+        )
+
+    labels = """      - "{traefik_enable_label}"
+{backend_router_labels}      - "traefik.http.services.{traefik_resource_name}.loadbalancer.server.port={internal_port}"
+{traefik_healthcheck_labels}      - "traefik.docker.network={traefik_network}"
 """.format(
         resource_entry_name=resource_entry_name,
         traefik_enable_label=TRAEFIK_ENABLE_LABEL,
         backend_router_labels=backend_router_labels,
         traefik_resource_name=traefik_resource_name,
         internal_port=internal_port,
-        health_path=health_path,
-        health_interval=TRAEFIK_HEALTHCHECK_INTERVAL,
-        health_timeout=TRAEFIK_HEALTHCHECK_TIMEOUT,
+        traefik_healthcheck_labels=traefik_healthcheck_labels,
         traefik_network=TRAEFIK_DOCKER_NETWORK,
     )
 
