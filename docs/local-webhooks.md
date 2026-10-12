@@ -19,7 +19,7 @@ Fixtures must be **re-signed** with the dummy key after any payload edit; an old
 
 ### A minimal signer and verifier
 
-This shows the shape only. The scheme (`HMAC-SHA256` over `<timestamp>.<raw body>`) is made up for the example and is not any provider's format. It was run with Node 24 and printed `valid true`, `tampered false`, `expired false`.
+This shows the shape only. The scheme (`HMAC-SHA256` over `<timestamp>.<raw body>`) is made up for the example and is not any provider's format. It was run with Node 24 and printed `valid true`, `tampered false`, `expired false`, and `false` for malformed signatures such as `"é".repeat(64)`, an empty string and non-hex text.
 
 ```js
 import { createHmac, timingSafeEqual } from "node:crypto";
@@ -27,11 +27,15 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 const KEY = "dummy-local-signing-key";
 const sign = (ts, raw) => createHmac("sha256", KEY).update(`${ts}.${raw}`).digest("hex");
 
-const verify = (ts, raw, sig, now, toleranceSeconds = 300) =>
-  Math.abs(now - ts) <= toleranceSeconds &&
-  sig.length === sign(ts, raw).length &&
-  timingSafeEqual(Buffer.from(sig), Buffer.from(sign(ts, raw)));
+const verify = (ts, raw, sig, now, toleranceSeconds = 300) => {
+  if (Math.abs(now - ts) > toleranceSeconds || !/^[0-9a-f]{64}$/.test(sig)) return false;
+  const expected = Buffer.from(sign(ts, raw), "hex");
+  const given = Buffer.from(sig, "hex");
+  return given.length === expected.length && timingSafeEqual(given, expected);
+};
 ```
+
+Check the signature's format and compare **byte** lengths before `timingSafeEqual`. It [throws](https://nodejs.org/api/crypto.html#cryptotimingsafeequala-b) when the buffers differ in byte length, so a string-length check is not enough: `"é".repeat(64)` has 64 characters but 128 UTF-8 bytes. Malformed input should return `false`, not crash the handler.
 
 ## The scenario to keep: durable acceptance, lost acknowledgement, retry
 
@@ -78,6 +82,16 @@ Put these behind a single script so a new teammate can reproduce a failure witho
 - the initial state
 - the delivery schedule
 - the expected final state
+
+Start with a plain script in your repository. A thin `tdk` wrapper might help later, but your project should still own the fixtures, the reset and seed hook, and the assertions. Reset state explicitly, and only on a disposable local test instance.
+
+## Harness choices
+
+From [@ECD5A's follow-up](https://github.com/orgs/tdk-landscape/discussions/373#discussioncomment-18819440) in the discussion:
+
+- **Fixtures as raw bytes.** Keep sanitized payloads on disk as bytes, with scenario metadata in a separate file. Read the bytes, sign those exact bytes and send the same buffer. For a generated variant, render it once, then sign and send that result; do not serialize it again in the HTTP client. A retry keeps the event body and ID, with a new delivery signature if your provider does that.
+- **The clock.** Inject `now()` at the handler or verifier boundary, with real time as the default. If the provider's SDK owns the time check, use its clock option if it has one; otherwise make fresh and expired signed timestamps against the real clock. Do not freeze the whole process or switch off timestamp validation.
+- **The lost acknowledgement.** Use a test-only failpoint after the awaited inbox commit and before any response headers or body are written. In Node, [`res.destroy()`](https://nodejs.org/api/http.html#outgoingmessagedestroyerror) closes the connection there: the first request gets `ECONNRESET` with no response, and the retry gets `200`. A client timeout is weaker, because it can fire before the commit. Never expose the failpoint as a production request option.
 
 ## Not covered
 
