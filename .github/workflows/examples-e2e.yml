@@ -4,7 +4,7 @@
 # and an HTML page from each frontend. It backs the claim that TDK runs a real
 # app, not just generated health-check stubs.
 #
-# Manual and weekly. Separate from the ERP scale test on purpose: different
+# Manual and daily (04:00 UTC). Separate from the ERP scale test on purpose: different
 # size, different timeout, and "healthy" means something else here.
 name: 🍽️ Example apps E2E
 
@@ -16,7 +16,7 @@ on:
         type: string
         default: ""
   schedule:
-    - cron: "0 4 * * 1"
+    - cron: "0 4 * * *"
 
 permissions:
   contents: read
