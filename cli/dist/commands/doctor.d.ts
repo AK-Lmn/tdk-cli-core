@@ -29,7 +29,7 @@ export declare function checkPublishedBindAddress(env?: NodeJS.ProcessEnv, stric
 export declare function orderDoctorResults(results: CheckResult[]): CheckResult[];
 export declare function getDoctorOutcomeMessage(inProject: boolean, allPassed: boolean): string;
 export declare function checkDockerRuntime(): Promise<CheckResult>;
-export declare const checkDockerCompose: () => Promise<CheckResult>;
+export declare const checkDockerCompose: (exec?: ExecAsync) => Promise<CheckResult>;
 export declare function checkDockerVersions(exec?: ExecAsync): Promise<CheckResult>;
 export declare function checkTilt(exec?: ExecAsync): Promise<CheckResult>;
 export declare function checkDockerOperatingSystem(exec?: ExecAsync): Promise<CheckResult>;

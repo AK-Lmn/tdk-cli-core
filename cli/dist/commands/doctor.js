@@ -137,17 +137,25 @@ function isTimeout(err) {
     return isExecTimeout(err);
 }
 function createExecCheck(name, command, successMessage, failureMessage, fixInstructions) {
-    return async () => {
+    return async (exec = execAsync) => {
         try {
-            await execAsync(command, EXEC_TIMEOUT_MS);
+            await exec(command, EXEC_TIMEOUT_MS);
             return {
                 name,
                 didPass: true,
                 message: successMessage,
             };
         }
-        catch {
-            // Error details not needed - failure message tells user what to fix
+        catch (err) {
+            // A timeout means the command exists but did not answer in time, which is not the same as missing.
+            if (isTimeout(err)) {
+                return {
+                    name,
+                    didPass: false,
+                    message: `${name} did not respond within ${EXEC_TIMEOUT_MS / 1000}s`,
+                    fix: fixInstructions,
+                };
+            }
             return {
                 name,
                 didPass: false,

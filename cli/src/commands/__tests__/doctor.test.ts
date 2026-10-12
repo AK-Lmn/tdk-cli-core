@@ -20,6 +20,7 @@ import {
 } from "../../utils/doctor-runtime.js";
 import { checkSharedStackRoutes } from "../../utils/doctor-wiring.js";
 import {
+  checkDockerCompose,
   checkDockerVersions,
   checkFrontendDockerPreflight,
   checkGeneratedProjectRuntimeAssets,
@@ -1251,5 +1252,34 @@ describe("checkSharedStackRoutes", () => {
       JSON.stringify({ appName: "billing-api", appType: "backend", stack: "shop" }),
     );
     expect(checkSharedStackRoutes(testDir).didPass).toBe(true);
+  });
+});
+
+describe("doctor Docker Compose check", () => {
+  it("passes when the compose plugin answers", async () => {
+    const result = await checkDockerCompose(async () => "Docker Compose version v2.38.2\n");
+
+    expect(result.didPass).toBe(true);
+  });
+
+  it("reports a timeout as not responding rather than missing", async () => {
+    const timedOut = Object.assign(new Error("Command failed"), { killed: true });
+    const result = await checkDockerCompose(async () => {
+      throw timedOut;
+    });
+
+    expect(result.didPass).toBe(false);
+    expect(result.message).toBe("Docker Compose did not respond within 10s");
+    expect(result.message).not.toContain("not found");
+    expect(result.fix).toContain("docs.docker.com/compose");
+  });
+
+  it("reports a failing command as not found", async () => {
+    const result = await checkDockerCompose(async () => {
+      throw Object.assign(new Error("docker: 'compose' is not a docker command"), { code: 1 });
+    });
+
+    expect(result.didPass).toBe(false);
+    expect(result.message).toBe("Docker Compose plugin not found");
   });
 });
