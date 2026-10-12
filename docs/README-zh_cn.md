@@ -10,6 +10,15 @@ Docker 运行容器。Tilt 监视服务，并在你编码时实时更新容器�
 
 [官网](https://tdk-landscape.github.io/tdk-website/) · [快速开始](https://tdk-landscape.github.io/tdk-website/docs/quickstart/) · [示例](https://tdk-landscape.github.io/tdk-website/docs/examples/) · [Awesome TDK](https://github.com/tdk-landscape/awesome-tdk-framework) · [演示](https://tdk-landscape.github.io/tdk-demo-animation/) · [报告问题](https://github.com/tdk-landscape/tdk-cli-core/issues)
 
+如果 TDK 帮你运行了本地服务栈，欢迎在 [本仓库](https://github.com/tdk-landscape/tdk-cli-core) 点个 ⭐，帮助更多开发者找到它。
+
+## 为什么选择 TDK CLI？
+
+- **每个服务一个 `service.json`。** TDK 会据此生成 Dockerfile、Traefik 路由和 Tiltfile。你不需要手写 `docker-compose.yml` 或 `nginx.conf`。
+- **无需 Kubernetes 的本地服务栈。** 服务通过 Docker 和 Tilt 在你的机器上运行，不需要 kind、minikube 之类的本地集群。
+- **编码时热重载。** 文件变化时，Tilt 会实时更新容器。
+- **可检查的生成文件。** `tdk` 记录生成的文件并报告漂移，让本地配置与定义保持一致。参见[生成文件与漂移检查](generated-files.md)。
+
 ## 谁在使用 TDK
 
 目前还没有团队列入。成为第一个吧：[告诉我们你在使用 TDK](https://github.com/tdk-landscape/tdk-cli-core/issues/new?template=we-use-tdk.yml)，或在 [ADOPTERS.md](../ADOPTERS.md) 中添加一行。

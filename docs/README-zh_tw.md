@@ -10,6 +10,15 @@ Docker 執行容器。Tilt 監看服務，並在你寫程式時即時更新容�
 
 [官網](https://tdk-landscape.github.io/tdk-website/) · [快速開始](https://tdk-landscape.github.io/tdk-website/docs/quickstart/) · [範例](https://tdk-landscape.github.io/tdk-website/docs/examples/) · [Awesome TDK](https://github.com/tdk-landscape/awesome-tdk-framework) · [示範](https://tdk-landscape.github.io/tdk-demo-animation/) · [回報問題](https://github.com/tdk-landscape/tdk-cli-core/issues)
 
+如果 TDK 協助你執行本機服務堆疊，歡迎在 [本儲存庫](https://github.com/tdk-landscape/tdk-cli-core) 點個 ⭐，幫助更多開發者找到它。
+
+## 為什麼選擇 TDK CLI？
+
+- **每個服務一個 `service.json`。** TDK 會據此產生 Dockerfile、Traefik 路由與 Tiltfile。你不需要手寫 `docker-compose.yml` 或 `nginx.conf`。
+- **不需要 Kubernetes 的本機服務堆疊。** 服務透過 Docker 與 Tilt 在你的電腦上執行，不需要 kind、minikube 之類的本機叢集。
+- **寫程式時熱重載。** 檔案變更時，Tilt 會即時更新容器。
+- **可檢查的產生檔案。** `tdk` 會記錄產生的檔案並回報漂移，讓本機設定與定義保持一致。請參閱[產生檔案與漂移檢查](generated-files.md)。
+
 ## 誰在使用 TDK
 
 目前還沒有團隊列入。成為第一個吧：[告訴我們你正在使用 TDK](https://github.com/tdk-landscape/tdk-cli-core/issues/new?template=we-use-tdk.yml)，或在 [ADOPTERS.md](../ADOPTERS.md) 中新增一列。

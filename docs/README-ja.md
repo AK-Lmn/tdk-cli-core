@@ -10,6 +10,15 @@ TDK CLI は、ノートPC上でサービスを起動します。デプロイツ�
 
 [ウェブサイト](https://tdk-landscape.github.io/tdk-website/) · [クイックスタート](https://tdk-landscape.github.io/tdk-website/docs/quickstart/) · [サンプル](https://tdk-landscape.github.io/tdk-website/docs/examples/) · [Awesome TDK](https://github.com/tdk-landscape/awesome-tdk-framework) · [デモ](https://tdk-landscape.github.io/tdk-demo-animation/) · [バグ報告](https://github.com/tdk-landscape/tdk-cli-core/issues)
 
+TDK でローカルのサービス構成を動かしているなら、[このリポジトリ](https://github.com/tdk-landscape/tdk-cli-core) に ⭐ をつけていただくと、ほかの開発者が見つけやすくなります。
+
+## なぜ TDK CLI なのか
+
+- **サービスごとに `service.json` を 1 つ。** TDK はそこから Dockerfile、Traefik のルーティング、Tiltfile を生成します。`docker-compose.yml` や `nginx.conf` を手書きする必要はありません。
+- **Kubernetes を使わないローカル構成。** サービスは Docker と Tilt で手元のマシン上に起動します。kind や minikube のようなローカルクラスタは不要です。
+- **コーディング中のホットリロード。** ファイルを変更すると、Tilt がコンテナをライブ更新します。
+- **確認できる生成ファイル。** `tdk` は生成されたファイルを記録し、ドリフトを報告するので、ローカルの設定を定義と一致させたままにできます。詳しくは [生成ファイルとドリフトチェック](generated-files.md) を参照してください。
+
 ## TDK を使っているチーム
 
 まだ掲載されているチームはありません。最初の一組になりませんか。[TDK を使っていることを知らせる](https://github.com/tdk-landscape/tdk-cli-core/issues/new?template=we-use-tdk.yml)か、[ADOPTERS.md](../ADOPTERS.md) に行を追加してください。

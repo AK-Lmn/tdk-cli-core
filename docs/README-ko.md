@@ -10,6 +10,15 @@ TDK CLI는 노트북에서 서비스를 시작합니다. 배포 도구도, Compo
 
 [웹사이트](https://tdk-landscape.github.io/tdk-website/) · [빠른 시작](https://tdk-landscape.github.io/tdk-website/docs/quickstart/) · [예제](https://tdk-landscape.github.io/tdk-website/docs/examples/) · [Awesome TDK](https://github.com/tdk-landscape/awesome-tdk-framework) · [데모](https://tdk-landscape.github.io/tdk-demo-animation/) · [버그 신고](https://github.com/tdk-landscape/tdk-cli-core/issues)
 
+TDK로 로컬 서비스 스택을 실행하고 계시다면, [이 저장소](https://github.com/tdk-landscape/tdk-cli-core)에 ⭐를 눌러 다른 개발자들이 찾을 수 있게 도와주세요.
+
+## 왜 TDK CLI인가요?
+
+- **서비스마다 `service.json` 하나.** TDK가 이 파일로 Dockerfile, Traefik 라우팅, Tiltfile을 생성합니다. `docker-compose.yml`이나 `nginx.conf`를 직접 작성할 필요가 없습니다.
+- **Kubernetes 없이 여는 로컬 스택.** 서비스는 내 컴퓨터에서 Docker와 Tilt로 실행됩니다. kind나 minikube 같은 로컬 클러스터는 필요 없습니다.
+- **코딩하는 동안 핫 리로드.** 파일이 바뀌면 Tilt가 컨테이너를 라이브로 업데이트합니다.
+- **확인할 수 있는 생성 파일.** `tdk`는 생성된 파일을 기록하고 드리프트를 보고하므로, 로컬 설정을 `service.json`과 일치한 상태로 유지할 수 있습니다. 자세한 내용은 [생성 파일 및 드리프트 검사](generated-files.md)를 참고하세요.
+
 ## TDK를 사용하는 팀
 
 아직 등록된 팀이 없습니다. 첫 번째가 되어 주세요. [TDK를 사용한다고 알려 주세요](https://github.com/tdk-landscape/tdk-cli-core/issues/new?template=we-use-tdk.yml) 또는 [ADOPTERS.md](../ADOPTERS.md)에 행을 추가하세요.
