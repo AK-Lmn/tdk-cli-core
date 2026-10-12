@@ -71,4 +71,6 @@ def L4_generate_orchestrator(res_path, res_type = 'backend', resource_name = 'se
         )
     dockerfile = "\n\n".join(parts)
     footer = Utils.get_template_header("dockerfile", "golden_docker_generator_v2.L4_generate_orchestrator", resource_name, "Use docker_build(dockerfile_contents=...) in Tiltfile")
-    return dockerfile + "\n\n" + footer
+    # Heredocs (RUN cat > ... << 'EOF') need the BuildKit frontend; without this line an older builder
+    # reads the heredoc body as instructions ("unknown instruction: export").
+    return "# syntax=docker/dockerfile:1\n" + dockerfile + "\n\n" + footer
