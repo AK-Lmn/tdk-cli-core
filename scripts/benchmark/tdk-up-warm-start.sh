@@ -53,7 +53,10 @@ here="$(cd "$(dirname "$0")" && pwd)"
 expected=""
 durations="$here/tilt-build-durations.mjs"
 project="$(cd "$project" && pwd)"
-slug="$(basename "$project")"
+# Container and image names come from the project's name in .tdk/project.json, not from its directory name:
+# a checkout into "restaurant" still runs as "tdk-restaurant-example". Fall back to the directory name.
+slug="$(jq -r '.project.name // empty' "$project/.tdk/project.json" 2>/dev/null || true)"
+[ -n "$slug" ] || slug="$(basename "$project")"
 slug_us="$(printf '%s' "$slug" | tr '-' '_')"
 slug_re="$(printf '%s' "$slug" | sed 's/[][\.*^$+?(){}|/-]/\\&/g')"
 mkdir -p "$out"
