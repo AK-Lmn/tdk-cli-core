@@ -41,6 +41,13 @@ If TDK helps you run your local stack, a ⭐ on [this repo](https://github.com/t
 
 `tdk ui` opens an interactive terminal dashboard for inspecting running services. Move with `↑/↓` or `j/k`, search with `/`, and press `1`–`5` to jump between tabs. See [docs/ui.md](docs/ui.md) for every key binding.
 
+## Why TDK CLI?
+
+- **One `service.json` per service.** TDK generates the Dockerfile, Traefik routing, and Tiltfile from it. You do not hand-write a `docker-compose.yml` or `nginx.conf`.
+- **Local stack without Kubernetes.** Services run on Docker and Tilt on your machine. You do not need a local cluster such as kind or minikube.
+- **Hot reload while you code.** Tilt live-updates the containers when files change.
+- **Generated files you can check.** `tdk` records the generated files and reports drift, so local config stays in sync. See [generated files and drift checks](docs/generated-files.md).
+
 ## Who uses TDK
 
 No teams are listed yet. Be the first: [tell us you use TDK](https://github.com/tdk-landscape/tdk-cli-core/issues/new?template=we-use-tdk.yml) or [add a row to ADOPTERS.md](ADOPTERS.md).
