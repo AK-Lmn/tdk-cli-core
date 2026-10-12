@@ -141,6 +141,9 @@ jobs:
             sleep 2
           fi
           mkdir -p "$RUNNER_TEMP/shop" && cd "$RUNNER_TEMP/shop"
+          # Start of the "time to healthy stack" clock: from `tdk project --yes`
+          # to every /health URL answering (see the timing step after the poll).
+          date +%s > "$RUNNER_TEMP/quickstart-t0"
           tdk project --yes
           tdk doctor
           printf 'y\n' | tdk resource orders-api --type backend --stack shop
@@ -257,6 +260,37 @@ jobs:
           tail -200 up.log
           echo "::error::not healthy within 20 minutes:$pending"
           exit 1
+
+      # Time to a healthy stack, measured from `tdk project --yes`. Recorded
+      # as a job summary line and a JSON artifact so the number can be quoted
+      # from a real run. Cold start: the runner has no images or build cache.
+      - name: Record time to healthy stack
+        if: success()
+        env:
+          TDK_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          t0="$(cat "$RUNNER_TEMP/quickstart-t0")"
+          t1="$(date +%s)"
+          seconds=$((t1 - t0))
+          printf '{"metric":"time_to_healthy_stack","seconds":%d,"tdk_version":"%s","runner":"%s","start_epoch":%d,"healthy_epoch":%d,"start_cache":"cold"}\n' \
+            "$seconds" "$TDK_VERSION" "$RUNNER_OS" "$t0" "$t1" > "$RUNNER_TEMP/time-to-healthy.json"
+          cat "$RUNNER_TEMP/time-to-healthy.json"
+          {
+            echo "### Time to healthy stack"
+            echo ""
+            echo "- tdk version: \`$TDK_VERSION\`"
+            echo "- \`tdk project --yes\` to every /health answering: **${seconds}s** ($((seconds / 60))m $((seconds % 60))s)"
+            echo "- Cold start: no images or build cache on the runner"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload time to healthy stack
+        if: success()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: time-to-healthy-stack-${{ github.run_id }}
+          path: ${{ runner.temp }}/time-to-healthy.json
+          if-no-files-found: error
+          retention-days: 30
 
       # nginx answers /health on its own, so also load each frontend's page and
       # the script it references: this proves the framework's Vite build output
