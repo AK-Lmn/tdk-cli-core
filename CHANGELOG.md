@@ -2,6 +2,11 @@
 
 Notable changes to the `tdk` CLI. Versions match [npm](https://www.npmjs.com/package/@tdk-landscape/tdk-cli-core?activeTab=versions) and the [binary releases](https://github.com/tdk-landscape/tdk-cli-releases/releases).
 
+## 1.3.151 (2026-10-12)
+
+- The Prisma migrator image builds again. It used to `COPY` `migrate.sh` and `prisma-runtime-relink.sh` from `shared-platform-engineering/docker-templates/`, which no package ships, so `tdk up` failed with `…/migrate.sh: not found`. Both are now written inline into the Dockerfile. The relink step is reconstructed and not yet verified against a real migrator build (#1094).
+- Generated Dockerfiles start with `# syntax=docker/dockerfile:1`, so the heredocs in them build on CI's Docker builder (#1092).
+
 ## 1.3.131 (2026-10-12)
 
 - `healthCheckPath` is optional for `appType: "bring-your-own"` in `service.json`, so a service that is not HTTP (Postgres, Redis, MinIO, an SMTP relay) no longer needs a made-up `"/"` to validate. Without it TDK sends no HTTP probe to the service and gives its Traefik route no health check; the container counts as healthy once Docker reports it running. `port` stays required, and a set `healthCheckPath` behaves as before. Fixes #1086.
