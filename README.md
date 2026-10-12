@@ -37,6 +37,8 @@ Docker runs the containers. Tilt watches services and live-updates containers wh
 
 [Website](https://tdk-landscape.github.io/tdk-website/) · [Quickstart](https://tdk-landscape.github.io/tdk-website/docs/quickstart/) · [Examples](https://tdk-landscape.github.io/tdk-website/docs/examples/) · [Awesome TDK](https://github.com/tdk-landscape/awesome-tdk-framework) · [Demo](https://tdk-landscape.github.io/tdk-demo-animation/) · [Report a bug](https://github.com/tdk-landscape/tdk-cli-core/issues)
 
+If TDK helps you run your local stack, a ⭐ on [this repo](https://github.com/tdk-landscape/tdk-cli-core) helps other developers find it.
+
 `tdk ui` opens an interactive terminal dashboard for inspecting running services. Move with `↑/↓` or `j/k`, search with `/`, and press `1`–`5` to jump between tabs. See [docs/ui.md](docs/ui.md) for every key binding.
 
 ## Who uses TDK
