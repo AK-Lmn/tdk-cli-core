@@ -44,8 +44,20 @@ function makeStackMetadata(overrides: Partial<StackMetadata> = {}): StackMetadat
   };
 }
 
-/** Renders the panel in a fake terminal and returns what it printed, without color codes. */
-async function renderPanel(props: DetailPanelProps): Promise<string> {
+type TUIEnvironment = Parameters<typeof createTUITheme>[1];
+
+// NO_COLOR switches the theme to ASCII markers and borders.
+const ASCII_ENVIRONMENT: TUIEnvironment = { NO_COLOR: "1" };
+const UNICODE_ENVIRONMENT: TUIEnvironment = {};
+
+/**
+ * Renders the panel in a fake terminal and returns what it printed, without color codes.
+ * Ink prints no color in this harness, so colors are not asserted here.
+ */
+async function renderPanel(
+  props: DetailPanelProps,
+  { environment = ASCII_ENVIRONMENT } = {},
+): Promise<string> {
   const stdin = new PassThrough() as unknown as NodeJS.ReadStream;
   Object.assign(stdin, {
     isTTY: true,
@@ -63,7 +75,7 @@ async function renderPanel(props: DetailPanelProps): Promise<string> {
     output += String(data);
   });
 
-  const theme = createTUITheme(false, { NO_COLOR: "1" });
+  const theme = createTUITheme(false, environment);
   const app = render(
     <TUIThemeContext.Provider value={theme}>
       <DetailPanel {...props} />
@@ -163,26 +175,67 @@ describe("DetailPanel", () => {
       expect(output).toMatch(/Created:/);
       expect(output).toContain(formatDate(CREATED_AT));
       expect(output).toMatch(/Resources:\s+2/);
-      expect(output).toMatch(/(\u251C\u2500|\|-) api/);
-      expect(output).toMatch(/(\u2514\u2500|L-) worker/);
+      expect(output).toMatch(/\|- api/);
+      expect(output).toMatch(/L- worker/);
       expect(output).toContain("Press [Esc] to close");
     });
 
-    it.each([
-      ["healthy", "HEALTHY"],
-      ["degraded", "DEGRADED"],
-      ["error", "ERROR"],
-      ["unknown", "UNKNOWN"],
-    ] as const)("shows the %s overall status as %s", async (overallStatus, label) => {
-      const output = await renderPanel({
-        stack: makeStack(),
-        service: null,
-        stackMetadata: makeStackMetadata({ overallStatus }),
-        visible: true,
-      });
+    it("uses box-drawing characters in the title and tree when unicode is available", async () => {
+      const output = await renderPanel(
+        {
+          stack: makeStack(),
+          service: null,
+          stackMetadata: makeStackMetadata(),
+          visible: true,
+        },
+        { environment: UNICODE_ENVIRONMENT },
+      );
 
-      expect(output).toContain(label);
+      expect(output).toContain("\u250C\u2500 PAYMENTS \u2500\u2510");
+      expect(output).toMatch(/\u251C\u2500 api/);
+      expect(output).toMatch(/\u2514\u2500 worker/);
     });
+
+    it.each([
+      ["healthy", "HEALTHY", "[+]"],
+      ["degraded", "DEGRADED", "[~]"],
+      ["error", "ERROR", "[x]"],
+      ["unknown", "UNKNOWN", "[?]"],
+    ] as const)(
+      "shows the %s overall status as %s with the %s ASCII marker",
+      async (overallStatus, label, marker) => {
+        const output = await renderPanel({
+          stack: makeStack(),
+          service: null,
+          stackMetadata: makeStackMetadata({ overallStatus }),
+          visible: true,
+        });
+
+        expect(output).toContain(`${marker} ${label}`);
+      },
+    );
+
+    it.each([
+      ["healthy", "HEALTHY", "\u2713"],
+      ["degraded", "DEGRADED", "\u25CB"],
+      ["error", "ERROR", "\u2717"],
+      ["unknown", "UNKNOWN", "?"],
+    ] as const)(
+      "shows the %s overall status as %s with the %s unicode icon",
+      async (overallStatus, label, icon) => {
+        const output = await renderPanel(
+          {
+            stack: makeStack(),
+            service: null,
+            stackMetadata: makeStackMetadata({ overallStatus }),
+            visible: true,
+          },
+          { environment: UNICODE_ENVIRONMENT },
+        );
+
+        expect(output).toContain(`${icon} ${label}`);
+      },
+    );
   });
 
   describe("without anything to show", () => {
