@@ -68,7 +68,27 @@ def prisma_engines_symlink():
     """
     return (
         "# Re-link @prisma packages from Bun store so Prisma CLI can resolve engines\n"
-        + "COPY shared-platform-engineering/docker-templates/prisma-runtime-relink.sh /usr/local/bin/prisma-runtime-relink.sh\n"
+        # Written inline: the template this used to COPY is not shipped anywhere.
+        + "RUN cat > /usr/local/bin/prisma-runtime-relink.sh << 'EOF'\n"
+        + "#!/bin/sh\n"
+        + "set -e\n"
+        + "# Nested @prisma packages: replace the symlink into node_modules/.bun with a real copy.\n"
+        + "for name in client adapter-pg; do\n"
+        + "  src=$(ls -d /app/node_modules/.bun/@prisma+${name}@*/node_modules/@prisma/${name} 2>/dev/null | head -n 1 || true)\n"
+        + "  if [ -n \"$src\" ]; then\n"
+        + "    rm -rf /app/node_modules/@prisma/${name}\n"
+        + "    mkdir -p /app/node_modules/@prisma\n"
+        + "    cp -R \"$src\" /app/node_modules/@prisma/${name}\n"
+        + "  fi\n"
+        + "done\n"
+        + "# Top-level @prisma/engines: copy as real files, not a symlink.\n"
+        + "src=$(ls -d /app/node_modules/.bun/@prisma+engines@*/node_modules/@prisma/engines 2>/dev/null | head -n 1 || true)\n"
+        + "if [ -n \"$src\" ]; then\n"
+        + "  rm -rf /app/node_modules/@prisma/engines\n"
+        + "  mkdir -p /app/node_modules/@prisma\n"
+        + "  cp -R \"$src\" /app/node_modules/@prisma/engines\n"
+        + "fi\n"
+        + "EOF\n"
         + "RUN chmod +x /usr/local/bin/prisma-runtime-relink.sh && /usr/local/bin/prisma-runtime-relink.sh\n"
     )
 
