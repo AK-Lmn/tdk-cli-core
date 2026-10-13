@@ -174,6 +174,11 @@ run_once() {
     if [ "$waited" -ge 1800 ]; then break; fi
     if [ $((waited % progress_every)) -eq 0 ] && [ "$waited" -gt 0 ]; then
       echo "$name: still waiting (${waited}s) $(progress_snapshot)"
+      # Show recent tdk up output so the Actions log has real activity, not just counters.
+      if [ -s "$dir/up.log" ]; then
+        echo "$name: recent tdk up output:"
+        tail -n 8 "$dir/up.log" | sed 's/^/  /'
+      fi
     fi
     sleep 3; waited=$((waited + 3))
   done
