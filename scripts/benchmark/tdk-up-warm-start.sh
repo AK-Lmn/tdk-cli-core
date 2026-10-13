@@ -73,6 +73,22 @@ settled() {
   [ "${busy:-1}" = "0" ] && [ "${loaded:-0}" -gt 0 ] && [ "${ok:-0}" -ge "$healthy" ]
 }
 
+# Snapshot used by the progress line (does not affect the settled() decision).
+# Prints a ready-to-use fragment: busy=N healthy=N/N busy_names=...
+progress_snapshot() {
+  state=$(tilt get uiresources --port "$port" -o json 2>/dev/null) || state=""
+  busy=$(printf '%s' "$state" | jq -r '[.items[] | select(.status.updateStatus=="in_progress" or .status.updateStatus=="pending" or .status.updateStatus=="error") | .metadata.name] | join(",")' 2>/dev/null || echo "")
+  if [ -z "$busy" ]; then
+    busy_count=0
+    busy_short="none"
+  else
+    busy_count=$(printf '%s' "$busy" | awk -F, '{print NF}')
+    busy_short=$(printf '%s' "$busy" | cut -c1-120)
+  fi
+  ok=$(docker ps --format '{{.Names}} {{.Status}}' 2>/dev/null | awk -v L="$expected" 'BEGIN { while ((getline n < L) > 0) want[n] = 1 } ($1 in want) && /\(healthy\)/ { c++ } END { print c + 0 }')
+  printf 'busy=%s healthy=%s/%s busy_names=%s' "${busy_count}" "${ok:-0}" "$healthy" "$busy_short"
+}
+
 vm_memory_mib() {
   # Docker's VM processes on macOS: the Virtualization XPC service and Docker's own processes, resident memory summed.
   ps -axo rss=,command= | awk '/Virtualization.framework.*XPCServices.*Virtualization|com\.docker\.(backend|build|virtualization)/ && !/awk/ {s+=$1} END {printf "%d", s/1024}'
@@ -127,12 +143,14 @@ run_once() {
   : > "$dir/containers.txt"
   expected_containers > "$expected"
 
+  echo "$name: starting ($kind)"
   if ! (cd "$project" && tdk down > "$dir/down.log" 2>&1); then
     write_run down_failed 0
     echo "$name: tdk down failed; not timed (see $dir/down.log)" >&2
     return 0
   fi
   if [ "$kind" = cold ]; then
+    echo "$name: cold cleanup (removing images and build cache)"
     project_repositories > "$dir/repositories.txt"
     if ! cold_cleanup "$dir/repositories.txt" > "$dir/cleanup.log" 2>&1; then
       write_run cleanup_failed 0
@@ -146,12 +164,17 @@ run_once() {
   (cd "$project" && tdk up > "$dir/up.log" 2>&1) &
   waited=0
   outcome=timeout
+  # Progress line every ~60 s so a long run is not silent in CI logs.
+  progress_every=60
   while :; do
     if [ "$sample_vm" = 1 ]; then
       echo "$(date +%T) $(vm_memory_mib)" >> "$dir/vm-samples.txt"
     fi
     if settled; then outcome=settled; break; fi
     if [ "$waited" -ge 1800 ]; then break; fi
+    if [ $((waited % progress_every)) -eq 0 ] && [ "$waited" -gt 0 ]; then
+      echo "$name: still waiting (${waited}s) $(progress_snapshot)"
+    fi
     sleep 3; waited=$((waited + 3))
   done
   end=$(date +%s)

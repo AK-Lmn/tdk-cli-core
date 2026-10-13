@@ -27,7 +27,7 @@ on:
       warm_runs:
         description: "Warm runs"
         type: string
-        default: "3"
+        default: "1"
 
 permissions:
   contents: read
@@ -92,7 +92,7 @@ jobs:
         env:
           TDK_EXTENSION_SOURCE: ${{ github.workspace }}
           COLD_RUNS: ${{ inputs.cold_runs || '1' }}
-          WARM_RUNS: ${{ inputs.warm_runs || '3' }}
+          WARM_RUNS: ${{ inputs.warm_runs || '1' }}
         run: |
           scripts/benchmark/tdk-up-warm-start.sh \
             --project restaurant \
