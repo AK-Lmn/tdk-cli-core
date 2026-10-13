@@ -29,7 +29,7 @@ def generate_standalone_traefik_compose(sablier_enabled = False, http_host_port 
 
 services:
   traefik:
-    image: traefik:v3.6.8
+    image: traefik:v3.7.14
     container_name: {name}_traefik
     restart: unless-stopped
 {traefik_depends_on}    command:
