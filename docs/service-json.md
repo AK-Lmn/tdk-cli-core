@@ -1,0 +1,148 @@
+# `service.json` reference
+
+Each TDK resource is described by a `service.json` file in the resource directory. The file drives resource discovery, generated Tilt and Docker configuration, routing, dependency ordering, and editor assistance.
+
+The [service schema](../engine/schemas/service-schema.json) is the source of truth for JSON types and editor validation. The CLI is authoritative at runtime: `tdk config verify` applies the manifest and generated-output checks described below, while `tdk doctor` performs environment, readiness, and discovery-time safety checks. The published schema URL is:
+
+```text
+https://tdk-landscape.github.io/schema.service.json
+```
+
+## Minimal examples
+
+A backend resource needs a backend port. The usual backend range is `4000`–`5999`.
+
+```json
+{
+  "$schema": "https://tdk-landscape.github.io/schema.service.json",
+  "schemaVersion": 1,
+  "appName": "orders-backend",
+  "appType": "backend",
+  "stack": "shop",
+  "port": 4000,
+  "healthCheckPath": "/health",
+  "dependsOn": []
+}
+```
+
+A frontend normally uses a port in the `3000`–`3999` range. `framework` is optional; omitting it keeps the default React provider.
+
+```json
+{
+  "$schema": "https://tdk-landscape.github.io/schema.service.json",
+  "schemaVersion": 1,
+  "appName": "orders-app",
+  "appType": "frontend",
+  "stack": "shop",
+  "port": 3000,
+  "backendName": "orders-backend",
+  "basePath": "/shop"
+}
+```
+
+Run `tdk resource <name> --type backend` or `tdk resource <name> --type frontend` to generate a starting manifest. Existing examples are in [`examples/tdk-example`](../examples/tdk-example).
+
+## Required identity and compatibility fields
+
+| Field | Type and default | Applies to | Description |
+| --- | --- | --- | --- |
+| `$schema` | string; optional | all | Editor metadata. Point it at the published schema URL for completion and inline validation. |
+| `schemaVersion` | integer; **required**, currently `1` | all | Version of the TDK manifest contract. An unsupported version is rejected; TDK does not guess how to migrate it. |
+| `appName` | string; **required** | all | Resource identifier. Use lowercase letters, numbers, and hyphens; it should match the resource directory name. |
+| `appType` | enum; required when `type` is absent | all | Resource kind: `backend`, `frontend`, `library`, `sdk`, `worker`, `migrator`, `mcp`, or `bring-your-own`. Provide either `appType` or the legacy `type` field. |
+| `type` | enum; legacy alias for `appType` | existing manifests | Older manifests may use `type`; provide it when `appType` is absent. Use `appType` in new files. During config migration, TDK copies the legacy value to `appType`. |
+| `stack` | string; **required** | all | Groups related resources and influences database names, routes, and generated dependency configuration. |
+
+`appType` determines more than the label shown in the UI. It selects the generator and validation rules. A `worker` must declare the `nats` feature, while `bring-your-own` resources need a `Dockerfile` or `image` and do not receive an application scaffold.
+
+## Ports, runtimes, and providers
+
+| Field | Type and default | Applies to | Description |
+| --- | --- | --- | --- |
+| `port` | integer; type-specific | backend, frontend, `mcp`, `bring-your-own` | External development port. Backends, MCP, and BYO resources use `4000`–`5999`; frontends use `3000`–`3999`. The internal container port remains `3000`. |
+| `runtime` | `"bun"` or `"node"`; defaults to `"bun"` | generated services | Runtime used for the resource. |
+| `language` | provider id; omitted means Bun for legacy backends | backend | Backend language provider, such as `bun`, `python`, `go`, or `rust`. The CLI provider registry, not this document or the schema examples, defines the current ids. |
+| `framework` | provider id; omitted means React for frontends and Hono for Bun backends | frontend and backend | Selects the registered framework provider. Unknown ids fail before a resource is written. |
+| `featuresEnabled` | string array; generator-selected when omitted | generated resources | Platform and generator features, such as `nats`, `prisma`, `redis`, `infisical`, `vitest`, `traefik`, `websocket`, `graphql`, `grpc`, `api-client`, `env-config`, `vite`, `tsconfig`, `dockerfile`, `nginx`, `playwright`, `agents-md`, `ddd`, and `sablier`. |
+| `replicas` | integer; defaults to `1` | runnable services | Number of containers to run. The supported range is `1`–`10`; Traefik load-balances across replicas. |
+| `enabled` | boolean; optional | all | Whether the resource is enabled by the project configuration. |
+
+The `language` and `framework` properties intentionally use an open id pattern in the JSON Schema. The CLI registries are the contract because provider ids can be added without editing the schema.
+
+## Dependencies, routes, and health checks
+
+| Field | Type and default | Applies to | Description |
+| --- | --- | --- | --- |
+| `dependsOn` | string array; optional | all | Resources or stacks that must start before this resource. It also informs focus mode, health checks, migration order, and generated frontend environment values. |
+| `dependencies` | string array; deprecated | existing manifests | Legacy spelling for `dependsOn`. It is still read for compatibility; use `dependsOn` in new files. |
+| `basePath` | path string; defaults from the stack | frontends | Public route prefix for frontend traffic. |
+| `backendName` | resource name; auto-computed for frontends | frontends | Associated backend resource. |
+| `apiPath` | path string; optional | API resources | API route exposed by the resource when applicable. |
+| `apiBasePath` | `"/api"` by default | legacy/engine integrations | Base path used for API routes in Traefik. New manifests normally rely on the generated route unless an integration needs this override. |
+| `healthCheckPath` | path string; defaults to `/health` for HTTP API resources | HTTP resources | Container health endpoint. Traefik uses it too unless `traefik.healthCheck` is set. Omit it for a non-HTTP BYO resource. |
+| `traefik` | object; generated when omitted | routable resources | Routing overrides: `host`, `pathPrefix`, and `healthCheck`. |
+| `exposeViaProxy` | boolean; defaults to `true` for BYO | BYO resources | Set `false` to keep a BYO resource off Traefik; it then has no public route or HTTP health probe. |
+| `smoke` | object; optional | routable HTTP resources | Post-start checks through the public proxy URL. Use `via: "proxy"` and one or more HTTP `steps`. See the [`smoke` configuration guide](configuration.md#smoke-check-the-public-url-after-tdk-up). |
+
+`healthCheckPath` is an inside-the-container readiness probe. A `smoke` block is different: it verifies the public route printed by `tdk up`, and can perform a safe write/read-back flow. Do not use a full URL in a smoke step; its `path` is appended to the public URL.
+
+## Build and container fields
+
+| Field | Type and default | Applies to | Description |
+| --- | --- | --- | --- |
+| `dockerfile` | path string; generated Dockerfile by default | BYO and custom builds | Dockerfile path relative to the resource or build context. |
+| `buildContext` | path string; resource directory by default | BYO | Docker build context relative to the resource directory. When set, `dockerfile` is relative to this context. |
+| `image` | image reference; optional | BYO | Use an existing image instead of building a Dockerfile. |
+| `restart` | `no`, `on-failure`, `unless-stopped`, or `always`; defaults to `unless-stopped` | BYO | Docker Compose restart policy. Use `no` or `on-failure` for one-shot jobs such as migrations. |
+| `syncs` | string array; generated by type when omitted | generated services | Directories to sync for hot reload. Backends default to `src` and `prisma`; frontends default to `src` and `public`. |
+| `dev` | object; optional | provider-specific/legacy | Development command and watch settings for languages that own their development process. The provider determines the supported shape. |
+| `build` | object; optional | provider-specific/legacy | Additional build settings consumed by the relevant generator. |
+
+## Configuration, secrets, and integrations
+
+| Field | Type and default | Applies to | Description |
+| --- | --- | --- | --- |
+| `params` | string map; optional | all | Non-secret values such as `BASE_URL` or `PORT`. |
+| `envVars` | object; deprecated | existing manifests | Legacy alias for `params`, read only when `params` is absent. |
+| `secrets` | object; optional | all | Secret names to inject from the project `.env` or the configured secret provider. Use `required` and optionally `optional`; never put secret values in this file. |
+| `nats` | object; optional | services using NATS | Custom `queueGroup` and `subjects`. TDK generates NATS configuration when `nats` is enabled in `featuresEnabled`. |
+| `databaseName` | string; generated from the stack by default | database-backed services | Overrides the generated database name. |
+| `playwright` | boolean; defaults to `false` | generated frontend/services | Requests a generated Playwright configuration when enabled. |
+| `sablier` | object; disabled unless enabled | licensed services | On-demand scaling. Options are `enable`, `deferStart`, `group`, and `sessionDuration`. This is a Premium feature and requires `TDK_LICENSE_KEY`; it is not available merely by adding the JSON block. |
+| `name` | string; legacy/generated metadata | existing manifests | Retained for compatibility with older generated manifests. Prefer `appName` for the resource identity. |
+
+Do not add `jwtSecret` or other secret values to `service.json`. TDK ignores `jwtSecret` and reports that it must be removed; put secret names in `secrets` and values in the project’s ignored `.env` or the configured provider.
+
+Unknown fields are preserved so projects can carry application-specific metadata, but TDK reports them as warnings. A warning is not evidence that the field affects generated infrastructure.
+
+## Validation and troubleshooting
+
+Run the checks that match the change:
+
+```bash
+tdk config verify
+tdk doctor
+```
+
+The JSON Schema catches editor-time type, enum, required-field, and port-range mistakes. The CLI additionally checks the manifest path and generated-output safety. Typical messages include:
+
+```text
+services/shop/api/service.json.appType: required field is missing
+services/shop/api/service.json.schemaVersion: unsupported version 2 (supported: 1)
+services/shop/api/service.json.healthCheckPath: must be a path such as /health (no spaces, line breaks or YAML syntax)
+```
+
+The manifest validator rejects line breaks and control characters in values that reach generated YAML. It also validates the structure of `smoke`, including a non-empty `steps` array, absolute path fragments beginning with `/`, and `save` selectors such as `$.id`.
+
+If an older manifest has `type` instead of `appType`, run the config migration flow and review the diff. TDK preserves unknown fields and warns about deprecated `dependencies`, `envVars`, and ignored secret fields rather than silently deleting them.
+
+## Keeping this reference current
+
+When adding or changing a manifest field, update all of these together:
+
+1. `cli/src/types/index.ts` for the TypeScript contract.
+2. `engine/schemas/service-schema.json` for editor validation and descriptions.
+3. `cli/src/utils/service-manifest.ts` when runtime validation, deprecation, or safety behavior changes.
+4. This reference and the short overview in [`cli/README.md`](../cli/README.md).
+
+The published schema is a post-merge artifact. Pull requests should validate the repository copy offline; do not treat a stale published URL as permission to document behavior that is not present on `main`.

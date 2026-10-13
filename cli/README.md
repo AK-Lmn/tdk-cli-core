@@ -142,6 +142,8 @@ must pass `--stack`. Without `--yes`, prompt answers can still be supplied on st
 
 `service.json` files point to the published [JSON Schema](https://tdk-landscape.github.io/schema.service.json) for editor autocomplete and validation. The schema source is [`engine/schemas/service-schema.json`](../engine/schemas/service-schema.json); it documents supported service fields and known `featuresEnabled` names. Legacy manifests may use `type` in place of `appType`.
 
+See the complete [`service.json` field reference](../docs/service-json.md) for field defaults, resource applicability, validation behavior, and backend/frontend examples.
+
 Backend creation defaults to Bun + Hono, exactly as it always has: omit `--language` and nothing changes. Use `--language python` for FastAPI on Python 3.12, `--language go` for a standard-library `net/http` service on Go 1.23, or `--language rust` for an axum service (Go and Rust have no live reload: Tilt rebuilds the image on change). The selected id is saved as `language` in `service.json`; a legacy manifest without it still means Bun and is never rewritten. The flag applies only to `--type backend`, and unknown ids fail before a resource is written. On the Bun runtime the HTTP framework is Hono by default. To use another, pass one of these to `--framework`:
 
 | Id | Framework |
