@@ -20,7 +20,7 @@
 - [ ] 3.2 Move `scripts/verify-mcp.sh` into `resource-types/mcp` and run it in CI
 - [ ] 3.3 Move `scripts/verify-frontend-frameworks.sh` into `resource-types/frontend` (one matrix leg per framework group)
 - [ ] 3.4 Move `tests/e2e/byo-python*.test.sh` and `scripts/verify-byo-{example,job,pair,tdk}.sh` into `resource-types/bring-your-own`
-- [ ] 3.5 Add a `resource-types/backend` suite from the backend parts of quickstart (scaffold, routed health, restart, error envelope)
+- [ ] 3.5 Add a `resource-types/backend` suite from the backend parts of quickstart (scaffold, routed health, restart, error envelope) (the `resource-types/backend` suite (B1 scaffold, B2 tdk up and status, B3 routed health) is in this PR; the live legs are the proof)
 - [ ] 3.6 Add `resource-types/worker` (processes a job) and `resource-types/migrator` (migration completes before the API, per the migrator rule)
 - [ ] 3.7 Add `resource-types/library` and `resource-types/sdk` (consumed build), or allowlist them with tracking issues
 
