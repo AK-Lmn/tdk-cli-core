@@ -6,7 +6,7 @@ See proposal.md for why. This is the inventory on `origin/main` (5194a45a plus l
 |---|---|---|---|
 | `quickstart-e2e.yml` | README quickstart: backend + React + Vue, routed `/health` | journeys / quickstart | PR, nightly, after release |
 | `smoke-e2e.yml` + `scripts/verify-smoke.sh` | smoke runner pass/fail records | journeys / smoke | PR (path-filtered) |
-| `go-dev-loop-e2e.yml` + `scripts/e2e/go-dev-loop.sh` | Go backend live reload | journeys / dev-loop-go | PR |
+| `go-dev-loop-e2e.yml` + `tests/e2e/journeys/dev-loop/go-dev-loop.sh` | Go backend live reload | journeys / dev-loop-go | PR |
 | `cold-start-e2e.yml` + `scripts/e2e/cold-start.sh` | licensed deferred start | journeys / cold-start (secret, never on PR) | nightly, after release |
 | `example-e2e.yml` | default example boots | examples / default | PR, main |
 | `examples-e2e.yml` | saas-starter + restaurant real routes | examples / real-apps | daily |
