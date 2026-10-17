@@ -39,7 +39,7 @@ tdk resource tools-mcp --type mcp --stack shop --yes
 tdk up shop
 ```
 
-Agents get durable checkpoint volumes that survive `tdk down`, sticky session routing via `x-session-id`, graceful SIGTERM drain during hot reloads, and standard readiness gates via `/ready`. See the [AI agents guide](docs/ai-agents.md) and [honest comparison with agent frameworks](docs/compare-honest.md#ai-agent-frameworks-and-workflow-engines-libfx-langgraph-mastra-vercel-workflows-temporal).
+Agents get durable checkpoint volumes that survive `tdk down`, sticky session routing via `x-session-id`, graceful SIGTERM drain during hot reloads, a Docker health check on `/health`, and application-level readiness checks on `/ready`. See the [AI agents guide](docs/ai-agents.md) and [honest comparison with agent frameworks](docs/compare-honest.md#ai-agent-frameworks-and-workflow-engines-libfx-langgraph-mastra-vercel-workflows-temporal).
 
 
 TDK CLI — start services on your machine. It is not a deploy and not a Compose file: define each service in `service.json`, then run `tdk up`. No Kubernetes is needed on the machine.
