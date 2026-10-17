@@ -165,5 +165,5 @@ services/shop/orders-api/
 
 - [`service.json` Reference](service-json.md): Complete guide to manifest fields, types, and validation rules.
 - [Generated Service Files](generated-files.md): Detailed inventory of files generated across frontend, backend, and worker runtimes.
-- [Architecture Overview](ARCHITECTURE.md): How the CLI, Starlark engine, and discovery subsystems interact end to end.
+- [Project Overview](project-overview.md): High-level overview of TDK architecture and core concepts.
 - [Mega Cheat Sheet](cheat-sheet.md): Comprehensive reference for all TDK CLI commands and options.
