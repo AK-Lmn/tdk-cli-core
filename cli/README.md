@@ -61,7 +61,7 @@ tdk stacks
 tdk stacks --json
 tdk stacks --services     # 🔍 Include resources in each stack
 
-# 🗂️  Organize resources into stacks (interactive)
+# 🗂️ Organize resources into stacks (interactive)
 tdk stack api
 tdk stack order
 
@@ -78,7 +78,7 @@ tdk up --quiet                 # 🤫 Suppress non-essential output (-q)
 tdk up --verbose               # 📝 Verbose output (shows runtime assets, Tilt logs) (-v)
 tdk up --force                 # ⚡ Kill existing Tilt process before starting (-f)
 
-tdk down                       # ⏹️  Stop all services and Tilt
+tdk down                       # ⏹️ Stop all services and Tilt
 tdk down --force               # ⚡ Skip confirmation (-f)
 tdk down --dry-run             # 🔍 Show the command without stopping resources
 tdk down --verbose             # 📝 Verbose output (-v)
@@ -147,14 +147,14 @@ See the complete [`service.json` field reference](../docs/service-json.md) for f
 
 Backend creation defaults to Bun + Hono, exactly as it always has: omit `--language` and nothing changes. Use `--language python` for FastAPI on Python 3.12, `--language go` for a standard-library `net/http` service on Go 1.23, `--language rust` for an axum service (Go and Rust have no live reload: Tilt rebuilds the image on change), or `--language node` for a Node.js 22 service with built-in `node:http` and `node --watch` live reload. The selected id is saved as `language` in `service.json`; a legacy manifest without it still means Bun and is never rewritten. The flag applies only to `--type backend`, and unknown ids fail before a resource is written. On the Bun runtime the HTTP framework is Hono by default. To use another, pass one of these to `--framework`:
 
-| Id | Framework |
-| --- | --- |
-| `express` | Express 5 |
-| `elysia` | Elysia 1 |
-| `fastify` | Fastify 5 |
-| `nestjs` | NestJS 11 |
-| `koa` | Koa 3 |
-| `h3` | h3 1.x |
+| Id | Framework | Version |
+| --- | --- | --- |
+| `express` | Express | 5 |
+| `elysia` | Elysia | 1 |
+| `fastify` | Fastify | 5 |
+| `nestjs` | NestJS | 11 |
+| `koa` | Koa | 3 |
+| `h3` | h3 | 1.x |
 
 The selected id is saved as `framework` in `service.json`. `--framework hono` is accepted and saved too, and omitting it changes nothing. `--framework` cannot be combined with `--language python`, and unknown ids fail before a resource is written. Languages without a provider can use `--type bring-your-own`. See the [backend provider guide](../docs/backend-language-providers.md) and the runnable [Python example](../examples/one-backend-python/README.md).
 
@@ -217,11 +217,11 @@ after another terminal adds a service.
 ## 🚀 Quick Start Workflow
 
 ```bash
-# 1️⃣  Initialize project
+# 1️⃣ Initialize project
 cd my-project
 tdk project
 
-# 2️⃣  Create resources
+# 2️⃣ Create resources
 tdk resource api-api --type backend --stack api
 # → Creates service.json with port 4000
 # → Generates src/index.ts with Hono starter
@@ -231,16 +231,16 @@ tdk resource api-app --type frontend --stack api
 # → Creates service.json with port 3000
 # → Generates React starter with Vite
 
-# 3️⃣  Install dependencies
+# 3️⃣ Install dependencies
 cd api-api && bun install
 cd ../api-app && bun install
 
-# 4️⃣  Start development
+# 4️⃣ Start development
 tdk up api
 
-# 5️⃣  Check status
+# 5️⃣ Check status
 tdk status                     # 📋 Overview of stacks and resources
-tdk status --stacks            # 🗂️  Show stack information (default)
+tdk status --stacks            # 🗂️ Show stack information (default)
 tdk status --tilt              # 🔍 Query active Tilt resource status
 tdk status --verbose           # 📝 Detailed resource breakdowns per stack (-v)
 tdk status --json              # 🤖 Machine-readable JSON status report
