@@ -63,7 +63,7 @@ Run `tdk resource <name> --type backend` or `tdk resource <name> --type frontend
 | `runtime` | `"bun"` or `"node"`; defaults to `"bun"` | generated services | Runtime used for the resource. |
 | `language` | provider id; omitted means Bun for legacy backends | backend | Backend language provider, such as `bun`, `python`, `go`, `rust`, or `node`. The CLI provider registry, not this document or the schema examples, defines the current ids. |
 | `framework` | provider id; omitted means React for frontends and Hono for Bun backends | frontend and backend | Selects the registered framework provider. Unknown ids fail before a resource is written. |
-| `featuresEnabled` | string array; generator-selected when omitted | generated resources | Platform and generator features, such as `nats`, `prisma`, `redis`, `infisical`, `vitest`, `traefik`, `websocket`, `graphql`, `grpc`, `api-client`, `env-config`, `vite`, `tsconfig`, `dockerfile`, `nginx`, `playwright`, `agents-md`, `ddd`, and `sablier`. |
+| `featuresEnabled` | string array; generator-selected when omitted | generated resources | Platform and generator features, such as `nats`, `prisma`, `redis`, `infisical`, `vitest`, `traefik`, `websocket`, `graphql`, `grpc`, `api-client`, `env-config`, `vite`, `tsconfig`, `dockerfile`, `nginx`, `playwright`, `agents-md`, `ddd`, and `sablier`. See the complete [resource features guide](resource-features.md). |
 | `replicas` | integer; defaults to `1` | runnable services | Number of containers to run. The supported range is `1`–`10`; Traefik load-balances across replicas. |
 | `enabled` | boolean; optional | all | Whether the resource is enabled by the project configuration. |
 
