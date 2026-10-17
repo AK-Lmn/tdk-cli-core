@@ -7,6 +7,7 @@
 - [Full multi-service example](../examples/tdk-example/README.md)
 - [Mega cheat sheet](cheat-sheet.md): every `tdk` command, alias and flag
 - [Configuration and editor schemas](configuration.md)
+- [Resource features](resource-features.md): code generators, Prisma, and `featuresEnabled`
 - [Generated service files](generated-files.md): what TDK writes from `service.json`, and how to handle drift
 - [Environment, params and secrets](environment.md): the project `.env`, `params`, `secrets` and auth
 - [Operator runbook](operator-runbook.md): install matrix, version minimums, releases, license key
