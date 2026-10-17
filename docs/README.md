@@ -16,6 +16,7 @@
 ## Understand TDK
 
 - [Project overview and repository map](project-overview.md)
+- [Architecture](ARCHITECTURE.md): how tdk, the engine, and discovery fit together
 - [Features](FEATURES.md)
 - [Topology](TOPOLOGY.md)
 - [Honest comparison and known limits](compare-honest.md)
