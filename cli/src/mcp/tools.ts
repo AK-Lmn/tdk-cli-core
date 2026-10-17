@@ -4,6 +4,7 @@ import { type ChildProcess, spawn } from "node:child_process";
 import { closeSync, existsSync, openSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { isAbsolute, join } from "node:path";
+import { createMachineEnvelope, SCHEMA_VERSION } from "../utils/machine-output.js";
 import type { McpTool, McpToolResult } from "./server.js";
 
 /** A service or stack name. A leading "-" is rejected so a value can never be read as a flag. */
@@ -201,17 +202,13 @@ export async function startUp(
   }
   child.unref();
   return {
-    data: {
-      schemaVersion: 1,
-      data: {
-        ok: true,
-        started: true,
-        pid: child.pid ?? null,
-        logFile,
-        next: "Poll the status tool until data.tilt.readiness.ready is true. Call down to stop it.",
-      },
-      errors: [],
-    },
+    data: createMachineEnvelope({
+      ok: true,
+      started: true,
+      pid: child.pid ?? null,
+      logFile,
+      next: "Poll the status tool until data.tilt.readiness.ready is true. Call down to stop it.",
+    }),
     isError: false,
   };
 }
