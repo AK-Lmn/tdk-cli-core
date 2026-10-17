@@ -46,7 +46,7 @@
 			"job": "measure",
 			"tier": "report",
 			"required": false,
-			"reason": "Warm and cold start benchmark; moves to nightly in #1285",
+			"reason": "Warm and cold start benchmark; nightly, release and manual; suite tests/e2e/scale/benchmarks (#1285, #1301)",
 			"owner": "maintainers"
 		},
 		{
@@ -257,7 +257,7 @@
 			"job": "erp",
 			"tier": "e2e",
 			"required": false,
-			"reason": "ERP fixture at 100 services; manual and weekly; moves in #1301",
+			"reason": "ERP fixture at 100 services; manual and weekly; suite tests/e2e/scale/erp (#1301)",
 			"owner": "maintainers"
 		},
 		{

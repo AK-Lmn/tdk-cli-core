@@ -1,0 +1,18 @@
+{
+  "group": "scale",
+  "suite": "erp",
+  "description": "The 100-service fixture bench (tdk-landscape/tdk-erp-system) booted on a clean GitHub-hosted runner (moved from erp-scale-e2e.yml, #1301): tdk project and doctor, tdk up, then every backend answering /health through Traefik, and the report with the time to all backends healthy. Manual and weekly only: a full boot builds about 107 images. The workflow keeps its name and job until the e2e-scale cutover.",
+  "paths": [
+    "cli/**",
+    "engine/**",
+    "discovery/**",
+    "Tiltfile",
+    "tests/e2e/lib/**",
+    "tests/e2e/scale/erp/**",
+    ".github/workflows/erp-scale-e2e.yml"
+  ],
+  "cases": ["E1", "E2", "E3"],
+  "triggers": ["manual", "weekly"],
+  "timeoutMinutes": 100,
+  "needsSecrets": []
+}

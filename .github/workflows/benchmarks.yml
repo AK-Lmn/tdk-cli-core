@@ -5,6 +5,10 @@
 # The job builds the CLI from the commit being tested (not the published npm package), so the numbers
 # say what main does. Results are for a clean GitHub-hosted runner; they are not comparable with the
 # macOS numbers in benchmarks/results.
+#
+# The measurement cases live in tests/e2e/scale/benchmarks (suite.json, run.sh): B1 generates the project,
+# B2 runs the cold and warm starts, B3 builds the report. This workflow only builds the CLI, installs Tilt, and
+# publishes; publishing is gated on the trigger below.
 name: 📊 Benchmarks report
 
 on:
@@ -76,42 +80,23 @@ jobs:
           docker version --format 'docker {{.Server.Version}}'
           tdk --version; tilt version | head -1
 
-      - name: Generate the restaurant project
-        working-directory: restaurant
+      - name: Generate the restaurant project (B1)
         env:
           TDK_EXTENSION_SOURCE: ${{ github.workspace }}
-        run: tdk project --yes
+        run: tests/e2e/scale/benchmarks/run.sh B1
 
-      - name: Cold and warm starts
+      - name: Cold and warm starts (B2)
         env:
           TDK_EXTENSION_SOURCE: ${{ github.workspace }}
           COLD_RUNS: ${{ inputs.cold_runs || '1' }}
           WARM_RUNS: ${{ inputs.warm_runs || '1' }}
-        run: |
-          scripts/benchmark/tdk-up-warm-start.sh \
-            --project restaurant \
-            --out "$RUNNER_TEMP/bench" \
-            --cold-runs "$COLD_RUNS" \
-            --warm-runs "$WARM_RUNS" \
-            --healthy 8
+        run: tests/e2e/scale/benchmarks/run.sh B2
 
-      - name: Build the report
+      - name: Build the report (B3)
         env:
           COMMIT: ${{ steps.meta.outputs.commit }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          node scripts/benchmark/build-report.mjs \
-            --run "$RUNNER_TEMP/bench" \
-            --history benchmarks/results \
-            --out "$RUNNER_TEMP/site" \
-            --commit "$COMMIT" \
-            --run-url "$RUN_URL"
-          cp -r "$RUNNER_TEMP/bench" "$RUNNER_TEMP/site/raw"
-          {
-            cat "$RUNNER_TEMP/bench/summary.md"
-            echo ""
-            echo "Report: the Pages site for this repository (updated on main)."
-          } >> "$GITHUB_STEP_SUMMARY"
+        run: tests/e2e/scale/benchmarks/run.sh B3
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
@@ -122,8 +107,7 @@ jobs:
 
       - name: Stop the project
         if: always()
-        working-directory: restaurant
-        run: tdk down || true
+        run: tests/e2e/scale/benchmarks/run.sh cleanup
 
   publish:
     name: 🌐 Publish the report to GitHub Pages
