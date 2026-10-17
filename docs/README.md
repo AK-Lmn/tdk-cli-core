@@ -16,6 +16,7 @@
 ## Understand TDK
 
 - [Project overview and repository map](project-overview.md)
+- [How tdk up works](how-tdk-up-works.md): lifecycle, port planning, focus filtering, and shutdown
 - [Features](FEATURES.md)
 - [Topology](TOPOLOGY.md)
 - [Honest comparison and known limits](compare-honest.md)
