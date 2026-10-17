@@ -181,6 +181,32 @@ describe("isPathSafe", () => {
       expect(isPathSafe(character)).toBe(false);
     },
   );
+
+  it.each(["a\0b", "../a\0", "a/b\0", "\0../escape"])(
+    "rejects NUL anywhere in the path: %j",
+    (path) => {
+      expect(isPathSafe(path)).toBe(false);
+    },
+  );
+
+  it.each(["C:\\temp\\x", "a:b", "build/out<1>"])(
+    "rejects reserved characters in a Windows-style or mixed path: %j",
+    (path) => {
+      expect(isPathSafe(path)).toBe(false);
+    },
+  );
+
+  // isPathSafe only screens characters. Traversal and absolute paths are not
+  // branches of this function: callers resolve the path against the project
+  // root and check the relative result (see resource.ts). These cases pin that
+  // contract so a change to it is deliberate.
+  it.each(["../escape", "a/../../b", "/etc/passwd", "", "a\\b", "..\\..\\x"])(
+    "leaves traversal, absolute and separator checks to callers: %j",
+    (path) => {
+      expect(() => isPathSafe(path)).not.toThrow();
+      expect(isPathSafe(path)).toBe(true);
+    },
+  );
 });
 
 describe("includes", () => {
