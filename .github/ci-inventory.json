@@ -276,7 +276,7 @@
 			"job": "example-e2e",
 			"tier": "e2e",
 			"required": true,
-			"reason": "Default example boots; required; moves to e2e-examples in #1299",
+			"reason": "Default example boots; required; suite tests/e2e/examples/default",
 			"owner": "maintainers"
 		},
 		{

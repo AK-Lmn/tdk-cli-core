@@ -290,7 +290,7 @@
 					"allow": "#1299"
 				},
 				"tdk-example": {
-					"allow": "#1299"
+					"leg": "examples/default"
 				}
 			},
 			"interactions": []
