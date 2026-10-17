@@ -58,6 +58,7 @@ agentCommand
             res = await fetch(`http://127.0.0.1:${port}/session`, {
                 method: "GET",
                 headers,
+                signal: AbortSignal.timeout(10_000),
             });
         }
         catch {
@@ -93,7 +94,7 @@ agentCommand
             console.log(JSON.stringify(createMachineEnvelope({
                 agent: resourceName,
                 port,
-                ...body,
+                session: body,
             })));
             return;
         }

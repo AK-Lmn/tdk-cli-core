@@ -6,7 +6,7 @@ import { STANDARD_PORTS } from "../utils/constants.js";
 import { errorFactories, runCommand, TdkError } from "../utils/errors.js";
 import { createMachineEnvelope, writeMachineError } from "../utils/machine-output.js";
 import { findProjectRoot } from "../utils/paths.js";
-import { isTiltAvailable, runTilt } from "../utils/tilt.js";
+import { runTilt } from "../utils/tilt.js";
 import { isTiltConnectionFailure } from "../utils/tilt-logs.js";
 import { tiltUnreachableMessage } from "../utils/tilt-unreachable-message.js";
 
@@ -25,14 +25,26 @@ export const restartCommand = new Command("restart")
       }
 
       const portText = options.port ?? process.env.TILT_PORT ?? String(STANDARD_PORTS.tiltUi);
-      let tiltAvailable = false;
+
+      let tiltInstalled = true;
+      let tiltVersionOk = false;
       try {
-        tiltAvailable = await isTiltAvailable();
+        const versionResult = await runTilt("version", [], {
+          inheritStdio: false,
+          timeoutMs: 10_000,
+        });
+        tiltVersionOk = versionResult.exitCode === 0;
       } catch {
-        tiltAvailable = false;
+        tiltInstalled = false;
       }
 
-      if (!tiltAvailable) {
+      if (!tiltInstalled) {
+        const error = errorFactories.tiltNotInstalled();
+        if (options.json) writeMachineError(error);
+        error.exit();
+      }
+
+      if (!tiltVersionOk) {
         const msg = tiltUnreachableMessage(portText);
         if (options.json) {
           console.log(
@@ -63,25 +75,37 @@ export const restartCommand = new Command("restart")
           }
           throw new TdkError(msg, ["Start the stack first with: tdk up"]);
         }
+
         if (options.json) {
           console.log(
             JSON.stringify(
-              createMachineEnvelope(null, [{ code: "TILT_TRIGGER_FAILED", message: detail }]),
+              createMachineEnvelope(null, [
+                {
+                  code: "TILT_RESTART_FAILED",
+                  message: `Tilt trigger failed: ${detail}`,
+                },
+              ]),
             ),
           );
           process.exit(1);
         }
-        throw new TdkError(`Failed to restart ${resourceName}: ${detail}`);
+        throw new TdkError(`Tilt trigger failed: ${detail}`);
       }
 
       if (options.json) {
         console.log(
-          JSON.stringify(createMachineEnvelope({ resource: resourceName, restarted: true })),
+          JSON.stringify(
+            createMachineEnvelope({
+              resource: resourceName,
+              restarted: true,
+              port: Number(portText),
+            }),
+          ),
         );
         return;
       }
 
-      console.log(chalk.green(`✓ Triggered restart for ${resourceName}`));
+      console.log(chalk.green(`Triggered restart for ${resourceName}`));
     };
 
     if (options.json) {
