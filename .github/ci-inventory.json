@@ -389,7 +389,7 @@
 			"job": "python-example-e2e",
 			"tier": "e2e",
 			"required": false,
-			"reason": "Python provider example; moves in #1299",
+			"reason": "Python provider example; suite tests/e2e/examples/python",
 			"owner": "maintainers"
 		},
 		{
