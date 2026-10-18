@@ -680,6 +680,22 @@
 			"owner": "maintainers"
 		},
 		{
+			"workflow": "e2e-journeys.yml",
+			"job": "journeys",
+			"tier": "e2e",
+			"reason": "One leg per journey suite with the pr trigger (broken-project, dev-loop, quickstart, smoke); cold-start stays off pull requests (#1302)",
+			"required": false,
+			"owner": "maintainers"
+		},
+		{
+			"workflow": "e2e-journeys.yml",
+			"job": "gate",
+			"tier": "gate",
+			"reason": "Fails when any journey leg fails or is cancelled (#1302)",
+			"required": false,
+			"owner": "maintainers"
+		},
+		{
 			"workflow": "ci-report.yml",
 			"job": "report",
 			"tier": "report",
