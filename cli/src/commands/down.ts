@@ -3,7 +3,7 @@
 import chalk from "chalk";
 import { Command } from "commander";
 import { readProjectConfig } from "../generator/template-engine.js";
-import { handleDryRun } from "../utils/command-helpers.js";
+import { addYesOption, handleDryRun } from "../utils/command-helpers.js";
 import {
   pruneProjectNetworks,
   stopProjectTiltUp,
@@ -47,10 +47,10 @@ function pruneNetworksOrWarn(json: boolean): ReturnType<typeof pruneProjectNetwo
   }
 }
 
-export const downCommand = new Command("down")
+export const downCommand = addYesOption(new Command("down"))
   .description("Stop all tilt resources")
   .option("-v, --verbose", "Enable verbose output", false)
-  .option("-f, --force", "Accepted for script compatibility; has no effect", false)
+  .option("-f, --force", "Deprecated alias for --yes; accepted for script compatibility", false)
   .option(
     "--prune-networks",
     "Also remove this project's Docker networks (only those no container is attached to)",
@@ -72,6 +72,15 @@ export const downCommand = new Command("down")
       }
       if (handleDryRun(options, "not stopping resources", "tilt down")) {
         return;
+      }
+
+      if (options.force) {
+        options.yes = true;
+        if (!options.json) {
+          console.warn(
+            chalk.yellow("Note: --force (-f) on tdk down is deprecated; use --yes (-y) instead."),
+          );
+        }
       }
 
       const tiltArgs = buildTiltDownArgs({

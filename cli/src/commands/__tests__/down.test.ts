@@ -37,7 +37,7 @@ describe("tdk down", () => {
   afterEach(() => {
     vi.restoreAllMocks();
     runTiltMock.mockReset();
-    for (const option of ["dryRun", "json", "verbose", "force", "pruneNetworks"]) {
+    for (const option of ["dryRun", "json", "verbose", "force", "yes", "pruneNetworks"]) {
       downCommand.setOptionValue(option, false);
     }
   });
@@ -141,7 +141,7 @@ describe("tdk down", () => {
     }
   });
 
-  it("hands the force option to buildTiltDownArgs (which decides what reaches tilt down)", async () => {
+  it("hands the force option to buildTiltDownArgs and prints a one-line deprecation notice", async () => {
     const tempDir = mkdtempSync(join(tmpdir(), "tdk-down-force-test-"));
     mkdirSync(join(tempDir, ".tdk"), { recursive: true });
     writeFileSync(join(tempDir, ".tdk", "project.json"), "{}");
@@ -151,10 +151,17 @@ describe("tdk down", () => {
     buildTiltDownArgsMock.mockReturnValue(["-f", "/fake/Tiltfile"]);
     runTiltMock.mockResolvedValue({ exitCode: 0, stdout: "", stderr: "" });
     const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     try {
       await downCommand.parseAsync(["node", "tdk", "--force"], { from: "node" });
 
+      expect(downCommand.opts().yes).toBe(true);
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "Note: --force (-f) on tdk down is deprecated; use --yes (-y) instead.",
+        ),
+      );
       expect(buildTiltDownArgsMock).toHaveBeenCalledWith(expect.objectContaining({ force: true }));
       expect(runTiltMock).toHaveBeenCalledWith(
         "down",
@@ -164,6 +171,37 @@ describe("tdk down", () => {
     } finally {
       process.chdir(originalCwd);
       rmSync(tempDir, { recursive: true, force: true });
+      warn.mockRestore();
+      log.mockRestore();
+    }
+  });
+
+  it("accepts -y and --yes without printing the --force deprecation notice", async () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "tdk-down-yes-test-"));
+    mkdirSync(join(tempDir, ".tdk"), { recursive: true });
+    writeFileSync(join(tempDir, ".tdk", "project.json"), "{}");
+    process.chdir(tempDir);
+    getContainerRuntimeStatusMock.mockReturnValue("running");
+    isTiltAvailableMock.mockResolvedValue(true);
+    buildTiltDownArgsMock.mockReturnValue(["-f", "/fake/Tiltfile"]);
+    runTiltMock.mockResolvedValue({ exitCode: 0, stdout: "", stderr: "" });
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    try {
+      await downCommand.parseAsync(["node", "tdk", "-y"], { from: "node" });
+
+      expect(downCommand.opts().yes).toBe(true);
+      expect(warn).not.toHaveBeenCalled();
+      expect(runTiltMock).toHaveBeenCalledWith(
+        "down",
+        ["-f", "/fake/Tiltfile"],
+        expect.any(Object),
+      );
+    } finally {
+      process.chdir(originalCwd);
+      rmSync(tempDir, { recursive: true, force: true });
+      warn.mockRestore();
       log.mockRestore();
     }
   });

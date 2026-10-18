@@ -73,6 +73,13 @@ describe("tdk import", () => {
     expect(importCommand.options.find((o) => o.long === "--help")).toBeUndefined();
   });
 
+  it("registers -y/--yes and --force options with the shared convention", () => {
+    const yesOpt = importCommand.options.find((o) => o.long === "--yes");
+    expect(yesOpt?.short).toBe("-y");
+    const forceOpt = importCommand.options.find((o) => o.long === "--force");
+    expect(forceOpt).toBeDefined();
+  });
+
   describe("core version gate", () => {
     it("compares semver versions accurately", () => {
       expect(isVersionAtLeast("1.3.104", MIN_CORE_VERSION)).toBe(true);
