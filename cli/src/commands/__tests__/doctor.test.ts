@@ -1379,9 +1379,9 @@ describe("doctor --all, sections, and summary", () => {
         didPass: false,
         message: "Docker is not running",
       }),
-      requiresContainerRuntime("Container Resource Health", () => {
+      requiresContainerRuntime("Crash-looping containers", () => {
         dependentCalled = true;
-        return { name: "Container Resource Health", didPass: true, message: "Healthy" };
+        return { name: "Crash-looping containers", didPass: true, message: "Healthy" };
       }),
       checkContainerResourceHealth,
       () => ({
@@ -1396,7 +1396,7 @@ describe("doctor --all, sections, and summary", () => {
     expect(dependentCalled).toBe(false);
     expect(results).toHaveLength(4);
     expect(results[1]).toMatchObject({
-      name: "Container Resource Health",
+      name: "Crash-looping containers",
       didPass: true,
       isSkipped: true,
     });
@@ -1421,6 +1421,16 @@ describe("doctor --all, sections, and summary", () => {
     ]);
 
     expect(summary).toBe("2 passed, 1 failed, 2 skipped");
+  });
+
+  it("treats unexpected check failures as failed in the summary instead of skipped", () => {
+    const summary = formatDoctorSummary([
+      { name: "Docker", didPass: true, message: "OK" },
+      { name: "CrashCheck", didPass: false, isSkipped: false, message: "Check failed with an internal error" },
+      { name: "SkippedCheck", didPass: true, isSkipped: true, message: "Skipped" },
+    ]);
+
+    expect(summary).toBe("1 passed, 1 failed, 1 skipped");
   });
 
   it("registers --all on doctorCommand and prints Machine, Project, and summary", async () => {
@@ -1453,6 +1463,43 @@ describe("doctor --all, sections, and summary", () => {
       expect(lines.some((line) => line.includes("Project"))).toBe(true);
       expect(lines.some((line) => /^\d+ passed, \d+ failed, \d+ skipped$/.test(line))).toBe(true);
       expect(exit).toHaveBeenCalledWith(1);
+    } finally {
+      process.chdir(originalCwd);
+      if (platformDescriptor) Object.defineProperty(process, "platform", platformDescriptor);
+      exit.mockRestore();
+      log.mockRestore();
+      error.mockRestore();
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("does not print Machine or Project headings or summary without --all", async () => {
+    const root = mkdtempSync(join(tmpdir(), "tdk-doctor-plain-"));
+    const originalCwd = process.cwd();
+    const platformDescriptor = Object.getOwnPropertyDescriptor(process, "platform");
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { exit } = captureExit();
+
+    try {
+      mkdirSync(join(root, ".tdk"), { recursive: true });
+      writeFileSync(
+        join(root, ".tdk", "project.json"),
+        JSON.stringify({ project: { name: "doctor-plain-test" } }),
+      );
+      process.chdir(root);
+      Object.defineProperty(process, "platform", { configurable: true, value: "linux" });
+
+      try {
+        await doctorCommand.parseAsync(["--no-ping"], { from: "user" });
+      } catch {
+        // Expected when process.exit is called on failing checks
+      }
+
+      const lines = log.mock.calls.map((call) => String(call[0]));
+      expect(lines.some((line) => line === "Machine")).toBe(false);
+      expect(lines.some((line) => line === "\nProject" || line === "Project")).toBe(false);
+      expect(lines.some((line) => /^\d+ passed, \d+ failed, \d+ skipped$/.test(line))).toBe(false);
     } finally {
       process.chdir(originalCwd);
       if (platformDescriptor) Object.defineProperty(process, "platform", platformDescriptor);

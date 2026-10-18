@@ -1641,7 +1641,7 @@ export const doctorCommand = new Command("doctor")
               return {
                 name: check.checkName ?? "Doctor check",
                 didPass: false,
-                isSkipped: true,
+                isSkipped: false,
                 message: "Check failed with an internal error",
               };
             }
@@ -1714,21 +1714,33 @@ export const doctorCommand = new Command("doctor")
     for (const error of errors)
       console.error(`${chalk.red("✗")} Doctor check failed: ${error.message}`);
 
-    console.log(chalk.bold("Machine"));
-    printDoctorResults(machineResults);
+    if (options.all) {
+      console.log(chalk.bold("Machine"));
+      printDoctorResults(machineResults);
 
-    if (inProject && projectResults.length > 0) {
-      console.log(`\n${chalk.bold("Project")}`);
-      printDoctorResults(projectResults);
-    } else if (!inProject && (allPassed || options.all)) {
-      console.log(`\n${chalk.bold("Project")}`);
-      console.log(
-        `${chalk.gray("○")} ${chalk.gray("Not in a TDK project, so project checks were skipped")}`,
-      );
+      if (inProject && projectResults.length > 0) {
+        console.log(`\n${chalk.bold("Project")}`);
+        printDoctorResults(projectResults);
+      } else if (!inProject) {
+        console.log(`\n${chalk.bold("Project")}`);
+        console.log(
+          `${chalk.gray("○")} ${chalk.gray("Not in a TDK project, so project checks were skipped")}`,
+        );
+      }
+
+      console.log("");
+      console.log(formatDoctorSummary(results));
+    } else {
+      printDoctorResults(results);
+      console.log("");
+
+      if (allPassed && !inProject) {
+        console.log(
+          `${chalk.gray("○")} ${chalk.gray("Not in a TDK project, so project checks were skipped")}`,
+        );
+        console.log("");
+      }
     }
-
-    console.log("");
-    console.log(formatDoctorSummary(results));
     const outcome = getDoctorOutcomeMessage(inProject, allPassed);
     console.log(
       `${allPassed ? chalk.green(chalk.bold("✓")) : chalk.red(chalk.bold("✗"))} ${outcome}`,

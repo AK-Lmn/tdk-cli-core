@@ -28,6 +28,16 @@ export declare function checkPublishedBindAddress(env?: NodeJS.ProcessEnv, stric
 /** Failures are shown before passing statuses, with a 5432 conflict first. */
 export declare function orderDoctorResults(results: CheckResult[]): CheckResult[];
 export declare function getDoctorOutcomeMessage(inProject: boolean, allPassed: boolean): string;
+export type DoctorCheckFn = (() => CheckResult | Promise<CheckResult>) & {
+    requiresContainerRuntime?: boolean;
+    checkName?: string;
+};
+export declare function requiresContainerRuntime(checkName: string, check: () => CheckResult | Promise<CheckResult>): DoctorCheckFn;
+export declare function runChecks(checks: DoctorCheckFn[], options?: {
+    all?: boolean;
+    containerRuntimeFailed?: boolean;
+}): Promise<CheckResult[]>;
+export declare function formatDoctorSummary(results: CheckResult[]): string;
 export declare function checkDockerRuntime(): Promise<CheckResult>;
 export declare const checkDockerCompose: (exec?: ExecAsync) => Promise<CheckResult>;
 export declare function checkDockerVersions(exec?: ExecAsync): Promise<CheckResult>;
@@ -48,4 +58,18 @@ export declare function checkResourceDiscovery(): CheckResult;
 export declare function checkGeneratedProjectRuntimeAssets(): CheckResult;
 export declare function checkTypeScriptTypeDependencies(): CheckResult;
 export declare function checkFrontendDockerPreflight(): CheckResult;
+/**
+ * Flags containers pinned near their memory limit while also burning CPU --
+ * the signature of a boot-time process stuck in a retry/fetch loop, not a
+ * genuine crash (which would just exit, not sit at ~100% resource usage).
+ *
+ * Caught in this workspace: a backend runtime image missing the local Prisma
+ * CLI fell back to `bunx prisma`, which re-fetched prisma@latest from npm on
+ * every container start. That pinned a 512MB container at ~100% memory and
+ * 100%+ CPU indefinitely, and it never became healthy. Neither `docker ps`
+ * (just shows "unhealthy") nor the healthcheck's own retry loop surfaces
+ * *why* -- only live resource stats catch this pattern before it's mistaken
+ * for a slow migration or a flaky healthcheck.
+ */
+export declare const checkContainerResourceHealth: DoctorCheckFn;
 export declare const doctorCommand: Command;
