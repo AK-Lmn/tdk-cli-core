@@ -1426,7 +1426,12 @@ describe("doctor --all, sections, and summary", () => {
   it("treats unexpected check failures as failed in the summary instead of skipped", () => {
     const summary = formatDoctorSummary([
       { name: "Docker", didPass: true, message: "OK" },
-      { name: "CrashCheck", didPass: false, isSkipped: false, message: "Check failed with an internal error" },
+      {
+        name: "CrashCheck",
+        didPass: false,
+        isSkipped: false,
+        message: "Check failed with an internal error",
+      },
       { name: "SkippedCheck", didPass: true, isSkipped: true, message: "Skipped" },
     ]);
 
