@@ -56,6 +56,9 @@ Put the environment values the services need in the project `.env`; values in th
 
 ## Cutting a release
 
+> [!WARNING]
+> The automatic version bump does not work as expected yet. After the 1.3.185 release, the git tag `v1.3.185` pointed at a commit whose `package.json` still said `1.3.184`, and `bun.lock` was never bumped. npm and the GitHub release had the right version. Check the tag, `package.json`, `cli/package.json` and `bun.lock` after every release until these are fixed: [#1657](https://github.com/tdk-landscape/tdk-cli-core/issues/1657), [#1658](https://github.com/tdk-landscape/tdk-cli-core/issues/1658), [#1659](https://github.com/tdk-landscape/tdk-cli-core/issues/1659).
+
 The normal release is the workflow, from a release branch (see the publish gate in [#1631](https://github.com/tdk-landscape/tdk-cli-core/pull/1631)):
 
 1. Cut `release/rc-<timestamp>` at the commit to ship, and run the Release candidate workflow on it. Wait for it to pass.

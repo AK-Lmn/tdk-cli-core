@@ -431,6 +431,14 @@
 			}
 		},
 		{
+			"workflow": "release-binaries.yml",
+			"job": "tag-bumped-release",
+			"tier": "release",
+			"required": false,
+			"reason": "Tags the merged version bump and publishes the GitHub release draft (#1657)",
+			"owner": "maintainers"
+		},
+		{
 			"workflow": "release-candidate.yml",
 			"job": "plan",
 			"tier": "release",
