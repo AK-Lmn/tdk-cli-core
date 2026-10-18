@@ -86,6 +86,7 @@ jobs:
           STACK: ${{ inputs.stack || 'finance' }}
           WAIT_MINUTES: "75"
         run: tests/e2e/scale/erp/run.sh E1 E2 E3
+ 
 
 
       # Failure evidence (#1382): on a failed run, keep the Docker and Tilt logs, service status and generated files for 7 days.
@@ -95,6 +96,7 @@ jobs:
         with:
           name: erp-scale
 
+ 
 
       - name: Diagnostics on failure
         if: failure() || cancelled()
