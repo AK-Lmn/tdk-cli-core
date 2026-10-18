@@ -14,7 +14,7 @@ import {
   isValidPort,
   validateResourceName,
 } from "../../utils/validation.js";
-import { DRIFT_EXIT_CODE } from "../up.js";
+import { DRIFT_EXIT_CODE, nativeWindowsUpRefusal } from "../up.js";
 
 describe("error handling", () => {
   describe("resource name validation", () => {
@@ -153,6 +153,21 @@ describe("error handling", () => {
 
     it("keeps DRIFT_EXIT_CODE as 2 for tdk up drift gate", () => {
       expect(DRIFT_EXIT_CODE).toBe(2);
+    });
+
+    it("exits with code 1 on native Windows startup refusal", () => {
+      const refusal = nativeWindowsUpRefusal("win32", undefined);
+      expect(refusal).toBeDefined();
+
+      const stderr: string[] = [];
+      vi.spyOn(console, "error").mockImplementation((...args) => {
+        stderr.push(args.map(String).join(" "));
+      });
+      const { expectExit } = captureExit();
+
+      expect(() => showErrorAndExit(refusal!)).toThrow("process.exit");
+      expect(stderr[0]).toContain("❌");
+      expectExit(1);
     });
   });
 });
