@@ -160,6 +160,22 @@ export function runImport(
   });
 }
 
+export function buildForwardedImportArgs(
+  args: string[],
+  options: { yes?: boolean; force?: boolean } = {},
+): string[] {
+  const filtered = args.filter(
+    (arg) => arg !== "--yes" && arg !== "-y" && arg !== "--force" && arg !== "-f",
+  );
+  if (options.yes) {
+    filtered.push("--yes");
+  }
+  if (options.force) {
+    filtered.push("--force");
+  }
+  return filtered;
+}
+
 export const importCommand = addYesOption(new Command("import"))
   .description("Import the services in a directory's root docker-compose.yml (runs tdk-import)")
   .argument("[args...]", "Passed to tdk-import: [dir] --dry-run --yes --force")
@@ -167,12 +183,6 @@ export const importCommand = addYesOption(new Command("import"))
   .allowUnknownOption()
   .helpOption(false)
   .action(async (args: string[], options: { yes?: boolean; force?: boolean }) => {
-    const forwardedArgs = [...args];
-    if (options.yes && !forwardedArgs.includes("--yes") && !forwardedArgs.includes("-y")) {
-      forwardedArgs.push("--yes");
-    }
-    if (options.force && !forwardedArgs.includes("--force")) {
-      forwardedArgs.push("--force");
-    }
+    const forwardedArgs = buildForwardedImportArgs(args, options);
     process.exitCode = await runImport(forwardedArgs);
   });

@@ -162,7 +162,9 @@ describe("tdk down", () => {
           "Note: --force (-f) on tdk down is deprecated; use --yes (-y) instead.",
         ),
       );
-      expect(buildTiltDownArgsMock).toHaveBeenCalledWith(expect.objectContaining({ force: true }));
+      expect(buildTiltDownArgsMock).toHaveBeenCalledWith(
+        expect.not.objectContaining({ force: true }),
+      );
       expect(runTiltMock).toHaveBeenCalledWith(
         "down",
         ["-f", "/fake/Tiltfile"],

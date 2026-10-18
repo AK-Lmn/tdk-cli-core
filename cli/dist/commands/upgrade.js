@@ -7,7 +7,7 @@ import { basename, dirname, join, resolve, win32 } from "node:path";
 import { fileURLToPath } from "node:url";
 import chalk from "chalk";
 import { Command } from "commander";
-import { handleDryRun } from "../utils/command-helpers.js";
+import { addYesOption, handleDryRun } from "../utils/command-helpers.js";
 import { PACKAGE_JSON } from "../utils/constants.js";
 import { getErrorMessage, logVerbose, showErrorAndExit } from "../utils/errors.js";
 import { showCancelled } from "../utils/formatting.js";
@@ -559,13 +559,12 @@ async function upgradeViaGit(path) {
         return false;
     }
 }
-export const upgradeCommand = new Command("upgrade")
+export const upgradeCommand = addYesOption(new Command("upgrade"))
     .alias("update")
     .description("Upgrade TDK CLI to the latest version")
-    .option("-f, --force", "Force upgrade even if already on latest", false)
+    .option("-f, --force", "Upgrade even if already on the latest version", false)
     .option("--all", "Upgrade every TDK installation found on PATH", false)
     .option("--dry-run", "Show what would be upgraded without actually doing it", false)
-    .option("-y, --yes", "Skip confirmation prompt", false)
     .action(async (options) => {
     console.log(chalk.cyan("🚀 TDK CLI Upgrade\n"));
     const currentVersion = getCurrentVersion();

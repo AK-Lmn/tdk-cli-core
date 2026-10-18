@@ -64,6 +64,16 @@ export const downCommand = addYesOption(new Command("down"))
       if (options.json) writeMachineError(projectRootError);
       projectRootError.exit();
     }
+
+    if (options.force) {
+      options.yes = true;
+      if (!options.json) {
+        console.warn(
+          chalk.yellow("Note: --force (-f) on tdk down is deprecated; use --yes (-y) instead."),
+        );
+      }
+    }
+
     const emit = options.json ? createJsonEmitter("DOWN_FAILED", "tdk down") : undefined;
     await withTiltCheck(async () => {
       if (emit && options.dryRun) {
@@ -74,17 +84,7 @@ export const downCommand = addYesOption(new Command("down"))
         return;
       }
 
-      if (options.force) {
-        options.yes = true;
-        if (!options.json) {
-          console.warn(
-            chalk.yellow("Note: --force (-f) on tdk down is deprecated; use --yes (-y) instead."),
-          );
-        }
-      }
-
       const tiltArgs = buildTiltDownArgs({
-        force: options.force,
         focusTargets: allStackNames(),
       });
 

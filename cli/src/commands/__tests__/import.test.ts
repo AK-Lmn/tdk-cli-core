@@ -3,6 +3,7 @@
 import { EventEmitter } from "node:events";
 import { describe, expect, it, vi } from "vitest";
 import {
+  buildForwardedImportArgs,
   checkCoreVersion,
   IMPORT_PACKAGE,
   importCommand,
@@ -78,6 +79,46 @@ describe("tdk import", () => {
     expect(yesOpt?.short).toBe("-y");
     const forceOpt = importCommand.options.find((o) => o.long === "--force");
     expect(forceOpt).toBeDefined();
+  });
+
+  describe("forwarded arguments contract", () => {
+    it("forwards parsed options authoritatively without duplicate flags", () => {
+      expect(buildForwardedImportArgs(["./services"], { yes: true })).toEqual([
+        "./services",
+        "--yes",
+      ]);
+      expect(buildForwardedImportArgs(["./services"], { force: true })).toEqual([
+        "./services",
+        "--force",
+      ]);
+      expect(buildForwardedImportArgs(["./services"], { yes: true, force: true })).toEqual([
+        "./services",
+        "--yes",
+        "--force",
+      ]);
+    });
+
+    it("strips flags placed before or after directory from positional args so flags are forwarded exactly once", () => {
+      // Flag before directory
+      expect(buildForwardedImportArgs(["--yes", "./services"], { yes: true })).toEqual([
+        "./services",
+        "--yes",
+      ]);
+      // Flag after directory
+      expect(buildForwardedImportArgs(["./services", "--yes"], { yes: true })).toEqual([
+        "./services",
+        "--yes",
+      ]);
+      // Short form -y in positional args normalized by option
+      expect(buildForwardedImportArgs(["-y", "./services"], { yes: true })).toEqual([
+        "./services",
+        "--yes",
+      ]);
+      // Mixed short and long forms with --force
+      expect(
+        buildForwardedImportArgs(["-y", "./services", "--force"], { yes: true, force: true }),
+      ).toEqual(["./services", "--yes", "--force"]);
+    });
   });
 
   describe("core version gate", () => {
