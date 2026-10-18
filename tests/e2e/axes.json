@@ -217,6 +217,9 @@
 				},
 				"prisma": {
 					"leg": "resource-types/prisma"
+				},
+				"drizzle": {
+					"leg": "resource-types/drizzle"
 				}
 			},
 			"interactions": []
