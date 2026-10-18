@@ -1,11 +1,20 @@
 // Copyright (c) 2026 TDK Landscape contributors
 // SPDX-License-Identifier: MIT
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { captureExit } from "../../test-support/index.js";
+import {
+  errorFactories,
+  runCommand,
+  showError,
+  showErrorAndExit,
+  TdkError,
+} from "../../utils/errors.js";
 import {
   createKebabCaseValidator,
   isValidPort,
   validateResourceName,
 } from "../../utils/validation.js";
+import { DRIFT_EXIT_CODE } from "../up.js";
 
 describe("error handling", () => {
   describe("resource name validation", () => {
@@ -79,6 +88,71 @@ describe("error handling", () => {
       for (const name of invalidNames) {
         expect(typeof stackValidator(name)).toBe("string");
       }
+    });
+  });
+
+  describe("unified error formatting and exit codes", () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it("formats showError and showErrorAndExit with the standard ❌ prefix", () => {
+      const stderr: string[] = [];
+      vi.spyOn(console, "error").mockImplementation((...args) => {
+        stderr.push(args.map(String).join(" "));
+      });
+      const { expectExit } = captureExit();
+
+      showError("Unsupported shell: fish-custom");
+      expect(stderr[0]).toContain("❌ Unsupported shell: fish-custom");
+
+      stderr.length = 0;
+      expect(() => showErrorAndExit("--port must be a valid port number", 2)).toThrow(
+        "process.exit",
+      );
+      expect(stderr[0]).toContain("❌ --port must be a valid port number");
+      expectExit(2);
+    });
+
+    it("routes unexpected and TdkError failures in runCommand through showError", async () => {
+      const stderr: string[] = [];
+      vi.spyOn(console, "error").mockImplementation((...args) => {
+        stderr.push(args.map(String).join(" "));
+      });
+      const { exit } = captureExit();
+
+      await expect(
+        runCommand(async () => {
+          throw new Error(".tdk/project.json not found");
+        }),
+      ).rejects.toThrow("process.exit");
+      expect(stderr[0]).toContain("❌ .tdk/project.json not found");
+      expect(exit).toHaveBeenCalledWith(1);
+
+      stderr.length = 0;
+      exit.mockClear();
+      await expect(
+        runCommand(async () => {
+          throw errorFactories.unknownServices(["bad-svc"], ["orders-api"]);
+        }),
+      ).rejects.toThrow("process.exit");
+      expect(stderr[0]).toContain("❌ Unknown service bad-svc. Valid names: orders-api");
+      expect(exit).toHaveBeenCalledWith(2);
+
+      stderr.length = 0;
+      exit.mockClear();
+      await expect(
+        runCommand(async () => {
+          throw new TdkError("Custom failure", ["Try 'tdk doctor'"], 1);
+        }),
+      ).rejects.toThrow("process.exit");
+      expect(stderr[0]).toContain("❌ Custom failure");
+      expect(stderr.join("\n")).toContain("→ Try 'tdk doctor'");
+      expect(exit).toHaveBeenCalledWith(1);
+    });
+
+    it("keeps DRIFT_EXIT_CODE as 2 for tdk up drift gate", () => {
+      expect(DRIFT_EXIT_CODE).toBe(2);
     });
   });
 });

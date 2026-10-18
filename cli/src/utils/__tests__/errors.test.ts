@@ -1,7 +1,8 @@
 // Copyright (c) 2026 TDK Landscape contributors
 // SPDX-License-Identifier: MIT
-import { describe, expect, it } from "vitest";
-import { errorFactories } from "../errors.js";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { captureExit } from "../../test-support/index.js";
+import { errorFactories, showError, showErrorAndExit, TdkError } from "../errors.js";
 import { toMachineError } from "../machine-output.js";
 
 describe("not-found error suggestions", () => {
@@ -66,5 +67,35 @@ describe("not-found error suggestions", () => {
       message: 'Stack "shp" not found',
       suggestions: expect.arrayContaining(['Did you mean "shop"?']),
     });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("formats showError, showErrorAndExit, and TdkError through the unified prefix", () => {
+    const lines: string[] = [];
+    vi.spyOn(console, "error").mockImplementation((...args) => {
+      lines.push(args.map(String).join(" "));
+    });
+    const { expectExit } = captureExit();
+
+    showError("First failure", "extra context", ["Try again"]);
+    expect(lines[0]).toContain("❌ First failure");
+    expect(lines[1]).toContain("extra context");
+    expect(lines.join("\n")).toContain("💡 Suggestions:");
+    expect(lines.join("\n")).toContain("→ Try again");
+
+    lines.length = 0;
+    expect(() => showErrorAndExit("Fatal failure", 2, ["Check flags"])).toThrow("process.exit");
+    expect(lines[0]).toContain("❌ Fatal failure");
+    expect(lines.join("\n")).toContain("→ Check flags");
+    expectExit(2);
+
+    lines.length = 0;
+    const tdkErr = new TdkError("Domain failure", ["Run tdk doctor"], 1);
+    expect(() => tdkErr.exit()).toThrow("process.exit");
+    expect(lines[0]).toContain("❌ Domain failure");
+    expect(lines.join("\n")).toContain("→ Run tdk doctor");
   });
 });

@@ -26,5 +26,7 @@ export declare function runCommand<T>(action: () => Promise<T>, options?: {
 export declare function withTiltCheck<T>(action: () => Promise<T>, options?: {
     verbose?: boolean;
 }): Promise<T | never>;
-export declare function showErrorAndExit(message: string, exitCode?: number): never;
+export declare function showErrorAndExit(message: string, exitCode?: number, suggestions?: string[]): never;
+/** Display a formatted error message. Does NOT exit. */
+export declare function showError(message: string, context?: string, suggestions?: string[]): void;
 export declare function handleTiltFailure(command: "up" | "down", exitCode: number): never;

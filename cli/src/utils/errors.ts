@@ -127,7 +127,7 @@ function handleCommandError(err: unknown): never {
   if (err instanceof TdkError) {
     err.exit();
   }
-  console.error(chalk.red(`Error: ${getErrorMessage(err)}`));
+  showError(getErrorMessage(err));
   process.exit(1);
 }
 
@@ -173,13 +173,17 @@ export async function withTiltCheck<T>(
   return runCommand(action, options);
 }
 
-export function showErrorAndExit(message: string, exitCode: number = 1): never {
-  console.error(chalk.red(`Error: ${message}`));
+export function showErrorAndExit(
+  message: string,
+  exitCode: number = 1,
+  suggestions?: string[],
+): never {
+  showError(message, undefined, suggestions);
   process.exit(exitCode);
 }
 
 /** Display a formatted error message. Does NOT exit. */
-function showError(message: string, context?: string, suggestions?: string[]): void {
+export function showError(message: string, context?: string, suggestions?: string[]): void {
   console.error(chalk.red(`❌ ${message}`));
 
   if (context) {

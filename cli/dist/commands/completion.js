@@ -5,6 +5,7 @@ import { homedir } from "node:os";
 import { basename, join } from "node:path";
 import chalk from "chalk";
 import { Command } from "commander";
+import { showError } from "../utils/errors.js";
 const BASH_COMPLETION = `# TDK CLI Bash Completion
 _tdk_completions() {
     local cur prev opts
@@ -294,7 +295,7 @@ export const completionCommand = new Command("completion")
             filename = "Microsoft.PowerShell_profile.ps1";
             break;
         default:
-            console.error(chalk.red(`❌ Unsupported shell: ${shell}`));
+            showError(`Unsupported shell: ${shell}`);
             console.log(chalk.gray("Supported shells: bash, zsh, fish, powershell"));
             process.exit(1);
     }

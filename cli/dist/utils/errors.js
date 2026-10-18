@@ -99,7 +99,7 @@ function handleCommandError(err) {
     if (err instanceof TdkError) {
         err.exit();
     }
-    console.error(chalk.red(`Error: ${getErrorMessage(err)}`));
+    showError(getErrorMessage(err));
     process.exit(1);
 }
 export async function runCommand(action, options) {
@@ -137,12 +137,12 @@ export async function withTiltCheck(action, options) {
     }
     return runCommand(action, options);
 }
-export function showErrorAndExit(message, exitCode = 1) {
-    console.error(chalk.red(`Error: ${message}`));
+export function showErrorAndExit(message, exitCode = 1, suggestions) {
+    showError(message, undefined, suggestions);
     process.exit(exitCode);
 }
 /** Display a formatted error message. Does NOT exit. */
-function showError(message, context, suggestions) {
+export function showError(message, context, suggestions) {
     console.error(chalk.red(`❌ ${message}`));
     if (context) {
         console.error(chalk.gray(`   ${context}`));

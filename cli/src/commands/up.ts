@@ -26,6 +26,7 @@ import {
   handleTiltFailure,
   requireProjectRoot,
   runCommand,
+  showError,
   showErrorAndExit,
   withTiltCheck,
 } from "../utils/errors.js";
@@ -148,7 +149,7 @@ export function enforceDriftGate(
   const drift = driftReport(projectRoot);
   if (!drift) return;
   options.onDrift?.(drift.join("\n"));
-  for (const line of drift) console.error(chalk.red(line));
+  showError(drift.join("\n"));
   exit(DRIFT_EXIT_CODE);
 }
 
@@ -170,8 +171,8 @@ export function enforceVersionFloor(
   const floor = evaluateTdkVersionFloor(projectRoot, currentVersion);
   if (floor.status === "none" || floor.status === "ok") return;
   options.onFail?.(`${floor.message}\n${floor.fix}`);
-  console.error(chalk.red(floor.message));
-  console.error(chalk.red(floor.fix));
+  showError(floor.message);
+  showError(floor.fix);
   exit(1);
 }
 
@@ -636,8 +637,9 @@ export const upCommand = new Command("up")
                   blocked: [],
                   starting: [],
                 };
-            for (const line of formatStartupReport(report, readiness.timedOut)) {
-              console.error(chalk.red(line));
+            const reportLines = formatStartupReport(report, readiness.timedOut);
+            if (reportLines.length > 0) {
+              showError(reportLines.join("\n"));
             }
           }
         }
@@ -658,7 +660,7 @@ export const upCommand = new Command("up")
                 console.log(chalk.green(`Smoke check passed: ${smokeResult.name}`));
             } else {
               smokeFailed = true;
-              console.error(chalk.red(formatSmokeFailure(smokeResult)));
+              showError(formatSmokeFailure(smokeResult));
             }
           }
           if (smokeFailed) {

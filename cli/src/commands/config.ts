@@ -17,7 +17,7 @@ import { isMasterConfigFileName } from "../types/index.js";
 import { assertValid, handleDryRun } from "../utils/command-helpers.js";
 import { MASTER_CONFIG_FILES, PROJECT_JSON } from "../utils/constants.js";
 import { checkPrismaConsistency } from "../utils/doctor-wiring.js";
-import { errorFactories, requireProjectRoot, runCommand } from "../utils/errors.js";
+import { errorFactories, requireProjectRoot, runCommand, showError } from "../utils/errors.js";
 import { writeJsonFile } from "../utils/file-helpers.js";
 import { createMachineEnvelope, writeMachineError } from "../utils/machine-output.js";
 import { findProjectRoot } from "../utils/paths.js";
@@ -213,7 +213,7 @@ export const configCommand = new Command("config")
             pendingMigrations.push({ filePath, manifest: record });
           }
 
-          for (const failure of failures) console.error(chalk.red(`❌ ${failure}`));
+          for (const failure of failures) showError(failure);
           if (failures.length > 0) process.exit(1);
           for (const migration of pendingMigrations) {
             writeFileSync(migration.filePath, `${JSON.stringify(migration.manifest, null, 2)}\n`);
@@ -275,9 +275,9 @@ export const configCommand = new Command("config")
           }
 
           for (const error of sharedPostgresErrors) {
-            console.log(chalk.red(`❌ ${error}`));
+            showError(error);
           }
-          if (!prismaConsistency.didPass) console.log(chalk.red(`❌ ${prismaConsistency.message}`));
+          if (!prismaConsistency.didPass) showError(prismaConsistency.message);
 
           if (sharedPostgres.willStart) {
             // Project resource set (discoverResourcesFromRoot), not a tdk up --only filter.
