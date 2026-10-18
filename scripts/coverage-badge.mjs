@@ -2,7 +2,8 @@
 // Copyright (c) 2026 TDK Landscape contributors
 // SPDX-License-Identifier: MIT
 // Reads the line coverage from cli/coverage/coverage-summary.json (written by `npm run test:coverage`)
-// and writes docs/assets/coverage.svg. Run after the unit tests in CI, on pushes to main.
+// and writes docs/assets/coverage.svg. Run after `npm run test:coverage` in cli/, then commit the SVG via a PR:
+// main is behind a merge queue, so CI cannot push the badge itself.
 import { readFile, writeFile } from "node:fs/promises";
 
 const SUMMARY = "cli/coverage/coverage-summary.json";
@@ -10,7 +11,7 @@ const OUT = "docs/assets/coverage.svg";
 
 const summary = JSON.parse(await readFile(SUMMARY, "utf8"));
 const pct = summary.total.lines.pct;
-const value = `${pct.toFixed(0)}%`;
+const value = `${pct.toFixed(1)}%`;
 
 // Same thresholds as shields.io's default coverage colors.
 const color = pct >= 90 ? "#4c1" : pct >= 75 ? "#a3c51c" : pct >= 60 ? "#dfb317" : pct >= 40 ? "#fe7d37" : "#e05d44";
