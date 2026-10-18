@@ -73,16 +73,16 @@ The validator also accepts a `weekly` trigger, but no group workflow runs it yet
 
 ### Missing secrets and red jobs
 
-A job that needs a secret starts with a check step or job. When the secret is missing, the check writes a warning that names the secret and a job summary, and the jobs that need it are skipped. GitHub has no neutral job conclusion, so a skipped job is the neutral result, and the check itself succeeds. Current examples: `TDK_LICENSE_KEY` in `cold-start-e2e.yml`, `NPM_TOKEN` in `publish-tdk-import.yml`, and `CI_INVENTORY_TOKEN` in `required-checks-drift.yml`. A release job that publishes to npm (`release-binaries.yml`) does not skip: a missing token there fails the run, because a skipped release would look like a success.
+A job that needs a secret starts with a check step or job. When the secret is missing, the check writes a warning that names the secret and a job summary, and the jobs that need it are skipped. GitHub has no neutral job conclusion, so a skipped job is the neutral result, and the check itself succeeds. Current examples: `TDK_LICENSE_KEY` in `e2e-journeys.yml`, `NPM_TOKEN` in `publish-tdk-import.yml`, and `CI_INVENTORY_TOKEN` in `required-checks-drift.yml`. A release job that publishes to npm (`release-binaries.yml`) does not skip: a missing token there fails the run, because a skipped release would look like a success.
 
 `red-job-tracker.yml` runs daily. For each scheduled or `main` workflow in its `TRACKED` list it opens one issue when the last three runs on `main` failed, with the first failing run and the last error line. It updates that issue while the job stays red and closes it after three passing runs. To add a workflow, add its file name to `TRACKED` in `scripts/red-job-tracker.mjs`.
 
 ## Add a suite to an existing group
 
-> **Two sources of truth.** `suite.json` `paths` is validated but not read by the builder or the workflow. The workflow's `pull_request.paths` filter decides which pull requests run a suite. When you add a suite or change what it covers, update both, and check that they agree. A drift check that fails CI is not in place yet; it is a follow-up.
+> **Two sources of truth.** `suite.json` `paths` is validated but not read by the builder or the workflow. The workflow's `pull_request.paths` filter decides which pull requests run a suite. When you add a suite or change what it covers, update both. `node tests/e2e/lib/validate-suites.mjs` (run by `make test-shell`) fails when a suite's `paths` are not covered by its workflow's `pull_request.paths`, or when the filter lists a path no suite owns (#1391).
 
 1. Create `tests/e2e/<group>/<suite>/` with `run.sh` (executable) and `suite.json`. Copy the shape of [`resource-types/backend`](../../tests/e2e/resource-types/backend/suite.json).
-2. Add the code it covers to the workflow's `pull_request.paths` filter. The `paths` in `suite.json` are validated but nothing reads them yet, so keep the two lists in sync by hand.
+2. Add the code it covers to the workflow's `pull_request.paths` filter. The check in `validate-suites.mjs` fails until the filter covers every `paths` entry of a suite that runs on `pr`.
 3. Choose `triggers`. Start with `["pr", "nightly", "release", "manual"]` only if the suite is fast; otherwise use `["nightly", "release", "manual"]`.
 4. Run `make test-shell`. `validate-suites.mjs` checks the folder, the keys, and that each listed case exists.
 5. Run the builder locally to see the legs it will produce (the command above).

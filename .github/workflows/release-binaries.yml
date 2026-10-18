@@ -146,7 +146,7 @@ jobs:
           retention-days: 2
 
   # The Windows release candidate, checked by tests/e2e/platforms/windows-binary (WB1). It has its own check name: the
-  # windows-smoke check is reported by windows-smoke.yml alone, the source build (#1300).
+  # e2e-platforms check is reported by e2e-platforms.yml alone, the source build (#1300).
   windows-binary:
     needs: build
     runs-on: windows-latest
@@ -184,25 +184,18 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      # Nothing publishes unless the release candidate (release-candidate.yml) passed for this exact commit. Its runs are
-      # looked up by head SHA, so a green run on a different commit does not count.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      # Nothing publishes unless a passing release candidate (release-candidate.yml) covers this commit: the exact commit, or
+      # an ancestor when no release input changed since (#1627). Runs are looked up by head SHA, so a green run on an
+      # unrelated commit does not count. See scripts/check-release-candidate.mjs.
       - name: Require a passing release candidate for this commit
         env:
           GH_TOKEN: ${{ github.token }}
           SHA: ${{ github.sha }}
-        run: |
-          set -euo pipefail
-          passed="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/release-candidate.yml/runs?head_sha=${SHA}&per_page=100" \
-            --jq '[.workflow_runs[] | select(.conclusion == "success")] | length')"
-          if [ "$passed" -eq 0 ]; then
-            echo "::error::No passing Release candidate run for ${SHA}. Run the Release candidate workflow on this commit (a release/* branch or an rc-* tag) and let it pass, then re-run this publish."
-            exit 1
-          fi
-          echo "Release candidate passed for ${SHA} (${passed} run(s))."
-
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
+        run: node scripts/check-release-candidate.mjs --sha "$SHA" --repo "$GITHUB_REPOSITORY"
 
       - uses: ./.github/actions/setup-bun # zizmor: ignore[self-repository] composite action resolves from this commit
         with:
@@ -337,8 +330,8 @@ jobs:
           git add package.json cli/package.json
           if [ -f CHANGELOG.md ]; then git add CHANGELOG.md; fi
           git commit -m "Release ${VERSION} (automatic version bump)"
-          # main requires the example-e2e and windows-smoke checks, which a direct push from github.token never
-          # reports, so the bump goes through a pull request that runs them. The commit only changes version
+          # main requires the e2e-journeys, e2e-examples, e2e-platforms, e2e-scale and 📋 Summary checks, which a direct push from
+          # github.token never reports, so the bump goes through a pull request that runs them. The commit only changes version
           # fields and the changelog, so the published artifacts and their checksums are unaffected.
           branch="release/bump-${VERSION}"
           # The checkout keeps no credentials, so push with the token explicitly.

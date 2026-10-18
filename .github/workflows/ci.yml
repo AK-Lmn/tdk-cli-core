@@ -5,6 +5,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  merge_group:
   workflow_dispatch:
 
 permissions:
@@ -330,15 +331,9 @@ jobs:
       # cli/dist is committed so `npm install -g github:tdk-landscape/tdk-cli-core`
       # works without a build step. Fail if a source change was committed
       # without rebuilding it.
+      # Locally: `npm run check:dist` in cli/ does both steps.
       - name: Check committed cli/dist is up to date
-        run: |
-          # --ignored: cli/dist/ is gitignored, so a newly compiled file only
-          # shows up with it.
-          if [ -n "$(git status --porcelain --ignored -- cli/dist)" ]; then
-            git status --short --ignored -- cli/dist
-            echo "::error::cli/dist is stale. Run 'npm run build' and commit cli/dist (new files need 'git add -f')."
-            exit 1
-          fi
+        run: scripts/check-cli-dist.sh
 
       - name: Pack the CLI tarball
         run: | # zizmor: ignore[adhoc-packages] packs our own checkout
@@ -467,8 +462,10 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       REPO: ${{ github.repository }}
       HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-      # Check-run names of the e2e group gates. Add the BYO and matrix gate names here when their workflows land.
-      E2E_GATES: e2e-journeys e2e-examples e2e-platforms e2e-scale
+      # Check-run names of the e2e group gates. Every gate reports on every pull request and merge queue entry (a gate whose
+      # paths did not change passes at once), so a missing name here means the gate never ran and fails the summary. The BYO
+      # and matrix legs run inside e2e-resource-types (its bring-your-own and orm suites), so that one gate covers them.
+      E2E_GATES: e2e-journeys e2e-examples e2e-platforms e2e-scale e2e-resource-types
     steps:
       - name: Render summary
         env:
@@ -485,6 +482,11 @@ jobs:
               elif .value.result == "cancelled" then "🚫 Cancelled"
               else "❌ Failed" end) |"'
           } >> "$GITHUB_STEP_SUMMARY"
+          # The table alone passes the job, so a failed or cancelled job above would not fail the required check.
+          if echo "$NEEDS" | jq -e 'any(.[]; .result != "success" and .result != "skipped")' >/dev/null; then
+            echo "::error::A job above did not pass. See the CI Summary table."
+            exit 1
+          fi
 
       # Polls the head commit's check runs until every gate has completed, or until the deadline. A gate that never reported
       # by the deadline is missing and fails the job, as does one that completed without success or skipped.
