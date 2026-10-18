@@ -4,7 +4,8 @@ import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { STANDARD_PORTS } from "../../utils/constants.js";
+import { captureExit } from "../../test-support/index.js";
+import { CONTAINER_RUNTIME_CHECK, STANDARD_PORTS } from "../../utils/constants.js";
 import {
   checkHostPorts,
   checkIngressPorts,
@@ -20,6 +21,7 @@ import {
 } from "../../utils/doctor-runtime.js";
 import { checkSharedStackRoutes } from "../../utils/doctor-wiring.js";
 import {
+  checkContainerResourceHealth,
   checkDockerCompose,
   checkDockerVersions,
   checkFrontendDockerPreflight,
@@ -29,7 +31,11 @@ import {
   checkTdkVersion,
   checkTypeScriptTypeDependencies,
   DOCTOR_FIXES,
+  doctorCommand,
+  formatDoctorSummary,
   getDoctorOutcomeMessage,
+  requiresContainerRuntime,
+  runChecks,
   WSL2_DOCTOR_MESSAGE,
 } from "../doctor.js";
 
@@ -1281,5 +1287,179 @@ describe("doctor Docker Compose check", () => {
 
     expect(result.didPass).toBe(false);
     expect(result.message).toBe("Docker Compose plugin not found");
+  });
+});
+
+describe("doctor --all, sections, and summary", () => {
+  afterEach(() => {
+    doctorCommand.setOptionValue("all", false);
+    doctorCommand.setOptionValue("json", false);
+    doctorCommand.setOptionValue("ping", true);
+  });
+
+  it("stops at the first failing check when all is false or omitted", async () => {
+    const executed: string[] = [];
+    const checks = [
+      () => {
+        executed.push("first");
+        return { name: "First", didPass: true, message: "First passed" };
+      },
+      () => {
+        executed.push("second");
+        return { name: "Second", didPass: false, message: "Second failed", fix: "Fix second" };
+      },
+      () => {
+        executed.push("third");
+        return { name: "Third", didPass: false, message: "Third failed", fix: "Fix third" };
+      },
+    ];
+
+    const results = await runChecks(checks, { all: false });
+
+    expect(executed).toEqual(["first", "second"]);
+    expect(results).toHaveLength(2);
+    expect(results[1]?.name).toBe("Second");
+  });
+
+  it("continues past warnings and skipped checks when all is false", async () => {
+    const executed: string[] = [];
+    const checks = [
+      () => {
+        executed.push("warn");
+        return { name: "Warn", didPass: false, isWarning: true, message: "Minor warning" };
+      },
+      () => {
+        executed.push("skip");
+        return { name: "Skip", didPass: true, isSkipped: true, message: "Skipped" };
+      },
+      () => {
+        executed.push("pass");
+        return { name: "Pass", didPass: true, message: "Passed" };
+      },
+    ];
+
+    const results = await runChecks(checks);
+
+    expect(executed).toEqual(["warn", "skip", "pass"]);
+    expect(results).toHaveLength(3);
+  });
+
+  it("runs every check when all is true, even after earlier failures", async () => {
+    const executed: string[] = [];
+    const checks = [
+      () => {
+        executed.push("ports");
+        return { name: "Host Ports", didPass: false, message: "Port 80 busy" };
+      },
+      () => {
+        executed.push("env");
+        return { name: "Environment Variables", didPass: false, message: ".env missing" };
+      },
+      () => {
+        executed.push("configs");
+        return { name: "Master Configs", didPass: true, message: "Configs ready" };
+      },
+    ];
+
+    const results = await runChecks(checks, { all: true });
+
+    expect(executed).toEqual(["ports", "env", "configs"]);
+    expect(results.map((r) => r.name)).toEqual([
+      "Host Ports",
+      "Environment Variables",
+      "Master Configs",
+    ]);
+  });
+
+  it("skips container-dependent checks under --all when Container Runtime failed", async () => {
+    let dependentCalled = false;
+    const checks = [
+      () => ({
+        name: CONTAINER_RUNTIME_CHECK,
+        didPass: false,
+        message: "Docker is not running",
+      }),
+      requiresContainerRuntime("Container Resource Health", () => {
+        dependentCalled = true;
+        return { name: "Container Resource Health", didPass: true, message: "Healthy" };
+      }),
+      checkContainerResourceHealth,
+      () => ({
+        name: "Environment Variables",
+        didPass: false,
+        message: "Missing .env",
+      }),
+    ];
+
+    const results = await runChecks(checks, { all: true });
+
+    expect(dependentCalled).toBe(false);
+    expect(results).toHaveLength(4);
+    expect(results[1]).toMatchObject({
+      name: "Container Resource Health",
+      didPass: true,
+      isSkipped: true,
+    });
+    expect(results[2]).toMatchObject({
+      name: "Container Resource Health",
+      didPass: true,
+      isSkipped: true,
+    });
+    expect(results[3]).toMatchObject({
+      name: "Environment Variables",
+      didPass: false,
+    });
+  });
+
+  it("formats the one-line summary with passed, failed, and skipped counts", () => {
+    const summary = formatDoctorSummary([
+      { name: "Docker", didPass: true, message: "OK" },
+      { name: "WSL", didPass: false, isWarning: true, message: "Warning" },
+      { name: "Env", didPass: false, message: "Missing .env" },
+      { name: "Bun", didPass: true, isSkipped: true, message: "Skipped" },
+      { name: "Smoke", didPass: true, isSkipped: true, message: "Skipped" },
+    ]);
+
+    expect(summary).toBe("2 passed, 1 failed, 2 skipped");
+  });
+
+  it("registers --all on doctorCommand and prints Machine, Project, and summary", async () => {
+    expect(doctorCommand.options.some((opt) => opt.long === "--all")).toBe(true);
+
+    const root = mkdtempSync(join(tmpdir(), "tdk-doctor-all-"));
+    const originalCwd = process.cwd();
+    const platformDescriptor = Object.getOwnPropertyDescriptor(process, "platform");
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { exit } = captureExit();
+
+    try {
+      mkdirSync(join(root, ".tdk"), { recursive: true });
+      writeFileSync(
+        join(root, ".tdk", "project.json"),
+        JSON.stringify({ project: { name: "doctor-all-test" } }),
+      );
+      process.chdir(root);
+      Object.defineProperty(process, "platform", { configurable: true, value: "linux" });
+
+      try {
+        await doctorCommand.parseAsync(["--all", "--no-ping"], { from: "user" });
+      } catch {
+        // Expected when process.exit is called on failing checks
+      }
+
+      const lines = log.mock.calls.map((call) => String(call[0]));
+      expect(lines.some((line) => line.includes("Machine"))).toBe(true);
+      expect(lines.some((line) => line.includes("Project"))).toBe(true);
+      expect(lines.some((line) => /^\d+ passed, \d+ failed, \d+ skipped$/.test(line))).toBe(true);
+      expect(exit).toHaveBeenCalledWith(1);
+    } finally {
+      process.chdir(originalCwd);
+      if (platformDescriptor) Object.defineProperty(process, "platform", platformDescriptor);
+      exit.mockRestore();
+      log.mockRestore();
+      error.mockRestore();
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });
