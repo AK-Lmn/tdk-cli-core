@@ -25,6 +25,7 @@ The focused [frontend provider guide](docs/frontend-framework-providers.md) has 
 [![Open in DevPod](https://img.shields.io/badge/Open%20in-DevPod-2f363d?style=for-the-badge&logo=devpod&logoColor=white&labelColor=2f363d)](https://devpod.sh/open#https://github.com/tdk-landscape/tdk-cli-core)
 [![Open in StackBlitz](https://img.shields.io/badge/Open%20in-StackBlitz-2f363d?style=for-the-badge&logo=stackblitz&logoColor=white&labelColor=2f363d)](https://stackblitz.com/github/tdk-landscape/tdk-cli-core)
 [![Open in CodeSandbox](https://img.shields.io/badge/Open%20in-CodeSandbox-2f363d?style=for-the-badge&logo=codesandbox&logoColor=white&labelColor=2f363d)](https://codesandbox.io/p/github/tdk-landscape/tdk-cli-core)
+[![Open in VS Code](https://img.shields.io/badge/Open%20in-VS%20Code-2f363d?style=for-the-badge&labelColor=2f363d)](vscode://vscode.git/clone?url=https://github.com/tdk-landscape/tdk-cli-core)
 [![Use with Claude Code](https://img.shields.io/badge/Use%20with-Claude%20Code-2f363d?style=for-the-badge&labelColor=2f363d)](https://claude.ai/code)
 [![Use with Codex](https://img.shields.io/badge/Use%20with-Codex-2f363d?style=for-the-badge&labelColor=2f363d)](https://chatgpt.com/codex)
 [![Use with Devin](https://img.shields.io/badge/Use%20with-Devin-2f363d?style=for-the-badge&labelColor=2f363d)](https://devin.ai)
@@ -34,6 +35,10 @@ The focused [frontend provider guide](docs/frontend-framework-providers.md) has 
 [![Use with Windsurf](https://img.shields.io/badge/Use%20with-Windsurf-2f363d?style=for-the-badge&labelColor=2f363d)](https://windsurf.com)
 [![Use with Codeanywhere](https://img.shields.io/badge/Use%20with-Codeanywhere-2f363d?style=for-the-badge&labelColor=2f363d)](https://codeanywhere.com)
 [![Use with Augment Code](https://img.shields.io/badge/Use%20with-Augment%20Code-2f363d?style=for-the-badge&labelColor=2f363d)](https://www.augmentcode.com)
+[![Use with Gemini CLI](https://img.shields.io/badge/Use%20with-Gemini%20CLI-2f363d?style=for-the-badge&labelColor=2f363d)](https://github.com/google-gemini/gemini-cli)
+[![Use with Aider](https://img.shields.io/badge/Use%20with-Aider-2f363d?style=for-the-badge&labelColor=2f363d)](https://aider.chat/)
+[![Use with GitHub Copilot](https://img.shields.io/badge/Use%20with-GitHub%20Copilot-2f363d?style=for-the-badge&labelColor=2f363d)](https://github.com/features/copilot)
+[![Use with Antigravity](https://img.shields.io/badge/Use%20with-Antigravity-2f363d?style=for-the-badge&labelColor=2f363d)](https://antigravity.google/)
 
 Or in VS Code: clone the repo, then **Dev Containers: Reopen in Container**.
 
