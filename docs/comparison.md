@@ -75,7 +75,7 @@ Each of these tools addresses distinct stages and philosophies of local developm
 
 - **Kubernetes parity during development:** When application development requires native Kubernetes constructs (such as Custom Resource Definitions, Pod disruption budgets, ServiceAccounts, RBAC, or NetworkPolicies) that cannot be simulated on Docker Engine.
 - **Unified local and CI/CD pipelines:** Skaffold profiles allow teams to use a single `skaffold.yaml` pipeline for local inner-loop iteration (`skaffold dev`) and CI/CD deployment (`skaffold run` / `skaffold deploy`).
-- **Remote or shared development clusters:** Skaffold excels at building locally and deploying into personal namespaces on remote GKE, EKS, or AKS clusters.
+- **Remote or shared development clusters:** Skaffold excels at building locally and deploying into personal namespaces on remote GKE, EKS, or Azure Kubernetes Service clusters.
 - **Multiple build artifact types:** Native integration with tools like Jib (for Java), Cloud Native Buildpacks, and Bazel without requiring Dockerfiles.
 
 ### When TDK is the better choice
