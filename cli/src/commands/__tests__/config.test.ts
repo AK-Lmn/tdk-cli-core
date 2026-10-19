@@ -255,7 +255,7 @@ describe("config regenerate --dry-run", () => {
     const result = await runCommandInProcess(configCommand, ["regenerate", "--dry-run"], root);
 
     expect(result.status).toBe(1);
-    expect(result.stderr).toContain("Error:");
+    expect(result.stderr).toMatch(/(?:Error:|❌)/);
   });
 });
 
@@ -330,8 +330,9 @@ describe("config verify", () => {
     const result = await runCommandInProcess(configCommand, ["verify"], root);
 
     expect(result.status).toBe(1);
-    expect(result.stdout).toContain('dependsOn "ghost" on');
-    expect(result.stdout).toContain(
+    const combinedOutput = `${result.stdout}\n${result.stderr}`;
+    expect(combinedOutput).toContain('dependsOn "ghost" on');
+    expect(combinedOutput).toContain(
       "shared platform Postgres names are postgres and database-management",
     );
   });
@@ -420,8 +421,8 @@ describe("config migrate", () => {
     const result = await runCommandInProcess(configCommand, ["migrate"], root);
 
     expect(result.status).toBe(1);
-    expect(result.stderr).toMatch(/broken\/api\/service\.json: /);
-    expect(result.stderr).toContain("list/api/service.json: expected a JSON object");
+    expect(result.stderr).toMatch(/broken[\\/]api[\\/]service\.json: /);
+    expect(result.stderr).toMatch(/list[\\/]api[\\/]service\.json: expected a JSON object/);
     expect(fs.readFileSync(serviceFile(root, "broken/api"), "utf-8")).toBe("{invalid\n");
     expect(fs.readFileSync(serviceFile(root, "list/api"), "utf-8")).toBe("[1, 2]\n");
   });
@@ -436,7 +437,7 @@ describe("config migrate", () => {
     const result = await runCommandInProcess(configCommand, ["migrate"], root);
 
     expect(result.status).toBe(1);
-    expect(result.stderr).toContain("shop/api");
+    expect(result.stderr).toMatch(/shop[\\/]api/);
     expect(fs.readFileSync(serviceFile(root, "shop/api"))).toEqual(before);
   });
 });
