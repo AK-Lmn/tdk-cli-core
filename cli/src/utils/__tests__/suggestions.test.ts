@@ -10,7 +10,7 @@ describe("suggestClosest", () => {
 
   it("recognizes an adjacent transposition as a single edit", () => {
     expect(suggestClosest("aip", ["api", "web"])).toBe("api");
-    expect(suggestClosest("teh", ["the", "other"])).toBe("the");
+    expect(suggestClosest("pord", ["prod", "other"])).toBe("prod");
   });
 
   it("returns no suggestion when nothing is close", () => {
