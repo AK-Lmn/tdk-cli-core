@@ -158,6 +158,8 @@ TDK uses [Vitest](https://vitest.dev/) for CLI unit testing. You can run tests d
   ```
   This runs all unit tests with v8 coverage, prints a summary table in the terminal, generates an HTML report you can open in `cli/coverage/index.html`, and writes machine-readable summaries to `cli/coverage/coverage-summary.json`.
 
+For a comprehensive guide covering Vitest structure, mocking external dependencies, test doubles, temporary projects, and golden files, see [Writing CLI unit tests](docs/contributing/08-write-cli-unit-tests.md).
+
 ### Where to put unit tests
 
 - Place unit tests in a `__tests__/` directory directly next to the module they verify. For example:

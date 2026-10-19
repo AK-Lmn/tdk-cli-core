@@ -13,6 +13,7 @@ You do not need to understand the whole repository. Pick one small change, follo
 | I want to… | Start here |
 |---|---|
 | Fix a CLI command or add an option | [CLI recipe](02-feature-recipes.md#change-a-cli-command) |
+| Write a unit test for a CLI command or utility | [Write CLI unit tests](08-write-cli-unit-tests.md) |
 | Add a frontend framework like Vue | [Frontend provider guide](../frontend-framework-providers.md) |
 | Add a database or infrastructure tool | [Database and tool recipe](02-feature-recipes.md#add-a-database-or-infrastructure-tool) |
 | Change how TDK discovers services or generates configs | [Engine and discovery recipe](02-feature-recipes.md#change-the-engine-or-service-discovery) |
