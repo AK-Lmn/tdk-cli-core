@@ -35,9 +35,10 @@ describe("tdk completion", () => {
       ).rejects.toThrow("process.exit");
 
       expect(error).toHaveBeenCalledWith(expect.stringContaining("Unsupported shell: bogus"));
-      expect(log).toHaveBeenCalledWith(
+      expect(error).toHaveBeenCalledWith(
         expect.stringContaining("Supported shells: bash, zsh, fish, powershell"),
       );
+      expect(log).not.toHaveBeenCalled();
       expectExit(1);
     } finally {
       error.mockRestore();

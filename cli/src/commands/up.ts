@@ -171,8 +171,7 @@ export function enforceVersionFloor(
   const floor = evaluateTdkVersionFloor(projectRoot, currentVersion);
   if (floor.status === "none" || floor.status === "ok") return;
   options.onFail?.(`${floor.message}\n${floor.fix}`);
-  showError(floor.message);
-  showError(floor.fix);
+  showError(`${floor.message}\n${floor.fix}`);
   exit(1);
 }
 

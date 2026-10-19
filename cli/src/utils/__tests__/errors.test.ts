@@ -98,4 +98,37 @@ describe("not-found error suggestions", () => {
     expect(lines[0]).toContain("❌ Domain failure");
     expect(lines.join("\n")).toContain("→ Run tdk doctor");
   });
+
+  it("routes error diagnostics exclusively to stderr and keeps stdout clean for piping", () => {
+    const stderr: string[] = [];
+    const stdout: string[] = [];
+    vi.spyOn(console, "error").mockImplementation((...args) => {
+      stderr.push(args.map(String).join(" "));
+    });
+    const logSpy = vi.spyOn(console, "log").mockImplementation((...args) => {
+      stdout.push(args.map(String).join(" "));
+    });
+
+    showError("Pipeline broke", "Check pipe destination", ["Verify shell pipeline"]);
+
+    expect(stdout).toHaveLength(0);
+    expect(logSpy).not.toHaveBeenCalled();
+    expect(stderr.filter((line) => line.includes("❌"))).toHaveLength(1);
+    expect(stderr[0]).toContain("❌ Pipeline broke");
+    expect(stderr.join("\n")).toContain("Check pipe destination");
+  });
+
+  it("emits multiline diagnostics with exactly one error symbol", () => {
+    const stderr: string[] = [];
+    vi.spyOn(console, "error").mockImplementation((...args) => {
+      stderr.push(args.map(String).join(" "));
+    });
+
+    showError("Version too old\nFix: run tdk upgrade");
+
+    const prefixes = stderr.flatMap((line) => line.match(/❌/g) ?? []);
+    expect(prefixes).toHaveLength(1);
+    expect(stderr.join("\n")).toContain("Version too old");
+    expect(stderr.join("\n")).toContain("Fix: run tdk upgrade");
+  });
 });

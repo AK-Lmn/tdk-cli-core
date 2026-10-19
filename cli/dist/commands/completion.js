@@ -295,8 +295,7 @@ export const completionCommand = new Command("completion")
             filename = "Microsoft.PowerShell_profile.ps1";
             break;
         default:
-            showError(`Unsupported shell: ${shell}`);
-            console.log(chalk.gray("Supported shells: bash, zsh, fish, powershell"));
+            showError(`Unsupported shell: ${shell}`, "Supported shells: bash, zsh, fish, powershell");
             process.exit(1);
     }
     if (options.install) {

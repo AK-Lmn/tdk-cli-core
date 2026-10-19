@@ -138,6 +138,9 @@ export async function runCommand<T>(
   try {
     return await action();
   } catch (err: unknown) {
+    if (err instanceof Error && err.message === "process.exit") {
+      throw err;
+    }
     if (options?.verbose && err instanceof Error && err.stack) {
       console.error(chalk.gray(err.stack));
     }

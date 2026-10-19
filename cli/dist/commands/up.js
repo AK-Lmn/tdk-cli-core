@@ -120,8 +120,7 @@ export function enforceVersionFloor(projectRoot, options, currentVersion = getPa
     if (floor.status === "none" || floor.status === "ok")
         return;
     options.onFail?.(`${floor.message}\n${floor.fix}`);
-    showError(floor.message);
-    showError(floor.fix);
+    showError(`${floor.message}\n${floor.fix}`);
     exit(1);
 }
 const STARTUP_FAILED = Symbol("startup-failed");
