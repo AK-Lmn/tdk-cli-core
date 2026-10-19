@@ -40,7 +40,7 @@ Looking for an easy place to start?
 3. [Check your work and open a pull request](docs/contributing/03-open-a-pr.md).
 4. [Review someone else's pull request](docs/contributing/04-review-a-pr.md), with one-click AI review buttons.
 
-The focused [frontend provider guide](docs/frontend-framework-providers.md) has the exact steps for adding another Vite framework like Vue. The [backend provider guide](docs/backend-language-providers.md) covers adding a backend language like Python. The [architecture guide](docs/ARCHITECTURE.md) explains how the CLI, the engine, and discovery fit together end to end.
+The focused [frontend provider guide](docs/frontend-framework-providers.md) has the exact steps for adding another Vite framework like Vue. The [backend provider guide](docs/backend-language-providers.md) covers adding a backend language like Python. The [architecture guide](docs/ARCHITECTURE.md) explains how the CLI, the engine, and discovery fit together end to end. For AI coding agents and automated contributors, see [AGENTS.md](AGENTS.md) for the repository map, commands, and ground rules.
 
 ## Quick setup
 
