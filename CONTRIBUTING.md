@@ -18,6 +18,27 @@ The focused [frontend provider guide](docs/frontend-framework-providers.md) has 
 **Fastest way (recommended):** open the repository in a ready-to-use environment.
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/tdk-landscape/tdk-cli-core?quickstart=1)
+[![Open in Dev Containers](https://img.shields.io/badge/Open%20in-Dev%20Containers-2f363d?style=for-the-badge&logo=visualstudiocode&logoColor=white&labelColor=2f363d)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/tdk-landscape/tdk-cli-core)
+[![Open in Gitpod](https://img.shields.io/badge/Open%20in-Gitpod-2f363d?style=for-the-badge&logo=gitpod&logoColor=white&labelColor=2f363d)](https://gitpod.io/#https://github.com/tdk-landscape/tdk-cli-core)
+[![Open in Firebase Studio](https://img.shields.io/badge/Open%20in-Firebase%20Studio-2f363d?style=for-the-badge&logo=firebase&logoColor=white&labelColor=2f363d)](https://idx.google.com/import?url=https://github.com/tdk-landscape/tdk-cli-core)
+[![Open in Replit](https://img.shields.io/badge/Open%20in-Replit-2f363d?style=for-the-badge&logo=replit&logoColor=white&labelColor=2f363d)](https://replit.com/github/tdk-landscape/tdk-cli-core)
+[![Open in DevPod](https://img.shields.io/badge/Open%20in-DevPod-2f363d?style=for-the-badge&logo=devpod&logoColor=white&labelColor=2f363d)](https://devpod.sh/open#https://github.com/tdk-landscape/tdk-cli-core)
+[![Open in StackBlitz](https://img.shields.io/badge/Open%20in-StackBlitz-2f363d?style=for-the-badge&logo=stackblitz&logoColor=white&labelColor=2f363d)](https://stackblitz.com/github/tdk-landscape/tdk-cli-core)
+[![Open in CodeSandbox](https://img.shields.io/badge/Open%20in-CodeSandbox-2f363d?style=for-the-badge&logo=codesandbox&logoColor=white&labelColor=2f363d)](https://codesandbox.io/p/github/tdk-landscape/tdk-cli-core)
+[![Open in VS Code](https://img.shields.io/badge/Open%20in-VS%20Code-2f363d?style=for-the-badge&labelColor=2f363d)](vscode://vscode.git/clone?url=https://github.com/tdk-landscape/tdk-cli-core)
+[![Use with Claude Code](https://img.shields.io/badge/Use%20with-Claude%20Code-2f363d?style=for-the-badge&labelColor=2f363d)](https://claude.ai/code)
+[![Use with Codex](https://img.shields.io/badge/Use%20with-Codex-2f363d?style=for-the-badge&labelColor=2f363d)](https://chatgpt.com/codex)
+[![Use with Devin](https://img.shields.io/badge/Use%20with-Devin-2f363d?style=for-the-badge&labelColor=2f363d)](https://devin.ai)
+[![Use with Coder](https://img.shields.io/badge/Use%20with-Coder-2f363d?style=for-the-badge&labelColor=2f363d)](https://coder.com)
+[![Use with Zed](https://img.shields.io/badge/Use%20with-Zed-2f363d?style=for-the-badge&labelColor=2f363d)](https://zed.dev)
+[![Use with Cursor](https://img.shields.io/badge/Use%20with-Cursor-2f363d?style=for-the-badge&labelColor=2f363d)](https://cursor.com)
+[![Use with Windsurf](https://img.shields.io/badge/Use%20with-Windsurf-2f363d?style=for-the-badge&labelColor=2f363d)](https://windsurf.com)
+[![Use with Codeanywhere](https://img.shields.io/badge/Use%20with-Codeanywhere-2f363d?style=for-the-badge&labelColor=2f363d)](https://codeanywhere.com)
+[![Use with Augment Code](https://img.shields.io/badge/Use%20with-Augment%20Code-2f363d?style=for-the-badge&labelColor=2f363d)](https://www.augmentcode.com)
+[![Use with Gemini CLI](https://img.shields.io/badge/Use%20with-Gemini%20CLI-2f363d?style=for-the-badge&labelColor=2f363d)](https://github.com/google-gemini/gemini-cli)
+[![Use with Aider](https://img.shields.io/badge/Use%20with-Aider-2f363d?style=for-the-badge&labelColor=2f363d)](https://aider.chat/)
+[![Use with GitHub Copilot](https://img.shields.io/badge/Use%20with-GitHub%20Copilot-2f363d?style=for-the-badge&labelColor=2f363d)](https://github.com/features/copilot)
+[![Use with Antigravity](https://img.shields.io/badge/Use%20with-Antigravity-2f363d?style=for-the-badge&labelColor=2f363d)](https://antigravity.google/)
 
 Or in VS Code: clone the repo, then **Dev Containers: Reopen in Container**.
 
@@ -52,6 +73,20 @@ Every change goes through a pull request. Before a pull request is merged:
 - Review comments that request changes are resolved before merge, or the author explains why they do not apply.
 
 The full steps for reviewers, including what to look at, are in [docs/contributing/04-review-a-pr.md](docs/contributing/04-review-a-pr.md#who-can-approve-and-merge).
+
+## Changing the CLI source
+
+The CLI is committed as compiled output in `cli/dist/`, so `npm install -g github:tdk-landscape/tdk-cli-core` works without a build step. CI checks that `cli/dist/` matches `cli/src/`.
+
+After you change anything under `cli/src/`:
+
+```bash
+cd cli && npm run check:dist   # builds, then fails if cli/dist changed
+```
+
+Commit the changed files under `cli/dist/`. New compiled files are gitignored, so add them with `git add -f cli/dist`.
+
+The CI bot can rebuild `cli/dist/` and push it for pull requests from this repository. It cannot push to pull requests from forks, so if you opened yours from a fork, run the command above and push the commit yourself.
 
 ## Tests
 

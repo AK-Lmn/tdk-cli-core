@@ -1,7 +1,7 @@
 # Live-stack resource-type suites (#1290, tracker #1279). The plan job reads each suite's suite.json and builds a matrix of the
 # suites that run for the event; each matrix leg boots one suite's stack and runs all of its cases. Replaces agent-e2e.yml.
-# On a pull request a leg tests that pull request's own packed CLI. After a release and nightly it tests the published npm
-# package. The gate job always runs and fails when the plan or any selected leg failed.
+# On a pull request and nightly a leg tests the packed CLI of the checkout (main, nightly), so a regression on main shows up
+# before a release ships it. After a release it tests the published npm package. The gate job always runs and fails when the plan or any selected leg failed.
 name: 🤖 Resource-type E2E
 
 on:
@@ -15,20 +15,11 @@ on:
         description: "Runner label for every job (default ubuntu-latest); try ubuntu-26.04 before ubuntu-latest moves to it (#1277)"
         type: string
         default: "ubuntu-latest"
+  # No paths filter here: the gate must report on every pull request and merge queue entry, or the ci.yml summary waits for a
+  # check that never comes. The plan job skips every leg when no changed file is in the list of paths it checks (the PR_PATHS below).
+  merge_group:
   pull_request:
     branches: [main]
-    paths:
-      - "cli/src/commands/agent.ts"
-      - "cli/src/commands/restart.ts"
-      - "cli/src/mcp/**"
-      - "cli/src/agent-runtimes/**"
-      - "engine/**"
-      - ".claude/skills/**"
-      - "scripts/sync-tdk-skills.sh"
-      - "tests/e2e/lib/**"
-      - "tests/e2e/resource-types/**"
-      - "tests/e2e/orm/**"
-      - ".github/workflows/e2e-resource-types.yml"
   schedule:
     - cron: "30 6 * * *"
   # Prove each release right after it is published. Read-only token, no secrets, main branch only; it checks out main itself
@@ -65,10 +56,10 @@ jobs:
         id: matrix
         env:
           EVENT: ${{ github.event_name }}
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
         run: |
           case "$EVENT" in
-            pull_request) trigger="pr" ;;
+            pull_request | merge_group) trigger="pr" ;;
             schedule) trigger="nightly" ;;
             workflow_run) trigger="release" ;;
             *) trigger="manual" ;;
@@ -92,6 +83,13 @@ jobs:
           if [ "$trigger" = "pr" ]; then
             git fetch --no-tags --depth=1 origin "$BASE_SHA"
             files="$(git diff --name-only "$BASE_SHA" HEAD)"
+            # A pull request that touches none of these paths runs no legs, and the gate passes. Keep this list in step with
+            # the paths the workflow used to filter on (the gate job must report on every pull request, so it is not in `on:`).
+            PR_PATHS='^(cli/src/commands/(agent|restart)\.ts|cli/src/mcp/|cli/src/agent-runtimes/|engine/|\.claude/skills/|scripts/sync-tdk-skills\.sh|tests/e2e/(lib|resource-types|orm)/|\.github/workflows/e2e-resource-types\.yml$)'
+            if [ -z "$(printf '%s\n' "$files" | grep -E "$PR_PATHS" || true)" ]; then
+              matrix='{"include":[]}'
+              files=""
+            fi
             outside="$(printf '%s\n' "$files" | grep -v -E '^tests/e2e/(resource-types|orm)/[^/]+/' || true)"
             dirs="$(printf '%s\n' "$files" | sed -n -E 's#^tests/e2e/((resource-types|orm)/[^/]+)/.*#\1#p' | sort -u | paste -sd, -)"
             if [ -z "$outside" ] && [ -n "$dirs" ]; then
@@ -127,7 +125,7 @@ jobs:
         run: |
           if [ "$GITHUB_EVENT_NAME" = "workflow_run" ]; then
             version="$(node -p "require('./package.json').version")"
-          elif [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+          elif [ "$GITHUB_EVENT_NAME" = "pull_request" ] || [ "$GITHUB_EVENT_NAME" = "merge_group" ] || [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
             version="local"
           elif [ -n "$VERSION_INPUT" ]; then
             version="$VERSION_INPUT"

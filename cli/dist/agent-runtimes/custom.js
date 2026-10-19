@@ -83,7 +83,9 @@ const store = {
     if (client) {
       try {
         await client.end();
-      } catch {}
+      } catch (err) {
+        console.warn('[agent] closing the checkpoint client failed:', err);
+      }
       client = null;
     }
   },

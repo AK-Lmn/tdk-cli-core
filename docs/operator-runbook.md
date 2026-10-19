@@ -56,10 +56,40 @@ Put the environment values the services need in the project `.env`; values in th
 
 ## Cutting a release
 
-1. Bump the version in `cli/package.json`.
-2. Run `scripts/release-binaries.sh` to build only. It writes `tdk-linux-{amd64,arm64}`, `tdk-darwin-{amd64,arm64}`, `tdk-windows-amd64.exe`, `tdk-cli-engine.tar.gz`, and `checksums.txt` (SHA-256) into `release-dist-<version>/`.
-3. Run `scripts/release-binaries.sh --publish` to build and create a draft release in `tdk-landscape/tdk-cli-releases`. The script downloads every asset, compares bytes with the local build, and only then publishes the release as latest. `--publish-only` reuses an existing `release-dist-<version>/`.
+> [!WARNING]
+> The automatic version bump does not work as expected yet. After the 1.3.185 release, the git tag `v1.3.185` pointed at a commit whose `package.json` still said `1.3.184`, and `bun.lock` was never bumped. npm and the GitHub release had the right version. Check the tag, `package.json`, `cli/package.json` and `bun.lock` after every release until these are fixed: [#1657](https://github.com/tdk-landscape/tdk-cli-core/issues/1657), [#1658](https://github.com/tdk-landscape/tdk-cli-core/issues/1658), [#1659](https://github.com/tdk-landscape/tdk-cli-core/issues/1659).
+
+The normal release is the workflow, from a release branch (see the publish gate in [#1631](https://github.com/tdk-landscape/tdk-cli-core/pull/1631)):
+
+1. Cut `release/rc-<timestamp>` at the commit to ship, and run the Release candidate workflow on it. Wait for it to pass.
+2. Run `gh workflow run release-binaries.yml --ref release/rc-<timestamp>`. The workflow picks the next unpublished version, builds and checks the binaries, publishes the npm package and the release in `tdk-landscape/tdk-cli-releases`, and credits fixed issues.
+3. The workflow does not commit the version it published. Open a PR on `main` that sets `version` in `package.json` and `cli/package.json` to that version, so `main` matches npm.
 4. The installer verifies each binary against `checksums.txt`.
+
+To build a binary by hand, without publishing, run `scripts/release-binaries.sh`. It writes `tdk-linux-{amd64,arm64}`, `tdk-darwin-{amd64,arm64}`, `tdk-windows-amd64.exe`, `tdk-cli-engine.tar.gz`, and `checksums.txt` (SHA-256) into `release-dist-<version>/`. `scripts/release-binaries.sh --publish` creates a draft release, downloads every asset, compares bytes with the local build, and only then publishes it as latest. `--publish-only` reuses an existing `release-dist-<version>/`.
+
+### Publish gate
+
+`release-binaries.yml` publishes to npm only when a passing **Release candidate** run (`release-candidate.yml`) covers the commit being released. Dispatch the release on `main`, and the `publish` job checks this first with `scripts/check-release-candidate.mjs`:
+
+- **Exact commit:** a passing candidate ran on the same commit. This is the normal case.
+- **Ancestor commit:** a passing candidate ran on an earlier commit, and no commit since changed a release input. The release inputs are the paths the `changes` job filters on (`cli/**`, `engine/**`, `package.json`, `bun.lock`, `Tiltfile`, `discovery/**`, `specs/**`, `ext/**`, `scripts/release-binaries.sh`, `shared-platform-engineering/docker-templates/**`, and `release-binaries.yml` itself). CI-only and docs-only commits do not invalidate a candidate.
+- **Otherwise** the gate fails and lists, for each candidate, why it does not cover the commit (for example `release inputs changed since (cli/**)`). Run a new candidate on the commit, then re-run publish.
+
+**Release from a `release/*` branch.** `main` moves every few minutes, so a candidate on `main` is stale before it finishes. Release from a branch instead:
+
+1. Cut `release/rc-<timestamp>` at the commit to ship: `git push origin <commit>:refs/heads/release/rc-<timestamp>`.
+2. Run the Release candidate workflow on that branch: `gh workflow run release-candidate.yml --ref release/rc-<timestamp>`.
+3. When it passes, run the release on the same branch: `gh workflow run release-binaries.yml --ref release/rc-<timestamp>`. The gate then matches the exact commit, and `main` can keep moving.
+4. Bring the version bump back to `main` through a normal PR. Do not force-push `main` or the release branch.
+
+Candidates are not run on every push, so a dispatch on `main` fails until a candidate covers its commit. Check any commit with the gate before you dispatch:
+
+```bash
+GH_TOKEN="$(gh auth token)" node scripts/check-release-candidate.mjs --sha <commit> --repo tdk-landscape/tdk-cli-core
+```
+
+Tracked in [#1627](https://github.com/tdk-landscape/tdk-cli-core/issues/1627).
 
 ## License key
 
