@@ -1382,8 +1382,9 @@ export function renderDoctorOutput(
   projectResults: CheckResult[],
   inProject: boolean,
   options: { all?: boolean } = {},
+  allResults?: CheckResult[],
 ): void {
-  const results = [...machineResults, ...projectResults];
+  const results = allResults ?? [...machineResults, ...projectResults];
   if (options.all) {
     console.log(chalk.bold("Machine"));
     printDoctorResults(machineResults);
@@ -1720,7 +1721,7 @@ export const doctorCommand = new Command("doctor")
     let results: CheckResult[];
     let errors: DoctorError[] = [];
 
-    if (options.json) {
+    if (options.json || !options.all) {
       const collected = await collectDoctorChecks(machineChecks, inProject ? projectChecks : []);
       results = collected.checks;
       errors = collected.errors;
@@ -1814,7 +1815,7 @@ export const doctorCommand = new Command("doctor")
     for (const error of errors)
       console.error(`${chalk.red("✗")} Doctor check failed: ${error.message}`);
 
-    renderDoctorOutput(machineResults, projectResults, inProject, options);
+    renderDoctorOutput(machineResults, projectResults, inProject, options, results);
     const outcome = getDoctorOutcomeMessage(inProject, allPassed);
     console.log(
       `${allPassed ? chalk.green(chalk.bold("✓")) : chalk.red(chalk.bold("✗"))} ${outcome}`,

@@ -87,5 +87,5 @@ export declare function checkFrontendDockerPreflight(): CheckResult;
 export declare const checkContainerResourceHealth: DoctorCheckFn;
 export declare function renderDoctorOutput(machineResults: CheckResult[], projectResults: CheckResult[], inProject: boolean, options?: {
     all?: boolean;
-}): void;
+}, allResults?: CheckResult[]): void;
 export declare const doctorCommand: Command;
