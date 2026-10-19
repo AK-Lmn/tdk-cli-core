@@ -23,6 +23,7 @@
 - [Architecture](ARCHITECTURE.md): how tdk, the engine, and discovery fit together
 - [Features](FEATURES.md)
 - [Topology](TOPOLOGY.md)
+- [Tool comparison: docker-compose, Tilt, Skaffold, DevSpace, kind](comparison.md)
 - [Honest comparison and known limits](compare-honest.md)
 - [Claims registry](claims.md): every public number and where it comes from
 

@@ -1,6 +1,6 @@
 # TDK and your existing tools
 
-TDK CLI turns a `service.json` per service into a local Docker stack, with Tilt (the local development tool) watching services and live-updating containers as you code. It is not a deploy tool and not a Compose replacement. Production stays on Helm.
+TDK CLI turns a `service.json` per service into a local Docker stack, with Tilt (the local development tool) watching services and live-updating containers as you code. It is not a deploy tool and not a Compose replacement. Production stays on Helm. For an in-depth technical comparison including Docker Compose, plain Tilt, Skaffold, DevSpace, and kind/minikube, see [comparing TDK with alternative dev tools](comparison.md).
 
 ## Compose
 
