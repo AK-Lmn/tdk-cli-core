@@ -138,6 +138,48 @@ The CI bot can rebuild `cli/dist/` and push it for pull requests from this repos
 
 Every new feature or behavior change needs automated tests in the same pull request. A change that affects a running stack (a resource type, a command or MCP tool that talks to the stack, `tdk up`, routing or the engine) also needs an end-to-end test. [Writing an e2e test](docs/contributing/05-write-e2e.md) explains when, where and how, including the deliberate-break evidence a new suite needs. Put tests next to the code they cover, or in the existing suite for that area (`cli/src/**/__tests__/`, `tests/fuzz/`). A bug fix adds a test that fails before the fix and passes after it. If a test is not practical, the pull request says why and links an issue that tracks adding it. Reviewers check this in every pull request, and the checks listed in [03-open-a-pr.md](docs/contributing/03-open-a-pr.md#run-the-checks-for-your-change) run the suite in CI.
 
+### Unit tests and coverage
+
+TDK uses [Vitest](https://vitest.dev/) for CLI unit testing. You can run tests directly with Bun from the repository root:
+
+- **Run all unit tests**:
+  ```bash
+  bun run test
+  ```
+- **Run a single test file or filter** (fast while writing tests):
+  ```bash
+  bun run test -- <filter-or-filename>
+  # example:
+  bun run test -- completion-install
+  ```
+- **Run with coverage report**:
+  ```bash
+  cd cli && bun run test:coverage
+  ```
+  This runs all unit tests with v8 coverage, prints a summary table in the terminal, generates an HTML report you can open in `cli/coverage/index.html`, and writes machine-readable summaries to `cli/coverage/coverage-summary.json`.
+
+### Where to put unit tests
+
+- Place unit tests in a `__tests__/` directory directly next to the module they verify. For example:
+  - CLI commands: `cli/src/commands/__tests__/<command>.test.ts`
+  - Shared utilities: `cli/src/utils/__tests__/<utility>.test.ts`
+- **Naming**: Name the test file after the source file, suffixed with `.test.ts` (for example, `completion-install.test.ts` tests `completion-install.ts`).
+- **Prefer pure unit tests with mocks**: Keep tests fast, isolated, and deterministic. Avoid spawning live Docker containers or Tilt processes in unit tests; instead, mock external commands, file systems, or process executions using Vitest (`vi.mock()`) or test doubles from `cli/src/test-support/doubles.ts`.
+
+### Coverage baseline and the ratchet
+
+High-risk CLI areas are protected by a coverage floor defined in [`cli/coverage-baseline.json`](cli/coverage-baseline.json). The coverage ratchet (`cli/scripts/coverage-ratchet.mjs`) checks your changes in CI to ensure line and branch coverage in protected areas never regresses:
+
+- When you add new tests or improve coverage in an area, coverage rises! You can raise the floor in `cli/coverage-baseline.json` freely to lock in improvements.
+- Lowering a baseline is restricted and requires maintainer discussion in its own commit titled `coverage: lower baseline for <area>` explaining why.
+
+### Example test patterns to reference
+
+New to writing tests for TDK? Take a look at these existing test suites for patterns and conventions:
+- **Command execution and flag contracts**: [`cli/src/commands/__tests__/completion-install.test.ts`](cli/src/commands/__tests__/completion-install.test.ts)
+- **Pure logic and validation**: [`cli/src/commands/__tests__/api-path-constants.test.ts`](cli/src/commands/__tests__/api-path-constants.test.ts)
+- **Mocking external processes and environment variables**: [`cli/src/commands/__tests__/agent-sessions.test.ts`](cli/src/commands/__tests__/agent-sessions.test.ts)
+
 Run focused checks from the repository root while you work, then use `make test` as the comprehensive pre-PR entry point:
 
 | I changed | Run |
