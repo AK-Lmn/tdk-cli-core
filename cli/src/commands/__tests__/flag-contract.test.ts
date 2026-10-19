@@ -437,7 +437,9 @@ describe("flag contract: -y/--yes and --force convention", () => {
     const badForce = allCommands.flatMap(({ name, command }) =>
       command.options
         .filter(
-          (option) => option.long === "--force" && /skip.*confirmation/i.test(option.description),
+          (option) =>
+            option.long === "--force" &&
+            /(skip|bypass|suppress|without).*(confirm|prompt)/i.test(option.description),
         )
         .map((option) => `${name}: ${option.description}`),
     );

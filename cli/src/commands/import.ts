@@ -164,13 +164,24 @@ export function buildForwardedImportArgs(
   args: string[],
   options: { yes?: boolean; force?: boolean } = {},
 ): string[] {
-  const filtered = args.filter(
-    (arg) => arg !== "--yes" && arg !== "-y" && arg !== "--force" && arg !== "-f",
-  );
-  if (options.yes) {
+  let yes = Boolean(options.yes);
+  let force = Boolean(options.force);
+
+  const filtered: string[] = [];
+  for (const arg of args) {
+    if (arg === "--yes" || arg === "-y") {
+      yes = true;
+    } else if (arg === "--force" || arg === "-f") {
+      force = true;
+    } else {
+      filtered.push(arg);
+    }
+  }
+
+  if (yes) {
     filtered.push("--yes");
   }
-  if (options.force) {
+  if (force) {
     filtered.push("--force");
   }
   return filtered;
@@ -179,7 +190,7 @@ export function buildForwardedImportArgs(
 export const importCommand = addYesOption(new Command("import"))
   .description("Import the services in a directory's root docker-compose.yml (runs tdk-import)")
   .argument("[args...]", "Passed to tdk-import: [dir] --dry-run --yes --force")
-  .option("--force", "Overwrite an existing service.json", false)
+  .option("-f, --force", "Overwrite an existing service.json", false)
   .allowUnknownOption()
   .helpOption(false)
   .action(async (args: string[], options: { yes?: boolean; force?: boolean }) => {

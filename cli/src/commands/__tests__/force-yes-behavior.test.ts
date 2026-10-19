@@ -1,17 +1,23 @@
 // Copyright (c) 2026 TDK Landscape contributors
 // SPDX-License-Identifier: MIT
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { promptConfirmMock, assertMachineReadyMock, buildTiltDownArgsMock, runTiltMock } =
-  vi.hoisted(() => ({
-    promptConfirmMock: vi.fn(),
-    assertMachineReadyMock: vi.fn(),
-    buildTiltDownArgsMock: vi.fn(),
-    runTiltMock: vi.fn(),
-  }));
+const {
+  promptConfirmMock,
+  assertMachineReadyMock,
+  buildTiltDownArgsMock,
+  runTiltMock,
+  generateMasterConfigsMock,
+} = vi.hoisted(() => ({
+  promptConfirmMock: vi.fn(),
+  assertMachineReadyMock: vi.fn(),
+  buildTiltDownArgsMock: vi.fn(),
+  runTiltMock: vi.fn(),
+  generateMasterConfigsMock: vi.fn().mockResolvedValue(undefined),
+}));
 
 vi.mock("../../utils/cold-preflight.js", () => ({
   assertMachineReadyOrExit: assertMachineReadyMock,
@@ -34,7 +40,13 @@ vi.mock("../../utils/tilt.js", () => ({
   runTilt: runTiltMock,
 }));
 
+vi.mock("../../generator/template-engine.js", () => ({
+  generateMasterConfigs: generateMasterConfigsMock,
+  readProjectConfig: vi.fn(),
+}));
+
 import { downCommand } from "../down.js";
+import { buildForwardedImportArgs } from "../import.js";
 import { projectCommand } from "../project.js";
 
 describe("behavioral flag contract: --force vs --yes", () => {
@@ -54,6 +66,7 @@ describe("behavioral flag contract: --force vs --yes", () => {
     assertMachineReadyMock.mockReset().mockResolvedValue(undefined);
     buildTiltDownArgsMock.mockReset().mockReturnValue([]);
     runTiltMock.mockReset().mockResolvedValue({ exitCode: 0, stdout: "", stderr: "" });
+    generateMasterConfigsMock.mockReset().mockResolvedValue(undefined);
 
     for (const opt of ["force", "yes", "dryRun", "json", "verbose", "pruneNetworks"]) {
       downCommand.setOptionValue(opt, false);
@@ -82,17 +95,36 @@ describe("behavioral flag contract: --force vs --yes", () => {
     log.mockRestore();
   });
 
-  it("project: --force with --yes bypasses the confirmation prompt entirely", async () => {
+  it("project: --force with --yes bypasses the confirmation prompt entirely and rewrites project configuration", async () => {
     promptConfirmMock.mockResolvedValue(true);
     const log = vi.spyOn(console, "log").mockImplementation(() => {});
 
-    try {
-      await projectCommand.parseAsync(["node", "tdk", "--force", "--yes"], { from: "node" });
-    } catch {
-      // Downstream template generation is mocked/stubbed
-    }
+    await projectCommand.parseAsync(["node", "tdk", "--force", "--yes"], { from: "node" });
 
     expect(promptConfirmMock).not.toHaveBeenCalled();
+    const output = log.mock.calls.flat().join("\n");
+    expect(output).toContain("Using default configuration (non-interactive mode)");
+
+    const rewritten = JSON.parse(readFileSync(join(tempDir, ".tdk", "project.json"), "utf-8"));
+    expect(rewritten).toMatchObject({
+      project: {
+        name: expect.any(String),
+      },
+    });
+    expect(generateMasterConfigsMock).toHaveBeenCalledWith(tempDir);
+    log.mockRestore();
+  });
+
+  it("down: --yes executes cleanly without deprecation warning or prompts", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await downCommand.parseAsync(["node", "tdk", "--yes"], { from: "node" });
+
+    expect(downCommand.opts().yes).toBe(true);
+    expect(warn).not.toHaveBeenCalled();
+    expect(runTiltMock).toHaveBeenCalledWith("down", expect.any(Array), expect.any(Object));
+    warn.mockRestore();
     log.mockRestore();
   });
 
@@ -113,5 +145,18 @@ describe("behavioral flag contract: --force vs --yes", () => {
     );
     warn.mockRestore();
     log.mockRestore();
+  });
+
+  it("import: forwards --yes and --force cleanly regardless of flag ordering or aliases", () => {
+    expect(buildForwardedImportArgs(["."], { yes: true })).toEqual([".", "--yes"]);
+    expect(buildForwardedImportArgs([".", "-y"])).toEqual([".", "--yes"]);
+    expect(buildForwardedImportArgs(["--yes", "."])).toEqual([".", "--yes"]);
+    expect(buildForwardedImportArgs(["."], { force: true })).toEqual([".", "--force"]);
+    expect(buildForwardedImportArgs([".", "-f"])).toEqual([".", "--force"]);
+    expect(buildForwardedImportArgs(["--force", "."])).toEqual([".", "--force"]);
+    expect(buildForwardedImportArgs(["-y", ".", "-f"])).toEqual([".", "--yes", "--force"]);
+    expect(buildForwardedImportArgs(["--yes", ".", "--force"], { yes: true, force: true })).toEqual(
+      [".", "--yes", "--force"],
+    );
   });
 });
