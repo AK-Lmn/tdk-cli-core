@@ -4,6 +4,35 @@ English | [简体中文](docs/contributing/translations/CONTRIBUTING-zh_cn.md) |
 
 Welcome! Small fixes and large features are both useful. Start with the short [contributor guide](docs/contributing/README.md); it walks you through finding a change, making it, checking it, and opening a pull request.
 
+## Table of contents
+
+- [Your first contribution](#your-first-contribution)
+- [Start here](#start-here)
+- [Quick setup](#quick-setup)
+- [Supported platforms](#supported-platforms)
+- [Getting help](#getting-help)
+- [Code review](#code-review)
+- [Changing the CLI source](#changing-the-cli-source)
+- [Tests](#tests)
+- [Find bugs](#find-bugs)
+- [Review pull requests](#review-pull-requests)
+- [Find something to work on](#find-something-to-work-on)
+- [Spell check](#spell-check)
+- [Labels](#labels)
+- [Sign your commits](#sign-your-commits)
+- [Contributor recognition](#contributor-recognition)
+- [Add your team to the adopters list](#add-your-team-to-the-adopters-list)
+- [Governance](#governance)
+- [Be kind](#be-kind)
+
+## Your first contribution
+
+Looking for an easy place to start?
+
+- Browse [good first issues](https://github.com/tdk-landscape/tdk-cli-core/labels/good%20first%20issue) for small, self-contained tasks.
+- Check [help wanted](https://github.com/tdk-landscape/tdk-cli-core/labels/help%20wanted) issues for tasks needing community help.
+- Visit the [Start here tracking issue (#120)](https://github.com/tdk-landscape/tdk-cli-core/issues/120) for a curated list of beginner-friendly tasks and quests.
+
 ## Start here
 
 1. [Choose your change and get the repo ready](docs/contributing/01-first-change.md).
@@ -11,13 +40,34 @@ Welcome! Small fixes and large features are both useful. Start with the short [c
 3. [Check your work and open a pull request](docs/contributing/03-open-a-pr.md).
 4. [Review someone else's pull request](docs/contributing/04-review-a-pr.md), with one-click AI review buttons.
 
-The focused [frontend provider guide](docs/frontend-framework-providers.md) has the exact steps for adding another Vite framework like Vue. The [backend provider guide](docs/backend-language-providers.md) covers adding a backend language like Python. The [architecture guide](docs/ARCHITECTURE.md) explains how the CLI, the engine, and discovery fit together end to end.
+The focused [frontend provider guide](docs/frontend-framework-providers.md) has the exact steps for adding another Vite framework like Vue. The [backend provider guide](docs/backend-language-providers.md) covers adding a backend language like Python. The [architecture guide](docs/ARCHITECTURE.md) explains how the CLI, the engine, and discovery fit together end to end. For AI coding agents and automated contributors, see [AGENTS.md](AGENTS.md) for the repository map, commands, and ground rules.
 
 ## Quick setup
 
 **Fastest way (recommended):** open the repository in a ready-to-use environment.
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/tdk-landscape/tdk-cli-core?quickstart=1)
+[![Open in Dev Containers](https://img.shields.io/badge/Open%20in-Dev%20Containers-2f363d?style=for-the-badge&logo=visualstudiocode&logoColor=white&labelColor=2f363d)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/tdk-landscape/tdk-cli-core)
+[![Open in Gitpod](https://img.shields.io/badge/Open%20in-Gitpod-2f363d?style=for-the-badge&logo=gitpod&logoColor=white&labelColor=2f363d)](https://gitpod.io/#https://github.com/tdk-landscape/tdk-cli-core)
+[![Open in Firebase Studio](https://img.shields.io/badge/Open%20in-Firebase%20Studio-2f363d?style=for-the-badge&logo=firebase&logoColor=white&labelColor=2f363d)](https://idx.google.com/import?url=https://github.com/tdk-landscape/tdk-cli-core)
+[![Open in Replit](https://img.shields.io/badge/Open%20in-Replit-2f363d?style=for-the-badge&logo=replit&logoColor=white&labelColor=2f363d)](https://replit.com/github/tdk-landscape/tdk-cli-core)
+[![Open in DevPod](https://img.shields.io/badge/Open%20in-DevPod-2f363d?style=for-the-badge&logo=devpod&logoColor=white&labelColor=2f363d)](https://devpod.sh/open#https://github.com/tdk-landscape/tdk-cli-core)
+[![Open in StackBlitz](https://img.shields.io/badge/Open%20in-StackBlitz-2f363d?style=for-the-badge&logo=stackblitz&logoColor=white&labelColor=2f363d)](https://stackblitz.com/github/tdk-landscape/tdk-cli-core)
+[![Open in CodeSandbox](https://img.shields.io/badge/Open%20in-CodeSandbox-2f363d?style=for-the-badge&logo=codesandbox&logoColor=white&labelColor=2f363d)](https://codesandbox.io/p/github/tdk-landscape/tdk-cli-core)
+[![Open in VS Code](https://img.shields.io/badge/Open%20in-VS%20Code-2f363d?style=for-the-badge&labelColor=2f363d)](vscode://vscode.git/clone?url=https://github.com/tdk-landscape/tdk-cli-core)
+[![Use with Claude Code](https://img.shields.io/badge/Use%20with-Claude%20Code-2f363d?style=for-the-badge&labelColor=2f363d)](https://claude.ai/code)
+[![Use with Codex](https://img.shields.io/badge/Use%20with-Codex-2f363d?style=for-the-badge&labelColor=2f363d)](https://chatgpt.com/codex)
+[![Use with Devin](https://img.shields.io/badge/Use%20with-Devin-2f363d?style=for-the-badge&labelColor=2f363d)](https://devin.ai)
+[![Use with Coder](https://img.shields.io/badge/Use%20with-Coder-2f363d?style=for-the-badge&labelColor=2f363d)](https://coder.com)
+[![Use with Zed](https://img.shields.io/badge/Use%20with-Zed-2f363d?style=for-the-badge&labelColor=2f363d)](https://zed.dev)
+[![Use with Cursor](https://img.shields.io/badge/Use%20with-Cursor-2f363d?style=for-the-badge&labelColor=2f363d)](https://cursor.com)
+[![Use with Windsurf](https://img.shields.io/badge/Use%20with-Windsurf-2f363d?style=for-the-badge&labelColor=2f363d)](https://windsurf.com)
+[![Use with Codeanywhere](https://img.shields.io/badge/Use%20with-Codeanywhere-2f363d?style=for-the-badge&labelColor=2f363d)](https://codeanywhere.com)
+[![Use with Augment Code](https://img.shields.io/badge/Use%20with-Augment%20Code-2f363d?style=for-the-badge&labelColor=2f363d)](https://www.augmentcode.com)
+[![Use with Gemini CLI](https://img.shields.io/badge/Use%20with-Gemini%20CLI-2f363d?style=for-the-badge&labelColor=2f363d)](https://github.com/google-gemini/gemini-cli)
+[![Use with Aider](https://img.shields.io/badge/Use%20with-Aider-2f363d?style=for-the-badge&labelColor=2f363d)](https://aider.chat/)
+[![Use with GitHub Copilot](https://img.shields.io/badge/Use%20with-GitHub%20Copilot-2f363d?style=for-the-badge&labelColor=2f363d)](https://github.com/features/copilot)
+[![Use with Antigravity](https://img.shields.io/badge/Use%20with-Antigravity-2f363d?style=for-the-badge&labelColor=2f363d)](https://antigravity.google/)
 
 Or in VS Code: clone the repo, then **Dev Containers: Reopen in Container**.
 
@@ -41,6 +91,23 @@ bun run typecheck && bun run lint && bun run test   # about a minute; all of it 
 ```
 
 If one of these fails on a clean checkout, that is a bug in the project, not in your setup: please [open an issue](https://github.com/tdk-landscape/tdk-cli-core/issues/new/choose).
+
+## Supported platforms
+
+For developing and running TDK locally:
+
+- **macOS and Linux**: Supported directly.
+- **Windows**: Supported and recommended via WSL2 (Ubuntu). Native Windows is inspect-only (`tdk --version`, `tdk doctor`, and `tdk up --dry-run`) and refutes startup (`tdk up` exits with an error indicating landscape startup requires Ubuntu on WSL2). See the [WSL2 setup guide](docs/wsl2.md) and tracking in [#622](https://github.com/tdk-landscape/tdk-cli-core/issues/622).
+
+## Getting help
+
+If you have questions or encounter issues while contributing:
+
+- **Bug report**: Use the [Bug report](https://github.com/tdk-landscape/tdk-cli-core/issues/new?template=bug_report.yml) template. Include steps to reproduce, what happened, what you expected, and the output of `tdk doctor` and `tdk --version`.
+- **Feature request**: Use the [Feature request](https://github.com/tdk-landscape/tdk-cli-core/issues/new?template=feature_request.yml) template to suggest an idea or improvement.
+- **Questions**: For quick questions, ideas, or general discussions that do not require an issue, use [GitHub Discussions](https://github.com/tdk-landscape/tdk-cli-core/discussions) or open a question via a blank issue.
+
+Maintainers aim to reply within one working day.
 
 ## Code review
 
@@ -71,6 +138,48 @@ The CI bot can rebuild `cli/dist/` and push it for pull requests from this repos
 
 Every new feature or behavior change needs automated tests in the same pull request. A change that affects a running stack (a resource type, a command or MCP tool that talks to the stack, `tdk up`, routing or the engine) also needs an end-to-end test. [Writing an e2e test](docs/contributing/05-write-e2e.md) explains when, where and how, including the deliberate-break evidence a new suite needs. Put tests next to the code they cover, or in the existing suite for that area (`cli/src/**/__tests__/`, `tests/fuzz/`). A bug fix adds a test that fails before the fix and passes after it. If a test is not practical, the pull request says why and links an issue that tracks adding it. Reviewers check this in every pull request, and the checks listed in [03-open-a-pr.md](docs/contributing/03-open-a-pr.md#run-the-checks-for-your-change) run the suite in CI.
 
+### Unit tests and coverage
+
+TDK uses [Vitest](https://vitest.dev/) for CLI unit testing. You can run tests directly with Bun from the repository root:
+
+- **Run all unit tests**:
+  ```bash
+  bun run test
+  ```
+- **Run a single test file or filter** (fast while writing tests):
+  ```bash
+  bun run test -- <filter-or-filename>
+  # example:
+  bun run test -- completion-install
+  ```
+- **Run with coverage report**:
+  ```bash
+  cd cli && bun run test:coverage
+  ```
+  This runs all unit tests with v8 coverage, prints a summary table in the terminal, generates an HTML report you can open in `cli/coverage/index.html`, and writes machine-readable summaries to `cli/coverage/coverage-summary.json`.
+
+### Where to put unit tests
+
+- Place unit tests in a `__tests__/` directory directly next to the module they verify. For example:
+  - CLI commands: `cli/src/commands/__tests__/<command>.test.ts`
+  - Shared utilities: `cli/src/utils/__tests__/<utility>.test.ts`
+- **Naming**: Name the test file after the source file, suffixed with `.test.ts` (for example, `completion-install.test.ts` tests `completion-install.ts`).
+- **Prefer pure unit tests with mocks**: Keep tests fast, isolated, and deterministic. Avoid spawning live Docker containers or Tilt processes in unit tests; instead, mock external commands, file systems, or process executions using Vitest (`vi.mock()`) or test doubles from `cli/src/test-support/doubles.ts`.
+
+### Coverage baseline and the ratchet
+
+High-risk CLI areas are protected by a coverage floor defined in [`cli/coverage-baseline.json`](cli/coverage-baseline.json). The coverage ratchet (`cli/scripts/coverage-ratchet.mjs`) checks your changes in CI to ensure line and branch coverage in protected areas never regresses:
+
+- When you add new tests or improve coverage in an area, coverage rises! You can raise the floor in `cli/coverage-baseline.json` freely to lock in improvements.
+- Lowering a baseline is restricted and requires maintainer discussion in its own commit titled `coverage: lower baseline for <area>` explaining why.
+
+### Example test patterns to reference
+
+New to writing tests for TDK? Take a look at these existing test suites for patterns and conventions:
+- **Command execution and flag contracts**: [`cli/src/commands/__tests__/completion-install.test.ts`](cli/src/commands/__tests__/completion-install.test.ts)
+- **Pure logic and validation**: [`cli/src/commands/__tests__/api-path-constants.test.ts`](cli/src/commands/__tests__/api-path-constants.test.ts)
+- **Mocking external processes and environment variables**: [`cli/src/commands/__tests__/agent-sessions.test.ts`](cli/src/commands/__tests__/agent-sessions.test.ts)
+
 Run focused checks from the repository root while you work, then use `make test` as the comprehensive pre-PR entry point:
 
 | I changed | Run |
@@ -97,7 +206,7 @@ Before your first review, read the [required docs](docs/contributing/04-review-a
 
 ## Find something to work on
 
-- 🗺️ [The TDK Journey](docs/journey/README.md): pick an island, finish a quest, rank up (8 kyu → 1 dan)
+- [The TDK Journey](docs/journey/README.md): pick an island, finish a quest, rank up (8 kyu → 1 dan)
 - [Good first issues](https://github.com/tdk-landscape/tdk-cli-core/labels/good%20first%20issue)
 - [Help wanted](https://github.com/tdk-landscape/tdk-cli-core/labels/help%20wanted)
 - [Hunt for bugs](docs/contributing/finding-bugs.md) with the step-by-step checklist
@@ -145,6 +254,14 @@ each label's description.
 ## Sign your commits
 
 Every commit needs a [Developer Certificate of Origin](DCO) sign-off. Add it with `git commit -s`, which appends `Signed-off-by: Your Name <you@example.com>`. To fix existing commits, run `git rebase --signoff origin/main` and force-push your branch. A pull request check fails when a commit is missing the line.
+
+## Contributor recognition
+
+Every contribution matters. When your pull request is merged:
+
+- You are credited in the automated GitHub release notes for the next release.
+- Your contribution is recorded in [CHANGELOG.md](CHANGELOG.md).
+- You are recognized across the project contributor list and All Contributors records.
 
 ## Add your team to the adopters list
 

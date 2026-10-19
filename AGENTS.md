@@ -1,26 +1,77 @@
-# Contributor guidance
+# AGENTS.md
 
-TDK runs a local development inner loop on Docker + Tilt. It does not emit Kubernetes manifests by default and does not replace Helm, Kustomize, Flux, or Argo for cluster deployments.
+Contributor and AI coding agent guidelines for TDK.
 
-- Do not add Deployment or other cluster-manifest generators without an explicit export command and agreed scope.
-- Every generator change must state whether its output is local-only or part of an explicit export.
-- Keep cluster deployment policy (replicas, probes, ingress, storage, security, identity, and autoscaling) with the user's Kubernetes workflow.
-- Preserve the distinction between tdk doctor environment/service checks and tdk config verify generated-project-file consistency checks.
-- New examples, fixtures and e2e checks run database migrations in a `migrator` resource (`appType: migrator`), not from the API's own start-up or entrypoint. They must model Postgres, then migrator, then API, and prove that order through `tdk up`. `tdk doctor` warns when a backend or worker runs a migration command from its start script, Dockerfile CMD or ENTRYPOINT, entrypoint script or source. The opt-in Infisical backend entrypoint still runs `prisma migrate deploy`; the rule is for new work.
-- Agent-facing contracts (`llms.txt`, `llms-full.txt`, the AI agents guide) live in `docs/agents/`; keep them there, not in the repo root.
-- Read `.claude/memory/MEMORY.md` before opening a PR: it lists verification and CI traps that have already cost reruns. Add a line there when a task teaches you a new one.
+TDK (Topology Development Kit) runs a local development inner loop for microservices and multi-agent systems on Docker and Tilt. It discovers services from manifests, generates necessary local configurations (Vite, TSConfig, Compose), and orchestrates live-reloading environments. It is designed for fast local development; it does not emit Kubernetes manifests by default and does not replace production cluster orchestrators like Helm, Kustomize, Flux, or Argo.
 
-## AI coding agent directives
+## Repository Map
 
-When modifying, adding, or testing services in this workspace:
-- **Do not hand-write Dockerfiles, Compose files, or container manifests.** Use the TDK CLI:
+- `cli/`: TypeScript CLI implementation (`tdk`), Ink-based terminal UI, command handlers, and precompiled bundle (`dist/`).
+- `engine/`: Tilt and Starlark topologies, generators, and infrastructure orchestration modules (`engine/topologies/`).
+- `discovery/`: Starlark-based service discovery, multi-root manifest scanning, and registry generation.
+- `ext/`: Tilt extensions, UI enhancements, and IDE components.
+- `platform/`: Shared platform service definitions and topology templates (`platform/services/`).
+- `docs/`: Architecture guides, tutorials, contributor documentation, and agent contracts (`docs/agents/`).
+- `scripts/`: Shell, Node.js, and Python maintenance, verification, benchmark, and release scripts.
+- `tests/`: End-to-end (e2e) tests, tilt-engine pytest suites, and test fixtures.
+
+## Package-Level Guidelines
+
+Before modifying specific subsystems, read their dedicated guidance files:
+
+- Read `cli/AGENTS.md` before changing `cli/` for coding standards, naming conventions, export patterns, and `TdkError` usage.
+- Read `engine/AGENTS.md` before changing `engine/` for topology architecture, manifest-driven generation, golden image layering, and Tilt conventions.
+- Read `discovery/AGENTS.md` before changing `discovery/` for scan roots, manifest validation rules, and caching behavior.
+- Subsystem directories under `engine/topologies/platform/` (such as `docker/`, `net/`, `security/`, and `state/`) contain additional targeted `AGENTS.md` files.
+
+## Common Commands
+
+Run checks from the repository root:
+
+### CLI Verification
+
+- Typecheck CLI: `npm --prefix cli run typecheck` (or `cd cli && npm run typecheck`)
+- Lint CLI: `npm --prefix cli run lint` (autofix: `npm --prefix cli run lint:fix`)
+- Test CLI: `npm --prefix cli test` (coverage: `npm --prefix cli run test:coverage`)
+- Build CLI: `npm --prefix cli run build`
+- Verify dist sync: `npm --prefix cli run check:dist`
+- Quick one-liner (with Bun): `bun run typecheck && bun run lint && bun run test`
+
+### Make Targets
+
+Run `make help` to inspect all available targets:
+
+- `make test`: Run TypeScript, Python, and shell checks.
+- `make test-ts`: Run TypeScript CLI test suite.
+- `make test-python`: Run Python test suite with pytest.
+- `make test-shell`: Run Bash syntax checks on scripts and e2e suite definitions.
+- `make test-e2e GROUP=<group> SUITE=<suite>`: Run a live-stack e2e test suite (requires Docker, Tilt, and built tdk).
+
+## Ground Rules
+
+- Keep PRs focused: Address one specific issue or change per pull request. Avoid bundled refactors or unrelated formatting changes.
+- Add tests for behavior changes: Every new feature, bug fix, or CLI behavior change must include automated tests in the same PR.
+- Do not hand-edit generated files: Never edit `.tdk/`, `.tdk-out/`, `release-dist-*`, `**/*.autogenerated.*`, or `product_autogenerated_*`. Modify the source files (`service.json`, `package.json`, or templates) instead.
+- Do not hand-write container manifests: Use the TDK CLI to manage services:
   - Create services: `tdk resource <name> --type agent|backend|worker|mcp`
   - Start the stack: `tdk up [stack]` or call the `up` MCP tool
   - Inspect status: `tdk status --json` or call the `status` MCP tool
   - Inspect agent sessions: `tdk agent sessions <resource> --session-id <id>` or call `get_agent_sessions` (`sessionId` is required)
   - Restart services: `tdk restart <resource>` or call `restart_resource`
   - Check diagnostics: `tdk doctor --json`
-- The `agent` resource type manages its own process contract (`/health` for liveness, `/ready` for checkpoint store reachable, session routing via `x-session-id`, checkpoints survive restarts).
-- Use `tdk mcp` over stdio (`{ "command": "tdk", "args": ["mcp"] }`) for full MCP stack integration.
-- For starter templates, use `tdk project agent-stack` to scaffold a complete multi-agent system with tools, database, and messaging.
+- Agent resource contracts: The `agent` resource type manages its own process contract (`/health` for liveness, `/ready` for checkpoint store reachable, session routing via `x-session-id`, checkpoints survive restarts).
+- MCP integration: Use `tdk mcp` over stdio (`{ "command": "tdk", "args": ["mcp"] }`) for full MCP stack integration.
+- Starter templates: Use `tdk project agent-stack` to scaffold a complete multi-agent system with tools, database, and messaging.
+- Local-only by default: Do not add Deployment or cluster manifest generators without an agreed export scope. Keep cluster deployment policy with the user's Kubernetes workflow.
+- Preserve diagnostics boundaries: Maintain the distinction between `tdk doctor` environment/service checks and `tdk config verify` generated-project consistency checks.
+- Database migrations: New services, examples, and fixtures must run database migrations in an explicit `migrator` resource (`appType: migrator`), not from an API start script or entrypoint.
+- Agent contracts location: Agent-facing contracts (`llms.txt`, `llms-full.txt`, and the AI agents guide) live in `docs/agents/`; keep them there, not in the repo root.
+- Never commit secrets or `.env`: Keep credentials, API keys, and environment overrides out of version control.
+- Sign off commits: All commits must be signed off (`git commit -s`) to comply with the Developer Certificate of Origin (DCO).
 
+## Verification Gotchas and Traps
+
+- Stale `cli/dist/`: The CLI is committed as compiled output in `cli/dist/`. When modifying `cli/src/`, always run `npm --prefix cli run build` (or `npm --prefix cli run check:dist`). Newly emitted files in `cli/dist/` are gitignored by default; force-stage them with `git add -f cli/dist`.
+- Biome execution: Run Biome through `npm --prefix cli run lint` or `cd cli && ./node_modules/.bin/biome check .`. Do not run bare `npx biome` at the repository root, which executes an obsolete package that exits 0 without checking.
+- Clean test artifacts before linting: Running tests with coverage creates `cli/test-results/` and `cli/coverage/`, which cause Biome checks to fail. Remove these directories before running `biome check .`.
+- Repository memory: Check `.claude/memory/MEMORY.md` before opening a PR for an up-to-date list of verification and CI traps observed across previous runs. Add a line when a task uncovers a new trap.

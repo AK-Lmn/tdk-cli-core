@@ -1,5 +1,7 @@
 # TDK documentation
 
+[![Test coverage](https://raw.githubusercontent.com/tdk-landscape/tdk-cli-core/main/docs/assets/coverage.svg)](https://github.com/tdk-landscape/tdk-cli-core/blob/main/docs/assets/coverage.svg)
+
 ## Start here
 
 - [Run one backend locally](../examples/one-backend/README.md)
@@ -21,6 +23,7 @@
 - [Architecture](ARCHITECTURE.md): how tdk, the engine, and discovery fit together
 - [Features](FEATURES.md)
 - [Topology](TOPOLOGY.md)
+- [Tool comparison: docker-compose, Tilt, Skaffold, DevSpace, kind](comparison.md)
 - [Honest comparison and known limits](compare-honest.md)
 - [Claims registry](claims.md): every public number and where it comes from
 
