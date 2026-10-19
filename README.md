@@ -165,6 +165,16 @@ If TDK helps you run your local stack, a ⭐ on [this repo](https://github.com/t
 - **Hot reload while you code.** Tilt live-updates the containers when files change.
 - **Generated files you can check.** `tdk` records the generated files and reports drift, so local config stays in sync. See [generated files and drift checks](docs/generated-files.md).
 
+| Capability | docker-compose | Local Kubernetes (kind, minikube) | Plain Tilt | TDK CLI |
+| --- | --- | --- | --- | --- |
+| Scaffold a new service in one command | No | No | No | Yes (`tdk resource`) |
+| Hot reload on file change | Partial (`compose watch`) | Partial (extra tooling) | Yes | Yes |
+| Health-checked startup order | Yes (`depends_on: condition: service_healthy`) | Yes | Manual configuration | Yes |
+| Ingress routing and Postgres included | No | No | No | Yes (Traefik + Postgres) |
+| Start only one stack of a large system | Partial (profiles) | Manual | Manual | Yes (`tdk up <stack>`) |
+
+See the [detailed tool comparison](docs/comparison.md) for architectural tradeoffs, when each tool is the better choice, and migration workflows.
+
 ## How TDK works
 
 1. **Describe each service** in a `service.json` next to its code.
@@ -249,7 +259,7 @@ You do not need to write the nginx config, Dockerfile, or a `docker-compose.yml`
 
 If Helm, Compose, or your existing Tilt setup already gives you a working local environment, keep using it. TDK CLI is for engineers managing several services who want a clear local service contract and one command to start the stack.
 
-See [how TDK CLI works alongside Helm](https://tdk-landscape.github.io/tdk-website/docs/with-helm/), the [service schema](engine/schemas/service-schema.json), and the [project configuration schema](engine/schemas/project-schema.json).
+See [how TDK compares to alternative dev tools](docs/comparison.md), [how TDK CLI works alongside Helm](https://tdk-landscape.github.io/tdk-website/docs/with-helm/), the [service schema](engine/schemas/service-schema.json), and the [project configuration schema](engine/schemas/project-schema.json).
 
 ## Terminal UI
 
@@ -330,6 +340,7 @@ Set `TDK_DEBUG=1` before running `tdk up --verbose` to include Starlark debug lo
 - [Runnable Python backend example](examples/one-backend-python/README.md)
 - [Full multi-service example](examples/tdk-example/README.md)
 - [Features and license limits](docs/FEATURES.md)
+- [Tool comparison: docker-compose, Tilt, Skaffold, DevSpace, kind](docs/comparison.md)
 - [Honest comparison and known limits](docs/compare-honest.md)
 - [Public claims registry](docs/claims.md)
 - [Show HN draft](docs/drafts/show-hn.md)
