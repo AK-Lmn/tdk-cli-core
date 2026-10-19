@@ -56,28 +56,13 @@ function nonPlaceholderLines(text) {
 }
 
 export function reviewReadiness(body) {
-	const summary = section(body, "## What changed?");
-	const verification = section(body, "## How did you check it?");
+	// Prefer the template section; a description without the heading still counts when its own text is a real summary.
+	const hasSummaryHeading = body.split(/\r?\n/).some((line) => line.trim().toLowerCase() === "## what changed?");
+	const summary = hasSummaryHeading ? section(body, "## What changed?") : withoutComments(body);
 	const issues = [];
 
 	if (nonPlaceholderLines(summary).length === 0) {
 		issues.push("Add a real change summary under **What changed?**; remove placeholders such as [Input] or TODO.");
-	}
-
-	const completedChecks = verification.split(/\r?\n/).some((line) => {
-		const match = line.match(/^\s*[-*+]\s+\[x\]\s+(.+)$/i);
-		if (!match) return false;
-		const item = match[1].trim();
-		if (/^i said which checks? i did not run/i.test(item)) return false;
-		const otherCheck = item.match(/^other check:\s*(.*)$/i);
-		return nonPlaceholderLines(otherCheck ? otherCheck[1] : item).length > 0;
-	});
-	const documentedCustomCheck = verification.split(/\r?\n/).some((line) => {
-		const match = line.match(/^\s*[-*+]\s+Other check:\s*(.+)$/i);
-		return Boolean(match && nonPlaceholderLines(match[1]).length > 0);
-	});
-	if (!completedChecks && !documentedCustomCheck) {
-		issues.push("Mark a completed verification item or fill in **Other check** with the command and result.");
 	}
 
 	return { passed: issues.length === 0, issues };

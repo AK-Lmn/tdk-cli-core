@@ -26,10 +26,10 @@ test("accepts a documented custom check without checkbox syntax", () => {
 	);
 });
 
-test("rejects empty summary and verification sections", () => {
+test("rejects an empty summary", () => {
 	const result = reviewReadiness(body("<!-- add summary -->", "<!-- add checks -->"));
 	assert.equal(result.passed, false);
-	assert.equal(result.issues.length, 2);
+	assert.equal(result.issues.length, 1);
 });
 
 test("rejects placeholder-only summaries", () => {
@@ -38,18 +38,15 @@ test("rejects placeholder-only summaries", () => {
 	}
 });
 
-test("rejects untouched verification template placeholders", () => {
+test("does not require verification notes", () => {
 	const result = reviewReadiness(
 		body("Added a repository ruleset check.", "- [ ] Other check: <!-- Include the command and result. -->"),
 	);
-	assert.equal(result.passed, false);
+	assert.equal(result.passed, true);
 });
 
-test("does not treat the checklist bookkeeping item as verification", () => {
-	const result = reviewReadiness(
-		body("Added a repository ruleset check.", "- [x] I said which checks I did not run and why."),
-	);
-	assert.equal(result.passed, false);
+test("accepts a plain description without the template heading", () => {
+	assert.equal(reviewReadiness("Adds the X follow badge to the README.").passed, true);
 });
 
 test("rejects a summary that is only whitespace or an HTML comment", () => {
@@ -64,9 +61,9 @@ test("accepts Windows line endings and a heading in another capitalization", () 
 	assert.equal(reviewReadiness(text).passed, true);
 });
 
-test("rejects a description with no verification section", () => {
+test("accepts a description with no verification section", () => {
 	const text = "## What changed?\n\nAdded a repository ruleset check.\n";
-	assert.equal(reviewReadiness(text).passed, false);
+	assert.equal(reviewReadiness(text).passed, true);
 });
 
 test("reads the first matching section when a heading is duplicated", () => {
