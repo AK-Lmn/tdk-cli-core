@@ -4,6 +4,35 @@ English | [简体中文](docs/contributing/translations/CONTRIBUTING-zh_cn.md) |
 
 Welcome! Small fixes and large features are both useful. Start with the short [contributor guide](docs/contributing/README.md); it walks you through finding a change, making it, checking it, and opening a pull request.
 
+## Table of contents
+
+- [Your first contribution](#your-first-contribution)
+- [Start here](#start-here)
+- [Quick setup](#quick-setup)
+- [Supported platforms](#supported-platforms)
+- [Getting help](#getting-help)
+- [Code review](#code-review)
+- [Changing the CLI source](#changing-the-cli-source)
+- [Tests](#tests)
+- [Find bugs](#find-bugs)
+- [Review pull requests](#review-pull-requests)
+- [Find something to work on](#find-something-to-work-on)
+- [Spell check](#spell-check)
+- [Labels](#labels)
+- [Sign your commits](#sign-your-commits)
+- [Contributor recognition](#contributor-recognition)
+- [Add your team to the adopters list](#add-your-team-to-the-adopters-list)
+- [Governance](#governance)
+- [Be kind](#be-kind)
+
+## Your first contribution
+
+Looking for an easy place to start?
+
+- Browse [good first issues](https://github.com/tdk-landscape/tdk-cli-core/labels/good%20first%20issue) for small, self-contained tasks.
+- Check [help wanted](https://github.com/tdk-landscape/tdk-cli-core/labels/help%20wanted) issues for tasks needing community help.
+- Visit the [Start here tracking issue (#120)](https://github.com/tdk-landscape/tdk-cli-core/issues/120) for a curated list of beginner-friendly tasks and quests.
+
 ## Start here
 
 1. [Choose your change and get the repo ready](docs/contributing/01-first-change.md).
@@ -63,6 +92,23 @@ bun run typecheck && bun run lint && bun run test   # about a minute; all of it 
 
 If one of these fails on a clean checkout, that is a bug in the project, not in your setup: please [open an issue](https://github.com/tdk-landscape/tdk-cli-core/issues/new/choose).
 
+## Supported platforms
+
+For developing and running TDK locally:
+
+- **macOS and Linux**: Supported directly.
+- **Windows**: Supported and recommended via WSL2 (Ubuntu). Native Windows is inspect-only (`tdk --version`, `tdk doctor`, and `tdk up --dry-run`) and refutes startup (`tdk up` exits with an error indicating landscape startup requires Ubuntu on WSL2). See the [WSL2 setup guide](docs/wsl2.md) and tracking in [#622](https://github.com/tdk-landscape/tdk-cli-core/issues/622).
+
+## Getting help
+
+If you have questions or encounter issues while contributing:
+
+- **Bug report**: Use the [Bug report](https://github.com/tdk-landscape/tdk-cli-core/issues/new?template=bug_report.yml) template. Include steps to reproduce, what happened, what you expected, and the output of `tdk doctor` and `tdk --version`.
+- **Feature request**: Use the [Feature request](https://github.com/tdk-landscape/tdk-cli-core/issues/new?template=feature_request.yml) template to suggest an idea or improvement.
+- **Questions**: For quick questions, ideas, or general discussions that do not require an issue, use [GitHub Discussions](https://github.com/tdk-landscape/tdk-cli-core/discussions) or open a question via a blank issue.
+
+Maintainers aim to reply within one working day.
+
 ## Code review
 
 Every change goes through a pull request. Before a pull request is merged:
@@ -118,7 +164,7 @@ Before your first review, read the [required docs](docs/contributing/04-review-a
 
 ## Find something to work on
 
-- 🗺️ [The TDK Journey](docs/journey/README.md): pick an island, finish a quest, rank up (8 kyu → 1 dan)
+- [The TDK Journey](docs/journey/README.md): pick an island, finish a quest, rank up (8 kyu → 1 dan)
 - [Good first issues](https://github.com/tdk-landscape/tdk-cli-core/labels/good%20first%20issue)
 - [Help wanted](https://github.com/tdk-landscape/tdk-cli-core/labels/help%20wanted)
 - [Hunt for bugs](docs/contributing/finding-bugs.md) with the step-by-step checklist
@@ -166,6 +212,14 @@ each label's description.
 ## Sign your commits
 
 Every commit needs a [Developer Certificate of Origin](DCO) sign-off. Add it with `git commit -s`, which appends `Signed-off-by: Your Name <you@example.com>`. To fix existing commits, run `git rebase --signoff origin/main` and force-push your branch. A pull request check fails when a commit is missing the line.
+
+## Contributor recognition
+
+Every contribution matters. When your pull request is merged:
+
+- You are credited in the automated GitHub release notes for the next release.
+- Your contribution is recorded in [CHANGELOG.md](CHANGELOG.md).
+- You are recognized across the project contributor list and All Contributors records.
 
 ## Add your team to the adopters list
 
