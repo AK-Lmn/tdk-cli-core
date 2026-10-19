@@ -28,10 +28,13 @@ export declare function checkPublishedBindAddress(env?: NodeJS.ProcessEnv, stric
 /** Failures are shown before passing statuses, with a 5432 conflict first. */
 export declare function orderDoctorResults(results: CheckResult[]): CheckResult[];
 export declare function getDoctorOutcomeMessage(inProject: boolean, allPassed: boolean): string;
-export type DoctorCheckFn = (() => CheckResult | Promise<CheckResult>) & {
+export type DoctorCheckFn = ((exec?: ExecAsync) => CheckResult | Promise<CheckResult>) & {
     requiresContainerRuntime?: boolean;
     checkName?: string;
 };
+export declare const CONTAINER_CHECK_NAMES_MAP: Record<string, string>;
+export declare const CONTAINER_DEPENDENT_CHECK_NAMES: Set<string>;
+export declare function isContainerDependentCheck(check: DoctorCheckFn): boolean;
 export declare function requiresContainerRuntime(checkName: string, check: () => CheckResult | Promise<CheckResult>): DoctorCheckFn;
 export declare function runChecks(checks: DoctorCheckFn[], options?: {
     all?: boolean;
@@ -39,10 +42,20 @@ export declare function runChecks(checks: DoctorCheckFn[], options?: {
 }): Promise<CheckResult[]>;
 export declare function formatDoctorSummary(results: CheckResult[]): string;
 export declare function checkDockerRuntime(): Promise<CheckResult>;
-export declare const checkDockerCompose: (exec?: ExecAsync) => Promise<CheckResult>;
+export declare const checkDockerCompose: DoctorCheckFn;
 export declare function checkDockerVersions(exec?: ExecAsync): Promise<CheckResult>;
+export declare namespace checkDockerVersions {
+    var _a: boolean;
+    export { _a as requiresContainerRuntime };
+    export var checkName: string;
+}
 export declare function checkTilt(exec?: ExecAsync): Promise<CheckResult>;
 export declare function checkDockerOperatingSystem(exec?: ExecAsync): Promise<CheckResult>;
+export declare namespace checkDockerOperatingSystem {
+    var _b: boolean;
+    export { _b as requiresContainerRuntime };
+    export var checkName: string;
+}
 export declare function checkBun(exec?: ExecAsync): Promise<CheckResult>;
 /**
  * A repo can pin the oldest CLI it works with: `"minTdkVersion": "1.3.80"` in
@@ -72,4 +85,7 @@ export declare function checkFrontendDockerPreflight(): CheckResult;
  * for a slow migration or a flaky healthcheck.
  */
 export declare const checkContainerResourceHealth: DoctorCheckFn;
+export declare function renderDoctorOutput(machineResults: CheckResult[], projectResults: CheckResult[], inProject: boolean, options?: {
+    all?: boolean;
+}): void;
 export declare const doctorCommand: Command;

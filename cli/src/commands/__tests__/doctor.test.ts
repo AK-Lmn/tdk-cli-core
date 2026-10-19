@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { captureExit } from "../../test-support/index.js";
+import type { CheckResult } from "../../types/index.js";
 import { CONTAINER_RUNTIME_CHECK, STANDARD_PORTS } from "../../utils/constants.js";
 import {
   checkHostPorts,
@@ -21,7 +22,6 @@ import {
 } from "../../utils/doctor-runtime.js";
 import { checkSharedStackRoutes } from "../../utils/doctor-wiring.js";
 import {
-  checkContainerResourceHealth,
   checkDockerCompose,
   checkDockerVersions,
   checkFrontendDockerPreflight,
@@ -34,6 +34,7 @@ import {
   doctorCommand,
   formatDoctorSummary,
   getDoctorOutcomeMessage,
+  renderDoctorOutput,
   requiresContainerRuntime,
   runChecks,
   WSL2_DOCTOR_MESSAGE,
@@ -1373,6 +1374,29 @@ describe("doctor --all, sections, and summary", () => {
 
   it("skips container-dependent checks under --all when Container Runtime failed", async () => {
     let dependentCalled = false;
+    let rawContainerCalled = false;
+    let rawComposeCalled = false;
+
+    const rawContainerImpl = vi.fn(() => {
+      rawContainerCalled = true;
+      return { name: "Container Resource Health", didPass: true, message: "OK" };
+    });
+    const wrappedContainerCheck = requiresContainerRuntime(
+      "Container Resource Health",
+      rawContainerImpl,
+    );
+
+    const rawComposeCheck = Object.assign(
+      function checkDockerCompose() {
+        rawComposeCalled = true;
+        return { name: "Docker Compose", didPass: true, message: "OK" };
+      },
+      {
+        requiresContainerRuntime: true,
+        checkName: "Docker Compose",
+      },
+    );
+
     const checks = [
       () => ({
         name: CONTAINER_RUNTIME_CHECK,
@@ -1383,7 +1407,8 @@ describe("doctor --all, sections, and summary", () => {
         dependentCalled = true;
         return { name: "Crash-looping containers", didPass: true, message: "Healthy" };
       }),
-      checkContainerResourceHealth,
+      wrappedContainerCheck,
+      rawComposeCheck,
       () => ({
         name: "Environment Variables",
         didPass: false,
@@ -1394,7 +1419,10 @@ describe("doctor --all, sections, and summary", () => {
     const results = await runChecks(checks, { all: true });
 
     expect(dependentCalled).toBe(false);
-    expect(results).toHaveLength(4);
+    expect(rawContainerCalled).toBe(false);
+    expect(rawContainerImpl).not.toHaveBeenCalled();
+    expect(rawComposeCalled).toBe(false);
+    expect(results).toHaveLength(5);
     expect(results[1]).toMatchObject({
       name: "Crash-looping containers",
       didPass: true,
@@ -1406,12 +1434,17 @@ describe("doctor --all, sections, and summary", () => {
       isSkipped: true,
     });
     expect(results[3]).toMatchObject({
+      name: "Docker Compose",
+      didPass: true,
+      isSkipped: true,
+    });
+    expect(results[4]).toMatchObject({
       name: "Environment Variables",
       didPass: false,
     });
   });
 
-  it("formats the one-line summary with passed, failed, and skipped counts", () => {
+  it("formats the one-line summary with passed, warned, failed, and skipped counts", () => {
     const summary = formatDoctorSummary([
       { name: "Docker", didPass: true, message: "OK" },
       { name: "WSL", didPass: false, isWarning: true, message: "Warning" },
@@ -1420,7 +1453,15 @@ describe("doctor --all, sections, and summary", () => {
       { name: "Smoke", didPass: true, isSkipped: true, message: "Skipped" },
     ]);
 
-    expect(summary).toBe("2 passed, 1 failed, 2 skipped");
+    expect(summary).toBe("1 passed, 1 warned, 1 failed, 2 skipped");
+  });
+
+  it("formats summary correctly for a warning-only run", () => {
+    const summary = formatDoctorSummary([
+      { name: "WSL", didPass: false, isWarning: true, message: "Warning" },
+    ]);
+
+    expect(summary).toBe("0 passed, 1 warned, 0 failed, 0 skipped");
   });
 
   it("treats unexpected check failures as failed in the summary instead of skipped", () => {
@@ -1466,7 +1507,9 @@ describe("doctor --all, sections, and summary", () => {
       const lines = log.mock.calls.map((call) => String(call[0]));
       expect(lines.some((line) => line.includes("Machine"))).toBe(true);
       expect(lines.some((line) => line.includes("Project"))).toBe(true);
-      expect(lines.some((line) => /^\d+ passed, \d+ failed, \d+ skipped$/.test(line))).toBe(true);
+      expect(
+        lines.some((line) => /^\d+ passed(?:, \d+ warned)?, \d+ failed, \d+ skipped$/.test(line)),
+      ).toBe(true);
       expect(exit).toHaveBeenCalledWith(1);
     } finally {
       process.chdir(originalCwd);
@@ -1475,6 +1518,144 @@ describe("doctor --all, sections, and summary", () => {
       log.mockRestore();
       error.mockRestore();
       rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("prints Project section when running --all outside a project even with failing checks", async () => {
+    const root = mkdtempSync(join(tmpdir(), "tdk-doctor-no-project-"));
+    const originalCwd = process.cwd();
+    const platformDescriptor = Object.getOwnPropertyDescriptor(process, "platform");
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { exit } = captureExit();
+
+    try {
+      process.chdir(root);
+      Object.defineProperty(process, "platform", { configurable: true, value: "linux" });
+
+      try {
+        await doctorCommand.parseAsync(["--all", "--no-ping"], { from: "user" });
+      } catch {
+        // Expected when process.exit is called
+      }
+
+      const lines = log.mock.calls.map((call) => String(call[0]));
+      expect(lines.some((line) => line.includes("Machine"))).toBe(true);
+      expect(lines.some((line) => line.includes("Project"))).toBe(true);
+      expect(
+        lines.some((line) => line.includes("Not in a TDK project, so project checks were skipped")),
+      ).toBe(true);
+      expect(
+        lines.some((line) => /^\d+ passed(?:, \d+ warned)?, \d+ failed, \d+ skipped$/.test(line)),
+      ).toBe(true);
+    } finally {
+      process.chdir(originalCwd);
+      if (platformDescriptor) Object.defineProperty(process, "platform", platformDescriptor);
+      exit.mockRestore();
+      log.mockRestore();
+      error.mockRestore();
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("preserves machine-readable JSON envelope when --all and --json are combined", async () => {
+    const root = mkdtempSync(join(tmpdir(), "tdk-doctor-json-all-"));
+    const originalCwd = process.cwd();
+    const platformDescriptor = Object.getOwnPropertyDescriptor(process, "platform");
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { exit } = captureExit();
+
+    try {
+      mkdirSync(join(root, ".tdk"), { recursive: true });
+      writeFileSync(
+        join(root, ".tdk", "project.json"),
+        JSON.stringify({ project: { name: "doctor-json-all" } }),
+      );
+      process.chdir(root);
+      Object.defineProperty(process, "platform", { configurable: true, value: "linux" });
+
+      try {
+        await doctorCommand.parseAsync(["--all", "--json", "--no-ping"], { from: "user" });
+      } catch {
+        // Expected when process.exit is called on failing checks
+      }
+
+      const jsonCall = log.mock.calls.find((call) => {
+        try {
+          const parsed = JSON.parse(String(call[0]));
+          return (
+            parsed &&
+            typeof parsed.schemaVersion === "number" &&
+            parsed.data &&
+            Array.isArray(parsed.data.checks)
+          );
+        } catch {
+          return false;
+        }
+      });
+
+      expect(jsonCall).toBeDefined();
+      const parsed = JSON.parse(String(jsonCall?.[0]));
+      expect(parsed.schemaVersion).toBe(1);
+      expect(parsed.data.checks.length).toBeGreaterThan(0);
+      expect(typeof parsed.data.ready).toBe("boolean");
+      expect(typeof parsed.data.inProject).toBe("boolean");
+      expect(Array.isArray(parsed.errors)).toBe(true);
+
+      const nonJsonCalls = log.mock.calls
+        .map((call) => String(call[0]))
+        .filter((str) => !str.startsWith("{"));
+      expect(nonJsonCalls.some((str) => str.includes("Machine"))).toBe(false);
+      expect(nonJsonCalls.some((str) => str.includes("Project"))).toBe(false);
+      expect(exit).toHaveBeenCalledWith(1);
+    } finally {
+      process.chdir(originalCwd);
+      if (platformDescriptor) Object.defineProperty(process, "platform", platformDescriptor);
+      exit.mockRestore();
+      log.mockRestore();
+      error.mockRestore();
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("renders Project heading under --all when in a project even if project checks are empty", () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    try {
+      const machineResults: CheckResult[] = [{ name: "Host Ports", didPass: true, message: "OK" }];
+      const projectResults: CheckResult[] = [];
+
+      renderDoctorOutput(machineResults, projectResults, true, { all: true });
+
+      const lines = log.mock.calls.map((call) => String(call[0]));
+      expect(lines.some((line) => line.includes("Machine"))).toBe(true);
+      expect(lines.some((line) => line.includes("Project"))).toBe(true);
+      expect(lines.some((line) => line.includes("Not in a TDK project"))).toBe(false);
+      expect(lines.some((line) => line.includes("1 passed, 0 failed, 0 skipped"))).toBe(true);
+    } finally {
+      log.mockRestore();
+    }
+  });
+
+  it("renders Project heading and skipped message under --all when not in a project", () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    try {
+      const machineResults: CheckResult[] = [
+        { name: "Host Ports", didPass: false, message: "Port busy" },
+      ];
+      const projectResults: CheckResult[] = [];
+
+      renderDoctorOutput(machineResults, projectResults, false, { all: true });
+
+      const lines = log.mock.calls.map((call) => String(call[0]));
+      expect(lines.some((line) => line.includes("Machine"))).toBe(true);
+      expect(lines.some((line) => line.includes("Project"))).toBe(true);
+      expect(
+        lines.some((line) => line.includes("Not in a TDK project, so project checks were skipped")),
+      ).toBe(true);
+      expect(lines.some((line) => line.includes("0 passed, 1 failed, 0 skipped"))).toBe(true);
+    } finally {
+      log.mockRestore();
     }
   });
 
