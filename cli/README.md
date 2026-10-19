@@ -438,6 +438,7 @@ To bring an existing Compose repo in, `tdk import` runs [tdk-import](https://git
 ## 📚 Documentation
 
 - [Main README](../README.md)
+- [Writing unit tests for the CLI](../docs/contributing/08-write-cli-unit-tests.md)
 - [Feature flags](../docs/FEATURES.md)
 - [Bring-your-own resources](../docs/byo.md)
 - [Running a landscape from moon](../docs/recipes/moon.md)
