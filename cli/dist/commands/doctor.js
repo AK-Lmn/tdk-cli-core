@@ -137,6 +137,100 @@ export function getDoctorOutcomeMessage(inProject, allPassed) {
         return "Doctor failed. Fix the items above, then run: tdk doctor";
     return inProject ? "Doctor passed. Next: tdk up" : "Doctor passed. Next: tdk project example";
 }
+export const CONTAINER_CHECK_NAMES_MAP = {
+    checkDockerOperatingSystem: "Docker OS",
+    checkDockerCompose: "Docker Compose",
+    checkDockerVersions: "Docker Versions",
+    checkDockerNetworkCapacity: "Docker Network Pool",
+    checkContainerResourceHealth: "Container Resource Health",
+    checkCrashLoopingContainers: "Crash-looping containers",
+    checkTiltResourceHealth: "Tilt Resources",
+    checkServiceHealth: "Service Health",
+    checkServiceSmoke: "Service Smoke",
+    checkAdvertisedEndpoints: "Advertised Endpoints",
+};
+export const CONTAINER_DEPENDENT_CHECK_NAMES = new Set([
+    "Docker OS",
+    "Docker Compose",
+    "Docker Versions",
+    "Docker Network Pool",
+    "Container Resource Health",
+    "Crash-looping containers",
+    "Tilt Resources",
+    "Service Health",
+    "Service Smoke",
+    "Advertised Endpoints",
+    ...Object.keys(CONTAINER_CHECK_NAMES_MAP),
+]);
+export function isContainerDependentCheck(check) {
+    if (check.requiresContainerRuntime)
+        return true;
+    if (check.checkName && CONTAINER_DEPENDENT_CHECK_NAMES.has(check.checkName))
+        return true;
+    if (check.name && CONTAINER_DEPENDENT_CHECK_NAMES.has(check.name))
+        return true;
+    return false;
+}
+export function requiresContainerRuntime(checkName, check) {
+    const wrapped = () => check();
+    wrapped.requiresContainerRuntime = true;
+    wrapped.checkName = checkName;
+    return wrapped;
+}
+export async function runChecks(checks, options = {}) {
+    const results = [];
+    let containerRuntimeFailed = Boolean(options.containerRuntimeFailed);
+    for (const check of checks) {
+        if (containerRuntimeFailed && isContainerDependentCheck(check)) {
+            const checkName = check.checkName ??
+                (check.name && CONTAINER_CHECK_NAMES_MAP[check.name]
+                    ? CONTAINER_CHECK_NAMES_MAP[check.name]
+                    : check.name && check.name !== "check" && check.name !== "fn"
+                        ? check.name
+                        : "Container check");
+            results.push({
+                name: checkName,
+                didPass: true,
+                isSkipped: true,
+                message: `Docker not running - skipped ${checkName} check`,
+            });
+            continue;
+        }
+        const result = await check();
+        results.push(result);
+        if (result.name === CONTAINER_RUNTIME_CHECK && !result.didPass) {
+            containerRuntimeFailed = true;
+        }
+        if (!options.all && !result.didPass && !result.isSkipped && !result.isWarning) {
+            break;
+        }
+    }
+    return results;
+}
+export function formatDoctorSummary(results) {
+    let passed = 0;
+    let failed = 0;
+    let skipped = 0;
+    let warned = 0;
+    for (const result of results) {
+        if (result.isSkipped) {
+            skipped++;
+        }
+        else if (result.isWarning) {
+            warned++;
+        }
+        else if (result.didPass) {
+            passed++;
+        }
+        else {
+            failed++;
+        }
+    }
+    if (warned > 0) {
+        return `${passed} passed, ${warned} warned, ${failed} failed, ${skipped} skipped`;
+    }
+    return `${passed} passed, ${failed} failed, ${skipped} skipped`;
+}
 function isTimeout(err) {
     return isExecTimeout(err);
 }
@@ -259,6 +353,8 @@ export async function checkDockerRuntime() {
     };
 }
 export const checkDockerCompose = createExecCheck("Docker Compose", "docker compose version", "Docker Compose plugin available", "Docker Compose plugin not found", "Install Docker Compose: https://docs.docker.com/compose/install/");
+checkDockerCompose.requiresContainerRuntime = true;
+checkDockerCompose.checkName = "Docker Compose";
 // Generated healthchecks use `start_interval`, which older engines/compose reject.
 const MIN_DOCKER_ENGINE_VERSION = [25, 0, 0];
 const MIN_DOCKER_COMPOSE_VERSION = [2, 20, 2];
@@ -327,6 +423,8 @@ export async function checkDockerVersions(exec = execAsync) {
         fix: "Update Docker Desktop, or on Linux update docker-ce and the docker-compose-plugin package",
     };
 }
+checkDockerVersions.requiresContainerRuntime = true;
+checkDockerVersions.checkName = "Docker Versions";
 export async function checkTilt(exec = execAsync) {
     let raw;
     try {
@@ -375,6 +473,8 @@ export async function checkDockerOperatingSystem(exec = execAsync) {
     }
     return { name: "Docker OS", didPass: true, message: "Docker is using Linux containers" };
 }
+checkDockerOperatingSystem.requiresContainerRuntime = true;
+checkDockerOperatingSystem.checkName = "Docker OS";
 export async function checkBun(exec = execAsync) {
     const projectRoot = findProjectRoot();
     if (!projectRoot) {
@@ -868,7 +968,7 @@ function parseDockerStats(raw) {
  * *why* -- only live resource stats catch this pattern before it's mistaken
  * for a slow migration or a flaky healthcheck.
  */
-function checkContainerResourceHealth() {
+export const checkContainerResourceHealth = Object.assign(function checkContainerResourceHealth() {
     let raw;
     try {
         raw = execFileSync(findOnPath("docker") ?? "docker", ["stats", "--no-stream", "--format", "{{.Name}},{{.MemPerc}},{{.CPUPerc}}"], {
@@ -914,7 +1014,10 @@ function checkContainerResourceHealth() {
         message: `${formatCount(hangers.length, "container")} pinned near its memory limit while burning CPU -- likely stuck in a boot-time retry/fetch loop, not a normal crash:\n    ${details}`,
         fix: "Check the container's boot logs for a network fetch loop (e.g. `bunx <pkg>` re-downloading a CLI on every start instead of using one already installed): docker logs <container>. If a Prisma auto-migration is the cause, set AUTO_MIGRATE=false in the project's .env as a temporary unblock.",
     };
-}
+}, {
+    requiresContainerRuntime: true,
+    checkName: "Container Resource Health",
+});
 const DEFAULT_PING_TIMEOUT_MS = 5000;
 /**
  * Pings every routable service on the same /health URLs `tdk up` advertises.
@@ -1002,8 +1105,58 @@ function printFixActions(actions, dryRun) {
         console.log(chalk.gray("\nDry run: nothing was changed."));
     console.log("");
 }
+function printDoctorResults(list) {
+    for (const result of orderDoctorResults(list)) {
+        if (!result.didPass && !result.isSkipped && !result.isWarning) {
+            console.log(`${chalk.red("✗")} ${result.message}`);
+            if (result.fix)
+                console.log(`${chalk.blue("ℹ")} Fix: ${result.fix}`);
+        }
+        else if (result.isWarning) {
+            console.log(`${chalk.yellow("⚠")} ${chalk.yellow(result.message)}`);
+            if (result.fix)
+                console.log(`${chalk.blue("ℹ")} Fix: ${result.fix}`);
+        }
+        else if (result.isSkipped) {
+            console.log(`${chalk.gray("○")} ${chalk.gray(result.message)}`);
+            if (result.fix)
+                console.log(`${chalk.blue("ℹ")} ${result.fix}`);
+        }
+        else {
+            console.log(`${chalk.green("✓")} ${result.message}`);
+        }
+    }
+}
+export function renderDoctorOutput(machineResults, projectResults, inProject, options = {}, allResults) {
+    const results = allResults ?? [...machineResults, ...projectResults];
+    if (options.all) {
+        console.log(chalk.bold("Machine"));
+        printDoctorResults(machineResults);
+        console.log(`\n${chalk.bold("Project")}`);
+        if (inProject) {
+            if (projectResults.length > 0) {
+                printDoctorResults(projectResults);
+            }
+        }
+        else {
+            console.log(`${chalk.gray("○")} ${chalk.gray("Not in a TDK project, so project checks were skipped")}`);
+        }
+        console.log("");
+        console.log(formatDoctorSummary(results));
+    }
+    else {
+        printDoctorResults(results);
+        console.log("");
+        const allPassed = results.every((check) => check.didPass || check.isSkipped || check.isWarning);
+        if (allPassed && !inProject) {
+            console.log(`${chalk.gray("○")} ${chalk.gray("Not in a TDK project, so project checks were skipped")}`);
+            console.log("");
+        }
+    }
+}
 export const doctorCommand = new Command("doctor")
     .description("Check environment readiness for TDK")
+    .option("--all", "Run every check and show Machine and Project sections with a summary", false)
     .option("--json", "Output a versioned JSON readiness report", false)
     .exitOverride((error) => {
     if (error.exitCode === 0)
@@ -1171,15 +1324,15 @@ export const doctorCommand = new Command("doctor")
             },
         checkDockerRuntime,
         () => checkDiskSpace(),
-        checkDockerOperatingSystem,
+        requiresContainerRuntime("Docker OS", checkDockerOperatingSystem),
         checkTilt,
-        checkDockerCompose,
-        checkDockerVersions,
+        requiresContainerRuntime("Docker Compose", checkDockerCompose),
+        requiresContainerRuntime("Docker Versions", checkDockerVersions),
         checkBun,
         () => checkWslProjectLocation(findProjectRoot() ?? process.cwd(), options.strict),
         () => checkPublishedBindAddress(process.env, options.strict),
         // Each project needs several networks; a full address pool fails `tdk up` late.
-        () => checkDockerNetworkCapacity(),
+        requiresContainerRuntime("Docker Network Pool", () => checkDockerNetworkCapacity()),
         () => checkDuplicateTdkInstalls(),
     ];
     const projectChecks = [
@@ -1220,9 +1373,9 @@ export const doctorCommand = new Command("doctor")
             return checkPrivateNpmRegistry(execSync, root, undefined, licensed);
         },
         // Runtime checks: skip gracefully if the stack isn't started yet.
-        checkContainerResourceHealth,
+        requiresContainerRuntime("Container Resource Health", checkContainerResourceHealth),
         // A container restarted thousands of times is invisible in `docker ps` until someone looks.
-        () => {
+        requiresContainerRuntime("Crash-looping containers", () => {
             const root = findProjectRoot() ?? process.cwd();
             let secrets = [];
             try {
@@ -1238,9 +1391,9 @@ export const doctorCommand = new Command("doctor")
                 };
             }
             return checkCrashLoopingContainers(getProjectName(), secrets);
-        },
+        }),
         // When Tilt is up, surface red resources (Traefik/apps never started).
-        checkTiltResourceHealth,
+        requiresContainerRuntime("Tilt Resources", checkTiltResourceHealth),
     ];
     // Runs last: needs routable services (and working Traefik) to mean anything.
     if (options.ping) {
@@ -1248,15 +1401,60 @@ export const doctorCommand = new Command("doctor")
         const pingPort = projectRoot
             ? resolveRuntimeIngressPort(projectRoot, hostPortPlan?.ingressHttp)
             : hostPortPlan?.ingressHttp;
-        projectChecks.push(() => checkServiceHealth(pingTimeout, pingPort));
-        projectChecks.push(() => checkServiceSmoke(pingTimeout, pingPort));
-        projectChecks.push(() => checkAdvertisedEndpoints(pingTimeout, pingPort));
+        projectChecks.push(requiresContainerRuntime("Service Health", () => checkServiceHealth(pingTimeout, pingPort)));
+        projectChecks.push(requiresContainerRuntime("Service Smoke", () => checkServiceSmoke(pingTimeout, pingPort)));
+        projectChecks.push(requiresContainerRuntime("Advertised Endpoints", () => checkAdvertisedEndpoints(pingTimeout, pingPort)));
     }
     // Right after installing, people run `tdk doctor` before they have a
     // project. Only the machine checks mean anything there; the project checks
     // would all fail with "run tdk project".
     const inProject = Boolean(projectRoot);
-    const { checks: results, errors } = await collectDoctorChecks(machineChecks, inProject ? projectChecks : []);
+    let machineResults = [];
+    let projectResults = [];
+    let results;
+    let errors = [];
+    if (options.json || !options.all) {
+        const collected = await collectDoctorChecks(machineChecks, inProject ? projectChecks : []);
+        results = collected.checks;
+        errors = collected.errors;
+    }
+    else {
+        const runSection = async (sectionChecks, runtimeFailed = false) => {
+            const wrapped = sectionChecks.map((check) => {
+                const fn = async () => {
+                    try {
+                        return await check();
+                    }
+                    catch (err) {
+                        errors.push({
+                            code: "INTERNAL",
+                            message: err instanceof Error ? err.message : String(err),
+                        });
+                        return {
+                            name: check.checkName ?? "Doctor check",
+                            didPass: false,
+                            isSkipped: false,
+                            message: "Check failed with an internal error",
+                        };
+                    }
+                };
+                fn.requiresContainerRuntime = check.requiresContainerRuntime;
+                fn.checkName = check.checkName;
+                return fn;
+            });
+            return runChecks(wrapped, {
+                all: Boolean(options.all),
+                containerRuntimeFailed: runtimeFailed,
+            });
+        };
+        machineResults = await runSection(machineChecks);
+        const machineFailed = machineResults.some((result) => !result.didPass && !result.isSkipped && !result.isWarning);
+        const runtimeFailed = machineResults.some((result) => result.name === CONTAINER_RUNTIME_CHECK && !result.didPass);
+        if (inProject && (options.all || !machineFailed)) {
+            projectResults = await runSection(projectChecks, runtimeFailed);
+        }
+        results = [...machineResults, ...projectResults];
+    }
     if (isContainerHost(host.kind)) {
         for (const result of results) {
             if (result.name === CONTAINER_RUNTIME_CHECK && !result.didPass) {
@@ -1297,31 +1495,7 @@ export const doctorCommand = new Command("doctor")
     }
     for (const error of errors)
         console.error(`${chalk.red("✗")} Doctor check failed: ${error.message}`);
-    for (const result of orderDoctorResults(results)) {
-        if (!result.didPass && !result.isSkipped && !result.isWarning) {
-            console.log(`${chalk.red("✗")} ${result.message}`);
-            if (result.fix)
-                console.log(`${chalk.blue("ℹ")} Fix: ${result.fix}`);
-        }
-        else if (result.isWarning) {
-            console.log(`${chalk.yellow("⚠")} ${chalk.yellow(result.message)}`);
-            if (result.fix)
-                console.log(`${chalk.blue("ℹ")} Fix: ${result.fix}`);
-        }
-        else if (result.isSkipped) {
-            console.log(`${chalk.gray("○")} ${chalk.gray(result.message)}`);
-            if (result.fix)
-                console.log(`${chalk.blue("ℹ")} ${result.fix}`);
-        }
-        else {
-            console.log(`${chalk.green("✓")} ${result.message}`);
-        }
-    }
-    console.log("");
-    if (allPassed && !inProject) {
-        console.log(`${chalk.gray("○")} ${chalk.gray("Not in a TDK project, so project checks were skipped")}`);
-        console.log("");
-    }
+    renderDoctorOutput(machineResults, projectResults, inProject, options, results);
     const outcome = getDoctorOutcomeMessage(inProject, allPassed);
     console.log(`${allPassed ? chalk.green(chalk.bold("✓")) : chalk.red(chalk.bold("✗"))} ${outcome}`);
     if (exitCode !== 0)

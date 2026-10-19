@@ -4,7 +4,9 @@ import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { STANDARD_PORTS } from "../../utils/constants.js";
+import { captureExit } from "../../test-support/index.js";
+import type { CheckResult } from "../../types/index.js";
+import { CONTAINER_RUNTIME_CHECK, STANDARD_PORTS } from "../../utils/constants.js";
 import {
   checkHostPorts,
   checkIngressPorts,
@@ -29,7 +31,12 @@ import {
   checkTdkVersion,
   checkTypeScriptTypeDependencies,
   DOCTOR_FIXES,
+  doctorCommand,
+  formatDoctorSummary,
   getDoctorOutcomeMessage,
+  renderDoctorOutput,
+  requiresContainerRuntime,
+  runChecks,
   WSL2_DOCTOR_MESSAGE,
 } from "../doctor.js";
 
@@ -1281,5 +1288,411 @@ describe("doctor Docker Compose check", () => {
 
     expect(result.didPass).toBe(false);
     expect(result.message).toBe("Docker Compose plugin not found");
+  });
+});
+
+describe("doctor --all, sections, and summary", () => {
+  afterEach(() => {
+    doctorCommand.setOptionValue("all", false);
+    doctorCommand.setOptionValue("json", false);
+    doctorCommand.setOptionValue("ping", true);
+  });
+
+  it("stops at the first failing check when all is false or omitted", async () => {
+    const executed: string[] = [];
+    const checks = [
+      () => {
+        executed.push("first");
+        return { name: "First", didPass: true, message: "First passed" };
+      },
+      () => {
+        executed.push("second");
+        return { name: "Second", didPass: false, message: "Second failed", fix: "Fix second" };
+      },
+      () => {
+        executed.push("third");
+        return { name: "Third", didPass: false, message: "Third failed", fix: "Fix third" };
+      },
+    ];
+
+    const results = await runChecks(checks, { all: false });
+
+    expect(executed).toEqual(["first", "second"]);
+    expect(results).toHaveLength(2);
+    expect(results[1]?.name).toBe("Second");
+  });
+
+  it("continues past warnings and skipped checks when all is false", async () => {
+    const executed: string[] = [];
+    const checks = [
+      () => {
+        executed.push("warn");
+        return { name: "Warn", didPass: false, isWarning: true, message: "Minor warning" };
+      },
+      () => {
+        executed.push("skip");
+        return { name: "Skip", didPass: true, isSkipped: true, message: "Skipped" };
+      },
+      () => {
+        executed.push("pass");
+        return { name: "Pass", didPass: true, message: "Passed" };
+      },
+    ];
+
+    const results = await runChecks(checks);
+
+    expect(executed).toEqual(["warn", "skip", "pass"]);
+    expect(results).toHaveLength(3);
+  });
+
+  it("runs every check when all is true, even after earlier failures", async () => {
+    const executed: string[] = [];
+    const checks = [
+      () => {
+        executed.push("ports");
+        return { name: "Host Ports", didPass: false, message: "Port 80 busy" };
+      },
+      () => {
+        executed.push("env");
+        return { name: "Environment Variables", didPass: false, message: ".env missing" };
+      },
+      () => {
+        executed.push("configs");
+        return { name: "Master Configs", didPass: true, message: "Configs ready" };
+      },
+    ];
+
+    const results = await runChecks(checks, { all: true });
+
+    expect(executed).toEqual(["ports", "env", "configs"]);
+    expect(results.map((r) => r.name)).toEqual([
+      "Host Ports",
+      "Environment Variables",
+      "Master Configs",
+    ]);
+  });
+
+  it("skips container-dependent checks under --all when Container Runtime failed", async () => {
+    let dependentCalled = false;
+    let rawContainerCalled = false;
+    let rawComposeCalled = false;
+
+    const rawContainerImpl = vi.fn(() => {
+      rawContainerCalled = true;
+      return { name: "Container Resource Health", didPass: true, message: "OK" };
+    });
+    const wrappedContainerCheck = requiresContainerRuntime(
+      "Container Resource Health",
+      rawContainerImpl,
+    );
+
+    const rawComposeCheck = Object.assign(
+      function checkDockerCompose() {
+        rawComposeCalled = true;
+        return { name: "Docker Compose", didPass: true, message: "OK" };
+      },
+      {
+        requiresContainerRuntime: true,
+        checkName: "Docker Compose",
+      },
+    );
+
+    const checks = [
+      () => ({
+        name: CONTAINER_RUNTIME_CHECK,
+        didPass: false,
+        message: "Docker is not running",
+      }),
+      requiresContainerRuntime("Crash-looping containers", () => {
+        dependentCalled = true;
+        return { name: "Crash-looping containers", didPass: true, message: "Healthy" };
+      }),
+      wrappedContainerCheck,
+      rawComposeCheck,
+      () => ({
+        name: "Environment Variables",
+        didPass: false,
+        message: "Missing .env",
+      }),
+    ];
+
+    const results = await runChecks(checks, { all: true });
+
+    expect(dependentCalled).toBe(false);
+    expect(rawContainerCalled).toBe(false);
+    expect(rawContainerImpl).not.toHaveBeenCalled();
+    expect(rawComposeCalled).toBe(false);
+    expect(results).toHaveLength(5);
+    expect(results[1]).toMatchObject({
+      name: "Crash-looping containers",
+      didPass: true,
+      isSkipped: true,
+    });
+    expect(results[2]).toMatchObject({
+      name: "Container Resource Health",
+      didPass: true,
+      isSkipped: true,
+    });
+    expect(results[3]).toMatchObject({
+      name: "Docker Compose",
+      didPass: true,
+      isSkipped: true,
+    });
+    expect(results[4]).toMatchObject({
+      name: "Environment Variables",
+      didPass: false,
+    });
+  });
+
+  it("formats the one-line summary with passed, warned, failed, and skipped counts", () => {
+    const summary = formatDoctorSummary([
+      { name: "Docker", didPass: true, message: "OK" },
+      { name: "WSL", didPass: false, isWarning: true, message: "Warning" },
+      { name: "Env", didPass: false, message: "Missing .env" },
+      { name: "Bun", didPass: true, isSkipped: true, message: "Skipped" },
+      { name: "Smoke", didPass: true, isSkipped: true, message: "Skipped" },
+    ]);
+
+    expect(summary).toBe("1 passed, 1 warned, 1 failed, 2 skipped");
+  });
+
+  it("formats summary correctly for a warning-only run", () => {
+    const summary = formatDoctorSummary([
+      { name: "WSL", didPass: false, isWarning: true, message: "Warning" },
+    ]);
+
+    expect(summary).toBe("0 passed, 1 warned, 0 failed, 0 skipped");
+  });
+
+  it("treats unexpected check failures as failed in the summary instead of skipped", () => {
+    const summary = formatDoctorSummary([
+      { name: "Docker", didPass: true, message: "OK" },
+      {
+        name: "CrashCheck",
+        didPass: false,
+        isSkipped: false,
+        message: "Check failed with an internal error",
+      },
+      { name: "SkippedCheck", didPass: true, isSkipped: true, message: "Skipped" },
+    ]);
+
+    expect(summary).toBe("1 passed, 1 failed, 1 skipped");
+  });
+
+  it("registers --all on doctorCommand and prints Machine, Project, and summary", async () => {
+    expect(doctorCommand.options.some((opt) => opt.long === "--all")).toBe(true);
+
+    const root = mkdtempSync(join(tmpdir(), "tdk-doctor-all-"));
+    const originalCwd = process.cwd();
+    const platformDescriptor = Object.getOwnPropertyDescriptor(process, "platform");
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { exit } = captureExit();
+
+    try {
+      mkdirSync(join(root, ".tdk"), { recursive: true });
+      writeFileSync(
+        join(root, ".tdk", "project.json"),
+        JSON.stringify({ project: { name: "doctor-all-test" } }),
+      );
+      process.chdir(root);
+      Object.defineProperty(process, "platform", { configurable: true, value: "linux" });
+
+      try {
+        await doctorCommand.parseAsync(["--all", "--no-ping"], { from: "user" });
+      } catch {
+        // Expected when process.exit is called on failing checks
+      }
+
+      const lines = log.mock.calls.map((call) => String(call[0]));
+      expect(lines.some((line) => line.includes("Machine"))).toBe(true);
+      expect(lines.some((line) => line.includes("Project"))).toBe(true);
+      expect(
+        lines.some((line) => /^\d+ passed(?:, \d+ warned)?, \d+ failed, \d+ skipped$/.test(line)),
+      ).toBe(true);
+      expect(exit).toHaveBeenCalledWith(1);
+    } finally {
+      process.chdir(originalCwd);
+      if (platformDescriptor) Object.defineProperty(process, "platform", platformDescriptor);
+      exit.mockRestore();
+      log.mockRestore();
+      error.mockRestore();
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("prints Project section when running --all outside a project even with failing checks", async () => {
+    const root = mkdtempSync(join(tmpdir(), "tdk-doctor-no-project-"));
+    const originalCwd = process.cwd();
+    const platformDescriptor = Object.getOwnPropertyDescriptor(process, "platform");
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { exit } = captureExit();
+
+    try {
+      process.chdir(root);
+      Object.defineProperty(process, "platform", { configurable: true, value: "linux" });
+
+      try {
+        await doctorCommand.parseAsync(["--all", "--no-ping"], { from: "user" });
+      } catch {
+        // Expected when process.exit is called
+      }
+
+      const lines = log.mock.calls.map((call) => String(call[0]));
+      expect(lines.some((line) => line.includes("Machine"))).toBe(true);
+      expect(lines.some((line) => line.includes("Project"))).toBe(true);
+      expect(
+        lines.some((line) => line.includes("Not in a TDK project, so project checks were skipped")),
+      ).toBe(true);
+      expect(
+        lines.some((line) => /^\d+ passed(?:, \d+ warned)?, \d+ failed, \d+ skipped$/.test(line)),
+      ).toBe(true);
+    } finally {
+      process.chdir(originalCwd);
+      if (platformDescriptor) Object.defineProperty(process, "platform", platformDescriptor);
+      exit.mockRestore();
+      log.mockRestore();
+      error.mockRestore();
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("preserves machine-readable JSON envelope when --all and --json are combined", async () => {
+    const root = mkdtempSync(join(tmpdir(), "tdk-doctor-json-all-"));
+    const originalCwd = process.cwd();
+    const platformDescriptor = Object.getOwnPropertyDescriptor(process, "platform");
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { exit } = captureExit();
+
+    try {
+      mkdirSync(join(root, ".tdk"), { recursive: true });
+      writeFileSync(
+        join(root, ".tdk", "project.json"),
+        JSON.stringify({ project: { name: "doctor-json-all" } }),
+      );
+      process.chdir(root);
+      Object.defineProperty(process, "platform", { configurable: true, value: "linux" });
+
+      try {
+        await doctorCommand.parseAsync(["--all", "--json", "--no-ping"], { from: "user" });
+      } catch {
+        // Expected when process.exit is called on failing checks
+      }
+
+      const jsonCall = log.mock.calls.find((call) => {
+        try {
+          const parsed = JSON.parse(String(call[0]));
+          return (
+            parsed &&
+            typeof parsed.schemaVersion === "number" &&
+            parsed.data &&
+            Array.isArray(parsed.data.checks)
+          );
+        } catch {
+          return false;
+        }
+      });
+
+      expect(jsonCall).toBeDefined();
+      const parsed = JSON.parse(String(jsonCall?.[0]));
+      expect(parsed.schemaVersion).toBe(1);
+      expect(parsed.data.checks.length).toBeGreaterThan(0);
+      expect(typeof parsed.data.ready).toBe("boolean");
+      expect(typeof parsed.data.inProject).toBe("boolean");
+      expect(Array.isArray(parsed.errors)).toBe(true);
+
+      const nonJsonCalls = log.mock.calls
+        .map((call) => String(call[0]))
+        .filter((str) => !str.startsWith("{"));
+      expect(nonJsonCalls.some((str) => str.includes("Machine"))).toBe(false);
+      expect(nonJsonCalls.some((str) => str.includes("Project"))).toBe(false);
+      expect(exit).toHaveBeenCalledWith(1);
+    } finally {
+      process.chdir(originalCwd);
+      if (platformDescriptor) Object.defineProperty(process, "platform", platformDescriptor);
+      exit.mockRestore();
+      log.mockRestore();
+      error.mockRestore();
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("renders Project heading under --all when in a project even if project checks are empty", () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    try {
+      const machineResults: CheckResult[] = [{ name: "Host Ports", didPass: true, message: "OK" }];
+      const projectResults: CheckResult[] = [];
+
+      renderDoctorOutput(machineResults, projectResults, true, { all: true });
+
+      const lines = log.mock.calls.map((call) => String(call[0]));
+      expect(lines.some((line) => line.includes("Machine"))).toBe(true);
+      expect(lines.some((line) => line.includes("Project"))).toBe(true);
+      expect(lines.some((line) => line.includes("Not in a TDK project"))).toBe(false);
+      expect(lines.some((line) => line.includes("1 passed, 0 failed, 0 skipped"))).toBe(true);
+    } finally {
+      log.mockRestore();
+    }
+  });
+
+  it("renders Project heading and skipped message under --all when not in a project", () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    try {
+      const machineResults: CheckResult[] = [
+        { name: "Host Ports", didPass: false, message: "Port busy" },
+      ];
+      const projectResults: CheckResult[] = [];
+
+      renderDoctorOutput(machineResults, projectResults, false, { all: true });
+
+      const lines = log.mock.calls.map((call) => String(call[0]));
+      expect(lines.some((line) => line.includes("Machine"))).toBe(true);
+      expect(lines.some((line) => line.includes("Project"))).toBe(true);
+      expect(
+        lines.some((line) => line.includes("Not in a TDK project, so project checks were skipped")),
+      ).toBe(true);
+      expect(lines.some((line) => line.includes("0 passed, 1 failed, 0 skipped"))).toBe(true);
+    } finally {
+      log.mockRestore();
+    }
+  });
+
+  it("does not print Machine or Project headings or summary without --all", async () => {
+    const root = mkdtempSync(join(tmpdir(), "tdk-doctor-plain-"));
+    const originalCwd = process.cwd();
+    const platformDescriptor = Object.getOwnPropertyDescriptor(process, "platform");
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { exit } = captureExit();
+
+    try {
+      mkdirSync(join(root, ".tdk"), { recursive: true });
+      writeFileSync(
+        join(root, ".tdk", "project.json"),
+        JSON.stringify({ project: { name: "doctor-plain-test" } }),
+      );
+      process.chdir(root);
+      Object.defineProperty(process, "platform", { configurable: true, value: "linux" });
+
+      try {
+        await doctorCommand.parseAsync(["--no-ping"], { from: "user" });
+      } catch {
+        // Expected when process.exit is called on failing checks
+      }
+
+      const lines = log.mock.calls.map((call) => String(call[0]));
+      expect(lines.some((line) => line === "Machine")).toBe(false);
+      expect(lines.some((line) => line === "\nProject" || line === "Project")).toBe(false);
+      expect(lines.some((line) => /^\d+ passed, \d+ failed, \d+ skipped$/.test(line))).toBe(false);
+    } finally {
+      process.chdir(originalCwd);
+      if (platformDescriptor) Object.defineProperty(process, "platform", platformDescriptor);
+      exit.mockRestore();
+      log.mockRestore();
+      error.mockRestore();
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });
