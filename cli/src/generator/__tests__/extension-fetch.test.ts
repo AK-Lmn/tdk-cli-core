@@ -314,6 +314,11 @@ describe("applyPremiumOverlay", () => {
     const { applyPremiumOverlay } = await import("../extension-fetch.js");
     const applied = await applyPremiumOverlay(projectRoot, destDir);
     expect(applied).toBe(true);
+    expect(
+      fetchSpy.mock.calls.some(
+        ([url]) => typeof url === "string" && url.includes("resource=sablier"),
+      ),
+    ).toBe(true);
   });
 });
 
