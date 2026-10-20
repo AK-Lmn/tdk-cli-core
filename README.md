@@ -4,17 +4,8 @@
 
 Go from an empty folder to a running tech stack with one command. Built for agents.
 
-[![npm version](https://img.shields.io/npm/v/@tdk-landscape/tdk-cli-core.svg?style=flat&color=blue)](https://www.npmjs.com/package/@tdk-landscape/tdk-cli-core)
-[![npm weekly downloads](https://img.shields.io/npm/dw/@tdk-landscape/tdk-cli-core?style=flat&color=blue)](https://www.npmjs.com/package/@tdk-landscape/tdk-cli-core)
-[![unpacked size](https://img.shields.io/npm/unpacked-size/@tdk-landscape/tdk-cli-core)](https://packagephobia.com/result?p=@tdk-landscape/tdk-cli-core)
-[![install size](https://badgen.net/packagephobia/install/@tdk-landscape/tdk-cli-core)](https://packagephobia.com/result?p=@tdk-landscape/tdk-cli-core)
-[![Journeys E2E](https://github.com/tdk-landscape/tdk-cli-core/actions/workflows/e2e-journeys.yml/badge.svg)](https://github.com/tdk-landscape/tdk-cli-core/actions/workflows/e2e-journeys.yml)
-[![ERP fixture scale E2E](https://github.com/tdk-landscape/tdk-cli-core/actions/workflows/e2e-scale-full.yml/badge.svg)](https://github.com/tdk-landscape/tdk-cli-core/actions/workflows/e2e-scale-full.yml)
-[![Example apps E2E](https://github.com/tdk-landscape/tdk-cli-core/actions/workflows/e2e-real-apps.yml/badge.svg?branch=main)](https://github.com/tdk-landscape/tdk-cli-core/actions/workflows/e2e-real-apps.yml)
-[![CodeQL](https://github.com/tdk-landscape/tdk-cli-core/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/tdk-landscape/tdk-cli-core/security/code-scanning)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/tdk-landscape/tdk-cli-core/badge)](https://scorecard.dev/viewer/?uri=github.com/tdk-landscape/tdk-cli-core)
-[![Known Vulnerabilities](https://snyk.io/test/github/tdk-landscape/tdk-cli-core/badge.svg)](https://snyk.io/test/github/tdk-landscape/tdk-cli-core)
-[![Socket Badge](https://badge.socket.dev/npm/package/@tdk-landscape/tdk-cli-core/latest)](https://socket.dev/npm/package/@tdk-landscape/tdk-cli-core/overview)
+[![npm version](https://img.shields.io/npm/v/@tdk-landscape/tdk-cli-core.svg?style=flat&color=blue)](https://www.npmjs.com/package/@tdk-landscape/tdk-cli-core) [![npm weekly downloads](https://img.shields.io/npm/dw/@tdk-landscape/tdk-cli-core?style=flat&color=blue)](https://www.npmjs.com/package/@tdk-landscape/tdk-cli-core) [![unpacked size](https://img.shields.io/npm/unpacked-size/@tdk-landscape/tdk-cli-core)](https://packagephobia.com/result?p=@tdk-landscape/tdk-cli-core) [![install size](https://badgen.net/packagephobia/install/@tdk-landscape/tdk-cli-core)](https://packagephobia.com/result?p=@tdk-landscape/tdk-cli-core) [![GitHub stars](https://img.shields.io/github/stars/tdk-landscape/tdk-cli-core?style=flat&logo=github)](https://github.com/tdk-landscape/tdk-cli-core/stargazers) [![OSS Insight](https://img.shields.io/badge/OSS%20Insight-analytics-blue)](https://ossinsight.io/analyze/tdk-landscape/tdk-cli-core) [![X followers: 1,605](https://img.shields.io/badge/X%20followers-1%2C605-1DA1F2?style=flat&logo=x&logoColor=white)](https://x.com/brookservers)
+[![Journeys E2E](https://github.com/tdk-landscape/tdk-cli-core/actions/workflows/e2e-journeys.yml/badge.svg)](https://github.com/tdk-landscape/tdk-cli-core/actions/workflows/e2e-journeys.yml) [![ERP fixture scale E2E](https://github.com/tdk-landscape/tdk-cli-core/actions/workflows/e2e-scale-full.yml/badge.svg)](https://github.com/tdk-landscape/tdk-cli-core/actions/workflows/e2e-scale-full.yml) [![Example apps E2E](https://github.com/tdk-landscape/tdk-cli-core/actions/workflows/e2e-real-apps.yml/badge.svg?branch=main)](https://github.com/tdk-landscape/tdk-cli-core/actions/workflows/e2e-real-apps.yml) [![CodeQL](https://github.com/tdk-landscape/tdk-cli-core/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/tdk-landscape/tdk-cli-core/security/code-scanning) [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/tdk-landscape/tdk-cli-core/badge)](https://scorecard.dev/viewer/?uri=github.com/tdk-landscape/tdk-cli-core) [![Known Vulnerabilities](https://snyk.io/test/github/tdk-landscape/tdk-cli-core/badge.svg)](https://snyk.io/test/github/tdk-landscape/tdk-cli-core) [![Socket Badge](https://badge.socket.dev/npm/package/@tdk-landscape/tdk-cli-core/latest)](https://socket.dev/npm/package/@tdk-landscape/tdk-cli-core/overview)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 [![ERP backends healthy](https://img.shields.io/badge/ERP%20backends%20healthy-100%2F100-brightgreen)](https://github.com/tdk-landscape/tdk-cli-core/actions/runs/39160719471) [![ERP time to all healthy](https://img.shields.io/badge/ERP%20time%20to%20all%20healthy-524s-blue)](https://github.com/tdk-landscape/tdk-cli-core/actions/runs/39160719471) [![ERP frontends answering](https://img.shields.io/badge/ERP%20frontends%20answering-7%2F7-brightgreen)](https://github.com/tdk-landscape/tdk-cli-core/actions/runs/39160719471) [![ERP running containers](https://img.shields.io/badge/ERP%20running%20containers-109-blue)](https://github.com/tdk-landscape/tdk-cli-core/actions/runs/39160719471) [![ERP memory used](https://img.shields.io/badge/ERP%20memory%20used-1736%20MiB-blue)](https://github.com/tdk-landscape/tdk-cli-core/actions/runs/39160719471)
@@ -211,7 +202,51 @@ If TDK saves you time, a ⭐ on [this repo](https://github.com/tdk-landscape/tdk
 
 ## Quick start
 
-Preview what a stack will start before any container runs:
+There are two ways to get started. Both end with `tdk up <stack>`.
+
+| | Guided scaffolder | Core CLI (manual) |
+| --- | --- | --- |
+| Best for | A first run: pick your services and get a ready project | Full control, or adding TDK to an existing folder |
+| Package | [`@tdk-landscape/create-microservices`](https://github.com/tdk-landscape/create-microservices#readme) | [`@tdk-landscape/tdk-cli-core`](https://www.npmjs.com/package/@tdk-landscape/tdk-cli-core) (this repo) |
+
+### Option A: guided scaffolder (recommended for beginners)
+
+**Prerequisites.** Install these first. The scaffolder checks your machine while it creates the project and stops if something is missing:
+
+- Node.js 22.12 or newer, and npm
+- Docker, installed and running (Engine 25+, Compose 2.20.2+)
+- [Tilt](https://docs.tilt.dev/install.html)
+- [Bun](https://bun.sh/) 1.2+
+
+Run these commands from the directory where you want the new project folder to be created. The target directory must be new or empty; existing files are never overwritten.
+
+```bash
+npm install -g @tdk-landscape/tdk-cli-core
+npm init @tdk-landscape/microservices my-project
+cd my-project
+tdk up main
+```
+
+- `npm install -g @tdk-landscape/tdk-cli-core` installs the `tdk` command. Skip it if `tdk --version` already works.
+- `npm init @tdk-landscape/microservices my-project` asks how many services to create, then each service's name and type (`backend`, `frontend`, `worker`, or `mcp`).
+- `tdk up main` starts the stack. `main` is the default stack name; if you pass `--stack <name>` to the scaffolder, use that name instead. The scaffolder prints the exact `tdk up` command when it finishes.
+
+The scaffolder creates the project configuration and a skeleton for each service you selected, using TDK CLI Core. It does not start any containers; `tdk up` does that.
+
+To skip the prompts and get a default `api` (backend) and `web` (frontend):
+
+```bash
+npm init @tdk-landscape/microservices my-project -- --yes
+```
+
+For service types, all options, and non-interactive usage, see the [`@tdk-landscape/create-microservices` README](https://github.com/tdk-landscape/create-microservices#readme).
+
+> [!NOTE]
+> Two similarly named packages exist. [`create-tdk-stack`](https://github.com/tdk-landscape/create-tdk-stack) is a landing-page app and does not scaffold projects. [`@tdk-landscape/create-microservices`](https://github.com/tdk-landscape/create-microservices#readme) is the project scaffolder used above.
+
+### Option B: core CLI (manual)
+
+Use this to create the project and each resource yourself with `tdk`. [Install the CLI](#installation) first. Preview what a stack will start before any container runs:
 
 ```bash
 tdk up shop --dry-run
@@ -304,6 +339,8 @@ npm install -g @tdk-landscape/tdk-cli-core
 # or install the prebuilt binary
 curl -fsSL https://tdk-landscape.github.io/install.sh | sh
 ```
+
+Public npm is the recommended default. To install through GitHub Packages instead, configure registry authentication as described in [GitHub Packages installation](docs/github-packages.md).
 
 `tdk up shop --dry-run` previews selected local services and URLs before starting containers. The default starter is Bun/TypeScript; TDK's core role is running local containers through Docker + Tilt, not providing a Node.js application framework. See the [one-backend example](examples/one-backend/README.md).
 

@@ -73,6 +73,8 @@
 ## Contributing
 
 - [Contributor guide](contributing/README.md)
+- [Write CLI unit tests](contributing/08-write-cli-unit-tests.md)
+- [Write an end-to-end test](contributing/05-write-e2e.md)
 
 ## Where things live
 
