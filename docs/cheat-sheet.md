@@ -126,6 +126,8 @@ tdk project saas --path my-app       # clone into my-app/
 
 Creates `TILT_RESOURCE_DEFAULTS.star` and `TILT_TECH_STACK.star`, among others. See [configuration](configuration.md) and [the tech stack guide](tech-stack-lock.md).
 
+Project setup does not need a running Docker daemon or an installed Tilt: `tdk project` writes the project configuration and clones the template, then prints what to start before `tdk up`. `tdk up` still refuses to start without the local runtime.
+
 ### `tdk projects` (alias `info`)
 
 | Flag | Effect |

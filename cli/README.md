@@ -10,6 +10,8 @@ New to contributing? Start with the [step-by-step contributor guide](../docs/con
 
 Run in a project with Bun, Docker, and Tilt. On Windows, run the CLI in WSL2.
 
+`tdk project` writes the project configuration and clones starter templates without a running Docker daemon or an installed Tilt; the runtime is only needed by `tdk up`.
+
 | Command | When to use it |
 | --- | --- |
 | `tdk project --yes` | Create a project with the default setup. |
