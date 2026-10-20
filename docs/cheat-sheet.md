@@ -174,6 +174,9 @@ tdk resource api --type backend --language python --yes
 tdk resource api --type backend --feature prisma --yes
 tdk resource web --type frontend --framework vue --yes
 tdk resource --frameworks                                     # list frontend frameworks
+tdk resource --type frontend --frameworks                     # list frontend frameworks
+tdk resource --type backend --frameworks                      # list backend frameworks and their language
+tdk resource --type backend --language python --frameworks     # list backend frameworks, marking the incompatible ones
 tdk resource jobs --type worker --yes
 tdk resource tools --type mcp --yes
 tdk resource legacy --type bring-your-own --dockerfile Dockerfile --health-path /healthz
@@ -185,7 +188,7 @@ tdk resource old-api --path services/old-api --register-existing
 | --- | --- |
 | `-t`, `--type <type>` | `backend` (default), `frontend`, `worker`, `mcp`, `bring-your-own`, `sdk` |
 | `--framework <id>` | Frontend: `react` (default), `vue`, `svelte`, `preact`, `lit`, `solid`, `qwik`, `vanilla`, `tanstack-router`. Backend: `hono` (default), `express`, `elysia`, `fastify`, `nestjs`, `koa`, `h3` |
-| `--frameworks` | List registered frontend frameworks and exit |
+| `--frameworks` | List registered frameworks for the resource type and exit (`--type frontend`, `--type backend`) |
 | `--language <id>` | Backend language: `bun` (default), `python`, `go`, `rust`, `node` |
 | `-s`, `--stack <stack>` | Stack to assign the resource to |
 | `-p`, `--path <path>` | Custom resource directory. `--resource-path` is an older alias |

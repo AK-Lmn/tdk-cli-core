@@ -10,6 +10,7 @@ Hard-won, repo-specific facts for anyone (human or agent) working here. Keep ent
 - BSD sed (macOS) has no `\b`; use python `re.sub` or perl for renames and confirm with `grep -c`.
 - A red test must be red for the right reason: temporarily remove the fix and read the failure. Common ways a test is red wrongly: a JS template literal evaluating `${...}`, JSON `true`/`null` pasted into Starlark (`True`/`None`), a too-narrow regex.
 - Do not leave `.skip` on a failing test; fix the code or the setup.
+- 2026-10-20 (#1734): commander keeps an option's value *and* its source between in-process `parseAsync` calls, so `getOptionValueSource("type") === "cli"` still reports an earlier run's flag; a test that tells an explicit flag from its default must spawn the CLI. A flag with a default value (`--type backend`) cannot be read from the value alone.
 
 - 2026-10-08 (#88): In doctor-runtime tests on Windows, runHostCommand uses execFileSync instead of the injected exec callback; mock execFileSync or stub process.platform when a test needs to provide command output.
 
