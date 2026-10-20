@@ -87,12 +87,13 @@ describe("file helpers", () => {
     it("writes empty string and unicode content properly", () => {
       const emptyFile = join(root, "empty.txt");
       const unicodeFile = join(root, "unicode.txt");
+      const unicodeContent = "alpha beta gamma αβγ 你好";
 
       writeTextFile(emptyFile, "");
-      writeTextFile(unicodeFile, "alpha beta gamma");
+      writeTextFile(unicodeFile, unicodeContent);
 
       expect(readFileSync(emptyFile, "utf-8")).toBe("");
-      expect(readFileSync(unicodeFile, "utf-8")).toBe("alpha beta gamma");
+      expect(readFileSync(unicodeFile, "utf-8")).toBe(unicodeContent);
     });
 
     it("writes text files inside the supplied directory", () => {
