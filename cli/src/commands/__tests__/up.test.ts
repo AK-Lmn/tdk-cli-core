@@ -1,6 +1,6 @@
 // Copyright (c) 2026 TDK Landscape contributors
 // SPDX-License-Identifier: MIT
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync, writeSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync, writeSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -66,6 +66,31 @@ vi.mock("../../utils/host-port-config.js", async (importOriginal) => ({
   getHostPortPlan: vi.fn(async () => ({ ports: [] })),
 }));
 
+/**
+ * The exit code the "Exit codes" table in `CONTRIBUTING.md` lists for a diagnostic.
+ *
+ * The table is the published contract, so a change to the code that returns the exit code has to
+ * change the table with it. Reading the number back out of the document keeps the two in step.
+ */
+function documentedExitCode(diagnostic: string): number {
+  const contributing = readFileSync(
+    new URL("../../../../CONTRIBUTING.md", import.meta.url),
+    "utf-8",
+  );
+  const section = contributing.split("## Exit codes")[1];
+  if (!section) throw new Error("CONTRIBUTING.md has no 'Exit codes' section");
+  const row = section
+    .split("\n")
+    .filter((line) => line.trim().startsWith("|"))
+    .find((line) => line.includes(diagnostic));
+  if (!row) throw new Error(`CONTRIBUTING.md lists no exit code for "${diagnostic}"`);
+  const code = Number(row.split("|")[1]?.trim().replace(/`/g, ""));
+  if (!Number.isInteger(code)) {
+    throw new Error(`CONTRIBUTING.md has no exit code for "${diagnostic}"`);
+  }
+  return code;
+}
+
 describe("tdk up success output", () => {
   it("prints the first-win block with exact UI and networks copy", () => {
     expect(formatUpSuccess(10350)).toEqual([
@@ -91,6 +116,66 @@ describe("tdk up platform contract", () => {
     expect(nativeWindowsUpRefusal("win32", "0")).not.toBeNull();
     expect(nativeWindowsUpRefusal("win32", "1")).toBeNull();
     expect(nativeWindowsUpRefusal("linux")).toBeNull();
+  });
+
+  it("exits 1 on native Windows startup refusal and writes the diagnostic to stderr", async () => {
+    const platformDescriptor = Object.getOwnPropertyDescriptor(process, "platform");
+    const allowNativeWindows = process.env.TDK_ALLOW_NATIVE_WINDOWS;
+    const tiltPort = process.env.TILT_PORT;
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const { exit } = captureExit();
+    try {
+      Object.defineProperty(process, "platform", { configurable: true, value: "win32" });
+      delete process.env.TDK_ALLOW_NATIVE_WINDOWS;
+      delete process.env.TILT_PORT;
+
+      await expect(upCommand.parseAsync([], { from: "user" })).rejects.toThrow("process.exit");
+
+      expect(exit).toHaveBeenCalledTimes(1);
+      expect(exit).toHaveBeenCalledWith(1);
+      expect(error).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "❌ Landscape startup needs Ubuntu on WSL2. Native Windows is inspect-only.",
+        ),
+      );
+      expect(log).not.toHaveBeenCalled();
+    } finally {
+      if (platformDescriptor) Object.defineProperty(process, "platform", platformDescriptor);
+      if (allowNativeWindows === undefined) delete process.env.TDK_ALLOW_NATIVE_WINDOWS;
+      else process.env.TDK_ALLOW_NATIVE_WINDOWS = allowNativeWindows;
+      if (tiltPort === undefined) delete process.env.TILT_PORT;
+      else process.env.TILT_PORT = tiltPort;
+      exit.mockRestore();
+      error.mockRestore();
+      log.mockRestore();
+    }
+  });
+
+  it("documents the native Windows startup refusal under the exit code it returns", async () => {
+    const platformDescriptor = Object.getOwnPropertyDescriptor(process, "platform");
+    const allowNativeWindows = process.env.TDK_ALLOW_NATIVE_WINDOWS;
+    const tiltPort = process.env.TILT_PORT;
+    const { exit } = captureExit();
+    let actual: number | undefined;
+    try {
+      Object.defineProperty(process, "platform", { configurable: true, value: "win32" });
+      delete process.env.TDK_ALLOW_NATIVE_WINDOWS;
+      delete process.env.TILT_PORT;
+
+      await expect(upCommand.parseAsync([], { from: "user" })).rejects.toThrow("process.exit");
+      actual = exit.mock.calls[0]?.[0] as number;
+    } finally {
+      if (platformDescriptor) Object.defineProperty(process, "platform", platformDescriptor);
+      if (allowNativeWindows === undefined) delete process.env.TDK_ALLOW_NATIVE_WINDOWS;
+      else process.env.TDK_ALLOW_NATIVE_WINDOWS = allowNativeWindows;
+      if (tiltPort === undefined) delete process.env.TILT_PORT;
+      else process.env.TILT_PORT = tiltPort;
+      exit.mockRestore();
+    }
+
+    const documented = documentedExitCode("native Windows startup refusal");
+    expect(documented).toBe(actual);
   });
 });
 

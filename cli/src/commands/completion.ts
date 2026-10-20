@@ -939,10 +939,7 @@ export const completionCommand = new Command("completion")
     }
 
     if (!SUPPORTED_SHELLS.includes(shell as SupportedShell)) {
-      showError(
-        `Unsupported shell: ${shell}`,
-        "Supported shells: bash, zsh, fish, powershell",
-      );
+      showError(`Unsupported shell: ${shell}`, "Supported shells: bash, zsh, fish, powershell");
       process.exit(1);
     }
 
