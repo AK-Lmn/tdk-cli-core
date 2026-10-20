@@ -33,7 +33,7 @@ Secondary audit-only candidates, generally expected not to need a package declar
 
 - [x] 1.1 Audit the primary candidate repositories listed above; record URL, activity, ecosystem, manifest, lockfile, actual CLI usage, and disposition. Include additional public examples, starters, templates, and fixtures discovered under `tdk-landscape`. (Snapshot recorded in `design.md`.)
 - [x] 1.2 For each candidate, verify whether its workflow genuinely installs or uses `@tdk-landscape/tdk-cli-core` and identify the appropriate dependency role. (Only `tdk-cli-starter` currently declares the package; other README-documented TDK usage requires a separately installed CLI and has no repo-local core dependency.)
-- [x] 1.3 Open repository-specific PRs for the confirmed TDK CLI project workflows, adding the appropriate development dependency and lockfile. Twelve PRs are listed in tracking issue #1716; four have merged and eight remain open as of 20 October 2026.
+- [x] 1.3 Open repository-specific PRs for the confirmed TDK CLI project workflows, adding the appropriate development dependency and lockfile. Twelve PRs are listed in tracking issue #1716; all twelve consumer PRs have merged as of 20 October 2026.
 - [x] 1.4 Record exclusions and non-Node, binary-only, documentation-only, and CLI-in-Compose exceptions with reasons; do not add manifests solely to influence GitHub's count. (See audit snapshot in `design.md`.)
 
 ## 2. Verify package metadata
@@ -57,7 +57,7 @@ Secondary audit-only candidates, generally expected not to need a package declar
 ## 5. Track and measure
 
 - [x] 5.1 Open or update [tracking issue #1716](https://github.com/tdk-landscape/tdk-cli-core/issues/1716) with audited repositories, dispositions, and the proposal's baseline dependents observation.
-- [ ] 5.2 After all consumer changes merge, re-check GitHub's dependency graph/dependents view and record the date and observed count. Interim check on 20 October 2026, with four of twelve consumer PRs merged: GitHub displayed 0 repositories and 0 packages for `@tdk-landscape/tdk-cli-core` at https://github.com/tdk-landscape/tdk-cli-core/network/dependents. The final post-merge measurement remains pending.
+- [x] 5.2 After all consumer changes merged, re-checked GitHub's dependency graph/dependents view on 20 October 2026: GitHub displayed 5 repositories and 0 packages for `@tdk-landscape/tdk-cli-core` at https://github.com/tdk-landscape/tdk-cli-core/network/dependents. All twelve consumer PRs have merged; GitHub controls graph processing and display criteria.
 - [x] 5.3 Record the display limitation and that processing timing is controlled by GitHub; no processing delay has been measured yet. Do not create artificial dependencies to reach a target number.
 - [x] 5.4 Confirm adopter documentation and package metadata are on `main` and discoverable. Verified 20 October 2026: `ADOPTERS.md` guidance is merged, and npm latest `1.3.186` retains the canonical repository URL.
 
