@@ -3,9 +3,20 @@
 import { mkdirSync, mkdtempSync, realpathSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+const { execFileSyncMock } = vi.hoisted(() => ({ execFileSyncMock: vi.fn() }));
+vi.mock("node:child_process", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("node:child_process")>()),
+  execFileSync: execFileSyncMock,
+}));
+
 import { classifyTiltPorts, findTiltPortOwner, isForeignTilt } from "../tilt-port-owner.js";
 import { resolveTiltPort, secondUpAction } from "../tilt-startup.js";
+
+afterEach(() => {
+  execFileSyncMock.mockReset();
+});
 
 const TILT = "tilt up -f /work/other/.tdk/.tdk-out/Tiltfile";
 
@@ -62,6 +73,27 @@ describe("findTiltPortOwner", () => {
 
   it("is unknown when nothing listens on the port", () => {
     expect(findTiltPortOwner(10350, "linux", runner({ "-iTCP:10350": "\n" }))).toBeNull();
+  });
+
+  it("uses the default runner with a bounded timeout", () => {
+    execFileSyncMock.mockImplementation((command: string) => {
+      if (command === "lsof") return "24170\n";
+      if (command === "ps") return `${TILT}\n`;
+      throw new Error(`unexpected command ${command}`);
+    });
+
+    expect(findTiltPortOwner(10350, "linux")).toEqual({ pid: 24170, root: "/work/other" });
+    expect(execFileSyncMock).toHaveBeenNthCalledWith(
+      1,
+      "lsof",
+      ["-nP", "-iTCP:10350", "-sTCP:LISTEN", "-t"],
+      expect.objectContaining({
+        encoding: "utf-8",
+        stdio: "pipe",
+        timeout: 5000,
+        windowsHide: true,
+      }),
+    );
   });
 });
 
