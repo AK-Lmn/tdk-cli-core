@@ -74,7 +74,7 @@ Review this pull request. Read the title and diff at https://github.com/tdk-land
 | **Claude** | claude.ai |
 | **Codex** | chatgpt.com |
 
-Pick whichever you already use. They all get the same message. Each site may ask you to sign in; if the chat opens empty after that, click the button again. If you are not signed in, copy the message above, put the PR's link in it, and paste it into any AI chat.
+Pick whichever you already use. They all get the same message. If the buttons help, use the footer link to star the repository. Each site may ask you to sign in; if the chat opens empty after that, click the button again. If you are not signed in, copy the message above, put the PR's link in it, and paste it into any AI chat.
 
 Things to know:
 
