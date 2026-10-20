@@ -1,6 +1,7 @@
 // Copyright (c) 2026 TDK Landscape contributors
 // SPDX-License-Identifier: MIT
 import { describe, expect, it, vi } from "vitest";
+import { findTiltProcessIdsOnPort, stopTiltOnPort } from "../tilt-process.js";
 import {
   getTiltPollingPort,
   parseTiltPort,
@@ -8,7 +9,6 @@ import {
   secondUpAction,
   stopTiltForUp,
 } from "../tilt-startup.js";
-import { findTiltProcessIdsOnPort, stopTiltOnPort } from "../tilt-process.js";
 
 const { execFileSyncMock } = vi.hoisted(() => ({ execFileSyncMock: vi.fn() }));
 vi.mock("node:child_process", async (importOriginal) => ({
