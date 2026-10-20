@@ -8,6 +8,7 @@ import {
   getErrorMessage,
   handleTiltFailure,
   logVerbose,
+  ProcessExitError,
   requireProjectRoot,
   runCommand,
   showError,
@@ -29,7 +30,7 @@ vi.mock("../paths.js", async (importOriginal) => ({
 /** Make process.exit throw so code after it does not run, and record the exit code. */
 function mockExit() {
   return vi.spyOn(process, "exit").mockImplementation(((code?: number) => {
-    throw new Error(`process.exit(${code})`);
+    throw new ProcessExitError(code ?? 0);
   }) as never);
 }
 
@@ -291,6 +292,20 @@ describe("runCommand", () => {
     ).rejects.toThrow("process.exit(1)");
 
     expect(errorOutput(err)).toContain("❌ disk full");
+    expect(exit).toHaveBeenCalledWith(1);
+  });
+
+  it("handles an ordinary Error with the process.exit message as a normal failure", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    const exit = mockExit();
+
+    await expect(
+      runCommand(async () => {
+        throw new Error("process.exit");
+      }),
+    ).rejects.toThrow("process.exit(1)");
+
+    expect(errorOutput(err)).toContain("❌ process.exit");
     expect(exit).toHaveBeenCalledWith(1);
   });
 

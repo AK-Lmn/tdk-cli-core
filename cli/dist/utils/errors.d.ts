@@ -8,6 +8,14 @@ export declare class TdkError extends Error {
     /** Display this error and exit the process with its exit code. */
     exit(): never;
 }
+/**
+ * Thrown by the `process.exit` test double so the stack unwinds at an intentional exit.
+ * `runCommand` rethrows it instead of formatting it as a command failure.
+ */
+export declare class ProcessExitError extends Error {
+    readonly code: number;
+    constructor(code?: number);
+}
 export declare const errorFactories: {
     tiltNotInstalled: () => TdkError;
     dockerNotAvailable: () => TdkError;

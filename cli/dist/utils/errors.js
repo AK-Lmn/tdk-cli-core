@@ -33,6 +33,18 @@ export class TdkError extends Error {
         process.exit(this.exitCode);
     }
 }
+/**
+ * Thrown by the `process.exit` test double so the stack unwinds at an intentional exit.
+ * `runCommand` rethrows it instead of formatting it as a command failure.
+ */
+export class ProcessExitError extends Error {
+    code;
+    constructor(code = 1) {
+        super(`process.exit(${code})`);
+        this.name = "ProcessExitError";
+        this.code = code;
+    }
+}
 function closestNameSuggestions(names, candidates, includeInput = false) {
     const suggestions = new Set();
     for (const name of names) {
@@ -107,7 +119,7 @@ export async function runCommand(action, options) {
         return await action();
     }
     catch (err) {
-        if (err instanceof Error && err.message === "process.exit") {
+        if (err instanceof ProcessExitError) {
             throw err;
         }
         if (options?.verbose && err instanceof Error && err.stack) {

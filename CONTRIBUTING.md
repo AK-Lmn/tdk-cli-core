@@ -300,7 +300,7 @@ each label's description.
 
 ## Exit codes
 
-CLI commands use a single error style and exit code convention. Report user-facing errors through `TdkError`, `showError`, or `showErrorAndExit` in `cli/src/utils/errors.ts` (which prefix the headline on `stderr` with `❌ ` and print optional `💡 Suggestions:` lines) rather than ad-hoc `chalk.red(...)` calls.
+CLI commands use a single error style and exit code convention. Report user-facing errors through `TdkError`, `showError`, or `showErrorAndExit` in `cli/src/utils/errors.ts` (which prefix the headline on `stderr` with `❌` and print optional `💡 Suggestions:` lines) rather than ad-hoc `chalk.red(...)` calls.
 
 | Exit code | Meaning | Examples |
 | --- | --- | --- |

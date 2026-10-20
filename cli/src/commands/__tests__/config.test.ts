@@ -255,7 +255,7 @@ describe("config regenerate --dry-run", () => {
     const result = await runCommandInProcess(configCommand, ["regenerate", "--dry-run"], root);
 
     expect(result.status).toBe(1);
-    expect(result.stderr).toMatch(/(?:Error:|❌)/);
+    expect(result.stderr).toContain("❌");
   });
 });
 
@@ -330,11 +330,11 @@ describe("config verify", () => {
     const result = await runCommandInProcess(configCommand, ["verify"], root);
 
     expect(result.status).toBe(1);
-    const combinedOutput = `${result.stdout}\n${result.stderr}`;
-    expect(combinedOutput).toContain('dependsOn "ghost" on');
-    expect(combinedOutput).toContain(
+    expect(result.stderr).toContain('dependsOn "ghost" on');
+    expect(result.stderr).toContain(
       "shared platform Postgres names are postgres and database-management",
     );
+    expect(result.stdout).not.toContain('dependsOn "ghost" on');
   });
 
   it("prints a single JSON envelope with valid true when in sync", async () => {
