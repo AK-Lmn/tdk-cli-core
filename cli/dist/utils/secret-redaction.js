@@ -54,3 +54,20 @@ export function redactValue(value, secrets) {
     }
     return value;
 }
+/**
+ * A redactor for text that may hold the project's own secrets. When the project's .env exists but cannot be read, the values
+ * are unknown, so the redactor throws instead of guessing: the caller then shows and stores nothing rather than raw text. The
+ * original error is kept, so a caller can still tell an unreadable .env from another failure.
+ */
+export function createEnvRedactor(projectRoot) {
+    let secrets;
+    try {
+        secrets = envSecretValues(projectRoot);
+    }
+    catch (error) {
+        return () => {
+            throw error;
+        };
+    }
+    return (text) => redactSecrets(text, secrets);
+}

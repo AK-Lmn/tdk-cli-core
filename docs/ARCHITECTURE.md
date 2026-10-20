@@ -54,7 +54,7 @@ A typical TDK session progresses through three distinct stages: project initiali
    - Service source code: Language and framework boilerplate (`src/index.ts`, `package.json`, `tsconfig.json`, `Dockerfile`, unit tests) provided by backend language providers or frontend framework providers.
 
 ### Step 3: `tdk up` (Runtime Execution)
-1. **Preflight & Drift Verification**: Verifies environment readiness (Docker running, WSL2 on Windows). Re-runs `generateMasterConfigs()` if manifests changed, and checks for manual edits to generated files to prevent drift.
+1. **Preflight & Drift Verification**: Verifies environment readiness (Docker running, WSL2 on Windows). `tdk up` runs the full runtime preflight; `tdk project` only checks the prerequisites that writing files needs, so project setup works without a Docker daemon or Tilt. Re-runs `generateMasterConfigs()` if manifests changed, and checks for manual edits to generated files to prevent drift.
 2. **Tilt Launch**: Spawns `tilt up` targeting the generated `.tdk/.tdk-out/Tiltfile`.
 3. **Starlark Discovery & DAG Assembly**: Inside Tilt, `Tiltfile` imports `discovery/` from the vendored extension. `discovery/` traverses all paths matching `services/*/*/service.json`, synthesizes missing defaults, and builds the resource DAG.
 4. **Engine Orchestration**: `engine/` evaluates phase filters against `spec.master` via `should_enable()`. For each enabled resource:
@@ -62,6 +62,7 @@ A typical TDK session progresses through three distinct stages: project initiali
    - Registers Tilt build targets (`docker_build` with `live_update` sync mappings).
    - Launches shared platform infrastructure (Traefik reverse proxy on port 80/443, PostgreSQL database on port 15432).
 5. **Runtime Supervision**: Tilt builds images, boots containers in dependency order, forwards ports, wires Traefik routing rules, and launches the interactive Tilt web UI (default `http://localhost:10350`). The CLI monitors startup readiness and prints accessible service URLs.
+6. **Smoke Checks**: For services that declare a `smoke` block, `tdk up` requests the public URL it prints once Tilt reports readiness. Before the first response record is written, it makes sure the project `.gitignore` ignores `.tdk/smoke/` (through `ensureSmokeRecordsIgnored()` in [cli/src/utils/file-helpers.ts](../cli/src/utils/file-helpers.ts)), and it masks the project's own `.env` secret values out of every text it shows or stores.
 
 ---
 
