@@ -302,55 +302,60 @@ describe("error handling", () => {
     });
 
     it("routes config consistency diagnostics to stderr and never to stdout", async () => {
-      vi.mocked(requireProjectRoot).mockReturnValue("/mock-project");
-      vi.mocked(verifyMasterConfigs).mockReturnValue({
-        valid: true,
-        errors: [],
-        warnings: [],
-        diffs: [],
-        handEdited: [],
-      });
-      vi.mocked(evaluateSharedPlatformPostgres).mockReturnValue({
-        featureOn: false,
-        featureOnFromProjectJson: false,
-        featureOnFromTiltfile: false,
-        featureOnFromSpecMaster: false,
-        focusWouldEnableDatabaseManagement: false,
-        dependsOnUsers: [],
-        willStart: false,
-        reason: "none",
-        unknownDependsOnNames: [],
-      });
-      vi.mocked(checkPrismaConsistency).mockReturnValue({
-        name: "prisma-consistency",
-        didPass: false,
-        message: "Prisma schema is out of sync with migrations",
-      });
+      const tempDir = mkdtempSync(join(tmpdir(), "tdk-config-verify-"));
+      try {
+        vi.mocked(requireProjectRoot).mockReturnValue(tempDir);
+        vi.mocked(verifyMasterConfigs).mockReturnValue({
+          valid: true,
+          errors: [],
+          warnings: [],
+          diffs: [],
+          handEdited: [],
+        });
+        vi.mocked(evaluateSharedPlatformPostgres).mockReturnValue({
+          featureOn: false,
+          featureOnFromProjectJson: false,
+          featureOnFromTiltfile: false,
+          featureOnFromSpecMaster: false,
+          focusWouldEnableDatabaseManagement: false,
+          dependsOnUsers: [],
+          willStart: false,
+          reason: "none",
+          unknownDependsOnNames: [],
+        });
+        vi.mocked(checkPrismaConsistency).mockReturnValue({
+          name: "prisma-consistency",
+          didPass: false,
+          message: "Prisma schema is out of sync with migrations",
+        });
 
-      const stderr: string[] = [];
-      const stdout: string[] = [];
-      vi.spyOn(console, "error").mockImplementation((...args) => {
-        stderr.push(args.map(String).join(" "));
-      });
-      vi.spyOn(console, "log").mockImplementation((...args) => {
-        stdout.push(args.map(String).join(" "));
-      });
-      const { expectExit } = captureExit();
+        const stderr: string[] = [];
+        const stdout: string[] = [];
+        vi.spyOn(console, "error").mockImplementation((...args) => {
+          stderr.push(args.map(String).join(" "));
+        });
+        vi.spyOn(console, "log").mockImplementation((...args) => {
+          stdout.push(args.map(String).join(" "));
+        });
+        const { expectExit } = captureExit();
 
-      await expect(
-        configCommand.parseAsync(["node", "tdk", "verify"], { from: "node" }),
-      ).rejects.toThrow("process.exit");
-      expectExit(1);
+        await expect(
+          configCommand.parseAsync(["node", "tdk", "verify"], { from: "node" }),
+        ).rejects.toThrow("process.exit");
+        expectExit(1);
 
-      const stderrMatches = stderr.filter((line) =>
-        line.includes("❌ Prisma schema is out of sync with migrations"),
-      );
-      expect(stderrMatches).toHaveLength(1);
+        const stderrMatches = stderr.filter((line) =>
+          line.includes("❌ Prisma schema is out of sync with migrations"),
+        );
+        expect(stderrMatches).toHaveLength(1);
 
-      const stdoutMatches = stdout.filter((line) =>
-        line.includes("Prisma schema is out of sync with migrations"),
-      );
-      expect(stdoutMatches).toHaveLength(0);
+        const stdoutMatches = stdout.filter((line) =>
+          line.includes("Prisma schema is out of sync with migrations"),
+        );
+        expect(stdoutMatches).toHaveLength(0);
+      } finally {
+        rmSync(tempDir, { recursive: true, force: true });
+      }
     });
   });
 });
