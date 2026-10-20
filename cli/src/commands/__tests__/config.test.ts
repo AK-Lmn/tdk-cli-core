@@ -255,7 +255,7 @@ describe("config regenerate --dry-run", () => {
     const result = await runCommandInProcess(configCommand, ["regenerate", "--dry-run"], root);
 
     expect(result.status).toBe(1);
-    expect(result.stderr).toContain("❌");
+    expect(result.stderr).toMatch(/JSON|token|property/i);
   });
 });
 

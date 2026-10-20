@@ -305,7 +305,7 @@ describe("runCommand", () => {
       }),
     ).rejects.toThrow("process.exit(1)");
 
-    expect(errorOutput(err)).toContain("❌ process.exit");
+    expect(errorOutput(err)).toContain("process.exit");
     expect(exit).toHaveBeenCalledWith(1);
   });
 
