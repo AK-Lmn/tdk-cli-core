@@ -17,3 +17,14 @@ export declare function ensureDirectory(dirPath: string): void;
  * output. Returns the entries it added.
  */
 export declare function ensureGitignore(projectRoot: string): string[];
+/**
+ * True when the path sits inside a git working tree: a `.git` directory in a clone, a `.git` file in a linked worktree.
+ * Only then is an ignore entry worth writing.
+ */
+export declare function isInsideGitWorkTree(startPath: string): boolean;
+/**
+ * Makes sure the smoke records cannot be committed by accident: the project .gitignore must ignore `.tdk/smoke/` before
+ * `tdk up` writes a record. Only meaningful inside a git working tree, so nothing is written outside one. Returns the
+ * warning to show when the entry could not be ensured, and undefined when it is.
+ */
+export declare function ensureSmokeRecordsIgnored(projectRoot: string): string | undefined;

@@ -1,7 +1,7 @@
 // Copyright (c) 2026 TDK Landscape contributors
 // SPDX-License-Identifier: MIT
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
 import chalk from "chalk";
 import type { FileGenerationTask } from "../types/index.js";
 
@@ -88,4 +88,34 @@ export function ensureGitignore(projectRoot: string): string[] {
     : "# TDK (generated files and secrets)\n";
   appendFileSync(gitignorePath, `${prefix}${header}${missing.join("\n")}\n`);
   return missing;
+}
+
+/**
+ * True when the path sits inside a git working tree: a `.git` directory in a clone, a `.git` file in a linked worktree.
+ * Only then is an ignore entry worth writing.
+ */
+export function isInsideGitWorkTree(startPath: string): boolean {
+  let dir = resolve(startPath);
+  for (;;) {
+    if (existsSync(resolve(dir, ".git"))) return true;
+    const parent = dirname(dir);
+    if (parent === dir) return false;
+    dir = parent;
+  }
+}
+
+/**
+ * Makes sure the smoke records cannot be committed by accident: the project .gitignore must ignore `.tdk/smoke/` before
+ * `tdk up` writes a record. Only meaningful inside a git working tree, so nothing is written outside one. Returns the
+ * warning to show when the entry could not be ensured, and undefined when it is.
+ */
+export function ensureSmokeRecordsIgnored(projectRoot: string): string | undefined {
+  if (!isInsideGitWorkTree(projectRoot)) return undefined;
+  try {
+    ensureGitignore(projectRoot);
+    return undefined;
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    return `Could not add .tdk/smoke/ to ${resolve(projectRoot, ".gitignore")}: ${reason}. Git may track the smoke response records.`;
+  }
 }

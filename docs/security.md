@@ -20,6 +20,7 @@ Without a licence key, and without running `tdk upgrade`, the CLI makes no outbo
 
 - Secret values live in the gitignored project `.env`; `service.json` holds only their names. See [Environment, params and secrets](environment.md).
 - Generated files contain no secret values, and `DB_PASSWORD` and `JWT_SECRET` are generated per project, never shared between projects.
+- The smoke records under `.tdk/smoke/` hold response bodies with the project's own `.env` values masked, in the stored body, in the last-success copy, in the printed snippet and in the recorded URL. The masking covers the values in `.env` and nothing else, so it is not a secret scanner.
 - `TDK_SECRET_PROVIDER=infisical` leaves secrets to Infisical and injects nothing from `.env`.
 - **Not audited:** whether a secret can appear in Tilt UI output or container logs when an application prints its own environment.
 

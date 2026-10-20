@@ -12,6 +12,7 @@ import { STANDARD_PORTS } from "../utils/constants.js";
 import { getDeferredResourceNames, summarizeTiltBuildError } from "../utils/doctor-runtime.js";
 import { completeEnvFile } from "../utils/env-validator.js";
 import { errorFactories, handleTiltFailure, requireProjectRoot, runCommand, showErrorAndExit, withTiltCheck, } from "../utils/errors.js";
+import { ensureSmokeRecordsIgnored } from "../utils/file-helpers.js";
 import { formatCount } from "../utils/formatting.js";
 import { exportHostPortPlan, getHostPortPlan, writeSavedHostPortPlan, } from "../utils/host-port-config.js";
 import { formatHostPortPlan } from "../utils/host-port-plan.js";
@@ -25,7 +26,7 @@ import { enforceSchemaVersionGate } from "../utils/schema-version-gate.js";
 import { enforceServiceConfigGate, warnSchemaVersions } from "../utils/service-config-checks.js";
 import { appendHealthPath, resolveSubdomainBases } from "../utils/service-urls.js";
 import { discoverResourcesStrict, discoverResourcesWithProblems, discoverStacks, getResourcesForStack, stackExists, warnAboutSkippedFiles, } from "../utils/services.js";
-import { buildSmokePlans, formatSmokeFailure, runSmokePlans } from "../utils/smoke.js";
+import { buildSmokePlans, formatSmokeFailure, runSmokePlans, safeSmokeDeps, } from "../utils/smoke.js";
 import { buildStartupReport, formatStartupReport, isStartupStalled, } from "../utils/startup-report.js";
 import { evaluateTdkVersionFloor } from "../utils/tdk-version.js";
 import { buildTiltUpArgs, runTilt } from "../utils/tilt.js";
@@ -546,8 +547,14 @@ export const upCommand = new Command("up")
                 if (!options.quiet) {
                     console.log(chalk.gray(`Smoke check: ${smokePlans.map((p) => p.name).join(", ")}`));
                 }
+                // The records hold response bodies, so they must not be committable. Warn before writing them when the ignore
+                // entry could not be added.
+                const ignoreWarning = ensureSmokeRecordsIgnored(projectRoot);
+                if (ignoreWarning)
+                    console.warn(chalk.yellow(ignoreWarning));
                 const results = await runSmokePlans(smokePlans, {
                     recordDir: join(projectRoot, ".tdk", "smoke"),
+                    ...safeSmokeDeps(projectRoot, (message) => console.warn(chalk.yellow(message))),
                 });
                 for (const smokeResult of results) {
                     if (smokeResult.ok) {

@@ -62,6 +62,7 @@ A typical TDK session progresses through three distinct stages: project initiali
    - Registers Tilt build targets (`docker_build` with `live_update` sync mappings).
    - Launches shared platform infrastructure (Traefik reverse proxy on port 80/443, PostgreSQL database on port 15432).
 5. **Runtime Supervision**: Tilt builds images, boots containers in dependency order, forwards ports, wires Traefik routing rules, and launches the interactive Tilt web UI (default `http://localhost:10350`). The CLI monitors startup readiness and prints accessible service URLs.
+6. **Smoke Checks**: For services that declare a `smoke` block, `tdk up` requests the public URL it prints once Tilt reports readiness. Before the first response record is written, it makes sure the project `.gitignore` ignores `.tdk/smoke/` (through `ensureSmokeRecordsIgnored()` in [cli/src/utils/file-helpers.ts](../cli/src/utils/file-helpers.ts)), and it masks the project's own `.env` secret values out of every text it shows or stores.
 
 ---
 

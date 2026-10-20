@@ -29,7 +29,7 @@ import { EnvUnreadableError, envSecretValues, redactSecrets, redactValue, } from
 import { checkCircularDependencies, checkDependsOnShape, checkSchemaVersions, checkServicePorts, } from "../utils/service-config-checks.js";
 import { buildAdvertisedTargets, buildHealthTargets, getProjectName, pingHealthTargets, } from "../utils/service-urls.js";
 import { discoverResourcesFromRoot } from "../utils/services.js";
-import { buildSmokePlans, readOnlySmokePlans, runSmokePlans } from "../utils/smoke.js";
+import { buildSmokePlans, readOnlySmokePlans, runSmokePlans, safeSmokeDeps, } from "../utils/smoke.js";
 import { evaluateTdkVersionFloor } from "../utils/tdk-version.js";
 import { findOnPath } from "../utils/which.js";
 export { checkIngressPorts, checkPrivateNpmRegistry, checkTiltResourceHealth, summarizeServiceProbes, summarizeTiltBuildError, } from "../utils/doctor-runtime.js";
@@ -1065,7 +1065,8 @@ async function checkServiceSmoke(timeoutMs, ingressPort) {
             message: "No services responded - skipped smoke checks",
         };
     }
-    return summarizeSmokeResults(await runSmokePlans(plans));
+    // Doctor shows the failure line too, so the body snippet is masked the same way `tdk up` masks it.
+    return summarizeSmokeResults(await runSmokePlans(plans, safeSmokeDeps(projectRoot)));
 }
 /**
  * Requests the URL each routable service advertises, the same one `tdk networks` and the TDK App show, and warns on a 404.

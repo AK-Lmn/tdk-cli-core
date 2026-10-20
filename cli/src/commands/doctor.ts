@@ -91,7 +91,12 @@ import {
   pingHealthTargets,
 } from "../utils/service-urls.js";
 import { discoverResourcesFromRoot } from "../utils/services.js";
-import { buildSmokePlans, readOnlySmokePlans, runSmokePlans } from "../utils/smoke.js";
+import {
+  buildSmokePlans,
+  readOnlySmokePlans,
+  runSmokePlans,
+  safeSmokeDeps,
+} from "../utils/smoke.js";
 import { evaluateTdkVersionFloor } from "../utils/tdk-version.js";
 import { findOnPath } from "../utils/which.js";
 
@@ -1314,7 +1319,8 @@ async function checkServiceSmoke(timeoutMs: number, ingressPort?: number): Promi
     };
   }
 
-  return summarizeSmokeResults(await runSmokePlans(plans));
+  // Doctor shows the failure line too, so the body snippet is masked the same way `tdk up` masks it.
+  return summarizeSmokeResults(await runSmokePlans(plans, safeSmokeDeps(projectRoot)));
 }
 
 /**

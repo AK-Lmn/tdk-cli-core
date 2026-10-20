@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  createEnvRedactor,
   EnvUnreadableError,
   envSecretValues,
   MIN_REDACTED_VALUE_LENGTH,
@@ -139,6 +140,31 @@ describe("redactSecrets", () => {
     expect(redactSecrets("url postgresql://app:secretsecret@db/app", secrets)).toBe(
       `url ${REDACTED}`,
     );
+  });
+});
+
+describe("createEnvRedactor", () => {
+  it("masks the project's own .env values", () => {
+    const root = projectWithEnv("TOKEN=supersecrettoken\n");
+    const redact = createEnvRedactor(root);
+    expect(redact("bearer supersecrettoken here")).toBe(`bearer ${REDACTED} here`);
+  });
+
+  it("returns the text unchanged when the project has no .env", () => {
+    const redact = createEnvRedactor(projectWithEnv(undefined));
+    expect(redact("nothing to mask here")).toBe("nothing to mask here");
+  });
+
+  it("throws instead of guessing when the .env exists but cannot be read", () => {
+    if (process.platform === "win32" || process.getuid?.() === 0) return;
+    const root = projectWithEnv("TOKEN=abcdefghijk\n");
+    fs.chmodSync(join(root, ".env"), 0o000);
+    try {
+      // The original error is kept, so a caller can still tell an unreadable .env from another failure.
+      expect(() => createEnvRedactor(root)("some text")).toThrow(EnvUnreadableError);
+    } finally {
+      fs.chmodSync(join(root, ".env"), 0o600);
+    }
   });
 });
 
