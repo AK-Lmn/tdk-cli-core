@@ -31,6 +31,8 @@ npm install -g @tdk-landscape/tdk-cli-core
 
 The release workflow publishes the same packed tarball to npm and GitHub Packages. The workflow token needs `packages: write`; no manually configured PAT is needed for publishing this repository's package.
 
+To add an already released npm version to GitHub Packages without creating another npm or binary release, run **Actions → Publish existing npm version to GitHub Packages** and enter the existing version (for example, `1.3.186`). The workflow validates the npm package's repository metadata, downloads the exact public npm tarball, publishes it to GitHub Packages, and verifies an authenticated clean-prefix install.
+
 After the first GitHub Packages publication:
 
 1. Open the package under the repository's **Packages** tab and confirm it is connected to `tdk-landscape/tdk-cli-core`.

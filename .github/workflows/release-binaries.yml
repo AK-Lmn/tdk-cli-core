@@ -450,7 +450,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ github.token }}
           VERSION: ${{ needs.build.outputs.version }}
           PACKAGE_DIR: package
-        run: |
+        run: | # zizmor: ignore[use-trusted-publishing] GitHub Packages does not support npm trusted publishing; authenticate with the repository GITHUB_TOKEN
           TARBALL=$(find "$PACKAGE_DIR" -maxdepth 1 -name '*.tgz' -print -quit)
           if [ ! -f "$TARBALL" ]; then
             echo "::error::Expected package tarball was not downloaded"
