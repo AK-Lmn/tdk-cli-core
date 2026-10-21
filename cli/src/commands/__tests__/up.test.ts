@@ -1,6 +1,14 @@
 // Copyright (c) 2026 TDK Landscape contributors
 // SPDX-License-Identifier: MIT
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync, writeSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+  writeSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -9,7 +17,11 @@ import {
   verifyMasterConfigs,
 } from "../../generator/template-engine.js";
 import { captureExit } from "../../test-support/index.js";
+import { PROJECT_ENV_FILE_VAR } from "../../utils/env-selection.js";
+import { requireProjectRoot } from "../../utils/errors.js";
+import { findProjectRoot } from "../../utils/paths.js";
 import { runTilt } from "../../utils/tilt.js";
+import { classifyTiltPorts } from "../../utils/tilt-port-owner.js";
 import { findTiltProcessIdsOnPort, stopTiltOnPort } from "../../utils/tilt-process.js";
 import {
   parseTiltPort,
@@ -24,6 +36,7 @@ import {
   enforceVersionFloor,
   formatUpSuccess,
   nativeWindowsUpRefusal,
+  selectRunEnvFile,
   upCommand,
   waitForTiltUnlessStartupFailed,
 } from "../up.js";
@@ -64,6 +77,10 @@ vi.mock("node:fs", async (importOriginal) => {
 vi.mock("../../utils/host-port-config.js", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../../utils/host-port-config.js")>()),
   getHostPortPlan: vi.fn(async () => ({ ports: [] })),
+}));
+vi.mock("../../utils/tilt-port-owner.js", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../utils/tilt-port-owner.js")>()),
+  classifyTiltPorts: vi.fn(async () => ({ running: [] as number[], foreign: [] as unknown[] })),
 }));
 
 /**
@@ -635,5 +652,233 @@ describe("Tilt force startup", () => {
     expect(stop).not.toHaveBeenCalled();
     expect(log).not.toHaveBeenCalled();
     expect(wait).not.toHaveBeenCalled();
+  });
+});
+
+/** The project config the command reads before it starts anything. */
+const PROJECT_JSON = {
+  version: "1.0.0",
+  project: { name: "env-file-test", version: "1.0.0" },
+  phases: Object.fromEntries(
+    ["pre_alpha", "alpha", "beta", "out_of_scope"].map((name) => [
+      name,
+      { name, description: "", enabledStacks: [] },
+    ]),
+  ),
+  optional_infra: {
+    monitoring: false,
+    elk: false,
+    debezium: false,
+    golden_image: false,
+    verdaccio: false,
+  },
+  discovery: { paths: ["services/**"] },
+};
+
+describe("tdk up --env-file", () => {
+  const COMPLETE_ENV = [
+    "TILT_ENV=dev",
+    "DB_PASSWORD=local-db-password",
+    "JWT_SECRET=local-jwt-secret",
+    "",
+  ].join("\n");
+
+  let dir: string;
+  let projectDir: string;
+  let originalCwd: string;
+
+  beforeEach(() => {
+    dir = mkdtempSync(join(tmpdir(), "tdk-up-env-file-"));
+    // macOS resolves the temporary directory (/var -> /private/var), and the CLI resolves a
+    // relative path against the current directory, so the project path is the resolved one.
+    projectDir = realpathSync(dir);
+    originalCwd = process.cwd();
+    // A relative --env-file is resolved against the current directory, like Node.js and
+    // `docker compose --env-file` resolve it.
+    process.chdir(dir);
+    vi.stubEnv("TDK_ALLOW_NATIVE_WINDOWS", "1");
+    vi.mocked(findProjectRoot).mockReturnValue(projectDir);
+    vi.mocked(requireProjectRoot).mockReturnValue(projectDir);
+    // The command reads the project config before it starts anything.
+    mkdirSync(join(projectDir, ".tdk"), { recursive: true });
+    writeFileSync(join(projectDir, ".tdk", "project.json"), `${JSON.stringify(PROJECT_JSON)}\n`);
+    vi.mocked(verifyMasterConfigs).mockReturnValue({
+      valid: true,
+      errors: [],
+      warnings: [],
+      diffs: [],
+      handEdited: [],
+    });
+    vi.mocked(classifyTiltPorts).mockResolvedValue({
+      running: [],
+      foreign: [],
+    } as unknown as Awaited<ReturnType<typeof classifyTiltPorts>>);
+  });
+
+  afterEach(() => {
+    process.chdir(originalCwd);
+    rmSync(dir, { recursive: true, force: true });
+    delete process.env[PROJECT_ENV_FILE_VAR];
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+  });
+
+  it("selects the file for the run and points the engine at it", () => {
+    writeFileSync(join(dir, ".env.integration"), COMPLETE_ENV);
+
+    const selection = selectRunEnvFile(projectDir, ".env.integration");
+
+    expect(selection?.path).toBe(join(projectDir, ".env.integration"));
+    expect(selection?.relativePath).toBe(".env.integration");
+  });
+
+  it("leaves the env file of the run alone when no file is requested", () => {
+    expect(selectRunEnvFile(dir, undefined)).toBeUndefined();
+  });
+
+  it("refuses a file that does not exist, before anything starts", () => {
+    vi.mocked(runTilt).mockClear();
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { exit } = captureExit();
+
+    try {
+      expect(() => selectRunEnvFile(projectDir, ".env.integration")).toThrow(/Env file not found/);
+      expect(runTilt).not.toHaveBeenCalled();
+      expect(error).not.toHaveBeenCalled();
+      expect(exit).not.toHaveBeenCalled();
+    } finally {
+      exit.mockRestore();
+      error.mockRestore();
+    }
+  });
+
+  it("refuses a file outside the project", () => {
+    const outside = mkdtempSync(join(tmpdir(), "tdk-up-env-outside-"));
+    try {
+      writeFileSync(join(outside, ".env"), COMPLETE_ENV);
+      expect(() => selectRunEnvFile(projectDir, join(outside, ".env"))).toThrow(
+        /Env file is outside the project/,
+      );
+    } finally {
+      rmSync(outside, { recursive: true, force: true });
+    }
+  });
+
+  it("refuses a file that misses a key the platform needs, without naming a value", () => {
+    writeFileSync(join(dir, ".env.integration"), "TILT_ENV=dev\nDB_PASSWORD=topsecretvalue\n");
+
+    try {
+      selectRunEnvFile(projectDir, ".env.integration");
+      expect.unreachable("the missing key should stop the run");
+    } catch (error) {
+      const message = (error as Error).message;
+      expect(message).toContain("JWT_SECRET");
+      expect(message).not.toContain("topsecretvalue");
+    }
+  });
+
+  it("exits 2 on a missing file and never reaches Tilt", async () => {
+    vi.mocked(runTilt).mockClear();
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { exit } = captureExit();
+
+    try {
+      await expect(
+        upCommand.parseAsync(["--env-file", ".env.integration"], { from: "user" }),
+      ).rejects.toThrow("process.exit");
+
+      expect(exit).toHaveBeenCalledWith(2);
+      expect(runTilt).not.toHaveBeenCalled();
+      expect(error).toHaveBeenCalledWith(
+        expect.stringContaining("Env file not found: .env.integration"),
+      );
+    } finally {
+      exit.mockRestore();
+      error.mockRestore();
+    }
+  });
+
+  it("writes the ENV_FILE_INVALID code to stdout in --json mode", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.mocked(writeSync).mockClear();
+    let written = "";
+    vi.mocked(writeSync).mockImplementation(((fd: number, data: string) => {
+      if (fd === 1) written += data;
+      return data.length;
+    }) as never);
+    const exit = vi.spyOn(process, "exit").mockImplementation((() => {
+      throw new Error("process.exit");
+    }) as never);
+
+    await expect(
+      upCommand.parseAsync(["--json", "--env-file", ".env.integration"], { from: "user" }),
+    ).rejects.toThrow("process.exit");
+
+    const payload = JSON.parse(written.trim().split("\n")[0] as string);
+    expect(payload.errors[0].code).toBe("ENV_FILE_INVALID");
+    expect(payload.errors[0].message).toContain(".env.integration");
+    exit.mockRestore();
+  });
+
+  it("exports the selected file for the engine and names it in the output", async () => {
+    writeFileSync(join(dir, ".env.integration"), COMPLETE_ENV);
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    try {
+      await upCommand.parseAsync(["--dry-run", "--env-file", ".env.integration"], {
+        from: "user",
+      });
+    } catch {
+      // Later dry-run steps need a real project; the env file of the run is what matters here.
+    }
+
+    expect(process.env[PROJECT_ENV_FILE_VAR]).toBe(join(projectDir, ".env.integration"));
+    expect(log).toHaveBeenCalledWith(expect.stringContaining(".env.integration"));
+    expect(log).not.toHaveBeenCalledWith(expect.stringContaining("local-jwt-secret"));
+    log.mockRestore();
+  });
+
+  it("refuses the option when a stack is already running, because it keeps its env file", async () => {
+    writeFileSync(join(projectDir, ".env.integration"), COMPLETE_ENV);
+    vi.mocked(classifyTiltPorts).mockResolvedValue({
+      running: [10350],
+      foreign: [],
+    } as unknown as Awaited<ReturnType<typeof classifyTiltPorts>>);
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { exit } = captureExit();
+
+    try {
+      await expect(
+        upCommand.parseAsync(["--quiet", "--env-file", ".env.integration"], { from: "user" }),
+      ).rejects.toThrow("process.exit");
+
+      expect(exit).toHaveBeenCalledWith(1);
+      expect(error).toHaveBeenCalledWith(
+        expect.stringContaining("--env-file applies to a new run only"),
+      );
+    } finally {
+      exit.mockRestore();
+      error.mockRestore();
+    }
+  });
+
+  it("keeps the project .env as the env file of the run when no file is requested", async () => {
+    // An inherited variable must not change the default either.
+    vi.stubEnv(PROJECT_ENV_FILE_VAR, "/somewhere/else/.env");
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    try {
+      await upCommand.parseAsync(["--dry-run"], { from: "user" });
+    } catch {
+      // Later dry-run steps need a real project.
+    }
+
+    expect(process.env[PROJECT_ENV_FILE_VAR]).toBeUndefined();
+    expect(log).not.toHaveBeenCalledWith(expect.stringContaining("Using env file"));
+    log.mockRestore();
+  });
+
+  it("documents the exit code it returns for a rejected --env-file", () => {
+    expect(documentedExitCode("rejected `--env-file`")).toBe(2);
   });
 });
