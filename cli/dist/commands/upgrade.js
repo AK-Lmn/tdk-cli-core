@@ -357,10 +357,27 @@ export async function getLatestVersion() {
         return null;
     }
 }
+/**
+ * Removes the package the CLI shipped under before the rename. It owns the old `tdk` command,
+ * so npm and bun refuse to install @flisk-sh/flisk next to it (EEXIST) and the upgrade dies
+ * before it starts. The removal is best effort: the package is often not installed at all.
+ */
+function removeLegacyInstallation(manager) {
+    const command = manager === "npm"
+        ? "npm uninstall -g @tdk-landscape/tdk-cli-core"
+        : "bun remove -g @tdk-landscape/tdk-cli-core";
+    try {
+        execSync(command, { stdio: ["ignore", "ignore", "ignore"], timeout: 60000 });
+    }
+    catch {
+        // Not installed under the old name, or the manager is missing. Nothing to remove.
+    }
+}
 /** @internal Exported for unit tests only; not part of the package API. */
 export async function upgradeViaNpm() {
     const spinner = startSpinner("Upgrading via npm...");
     try {
+        removeLegacyInstallation("npm");
         execSync("npm install -g @flisk-sh/flisk@latest", {
             stdio: ["inherit", "inherit", "pipe"],
             timeout: 120000,
@@ -395,6 +412,7 @@ export async function upgradeViaNpm() {
 export async function upgradeViaBun() {
     const spinner = startSpinner("Upgrading via bun...");
     try {
+        removeLegacyInstallation("bun");
         execFileSync(findOnPath("bun") ?? "bun", ["install", "-g", "@flisk-sh/flisk@latest"], {
             stdio: "inherit",
             timeout: 120000,

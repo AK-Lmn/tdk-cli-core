@@ -289,6 +289,10 @@ describe("package-manager upgrade failures", () => {
   it("does not switch to the GitHub default branch when npm install fails", async () => {
     execSyncMock.mockReset();
     const npmStderr = "npm error code EACCES: permission denied\n";
+    // The legacy-package removal runs first and fails silently; the install fails and is reported.
+    execSyncMock.mockImplementationOnce(() => {
+      throw new Error("Command failed: npm uninstall -g @tdk-landscape/tdk-cli-core");
+    });
     execSyncMock.mockImplementationOnce(() => {
       const error = new Error("Command failed: npm install -g @flisk-sh/flisk@latest");
       Object.assign(error, { stderr: Buffer.from(npmStderr) });
@@ -300,9 +304,12 @@ describe("package-manager upgrade failures", () => {
     try {
       const ok = await upgradeViaNpm();
       expect(ok).toBe(false);
-      expect(execSyncMock).toHaveBeenCalledTimes(1);
-      expect(String(execSyncMock.mock.calls[0]?.[0])).toBe("npm install -g @flisk-sh/flisk@latest");
-      expect(execSyncMock.mock.calls[0]?.[1]).toMatchObject({
+      // The legacy package owns the old `tdk` command and blocks the install, so it goes first.
+      expect(String(execSyncMock.mock.calls[0]?.[0])).toBe(
+        "npm uninstall -g @tdk-landscape/tdk-cli-core",
+      );
+      expect(String(execSyncMock.mock.calls[1]?.[0])).toBe("npm install -g @flisk-sh/flisk@latest");
+      expect(execSyncMock.mock.calls[1]?.[1]).toMatchObject({
         stdio: ["inherit", "inherit", "pipe"],
       });
       expect(stderr).toHaveBeenCalledWith(npmStderr);
