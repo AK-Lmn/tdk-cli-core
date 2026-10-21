@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -27,7 +27,10 @@ function writeProject(files: Record<string, string>): string {
   return root;
 }
 
-function resourceAt(serviceDir: string, overrides: Partial<DiscoveredResource> = {}) {
+function resourceAt(
+  serviceDir: string,
+  overrides: Partial<DiscoveredResource> = {},
+): DiscoveredResource {
   return {
     name: "orders-api",
     path: serviceDir,
@@ -35,7 +38,7 @@ function resourceAt(serviceDir: string, overrides: Partial<DiscoveredResource> =
     stack: "shop",
     config: { appName: "orders-api", appType: "backend" },
     ...overrides,
-  } as DiscoveredResource;
+  };
 }
 
 const validManifest = JSON.stringify({ appName: "orders-api", appType: "backend" });
@@ -108,26 +111,29 @@ describe("getResourceMetadata", () => {
     expect(metadata.dependencies).toEqual(["postgres"]);
   });
 
-  it("infers frontend and library types when the manifest omits appType", () => {
+  it("infers frontend and library types for discovered manifests without appType", () => {
     const root = writeProject({
-      "web-frontend/service.json": validManifest,
-      "shared-lib/service.json": validManifest,
-      "infra-tools/service.json": validManifest,
+      "web-frontend/service.json": JSON.stringify({ appName: "web-frontend", runtime: "bun" }),
+      "shared-lib/service.json": JSON.stringify({ appName: "shared-lib", runtime: "bun" }),
+      "infra-tools/service.json": JSON.stringify({ appName: "infra-tools", runtime: "bun" }),
     });
 
-    const frontend = getResourceMetadata(
-      resourceAt(join(root, "web-frontend"), { name: "web-frontend", config: undefined }),
-    );
-    const library = getResourceMetadata(
-      resourceAt(join(root, "shared-lib"), { name: "shared-lib", config: undefined }),
-    );
-    const infra = getResourceMetadata(
-      resourceAt(join(root, "infra-tools"), { name: "infra-tools", config: undefined }),
-    );
+    const discovered = discoverResourcesWithProblems(root).resources;
+    const byName = new Map(discovered.map((resource) => [resource.name, resource]));
+    const typeOf = (name: string): string => {
+      const resource = byName.get(name);
+      if (!resource) throw new Error(`discovery dropped ${name}`);
+      return getResourceMetadata(resource).type;
+    };
 
-    expect(frontend.type).toBe("frontend");
-    expect(library.type).toBe("library");
-    expect(infra.type).toBe("library");
+    expect(discovered.map((resource) => resource.name).sort()).toEqual([
+      "infra-tools",
+      "shared-lib",
+      "web-frontend",
+    ]);
+    expect(typeOf("web-frontend")).toBe("frontend");
+    expect(typeOf("shared-lib")).toBe("library");
+    expect(typeOf("infra-tools")).toBe("library");
   });
 
   it("prefers the configured appType over name based inference", () => {
@@ -159,18 +165,24 @@ describe("getResourceMetadata", () => {
 });
 
 describe("getStackMetadata", () => {
-  it("aggregates resource counts and spans every resource timestamp", () => {
+  it("spans the oldest and newest resource timestamps", () => {
     const root = writeProject({
       "services/orders-api/service.json": validManifest,
       "services/orders-worker/service.json": validManifest,
     });
-    const resources = [
-      resourceAt(join(root, "services", "orders-api")),
-      resourceAt(join(root, "services", "orders-worker"), {
-        name: "orders-worker",
-        config: { appName: "orders-worker", appType: "worker" },
-      }),
-    ];
+    const apiDir = join(root, "services", "orders-api");
+    const workerDir = join(root, "services", "orders-worker");
+    const apiTime = new Date("2026-01-01T00:00:00Z");
+    const workerTime = new Date("2026-06-01T00:00:00Z");
+    utimesSync(join(apiDir, "service.json"), apiTime, apiTime);
+    utimesSync(join(workerDir, "service.json"), workerTime, workerTime);
+
+    const apiResource = resourceAt(apiDir);
+    const workerResource = resourceAt(workerDir, {
+      name: "orders-worker",
+      config: { appName: "orders-worker", appType: "worker" },
+    });
+    const resources = [apiResource, workerResource];
     const stack: DiscoveredStack = {
       name: "shop",
       description: "2 resources",
@@ -179,20 +191,16 @@ describe("getStackMetadata", () => {
     };
 
     const metadata = getStackMetadata(stack);
+    const api = getResourceMetadata(apiResource);
+    const worker = getResourceMetadata(workerResource);
 
-    const resourceMetadata = resources.map((entry) => getResourceMetadata(entry));
+    // Both resources report their own file time as createdAt and lastModified, so the bounds must differ.
+    expect(new Date(api.createdAt).getTime()).toBeLessThan(new Date(worker.createdAt).getTime());
+    expect(worker.lastModified).toBe(worker.createdAt);
     expect(metadata.resourceCount).toBe(2);
     expect(metadata.resources).toHaveLength(2);
-    expect(metadata.createdAt).toBe(
-      new Date(
-        Math.min(...resourceMetadata.map((r) => new Date(r.createdAt).getTime())),
-      ).toISOString(),
-    );
-    expect(metadata.lastModified).toBe(
-      new Date(
-        Math.max(...resourceMetadata.map((r) => new Date(r.lastModified).getTime())),
-      ).toISOString(),
-    );
+    expect(metadata.createdAt).toBe(api.createdAt);
+    expect(metadata.lastModified).toBe(worker.lastModified);
     expect(metadata.overallStatus).toBe("unknown");
     expect(getStackMetadata(stack)).toBe(metadata);
   });
