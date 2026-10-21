@@ -2,7 +2,12 @@
 // SPDX-License-Identifier: MIT
 import { describe, expect, it } from "vitest";
 import { parseTiltResourceFailures } from "../doctor-runtime.js";
-import { buildStartupReport, formatStartupReport, isStartupStalled } from "../startup-report.js";
+import {
+  buildStartupReport,
+  formatStartupReport,
+  isStartupStalled,
+  transitiveDependencies,
+} from "../startup-report.js";
 
 function item(name: string, update: string, runtime: string, extra: object = {}) {
   return { metadata: { name }, status: { updateStatus: update, runtimeStatus: runtime, ...extra } };
@@ -145,6 +150,27 @@ describe("buildStartupReport", () => {
     const parsed = parseTiltResourceFailures(mixed);
     expect(report.blocked.length + report.starting.length).toBe(parsed.pendingCount);
     expect(report.failed.length).toBe(parsed.failures.length);
+  });
+
+  it("reports nothing when Tilt returned no items", () => {
+    expect(buildStartupReport("{}", {})).toEqual({ failed: [], blocked: [], starting: [] });
+  });
+});
+
+describe("transitiveDependencies", () => {
+  it("visits a dependency shared by two services once", () => {
+    const closure = transitiveDependencies("web", {
+      web: ["api", "worker"],
+      api: ["postgres"],
+      worker: ["postgres"],
+    });
+    expect([...closure].sort()).toEqual(["api", "postgres", "worker"]);
+  });
+
+  it("returns every node of a dependency cycle without recursing forever", () => {
+    const closure = transitiveDependencies("api", { api: ["postgres"], postgres: ["api"] });
+    expect(closure.has("postgres")).toBe(true);
+    expect(closure.has("api")).toBe(true);
   });
 });
 
