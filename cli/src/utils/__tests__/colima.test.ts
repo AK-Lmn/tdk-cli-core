@@ -3,7 +3,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { checkColima, isColimaDocker, type ColimaDeps } from "../colima.js";
+import { type ColimaDeps, checkColima, isColimaDocker } from "../colima.js";
 
 function deps(overrides: Partial<ColimaDeps> = {}): ColimaDeps {
   return {
@@ -11,6 +11,7 @@ function deps(overrides: Partial<ColimaDeps> = {}): ColimaDeps {
     run: () => "colima is running using macOS Virtualization.Framework\narch: aarch64\n",
     exists: () => true,
     home: "/Users/me",
+    dockerAnswers: () => true,
     ...overrides,
   };
 }
@@ -22,7 +23,9 @@ describe("isColimaDocker", () => {
 
   it("is false for a plain Docker endpoint", () => {
     expect(
-      isColimaDocker(deps({ env: { DOCKER_HOST: "unix:///var/run/docker.sock" }, exists: () => false })),
+      isColimaDocker(
+        deps({ env: { DOCKER_HOST: "unix:///var/run/docker.sock" }, exists: () => false }),
+      ),
     ).toBe(false);
   });
 });
@@ -37,7 +40,9 @@ describe("checkColima", () => {
   });
 
   it("says nothing when Docker does not run on Colima", () => {
-    const status = checkColima(deps({ env: { DOCKER_HOST: "unix:///var/run/docker.sock" }, exists: () => false }));
+    const status = checkColima(
+      deps({ env: { DOCKER_HOST: "unix:///var/run/docker.sock" }, exists: () => false }),
+    );
     expect(status.isColima).toBe(false);
     expect(status.running).toBe(true);
   });
@@ -45,6 +50,7 @@ describe("checkColima", () => {
   it("reports a VM that is not running", () => {
     const status = checkColima(
       deps({
+        dockerAnswers: () => false,
         run: () => {
           const error = new Error("colima not running") as Error & { stderr?: string };
           error.stderr = "time=... level=fatal msg=colima not running";
@@ -60,6 +66,7 @@ describe("checkColima", () => {
   it("reports a Lima that cannot run on this architecture", () => {
     const status = checkColima(
       deps({
+        dockerAnswers: () => false,
         run: () => {
           const error = new Error("lima compatibility error") as Error & { stderr?: string };
           error.stderr =
@@ -71,5 +78,38 @@ describe("checkColima", () => {
     expect(status.running).toBe(false);
     expect(status.problem).toContain("x86_64");
     expect(status.fix).toContain("native");
+  });
+});
+
+describe("checkColima with a broken colima CLI", () => {
+  it("says the VM is running when Docker answers but colima cannot see it", () => {
+    const status = checkColima(
+      deps({
+        dockerAnswers: () => true,
+        run: () => {
+          const error = new Error("colima not running") as Error & { stderr?: string };
+          error.stderr = "time=... level=fatal msg=colima not running";
+          throw error;
+        },
+      }),
+    );
+    expect(status.running).toBe(true);
+    expect(status.problem).toContain("cannot see it");
+    expect(status.fix).toContain("native limactl");
+  });
+
+  it("says the VM is down when Docker does not answer either", () => {
+    const status = checkColima(
+      deps({
+        dockerAnswers: () => false,
+        run: () => {
+          const error = new Error("colima not running") as Error & { stderr?: string };
+          error.stderr = "time=... level=fatal msg=colima not running";
+          throw error;
+        },
+      }),
+    );
+    expect(status.running).toBe(false);
+    expect(status.fix).toContain("colima start");
   });
 });

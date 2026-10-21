@@ -5,7 +5,24 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 const defaultDeps = () => ({
     env: process.env,
-    run: (command, args) => execFileSync(command, args, { encoding: "utf-8", timeout: 10_000, stdio: ["ignore", "pipe", "pipe"] }),
+    dockerAnswers: () => {
+        try {
+            execFileSync("docker", ["info", "--format", "{{.ServerVersion}}"], {
+                encoding: "utf-8",
+                timeout: 10_000,
+                stdio: ["ignore", "pipe", "ignore"],
+            });
+            return true;
+        }
+        catch {
+            return false;
+        }
+    },
+    run: (command, args) => execFileSync(command, args, {
+        encoding: "utf-8",
+        timeout: 10_000,
+        stdio: ["ignore", "pipe", "pipe"],
+    }),
     exists: existsSync,
     home: process.env.HOME ?? "",
 });
@@ -41,6 +58,16 @@ export function checkColima(deps = defaultDeps()) {
                 fix: "Install a native Lima (brew reinstall lima, or use a native limactl on PATH) and run `colima start`",
             };
         }
+        if (deps.dockerAnswers()) {
+            // The VM is up: the colima CLI on this PATH simply cannot see it, which is what a
+            // Rosetta (x86_64) limactl does on Apple Silicon.
+            return {
+                isColima: true,
+                running: true,
+                problem: "The Colima VM is running, but the colima CLI on this PATH cannot see it",
+                fix: "Use a native limactl (a Rosetta x86_64 limactl cannot talk to the VM): brew reinstall lima, or put a native limactl first on PATH",
+            };
+        }
         if (/not running/i.test(message)) {
             return {
                 isColima: true,
@@ -59,6 +86,14 @@ export function checkColima(deps = defaultDeps()) {
     if (/is running/i.test(status)) {
         const arch = /arch:\s*(\S+)/.exec(status)?.[1];
         return { isColima: true, running: true, arch };
+    }
+    if (deps.dockerAnswers()) {
+        return {
+            isColima: true,
+            running: true,
+            problem: "The Colima VM is running, but the colima CLI on this PATH cannot see it",
+            fix: "Use a native limactl (a Rosetta x86_64 limactl cannot talk to the VM): brew reinstall lima, or put a native limactl first on PATH",
+        };
     }
     return {
         isColima: true,
