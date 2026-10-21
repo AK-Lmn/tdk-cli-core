@@ -1,6 +1,6 @@
 import type { CheckResult } from "../types/index.js";
 export type PreflightItem = {
-    id: "node" | "docker" | "compose" | "tilt" | "bun" | "ports" | "nats" | "prisma";
+    id: "node" | "docker" | "compose" | "tilt" | "bun" | "ports" | "nats" | "prisma" | "colima";
     ok: boolean;
     message: string;
     fix?: string;
