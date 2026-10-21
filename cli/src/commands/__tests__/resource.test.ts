@@ -1,7 +1,15 @@
 // Copyright (c) 2026 TDK Landscape contributors
 // SPDX-License-Identifier: MIT
 import { execSync, spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -20,6 +28,7 @@ import {
   getWorkerIndexTemplate,
   PRISMA_CONFIG_TEMPLATE,
   PRISMA_SCHEMA_TEMPLATE,
+  parseExistingServiceJson,
   parseResourceType,
   TSCONFIG_TEMPLATE,
   TYPE_SPECIFIC,
@@ -926,6 +935,43 @@ describe("resource command non-interactive mode", () => {
       expect(existsSync(join(projectRoot, "services", "beta", "new-api", "service.json"))).toBe(
         false,
       );
+    } finally {
+      rmSync(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("wraps a malformed service.json in a TdkError naming the file during registration", () => {
+    expect(() =>
+      parseExistingServiceJson('{"appName": "broken",', "/tmp/services/main/broken/service.json"),
+    ).toThrow(TdkError);
+    expect(() =>
+      parseExistingServiceJson('{"appName": "broken",', "/tmp/services/main/broken/service.json"),
+    ).toThrow(/Could not parse service\.json at \/tmp\/services\/main\/broken\/service\.json:/);
+
+    const projectRoot = createResourceProject();
+    try {
+      const resourceDir = join(projectRoot, "services", "main", "broken");
+      const manifestPath = join(resourceDir, "service.json");
+      mkdirSync(resourceDir, { recursive: true });
+      writeFileSync(manifestPath, '{"appName": "broken",\n');
+
+      const result = runResourceCli(projectRoot, [
+        "broken",
+        "--type",
+        "backend",
+        "--path",
+        "services/main/broken",
+        "--register-existing",
+        "--yes",
+      ]);
+      const output = result.stdout + result.stderr;
+
+      expect(result.status).toBe(1);
+      // The CLI reports the manifest path it actually read, which is the resolved
+      // (symlink-free) path: on macOS the temporary directory is `/var/...` but the
+      // spawned process sees `/private/var/...`.
+      expect(output).toContain(`Could not parse service.json at ${realpathSync(manifestPath)}:`);
+      expect(readFileSync(manifestPath, "utf8")).toBe('{"appName": "broken",\n');
     } finally {
       rmSync(projectRoot, { recursive: true, force: true });
     }

@@ -310,6 +310,28 @@ export function parseResourceType(type) {
     return normalized;
 }
 /**
+ * Parse an existing `service.json` manifest.
+ *
+ * Wraps JSON syntax errors in a `TdkError` that names the offending file, so a malformed manifest
+ * is reported as a CLI error instead of an unhandled `SyntaxError`. Only the JSON syntax is
+ * checked here: the manifest fields themselves are not validated, and a syntactically valid file
+ * is returned as-is, including unknown or missing fields.
+ *
+ * @param content - The raw contents of the `service.json` file.
+ * @param configPath - Path to the manifest, used in the error message.
+ * @returns The parsed manifest.
+ * @throws TdkError When the content is not valid JSON.
+ */
+export function parseExistingServiceJson(content, configPath) {
+    try {
+        return JSON.parse(content);
+    }
+    catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+        throw new TdkError(`Could not parse service.json at ${configPath}: ${reason}`);
+    }
+}
+/**
  * Prints the framework inventory for the requested resource type.
  *
  * Without an explicit `--type` the listing stays the historical frontend one, byte for byte, so
@@ -612,7 +634,7 @@ export const resourceCommand = addYesOption(new Command("resource"))
             const { readFileSync } = await import("node:fs");
             const existingServiceJsonPath = resolve(fullPath, SERVICE_JSON);
             const existingContent = readFileSync(existingServiceJsonPath, "utf-8");
-            const existingServiceJson = JSON.parse(existingContent);
+            const existingServiceJson = parseExistingServiceJson(existingContent, existingServiceJsonPath);
             // Update with new values while preserving existing fields
             const updatedServiceJson = {
                 ...existingServiceJson,
