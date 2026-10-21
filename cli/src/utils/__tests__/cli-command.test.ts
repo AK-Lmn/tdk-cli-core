@@ -3,12 +3,13 @@
 
 import { describe, expect, it } from "vitest";
 
-import { CLI_COMMAND, CLI_PACKAGE, isCommandOnPath, readyNextStep } from "../cli-command.js";
+import { CLI_COMMAND, CLI_PACKAGE, LEGACY_PACKAGE, isCommandOnPath, readyNextStep } from "../cli-command.js";
 
 describe("cli-command", () => {
   it("names the command and the package that installs it", () => {
     expect(CLI_COMMAND).toBe("flisk");
     expect(CLI_PACKAGE).toBe("@flisk-sh/flisk");
+    expect(LEGACY_PACKAGE).toBe("@tdk-landscape/tdk-cli-core");
   });
 
   it("finds the command on PATH", () => {
@@ -31,6 +32,7 @@ describe("cli-command", () => {
     const step = readyNextStep({ PATH: "/nonexistent" });
     expect(step).toContain("not on PATH");
     expect(step).toContain("npm install -g @flisk-sh/flisk");
+    expect(step).toContain("npm uninstall -g @tdk-landscape/tdk-cli-core");
     expect(step).toContain("flisk project --yes");
     expect(step).not.toBe("Next: flisk project --yes");
   });
