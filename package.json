@@ -15,6 +15,7 @@
     "cli"
   ],
   "bin": {
+    "flisk": "cli/bin/tdk.js",
     "tdk": "cli/bin/tdk.js",
     "tdk-cli": "cli/bin/tdk.js"
   },
