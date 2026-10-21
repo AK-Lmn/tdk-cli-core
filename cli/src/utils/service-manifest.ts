@@ -5,7 +5,7 @@ import { validateSmoke } from "./smoke.js";
 
 export const SERVICE_MANIFEST_SCHEMA_VERSION = 1;
 export const SERVICE_MANIFEST_SCHEMA_URL =
-  "https://flisk-sh.github.io/tdk-landscape.github.io/schema.service.json";
+  "https://flisk.sh/schema.service.json";
 
 /**
  * Fields that are still read, or still tolerated, but should not be used. The warning says what replaces each one. `jwtSecret` is

@@ -6,7 +6,7 @@ See also the product site [llms.txt](https://flisk.sh/llms.txt).
 
 ## Quick Reference
 
-- **Repository**: https://github.com/flisk-sh/tdk-cli-core
+- **Repository**: https://github.com/flisk-sh/flisk
 - **Website**: https://flisk.sh/
 - **CLI Binary**: `tdk` (npm: `@tdk-landscape/tdk-cli-core`)
 - **Website llms.txt**: https://flisk.sh/llms.txt

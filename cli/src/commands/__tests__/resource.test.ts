@@ -88,7 +88,7 @@ describe("resource command", () => {
       expect(serviceJson).toHaveProperty("build");
       expect(serviceJson).toHaveProperty("dev");
       expect(serviceJson.$schema).toBe(
-        "https://flisk-sh.github.io/tdk-landscape.github.io/schema.service.json",
+        "https://flisk.sh/schema.service.json",
       );
     });
 
