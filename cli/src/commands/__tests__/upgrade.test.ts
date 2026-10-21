@@ -491,12 +491,10 @@ describe("getLatestBinaryRelease", () => {
     expect(release).toEqual({
       tag: "v1.4.0",
       assetName: "tdk-darwin-arm64",
-      downloadUrl:
-        "https://github.com/flisk-sh/releases/releases/download/v1.4.0/tdk-darwin-arm64",
+      downloadUrl: "https://github.com/flisk-sh/releases/releases/download/v1.4.0/tdk-darwin-arm64",
       engineDownloadUrl:
         "https://github.com/flisk-sh/releases/releases/download/v1.4.0/tdk-cli-engine.tar.gz",
-      checksumsUrl:
-        "https://github.com/flisk-sh/releases/releases/download/v1.4.0/checksums.txt",
+      checksumsUrl: "https://github.com/flisk-sh/releases/releases/download/v1.4.0/checksums.txt",
     });
   });
 });
@@ -1104,9 +1102,7 @@ describe("upgradeCommand action handler", () => {
       const res = await runUpgrade(["--yes"]);
       expect(res.status).toBe(1);
       expect(res.stderr).toContain("Upgrade failed");
-      expect(res.stdout).toContain(
-        "irm https://flisk.sh/install.ps1 | iex",
-      );
+      expect(res.stdout).toContain("irm https://flisk.sh/install.ps1 | iex");
     });
   });
 
