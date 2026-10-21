@@ -1,11 +1,12 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
 import { execFile } from "node:child_process";
+const defaultTiltResourceReader = (port) => new Promise((resolve) => {
+    execFile("tilt", ["get", "uiresources", "-o", "json", "--port", String(port)], { timeout: 15_000, maxBuffer: 16 * 1024 * 1024 }, (error, stdout) => resolve(error ? null : stdout));
+});
 /** Reads the resource states from the Tilt UI API. */
-export async function readStackProgress(port, tiltBin = "tilt") {
-    const json = await new Promise((resolve) => {
-        execFile(tiltBin, ["get", "uiresources", "-o", "json", "--port", String(port)], { timeout: 15_000, maxBuffer: 16 * 1024 * 1024 }, (error, stdout) => resolve(error ? null : stdout));
-    });
+export async function readStackProgress(port, read = defaultTiltResourceReader) {
+    const json = await read(port);
     if (!json)
         return undefined;
     let items = [];
