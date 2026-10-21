@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 const defaultDeps = () => ({
@@ -18,11 +18,15 @@ const defaultDeps = () => ({
             return false;
         }
     },
-    run: (command, args) => execFileSync(command, args, {
-        encoding: "utf-8",
-        timeout: 10_000,
-        stdio: ["ignore", "pipe", "pipe"],
-    }),
+    run: (command, args) => {
+        // colima logs to stderr, so both streams matter.
+        const result = spawnSync(command, args, {
+            encoding: "utf-8",
+            timeout: 20_000,
+            stdio: ["ignore", "pipe", "pipe"],
+        });
+        return `${result.stdout ?? ""}${result.stderr ?? ""}`;
+    },
     exists: existsSync,
     home: process.env.HOME ?? "",
 });
