@@ -301,9 +301,7 @@ describe("package-manager upgrade failures", () => {
       const ok = await upgradeViaNpm();
       expect(ok).toBe(false);
       expect(execSyncMock).toHaveBeenCalledTimes(1);
-      expect(String(execSyncMock.mock.calls[0]?.[0])).toBe(
-        "npm install -g @flisk-sh/flisk@latest",
-      );
+      expect(String(execSyncMock.mock.calls[0]?.[0])).toBe("npm install -g @flisk-sh/flisk@latest");
       expect(execSyncMock.mock.calls[0]?.[1]).toMatchObject({
         stdio: ["inherit", "inherit", "pipe"],
       });

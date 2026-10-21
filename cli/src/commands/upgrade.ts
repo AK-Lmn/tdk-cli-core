@@ -465,14 +465,10 @@ export async function upgradeViaBun(): Promise<boolean> {
   const spinner = startSpinner("Upgrading via bun...");
 
   try {
-    execFileSync(
-      findOnPath("bun") ?? "bun",
-      ["install", "-g", "@flisk-sh/flisk@latest"],
-      {
-        stdio: "inherit",
-        timeout: 120000,
-      },
-    );
+    execFileSync(findOnPath("bun") ?? "bun", ["install", "-g", "@flisk-sh/flisk@latest"], {
+      stdio: "inherit",
+      timeout: 120000,
+    });
     spinner.succeed("Upgraded successfully via bun");
     return true;
   } catch (err: unknown) {
