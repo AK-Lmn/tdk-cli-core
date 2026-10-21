@@ -113,3 +113,19 @@ describe("checkColima with a broken colima CLI", () => {
     expect(status.fix).toContain("colima start");
   });
 });
+
+describe("checkColima with colima logging to stderr", () => {
+  it("reads the status from stderr, the way colima logs it", () => {
+    // colima prints its status as logrus lines on stderr; a check that only reads stdout
+    // would call a healthy VM "not running".
+    const status = checkColima(
+      deps({
+        run: () =>
+          "time=... level=info msg=colima is running using macOS Virtualization.Framework\narch: aarch64\n",
+      }),
+    );
+    expect(status.running).toBe(true);
+    expect(status.arch).toBe("aarch64");
+    expect(status.problem).toBeUndefined();
+  });
+});
