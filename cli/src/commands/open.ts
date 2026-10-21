@@ -3,6 +3,7 @@
 
 import chalk from "chalk";
 import { Command } from "commander";
+import { probeHostPort } from "../utils/doctor-runtime.js";
 import { showDetail, showStep } from "../utils/formatting.js";
 import { getHostPortPlan } from "../utils/host-port-config.js";
 import { findProjectRoot } from "../utils/paths.js";
@@ -110,9 +111,22 @@ export async function openFirstFrontend(projectRootOverride?: string): Promise<s
 
   if (!first) {
     spinner.fail("No frontend answered yet.");
-    console.log(chalk.yellow("The stack is not serving the frontend yet."));
-    console.log(chalk.gray("  - Start the stack in another terminal: flisk up"));
-    console.log(chalk.gray("  - Then run this again: flisk open"));
+    const plan = await getHostPortPlan(projectRoot, { inspectDocker: false });
+    const ingress = plan?.ingressHttp;
+    const reachable = ingress ? (await probeHostPort(ingress)) === "in-use" : false;
+    if (ingress && !reachable) {
+      // The stack is up but this machine cannot reach the published port: Docker is not
+      // publishing it to the host. Saying that is more useful than "not serving yet".
+      console.log(
+        chalk.yellow(`The stack is running, but this machine cannot reach port ${ingress}.`),
+      );
+      console.log(chalk.gray("  Docker is not publishing the port to the host."));
+      console.log(chalk.gray("  Restart Docker Desktop, then run `flisk open` again."));
+    } else {
+      console.log(chalk.yellow("The stack is not serving the frontend yet."));
+      console.log(chalk.gray("  - Start the stack in another terminal: flisk up"));
+      console.log(chalk.gray("  - Then run this again: flisk open"));
+    }
     for (const target of targets) {
       console.log(chalk.gray(`  - ${target.name}: ${target.url}`));
     }
