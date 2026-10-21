@@ -12,6 +12,8 @@ export type ColimaStatus = {
 };
 export interface ColimaDeps {
     env: NodeJS.ProcessEnv;
+    /** Whether the Docker daemon answers. The VM can be up while the colima CLI cannot see it. */
+    dockerAnswers: () => boolean;
     /** Runs a command and returns its output. Throws when the command fails. */
     run: (command: string, args: string[]) => string;
     /** Whether a path exists. */
