@@ -1,0 +1,47 @@
+// Copyright (c) 2026 TDK Landscape contributors
+// SPDX-License-Identifier: MIT
+import { accessSync, constants } from "node:fs";
+import { delimiter, join } from "node:path";
+/** The command users install and type. */
+export const CLI_COMMAND = "flisk";
+/** The npm package that installs it. */
+export const CLI_PACKAGE = "@flisk-sh/flisk";
+/** The package the CLI was published under before the rename. It owns the old `tdk` command. */
+export const LEGACY_PACKAGE = "@tdk-landscape/tdk-cli-core";
+/** True when the command can be typed as-is, so `flisk ...` resolves. */
+export function isCommandOnPath(command = CLI_COMMAND, env = process.env) {
+    const path = env.PATH ?? env.Path ?? "";
+    for (const dir of path.split(delimiter)) {
+        if (!dir)
+            continue;
+        const candidates = [
+            join(dir, command),
+            join(dir, `${command}.cmd`),
+            join(dir, `${command}.exe`),
+        ];
+        for (const candidate of candidates) {
+            try {
+                accessSync(candidate, constants.X_OK);
+                return true;
+            }
+            catch {
+                // Not on this PATH entry; keep looking.
+            }
+        }
+    }
+    return false;
+}
+/**
+ * The next step to print once the machine is ready. An ephemeral run (`npx @flisk-sh/flisk`)
+ * never installs the command, so pointing at `flisk ...` there would fail with
+ * "command not found"; that case says how to install it instead.
+ */
+export function readyNextStep(env = process.env) {
+    if (isCommandOnPath(CLI_COMMAND, env)) {
+        return `Next: ${CLI_COMMAND} project --yes`;
+    }
+    return (`The \`${CLI_COMMAND}\` command is not on PATH (this run is not a global install). ` +
+        `Install it with \`npm install -g ${CLI_PACKAGE}\`, then run \`${CLI_COMMAND} project --yes\`. ` +
+        `If npm reports EEXIST for \`tdk\`, the old package still owns that command: ` +
+        `run \`npm uninstall -g ${LEGACY_PACKAGE}\` first.`);
+}
