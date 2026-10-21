@@ -100,3 +100,19 @@ export function runStackQuiet(
     );
   });
 }
+
+/**
+ * A free directory for the project. A second demo in the same folder gets its own directory
+ * (`name-2`, `name-3`, ...) instead of failing because the first one is still there.
+ */
+export function nextAvailableProjectDir(
+  base: string,
+  isTaken: (candidate: string) => boolean,
+): string {
+  if (!isTaken(base)) return base;
+  for (let suffix = 2; suffix < 1000; suffix += 1) {
+    const candidate = `${base}-${suffix}`;
+    if (!isTaken(candidate)) return candidate;
+  }
+  return base;
+}

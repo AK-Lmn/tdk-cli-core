@@ -4,7 +4,12 @@
 import { EventEmitter } from "node:events";
 import { describe, expect, it, vi } from "vitest";
 
-import { findFrontendUrl, parseStackEnvelope, runStackQuiet } from "../one-command.js";
+import {
+  findFrontendUrl,
+  nextAvailableProjectDir,
+  parseStackEnvelope,
+  runStackQuiet,
+} from "../one-command.js";
 
 describe("findFrontendUrl", () => {
   it("picks the first frontend URL out of the up output", () => {
@@ -88,5 +93,16 @@ describe("runStackQuiet", () => {
     const result = await promise;
     expect(result.ok).toBe(false);
     expect(result.error).toBe("Docker is not running");
+  });
+});
+
+describe("nextAvailableProjectDir", () => {
+  it("keeps the name when the folder is free", () => {
+    expect(nextAvailableProjectDir("stack", () => false)).toBe("stack");
+  });
+
+  it("counts up when the folder is taken", () => {
+    const taken = new Set(["stack", "stack-2"]);
+    expect(nextAvailableProjectDir("stack", (candidate) => taken.has(candidate))).toBe("stack-3");
   });
 });
