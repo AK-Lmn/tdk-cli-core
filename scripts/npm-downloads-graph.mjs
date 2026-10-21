@@ -5,7 +5,7 @@
 // Note: npm counts include CI installs and mirrors; they are downloads, not users.
 import { writeFile } from "node:fs/promises";
 
-const PKG = "@tdk-landscape/tdk-cli-core";
+const PKG = "@flisk-sh/flisk";
 const API = `https://api.npmjs.org/downloads/range/last-month/${PKG}`;
 
 const res = await fetch(API);

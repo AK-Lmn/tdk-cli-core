@@ -12,7 +12,7 @@ Từ một thư mục trống đến một stack đang chạy chỉ với một 
 Bắt đầu nhanh:
 
 ```bash
-npm install -g @tdk-landscape/tdk-cli-core
+npm install -g @flisk-sh/flisk
 mkdir shop && cd shop
 tdk project --yes
 tdk resource orders-api --type backend --stack shop --yes

@@ -12,7 +12,7 @@ Boş bir klasörden tek komutla çalışan bir yığına. Her servisi `service.j
 Hızlı başlangıç:
 
 ```bash
-npm install -g @tdk-landscape/tdk-cli-core
+npm install -g @flisk-sh/flisk
 mkdir shop && cd shop
 tdk project --yes
 tdk resource orders-api --type backend --stack shop --yes

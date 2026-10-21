@@ -47,7 +47,7 @@ export function classifyRunningInstall(execPath, scriptPath, platformName = proc
 /** @internal Exported for unit tests only; not part of the package API. */
 export function windowsNpmUpgradeMessage(platformName, installInfo) {
     return platformName === "win32" && installInfo.method === "npm"
-        ? "use npm install -g @tdk-landscape/tdk-cli-core@latest"
+        ? "use npm install -g @flisk-sh/flisk@latest"
         : null;
 }
 /** @internal Exported for unit tests only; not part of the package API. */
@@ -340,7 +340,7 @@ export async function getLatestVersion() {
                 throw new Error("npm registry response did not include a version");
         }
         else {
-            result = execSync("npm view @tdk-landscape/tdk-cli-core version", {
+            result = execSync("npm view @flisk-sh/flisk version", {
                 encoding: "utf-8",
                 timeout: 10000,
             }).trim();
@@ -352,8 +352,8 @@ export async function getLatestVersion() {
         logVerbose("npm registry check failed", err);
         spinner.warn("Could not check the npm registry");
         console.log(chalk.yellow("\nInstall the latest published release manually:"));
-        console.log(chalk.cyan("   npm install -g @tdk-landscape/tdk-cli-core@latest"));
-        console.log(chalk.cyan("   bun install -g @tdk-landscape/tdk-cli-core@latest"));
+        console.log(chalk.cyan("   npm install -g @flisk-sh/flisk@latest"));
+        console.log(chalk.cyan("   bun install -g @flisk-sh/flisk@latest"));
         return null;
     }
 }
@@ -361,7 +361,7 @@ export async function getLatestVersion() {
 export async function upgradeViaNpm() {
     const spinner = startSpinner("Upgrading via npm...");
     try {
-        execSync("npm install -g @tdk-landscape/tdk-cli-core@latest", {
+        execSync("npm install -g @flisk-sh/flisk@latest", {
             stdio: ["inherit", "inherit", "pipe"],
             timeout: 120000,
         });
@@ -377,7 +377,7 @@ export async function upgradeViaNpm() {
         logVerbose("npm upgrade error", err);
         spinner.fail(`npm upgrade failed: ${getErrorMessage(err)}`);
         console.log(chalk.yellow("\nTo retry manually, install the latest published npm release:"));
-        console.log(chalk.cyan("   npm install -g @tdk-landscape/tdk-cli-core@latest"));
+        console.log(chalk.cyan("   npm install -g @flisk-sh/flisk@latest"));
         const errorCode = err && typeof err === "object" && "code" in err
             ? String(err.code ?? "")
             : "";
@@ -395,7 +395,7 @@ export async function upgradeViaNpm() {
 export async function upgradeViaBun() {
     const spinner = startSpinner("Upgrading via bun...");
     try {
-        execFileSync(findOnPath("bun") ?? "bun", ["install", "-g", "@tdk-landscape/tdk-cli-core@latest"], {
+        execFileSync(findOnPath("bun") ?? "bun", ["install", "-g", "@flisk-sh/flisk@latest"], {
             stdio: "inherit",
             timeout: 120000,
         });
@@ -406,7 +406,7 @@ export async function upgradeViaBun() {
         logVerbose("bun upgrade error", err);
         spinner.fail(`Bun upgrade failed: ${getErrorMessage(err)}`);
         console.log(chalk.yellow("\nTo retry manually, install the latest published Bun release:"));
-        console.log(chalk.cyan("   bun install -g @tdk-landscape/tdk-cli-core@latest"));
+        console.log(chalk.cyan("   bun install -g @flisk-sh/flisk@latest"));
         return false;
     }
 }
@@ -620,8 +620,8 @@ export function createUpgradeCommand() {
         if (installInfo.method === "unknown") {
             console.error(chalk.red("Could not detect installation method"));
             console.log(chalk.yellow("\nManual upgrade using a published package:"));
-            console.log(chalk.cyan("   npm install -g @tdk-landscape/tdk-cli-core@latest"));
-            console.log(chalk.cyan("   bun install -g @tdk-landscape/tdk-cli-core@latest"));
+            console.log(chalk.cyan("   npm install -g @flisk-sh/flisk@latest"));
+            console.log(chalk.cyan("   bun install -g @flisk-sh/flisk@latest"));
             console.log(chalk.cyan("   git:  cd /path/to/tdk-cli && git pull && bun link --force"));
             process.exit(1);
         }

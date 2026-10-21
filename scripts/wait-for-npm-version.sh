@@ -7,7 +7,7 @@
 
 set -euo pipefail
 
-package_name="${1:-@tdk-landscape/tdk-cli-core}"
+package_name="${1:-@flisk-sh/flisk}"
 package_version="${2:?Usage: wait-for-npm-version.sh [package] <version> [timeout-seconds]}"
 timeout_seconds="${3:-900}"
 poll_seconds="${NPM_POLL_SECONDS:-10}"

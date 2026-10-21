@@ -4,8 +4,8 @@
 
 Go from an empty folder to a running tech stack with one command. Built for agents.
 
-[![npm version](https://img.shields.io/npm/v/@tdk-landscape/tdk-cli-core.svg?style=flat&color=blue)](https://www.npmjs.com/package/@tdk-landscape/tdk-cli-core) [![npm weekly downloads](https://img.shields.io/npm/dw/@tdk-landscape/tdk-cli-core?style=flat&color=blue)](https://www.npmjs.com/package/@tdk-landscape/tdk-cli-core) [![unpacked size](https://img.shields.io/npm/unpacked-size/@tdk-landscape/tdk-cli-core)](https://packagephobia.com/result?p=@tdk-landscape/tdk-cli-core) [![install size](https://badgen.net/packagephobia/install/@tdk-landscape/tdk-cli-core)](https://packagephobia.com/result?p=@tdk-landscape/tdk-cli-core) [![GitHub stars](https://img.shields.io/github/stars/flisk-sh/flisk?style=flat&logo=github)](https://github.com/flisk-sh/flisk/stargazers) [![OSS Insight](https://img.shields.io/badge/OSS%20Insight-analytics-blue)](https://ossinsight.io/analyze/flisk-sh/flisk) [![X followers: 1,605](https://img.shields.io/badge/X%20followers-1%2C605-1DA1F2?style=flat&logo=x&logoColor=white)](https://x.com/brookservers)
-[![Journeys E2E](https://github.com/flisk-sh/flisk/actions/workflows/e2e-journeys.yml/badge.svg)](https://github.com/flisk-sh/flisk/actions/workflows/e2e-journeys.yml) [![ERP fixture scale E2E](https://github.com/flisk-sh/flisk/actions/workflows/e2e-scale-full.yml/badge.svg)](https://github.com/flisk-sh/flisk/actions/workflows/e2e-scale-full.yml) [![Example apps E2E](https://github.com/flisk-sh/flisk/actions/workflows/e2e-real-apps.yml/badge.svg?branch=main)](https://github.com/flisk-sh/flisk/actions/workflows/e2e-real-apps.yml) [![CodeQL](https://github.com/flisk-sh/flisk/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/flisk-sh/flisk/security/code-scanning) [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/flisk-sh/flisk/badge)](https://scorecard.dev/viewer/?uri=github.com/flisk-sh/flisk) [![Known Vulnerabilities](https://snyk.io/test/github/flisk-sh/flisk/badge.svg)](https://snyk.io/test/github/flisk-sh/flisk) [![Socket Badge](https://badge.socket.dev/npm/package/@tdk-landscape/tdk-cli-core/latest)](https://socket.dev/npm/package/@tdk-landscape/tdk-cli-core/overview)
+[![npm version](https://img.shields.io/npm/v/@flisk-sh/flisk.svg?style=flat&color=blue)](https://www.npmjs.com/package/@flisk-sh/flisk) [![npm weekly downloads](https://img.shields.io/npm/dw/@flisk-sh/flisk?style=flat&color=blue)](https://www.npmjs.com/package/@flisk-sh/flisk) [![unpacked size](https://img.shields.io/npm/unpacked-size/@flisk-sh/flisk)](https://packagephobia.com/result?p=@flisk-sh/flisk) [![install size](https://badgen.net/packagephobia/install/@flisk-sh/flisk)](https://packagephobia.com/result?p=@flisk-sh/flisk) [![GitHub stars](https://img.shields.io/github/stars/flisk-sh/flisk?style=flat&logo=github)](https://github.com/flisk-sh/flisk/stargazers) [![OSS Insight](https://img.shields.io/badge/OSS%20Insight-analytics-blue)](https://ossinsight.io/analyze/flisk-sh/flisk) [![X followers: 1,605](https://img.shields.io/badge/X%20followers-1%2C605-1DA1F2?style=flat&logo=x&logoColor=white)](https://x.com/brookservers)
+[![Journeys E2E](https://github.com/flisk-sh/flisk/actions/workflows/e2e-journeys.yml/badge.svg)](https://github.com/flisk-sh/flisk/actions/workflows/e2e-journeys.yml) [![ERP fixture scale E2E](https://github.com/flisk-sh/flisk/actions/workflows/e2e-scale-full.yml/badge.svg)](https://github.com/flisk-sh/flisk/actions/workflows/e2e-scale-full.yml) [![Example apps E2E](https://github.com/flisk-sh/flisk/actions/workflows/e2e-real-apps.yml/badge.svg?branch=main)](https://github.com/flisk-sh/flisk/actions/workflows/e2e-real-apps.yml) [![CodeQL](https://github.com/flisk-sh/flisk/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/flisk-sh/flisk/security/code-scanning) [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/flisk-sh/flisk/badge)](https://scorecard.dev/viewer/?uri=github.com/flisk-sh/flisk) [![Known Vulnerabilities](https://snyk.io/test/github/flisk-sh/flisk/badge.svg)](https://snyk.io/test/github/flisk-sh/flisk) [![Socket Badge](https://badge.socket.dev/npm/package/@flisk-sh/flisk/latest)](https://socket.dev/npm/package/@flisk-sh/flisk/overview)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 [![ERP backends healthy](https://img.shields.io/badge/ERP%20backends%20healthy-100%2F100-brightgreen)](https://github.com/flisk-sh/flisk/actions/runs/39160719471) [![ERP time to all healthy](https://img.shields.io/badge/ERP%20time%20to%20all%20healthy-524s-blue)](https://github.com/flisk-sh/flisk/actions/runs/39160719471) [![ERP frontends answering](https://img.shields.io/badge/ERP%20frontends%20answering-7%2F7-brightgreen)](https://github.com/flisk-sh/flisk/actions/runs/39160719471) [![ERP running containers](https://img.shields.io/badge/ERP%20running%20containers-109-blue)](https://github.com/flisk-sh/flisk/actions/runs/39160719471) [![ERP memory used](https://img.shields.io/badge/ERP%20memory%20used-1736%20MiB-blue)](https://github.com/flisk-sh/flisk/actions/runs/39160719471)
@@ -139,7 +139,7 @@ Docker runs the containers. Tilt watches services and live-updates containers wh
 
 > [!IMPORTANT]
 > Get TDK from the [flisk-sh/flisk](https://github.com/flisk-sh/flisk) repository, the
-> [`@tdk-landscape/tdk-cli-core`](https://www.npmjs.com/package/@tdk-landscape/tdk-cli-core) npm package, or the
+> [`@flisk-sh/flisk`](https://www.npmjs.com/package/@flisk-sh/flisk) npm package, or the
 > [official website](https://flisk.sh/). Follow the installation links from these official sources.
 > A similar repository name or copied README does not establish that a download is official.
 
@@ -207,7 +207,7 @@ There are two ways to get started. Both end with `tdk up <stack>`.
 | | Guided scaffolder | Core CLI (manual) |
 | --- | --- | --- |
 | Best for | A first run: pick your services and get a ready project | Full control, or adding TDK to an existing folder |
-| Package | [`@tdk-landscape/create-microservices`](https://github.com/flisk-sh/create-microservices#readme) | [`@tdk-landscape/tdk-cli-core`](https://www.npmjs.com/package/@tdk-landscape/tdk-cli-core) (this repo) |
+| Package | [`@tdk-landscape/create-microservices`](https://github.com/flisk-sh/create-microservices#readme) | [`@flisk-sh/flisk`](https://www.npmjs.com/package/@flisk-sh/flisk) (this repo) |
 
 ### Option A: guided scaffolder (recommended for beginners)
 
@@ -221,13 +221,13 @@ There are two ways to get started. Both end with `tdk up <stack>`.
 Run these commands from the directory where you want the new project folder to be created. The target directory must be new or empty; existing files are never overwritten.
 
 ```bash
-npm install -g @tdk-landscape/tdk-cli-core
+npm install -g @flisk-sh/flisk
 npm init @tdk-landscape/microservices my-project
 cd my-project
 tdk up main
 ```
 
-- `npm install -g @tdk-landscape/tdk-cli-core` installs the `tdk` command. Skip it if `tdk --version` already works.
+- `npm install -g @flisk-sh/flisk` installs the `tdk` command. Skip it if `tdk --version` already works.
 - `npm init @tdk-landscape/microservices my-project` asks how many services to create, then each service's name and type (`backend`, `frontend`, `worker`, or `mcp`).
 - `tdk up main` starts the stack. `main` is the default stack name; if you pass `--stack <name>` to the scaffolder, use that name instead. The scaffolder prints the exact `tdk up` command when it finishes.
 
@@ -311,7 +311,7 @@ Keep TDK up to date to get the latest bug fixes:
 tdk upgrade
 ```
 
-`tdk update` is an alias for the same command. If you installed with npm, you can also run `npm install -g @tdk-landscape/tdk-cli-core@latest`. To pin a version or read what changed, see [upgrading and version pinning](docs/upgrading.md).
+`tdk update` is an alias for the same command. If you installed with npm, you can also run `npm install -g @flisk-sh/flisk@latest`. To pin a version or read what changed, see [upgrading and version pinning](docs/upgrading.md).
 
 ## Examples
 
@@ -335,7 +335,7 @@ The repository ships agent skills for common TDK work, including `tdk-doctor` (e
 Install the CLI from npm (requires Node.js 22.12+) or use the prebuilt binary (no Node.js or Bun required):
 
 ```bash
-npm install -g @tdk-landscape/tdk-cli-core
+npm install -g @flisk-sh/flisk
 # or install the prebuilt binary
 curl -fsSL https://flisk.sh/install.sh | sh
 ```
@@ -394,7 +394,7 @@ repository records its [first commit](https://github.com/flisk-sh/tdk/commit/171
 18 September 2026 was [imported into this repository](https://github.com/flisk-sh/flisk/pull/670) as 306 filtered
 commits. Those commits are now ancestors of `main`; the import did not change the source tree.
 
-This `flisk` repository was created on 19 September 2026, and the `@tdk-landscape/tdk-cli-core` npm package was first
+This `flisk` repository was created on 19 September 2026, and the `@flisk-sh/flisk` npm package was first
 published on 21 September 2026. Those dates describe the current repository and package, not the start of TDK development.
 
 ## Requirements and support
@@ -464,7 +464,7 @@ Yes. If your existing setup already gives you a working local environment, keep 
 Update first; a recent release may already fix it. Run `tdk upgrade` (also available as `tdk update`), or:
 
 ```bash
-npm install -g @tdk-landscape/tdk-cli-core@latest
+npm install -g @flisk-sh/flisk@latest
 ```
 
 Then run `tdk doctor` and retry the same task. If the problem persists, [open an issue](https://github.com/flisk-sh/flisk/issues) with your TDK version, operating system, steps to reproduce, and the error output. See [upgrading and version pinning](docs/upgrading.md) and [troubleshooting](docs/troubleshooting.md).

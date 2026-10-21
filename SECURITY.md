@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Security fixes go into the latest release published on [npm](https://www.npmjs.com/package/@tdk-landscape/tdk-cli-core). Please upgrade before reporting.
+Security fixes go into the latest release published on [npm](https://www.npmjs.com/package/@flisk-sh/flisk). Please upgrade before reporting.
 
 ## Reporting a vulnerability
 
@@ -33,7 +33,7 @@ If you do not hear back within 5 business days, please send the report again thr
 
 ## Scope
 
-In scope: the `tdk` CLI, the Tilt engine and generated local runtime files in this repository, and the published npm package `@tdk-landscape/tdk-cli-core`. TDK is a local development tool; issues in third-party services it starts (Docker, Tilt, databases) should go to those projects.
+In scope: the `tdk` CLI, the Tilt engine and generated local runtime files in this repository, and the published npm package `@flisk-sh/flisk`. TDK is a local development tool; issues in third-party services it starts (Docker, Tilt, databases) should go to those projects.
 
 ## What TDK sends and how secrets are handled
 

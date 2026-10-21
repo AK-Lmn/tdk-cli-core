@@ -11,7 +11,7 @@ Each service has one `service.json`; `tdk up` starts the local stack. No Kuberne
 - Write `TDK CLI` in titles, About fields, npm metadata, and social copy.
 - Keep `flisk-sh` alongside the product name in organization identity.
 - Do not write `Tilt Development Kit` or use bare `TDK` as the product name in titles.
-- Preserve repository names and `@tdk-landscape/tdk-cli-core`.
+- Preserve repository names and `@flisk-sh/flisk`.
 - npm description/title: `TDK CLI — start services on your machine.`
 
 ## First screen

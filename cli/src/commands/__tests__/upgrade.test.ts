@@ -290,7 +290,7 @@ describe("package-manager upgrade failures", () => {
     execSyncMock.mockReset();
     const npmStderr = "npm error code EACCES: permission denied\n";
     execSyncMock.mockImplementationOnce(() => {
-      const error = new Error("Command failed: npm install -g @tdk-landscape/tdk-cli-core@latest");
+      const error = new Error("Command failed: npm install -g @flisk-sh/flisk@latest");
       Object.assign(error, { stderr: Buffer.from(npmStderr) });
       throw error;
     });
@@ -302,14 +302,14 @@ describe("package-manager upgrade failures", () => {
       expect(ok).toBe(false);
       expect(execSyncMock).toHaveBeenCalledTimes(1);
       expect(String(execSyncMock.mock.calls[0]?.[0])).toBe(
-        "npm install -g @tdk-landscape/tdk-cli-core@latest",
+        "npm install -g @flisk-sh/flisk@latest",
       );
       expect(execSyncMock.mock.calls[0]?.[1]).toMatchObject({
         stdio: ["inherit", "inherit", "pipe"],
       });
       expect(stderr).toHaveBeenCalledWith(npmStderr);
       const output = log.mock.calls.flat().map(String).join("\n");
-      expect(output).toContain("npm install -g @tdk-landscape/tdk-cli-core@latest");
+      expect(output).toContain("npm install -g @flisk-sh/flisk@latest");
       expect(output).toContain("docs.npmjs.com");
       expect(output).not.toContain("github:");
       expect(output).not.toContain("Upgraded successfully");
@@ -333,10 +333,10 @@ describe("package-manager upgrade failures", () => {
       expect(execFileSyncMock.mock.calls[0]?.[1]).toEqual([
         "install",
         "-g",
-        "@tdk-landscape/tdk-cli-core@latest",
+        "@flisk-sh/flisk@latest",
       ]);
       const output = log.mock.calls.flat().map(String).join("\n");
-      expect(output).toContain("bun install -g @tdk-landscape/tdk-cli-core@latest");
+      expect(output).toContain("bun install -g @flisk-sh/flisk@latest");
       expect(output).not.toContain("github:");
       expect(output).not.toContain("Upgraded successfully");
     } finally {
@@ -382,7 +382,7 @@ describe("Windows upgrade installation routing", () => {
 
   it("prints the npm update command instead of replacing npm files with an exe", () => {
     expect(windowsNpmUpgradeMessage("win32", { method: "npm" })).toBe(
-      "use npm install -g @tdk-landscape/tdk-cli-core@latest",
+      "use npm install -g @flisk-sh/flisk@latest",
     );
   });
 });
@@ -953,7 +953,7 @@ describe("upgradeCommand action handler", () => {
       const res = await runUpgrade([]);
       expect(res.status).toBe(1);
       expect(res.stderr).toContain("Could not detect installation method");
-      expect(res.stdout).toContain("npm install -g @tdk-landscape/tdk-cli-core@latest");
+      expect(res.stdout).toContain("npm install -g @flisk-sh/flisk@latest");
     });
   });
 
@@ -968,7 +968,7 @@ describe("upgradeCommand action handler", () => {
 
       const res = await runUpgrade([]);
       expect(res.status).toBeUndefined();
-      expect(res.stdout).toContain("use npm install -g @tdk-landscape/tdk-cli-core@latest");
+      expect(res.stdout).toContain("use npm install -g @flisk-sh/flisk@latest");
     });
   });
 

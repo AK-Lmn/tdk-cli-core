@@ -23,7 +23,7 @@ export function loadTemplate(filename) {
         path.join(__dirname, "..", "..", "templates"), // Standard: dist/generator -> templates (also covers src/generator -> ../../templates in dev/test)
         path.join(__dirname, "..", "templates"), // Installed: dist/generator -> dist/templates
         path.join(__dirname, "..", "..", "..", "templates"), // Development: cli/dist/generator -> cli/templates
-        path.join(process.cwd(), "node_modules", "@tdk-landscape", "tdk-cli-core", "templates"), // Monorepo root
+        path.join(process.cwd(), "node_modules", "@flisk-sh", "flisk", "templates"), // Monorepo root
         // Compiled single-file binary (bun build --compile): __dirname resolves inside the
         // virtual $bunfs filesystem, not a real path, so fall back to the directory the actual
         // executable lives in. release-binaries.sh bundles cli/templates at tdk-cli/cli/templates
@@ -588,7 +588,7 @@ export function findCliAssetRoot() {
     const exeDir = path.dirname(process.execPath);
     const candidates = [
         path.join(exeDir, "tdk-cli"),
-        path.join(process.cwd(), "node_modules", "@tdk-landscape", "tdk-cli-core"),
+        path.join(process.cwd(), "node_modules", "@flisk-sh", "flisk"),
     ];
     return (candidates.find((candidate) => fs.existsSync(path.join(candidate, "shared-platform-engineering", "docker-templates"))) ?? null);
 }

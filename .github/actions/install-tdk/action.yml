@@ -39,8 +39,8 @@ runs:
           scripts/e2e/retry-infra.sh "install the packed CLI" -- node scripts/install-global.mjs "./$tarball"
         else
           if [ "$TDK_VERSION" != "latest" ]; then
-            scripts/wait-for-npm-version.sh "@tdk-landscape/tdk-cli-core" "$TDK_VERSION"
+            scripts/wait-for-npm-version.sh "@flisk-sh/flisk" "$TDK_VERSION"
           fi
-          scripts/e2e/retry-infra.sh "install the published CLI" -- node scripts/install-global.mjs "@tdk-landscape/tdk-cli-core@${TDK_VERSION}"
+          scripts/e2e/retry-infra.sh "install the published CLI" -- node scripts/install-global.mjs "@flisk-sh/flisk@${TDK_VERSION}"
         fi
         tdk --version

@@ -16,7 +16,7 @@ Public pages and repository descriptions must consistently explain TDK CLI's job
 
 ## Non-Goals
 
-- Renaming repositories or `@tdk-landscape/tdk-cli-core`.
+- Renaming repositories or `@flisk-sh/flisk`.
 - Positioning TDK CLI as a production deployment tool, a hand-maintained Compose file, or a Kubernetes-on-machine product.
 - Changing CLI behavior, Premium pricing, or production deployment workflows.
 - Reopening `codex/tdk-cli-public-copy`, which has no common ancestor with `main`.
@@ -47,7 +47,7 @@ Tilt may appear once in How it works or Requirements: `Docker runs the container
 
 Use the exact descriptions supplied in the TDK CLI organization spec for the organization and each listed repository. Archived repositories are read-only on GitHub and cannot have their About fields edited while archived.
 
-The npm title is `TDK CLI — start services on your machine.` The package remains `@tdk-landscape/tdk-cli-core`.
+The npm title is `TDK CLI — start services on your machine.` The package remains `@flisk-sh/flisk`.
 
 ## Already shipped
 

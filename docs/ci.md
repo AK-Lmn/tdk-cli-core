@@ -67,7 +67,7 @@ jobs:
 
       - name: Install tdk
         run: |
-          npm install --global "@tdk-landscape/tdk-cli-core@${TDK_VERSION}"
+          npm install --global "@flisk-sh/flisk@${TDK_VERSION}"
           tdk --version
 
       # A fresh clone has neither the git-ignored .env nor .tdk/.tdk-out/, so
@@ -109,7 +109,7 @@ jobs:
 
       - name: Install tdk
         run: |
-          npm install --global "@tdk-landscape/tdk-cli-core@${TDK_VERSION}"
+          npm install --global "@flisk-sh/flisk@${TDK_VERSION}"
           tdk --version
 
       - name: Generate the local project files
@@ -214,7 +214,7 @@ Change three values at the top: `TDK_VERSION`, `TDK_STACK` and `HEALTH_SERVICES`
 
 | Method | Used in the workflow | Notes |
 | --- | --- | --- |
-| `npm install --global @tdk-landscape/tdk-cli-core@<version>` | Yes | Needs Node.js 22.12+ ([README](../README.md#installation)); `actions/setup-node` with `node-version: 22` is what this repository's workflows use. Pinning the version is [documented](upgrading.md#install-a-specific-version). |
+| `npm install --global @flisk-sh/flisk@<version>` | Yes | Needs Node.js 22.12+ ([README](../README.md#installation)); `actions/setup-node` with `node-version: 22` is what this repository's workflows use. Pinning the version is [documented](upgrading.md#install-a-specific-version). |
 | `curl -fsSL https://flisk.sh/install.sh \| sh` | No | Prebuilt binary, no Node.js. Whether it can install an older version is [not documented](upgrading.md#install-a-specific-version), so it cannot be pinned the same way. Its script was not audited ([security](security.md)). |
 | Tilt | Yes, `curl ... tilt-dev/tilt/master/scripts/install.sh \| bash` | The command every workflow in this repository uses. It installs whatever the script's current default is; this repository does not pin a Tilt version. |
 

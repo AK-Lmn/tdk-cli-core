@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "@tdk-landscape/tdk-cli-core",
+      "name": "@flisk-sh/flisk",
       "dependencies": {
         "commander": "^15.0.0",
         "handlebars": "^4.7.8",
