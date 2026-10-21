@@ -102,3 +102,39 @@ export function checkColima(deps = defaultDeps()) {
         fix: "Run `colima start`",
     };
 }
+/**
+ * What can be repaired about the Colima runtime: a VM that is not running is started, a VM
+ * whose Docker daemon does not answer is restarted, and a colima CLI that cannot see the VM
+ * (a Rosetta limactl) needs a native lima.
+ */
+export function planColimaRepair(status, dockerAnswers) {
+    if (!status.isColima)
+        return undefined;
+    if (!status.running)
+        return "start";
+    if (status.problem?.includes("cannot see it"))
+        return "native-lima";
+    if (!dockerAnswers)
+        return "restart";
+    return undefined;
+}
+/** Runs a colima command with a native limactl first on PATH, when one is installed. */
+export function nativeLimaPath(env = process.env) {
+    const home = env.HOME ?? "";
+    const candidates = [
+        home ? `${home}/.local/bin` : "",
+        home ? `${home}/bin` : "",
+        "/opt/homebrew/bin",
+    ].filter(Boolean);
+    for (const dir of candidates) {
+        const candidate = join(dir, "limactl");
+        try {
+            if (existsSync(candidate))
+                return dir;
+        }
+        catch {
+            // Not readable; try the next one.
+        }
+    }
+    return undefined;
+}

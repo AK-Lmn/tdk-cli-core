@@ -1,4 +1,5 @@
 import type { CheckResult } from "../types/index.js";
+import { type ColimaStatus } from "./colima.js";
 export type DoctorActionStatus = "planned" | "applied" | "skipped" | "failed";
 /** One repair `flisk doctor --fix` plans or performs. Part of the `--json` report (`data.actions`). */
 export interface DoctorAction {
@@ -36,6 +37,12 @@ export interface DoctorFixDeps {
         danglingImages: number;
     }>;
     prune(kind: "builder" | "images"): Promise<void>;
+    /** Starts or restarts the Colima VM, with a native limactl first on PATH when there is one. */
+    colima(action: "start" | "restart"): Promise<void>;
+    /** The state of the Colima VM behind Docker. */
+    colimaStatus(): ColimaStatus;
+    /** Whether the Docker daemon answers right now. */
+    dockerAnswers(): boolean;
 }
 type DockerRunner = (args: string[]) => Promise<string>;
 /** `ps -o etime=` ("[[dd-]hh:]mm:ss") in seconds. */

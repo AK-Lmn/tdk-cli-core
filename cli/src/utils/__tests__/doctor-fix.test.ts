@@ -1,10 +1,12 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
+
 import { spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, realpathSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import type { ColimaStatus } from "../colima.js";
 import {
   anyTiltAnswers,
   applyDoctorFixes,
@@ -31,6 +33,9 @@ function fakeDocker(
   const removed: string[] = [];
   const pruned: string[] = [];
   const stopped: number[] = [];
+  const colimaActions: string[] = [];
+  const colimaState: ColimaStatus = { isColima: false, running: true };
+  const dockerIsUp = { value: true };
   const deps: DoctorFixDeps = {
     listNetworks: async () => networks,
     removeNetwork: async (name) => {
@@ -47,6 +52,11 @@ function fakeDocker(
       buildCache: disk.buildCache ?? null,
       danglingImages: disk.dangling ?? 0,
     }),
+    colima: async (action) => {
+      colimaActions.push(action);
+    },
+    colimaStatus: () => colimaState,
+    dockerAnswers: () => dockerIsUp.value,
     prune: async (kind) => {
       pruned.push(kind);
     },
@@ -187,6 +197,9 @@ describe("applyDoctorFixes", () => {
       freeDiskGib: () => 100,
       reclaimable: async () => ({ buildCache: null, danglingImages: 0 }),
       prune: async () => {},
+      colima: async () => {},
+      colimaStatus: () => ({ isColima: false, running: true }),
+      dockerAnswers: () => true,
     };
     await applyDoctorFixes(
       await planDoctorFixes("it-ai-search", deps),
@@ -561,5 +574,62 @@ describe("anyTiltAnswers", () => {
     expect(await anyTiltAnswers([1, 2], probe, 2, noWait)).toBe(false);
     expect(calls).toBe(4);
     expect(await anyTiltAnswers([], probe, 2, noWait)).toBe(false);
+  });
+});
+
+describe("Colima repairs", () => {
+  const baseDeps = (overrides: Partial<DoctorFixDeps> = {}): DoctorFixDeps => ({
+    listNetworks: async () => [],
+    removeNetwork: async () => {},
+    isProcessAlive: () => false,
+    tiltStatus: async () => "unknown",
+    stopProcess: () => {},
+    freeDiskGib: () => 100,
+    reclaimable: async () => ({ buildCache: null, danglingImages: 0 }),
+    prune: async () => {},
+    colima: async () => {},
+    colimaStatus: () => ({ isColima: true, running: false }),
+    dockerAnswers: () => false,
+    ...overrides,
+  });
+
+  it("plans a start when the Colima VM is not running", async () => {
+    const actions = await planDoctorFixes("shop", baseDeps());
+    const start = actions.find((action) => action.id === "colima:start");
+    expect(start?.command).toBe("colima start");
+    expect(start?.status).toBe("planned");
+  });
+
+  it("plans a restart when the VM is up but Docker does not answer", async () => {
+    const actions = await planDoctorFixes(
+      "shop",
+      baseDeps({ colimaStatus: () => ({ isColima: true, running: true }) }),
+    );
+    expect(actions.find((action) => action.id === "colima:restart")?.command).toBe(
+      "colima restart",
+    );
+  });
+
+  it("plans nothing when Colima is healthy", async () => {
+    const actions = await planDoctorFixes(
+      "shop",
+      baseDeps({
+        colimaStatus: () => ({ isColima: true, running: true, arch: "aarch64" }),
+        dockerAnswers: () => true,
+      }),
+    );
+    expect(actions.filter((action) => action.id.startsWith("colima:"))).toEqual([]);
+  });
+
+  it("applies the start", async () => {
+    const ran: string[] = [];
+    const deps = baseDeps({ colima: async (action) => ran.push(action) });
+    const results = await applyDoctorFixes(
+      await planDoctorFixes("shop", deps),
+      { dryRun: false, confirm: async () => true },
+      deps,
+    );
+    expect(ran).toEqual(["start"]);
+    expect(results.find((action) => action.id === "colima:start")?.status).toBe("applied");
   });
 });
