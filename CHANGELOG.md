@@ -2,6 +2,13 @@
 
 Notable changes to the `tdk` CLI. Versions match [npm](https://www.npmjs.com/package/@tdk-landscape/tdk-cli-core?activeTab=versions) and the [binary releases](https://github.com/tdk-landscape/tdk-cli-releases/releases).
 
+## 1.3.189 (2026-10-21)
+
+- `tdk resource` now reports a malformed `service.json` with the file path and the reason it could not be parsed, instead of a raw JSON error (#1685).
+- A malformed or unreadable `.tdk/project.json` now names the file and the reason, instead of failing with a bare parse error (#1681).
+- Error output from the CLI goes through one formatter now, so `TdkError`, `runCommand` and the commands that printed their own red text all read the same way (#1620).
+- New: a workflow opens an issue for every open dependency advisory, with the advisory detail and the labels a contributor needs to find and claim it (#1783, #1784).
+
 ## 1.3.188 (2026-10-20)
 
 - Security: the BYO examples install `certifi` 2026.10.19 now (was 2026.7.22). The older bundle shipped the `emSign ECC Root CA - G3` root, and the eight eMudhra intermediate CAs that chain to it had their private keys compromised and were revoked, so anyone holding one of those keys could mint a certificate for any hostname. Advisory GHSA-6q48-6c7w-9gw2 (#1779).
