@@ -4,11 +4,27 @@ export declare function findFrontendUrl(output: string): string | undefined;
 export type StackOutcome = {
     /** True when the stack came up and its services are healthy. */
     ok: boolean;
+    /** The machine envelope the stack printed, with the Tilt UI url and the services. */
+    data?: Record<string, unknown>;
     /** The message from the stack when it did not come up. */
     error?: string;
     /** Everything the stack printed, kept for the failure message. */
     raw: string;
 };
+export type SetupOutcome = {
+    /** True when the project was initialized. */
+    ok: boolean;
+    /** The last line the setup printed, kept for the failure message. */
+    error?: string;
+};
+/**
+ * Initializes a cloned project.
+ *
+ * A starter repository holds services and a Tiltfile, but no project configuration, and
+ * `flisk up` refuses to run without one. So the one-command flow initializes the folder it
+ * just cloned before it starts the stack.
+ */
+export declare function initializeProject(binPath: string, cwd: string, env?: NodeJS.ProcessEnv, spawnFn?: typeof spawn): Promise<SetupOutcome>;
 /** Reads the `{schemaVersion, data, errors}` envelope `flisk up --json` prints when it is done. */
 export declare function parseStackEnvelope(output: string): StackOutcome | undefined;
 /**

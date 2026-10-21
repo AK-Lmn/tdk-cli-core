@@ -1,11 +1,12 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
-import { execFile } from "node:child_process";
+import { execFile, execFileSync } from "node:child_process";
 import { realpathSync, statfsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import type { CheckResult } from "../types/index.js";
+import { type ColimaStatus, checkColima, nativeLimaPath, planColimaRepair } from "./colima.js";
 import { DISK_WARN_GIB } from "./doctor-host.js";
 import {
   findProjectTiltUpPids,
@@ -59,6 +60,12 @@ export interface DoctorFixDeps {
   /** What `docker builder prune` and `docker image prune` (dangling only) would reclaim. */
   reclaimable(): Promise<{ buildCache: string | null; danglingImages: number }>;
   prune(kind: "builder" | "images"): Promise<void>;
+  /** Starts or restarts the Colima VM, with a native limactl first on PATH when there is one. */
+  colima(action: "start" | "restart"): Promise<void>;
+  /** The state of the Colima VM behind Docker. */
+  colimaStatus(): ColimaStatus;
+  /** Whether the Docker daemon answers right now. */
+  dockerAnswers(): boolean;
 }
 
 type DockerRunner = (args: string[]) => Promise<string>;
@@ -71,6 +78,20 @@ const runDocker: DockerRunner = async (args) => {
   });
   return stdout;
 };
+
+/** Whether the Docker daemon answers right now. */
+function dockerAnswers(): boolean {
+  try {
+    execFileSync("docker", ["info", "--format", "{{.ServerVersion}}"], {
+      encoding: "utf-8",
+      timeout: 15_000,
+      stdio: ["ignore", "pipe", "ignore"],
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 function firstLine(error: unknown): string {
   const stderr = String((error as { stderr?: Buffer | string }).stderr ?? error).trim();
@@ -131,6 +152,9 @@ async function tiltProcessStatus(pid: number): Promise<"healthy" | "stale" | "un
 
 export function createDockerFixDeps(run: DockerRunner = runDocker): DoctorFixDeps {
   return {
+    colima: runColima,
+    colimaStatus: () => checkColima(),
+    dockerAnswers,
     async listNetworks() {
       const names = (await run(["network", "ls", "--format", "{{.Name}}"]))
         .split(/\r?\n/)
@@ -221,6 +245,15 @@ export function createDockerFixDeps(run: DockerRunner = runDocker): DoctorFixDep
 
 export const dockerFixDeps = createDockerFixDeps();
 
+/** Starts or restarts Colima, with a native limactl first on PATH when one is installed. */
+async function runColima(action: "start" | "restart"): Promise<void> {
+  const nativeDir = nativeLimaPath();
+  const env = nativeDir
+    ? { ...process.env, PATH: `${nativeDir}:${process.env.PATH ?? ""}` }
+    : process.env;
+  await execFilePromise("colima", [action], { encoding: "utf-8", timeout: 300_000, env });
+}
+
 export interface PlanContext {
   /** `tilt up` processes for this project (see `projectTiltPids`). */
   tiltPids?: number[];
@@ -261,6 +294,42 @@ export async function planDoctorFixes(
     liveTilt.length > 0
       ? `Tilt is running for this project (pid ${liveTilt.join(", ")}); run flisk down first`
       : undefined;
+
+  // The Docker runtime itself: a Colima VM that is not running, one whose daemon does not
+  // answer, or a colima CLI that cannot see the VM. All three look like "Docker is broken".
+  const colima = deps.colimaStatus();
+  const repair = planColimaRepair(colima, deps.dockerAnswers());
+  if (repair === "start") {
+    actions.push({
+      id: "colima:start",
+      check: "Colima",
+      scope: "host",
+      command: "colima start",
+      status: "planned",
+      reason: colima.problem ?? "the Colima VM is not running",
+    });
+  } else if (repair === "restart") {
+    actions.push({
+      id: "colima:restart",
+      check: "Colima",
+      scope: "host",
+      command: "colima restart",
+      status: "planned",
+      reason: "the Colima VM is running but its Docker daemon does not answer",
+    });
+  } else if (repair === "native-lima") {
+    const nativeDir = nativeLimaPath();
+    actions.push({
+      id: "colima:native-lima",
+      check: "Colima",
+      scope: "host",
+      command: nativeDir ? `PATH="${nativeDir}:$PATH" colima status` : "brew reinstall lima",
+      status: nativeDir ? "skipped" : "planned",
+      reason: nativeDir
+        ? `the colima CLI on this PATH cannot see the VM; a native limactl is installed in ${nativeDir} (add it to PATH)`
+        : "the colima CLI on this PATH cannot see the VM; lima is installed as an x86_64 build (brew reinstall lima)",
+    });
+  }
 
   const networks = await deps.listNetworks();
   const freeGib = deps.freeDiskGib();
@@ -373,6 +442,20 @@ export async function applyDoctorFixes(
       if (action.id.startsWith("prune:")) {
         await deps.prune(action.id === "prune:builder" ? "builder" : "images");
         results.push({ ...action, status: "applied", reason: "pruned" });
+        continue;
+      }
+      if (action.id.startsWith("colima:")) {
+        const what = action.id.slice("colima:".length);
+        if (what === "start" || what === "restart") {
+          await deps.colima(what);
+          results.push({ ...action, status: "applied", reason: `colima ${what} ran` });
+          continue;
+        }
+        results.push({
+          ...action,
+          status: "skipped",
+          reason: "needs a native lima: see the command",
+        });
         continue;
       }
       if (action.id.startsWith("stop-tilt:")) {
