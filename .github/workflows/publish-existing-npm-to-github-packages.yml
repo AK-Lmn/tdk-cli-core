@@ -53,7 +53,7 @@ jobs:
             throw new Error(`Unexpected npm tarball integrity: ${integrity}`);
           }
           const encodedVersion = encodeURIComponent(version);
-          const tarballUrl = `https://registry.npmjs.org/@flisk-sh/flisk/-/tdk-cli-core-${encodedVersion}.tgz`;
+          const tarballUrl = `https://registry.npmjs.org/@flisk-sh/flisk/-/flisk-${encodedVersion}.tgz`;
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `tarball_url=${tarballUrl}\n`);
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `tarball_integrity=${integrity}\n`);
           NODE
