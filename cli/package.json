@@ -25,6 +25,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
+    "flisk": "bin/tdk.js",
     "tdk": "bin/tdk.js",
     "tdk-cli": "bin/tdk.js"
   },

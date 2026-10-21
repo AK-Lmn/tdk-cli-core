@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { checkDockerCompose, checkDockerRuntime, checkDockerVersions, checkTilt, DOCTOR_FIXES, } from "../commands/doctor.js";
 import { BUN_FLOOR_LABEL, bunMeetsFloor } from "./bun-floor.js";
 import { projectNeedsBun } from "./bun-requirement.js";
+import { readyNextStep } from "./cli-command.js";
 import { PROJECT_JSON } from "./constants.js";
 import { checkNatsBroker } from "./doctor-wiring.js";
 import { getHostPortPlan } from "./host-port-config.js";
@@ -199,8 +200,8 @@ export async function runColdPreflight(opts = {}) {
     const footer = failures.length
         ? ""
         : inProject
-            ? "Environment ready for TDK"
-            : "This machine is ready for TDK.\nNext: tdk project --yes";
+            ? "Environment ready for Flisk"
+            : `This machine is ready for Flisk.\n${readyNextStep()}`;
     return { ok: failures.length === 0, inProject, items: failures, header, footer };
 }
 /** Formats only failed preflight checks and the applicable readiness message. */
