@@ -41,6 +41,8 @@ export declare function runChecks(checks: DoctorCheckFn[], options?: {
     containerRuntimeFailed?: boolean;
 }): Promise<CheckResult[]>;
 export declare function formatDoctorSummary(results: CheckResult[]): string;
+/** The Colima VM behind Docker: a stopped VM or a colima CLI that cannot see it. */
+export declare function checkColima(): Promise<CheckResult>;
 export declare function checkDockerRuntime(): Promise<CheckResult>;
 export declare const checkDockerCompose: DoctorCheckFn;
 export declare function checkDockerVersions(exec?: ExecAsync): Promise<CheckResult>;
