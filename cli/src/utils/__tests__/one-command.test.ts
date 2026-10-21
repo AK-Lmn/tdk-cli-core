@@ -2,10 +2,14 @@
 // SPDX-License-Identifier: MIT
 
 import { EventEmitter } from "node:events";
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import {
   findFrontendUrl,
+  findServiceDirs,
   nextAvailableProjectDir,
   parseStackEnvelope,
   runStackQuiet,
@@ -106,5 +110,18 @@ describe("nextAvailableProjectDir", () => {
   it("counts up when the folder is taken", () => {
     const taken = new Set(["stack", "stack-2"]);
     expect(nextAvailableProjectDir("stack", (candidate) => taken.has(candidate))).toBe("stack-3");
+  });
+});
+
+describe("findServiceDirs", () => {
+  it("finds the folders that have their own package.json", () => {
+    const root = mkdtempSync(join(tmpdir(), "flisk-svc-"));
+    mkdirSync(join(root, "services", "api"), { recursive: true });
+    writeFileSync(join(root, "services", "api", "package.json"), "{}");
+    mkdirSync(join(root, "services", "web", "node_modules", "x"), { recursive: true });
+    writeFileSync(join(root, "services", "web", "node_modules", "x", "package.json"), "{}");
+    const dirs = findServiceDirs(root).map((dir) => dir.slice(root.length));
+    expect(dirs).toContain("/services/api");
+    expect(dirs.some((dir) => dir.includes("node_modules"))).toBe(false);
   });
 });

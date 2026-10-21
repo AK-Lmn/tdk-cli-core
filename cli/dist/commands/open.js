@@ -54,6 +54,14 @@ export async function pickReadyFrontend(targets, waitMs = 30000, onWait) {
     }
 }
 /**
+ * The first frontend of the project that answers, or undefined when none does. With a wait of
+ * zero this is a cheap "is a stack for this project already running?" check.
+ */
+export async function findReadyFrontend(projectRoot, waitMs = 0, onWait) {
+    const targets = await listFrontendTargets(projectRoot);
+    return pickReadyFrontend(targets, waitMs, onWait);
+}
+/**
  * Opens the first ready frontend of the project in the browser. Returns the URL it opened, or
  * null when the project has no frontend.
  */

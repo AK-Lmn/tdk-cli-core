@@ -13,6 +13,11 @@ export declare function isFrontendReady(url: string, timeoutMs?: number): Promis
  */
 export declare function pickReadyFrontend(targets: FrontendTarget[], waitMs?: number, onWait?: (elapsedMs: number) => void): Promise<FrontendTarget | undefined>;
 /**
+ * The first frontend of the project that answers, or undefined when none does. With a wait of
+ * zero this is a cheap "is a stack for this project already running?" check.
+ */
+export declare function findReadyFrontend(projectRoot: string, waitMs?: number, onWait?: (elapsedMs: number) => void): Promise<FrontendTarget | undefined>;
+/**
  * Opens the first ready frontend of the project in the browser. Returns the URL it opened, or
  * null when the project has no frontend.
  */
