@@ -4,6 +4,8 @@ export declare function findFrontendUrl(output: string): string | undefined;
 export type StackOutcome = {
     /** True when the stack came up and its services are healthy. */
     ok: boolean;
+    /** The machine envelope the stack printed, with the Tilt UI url and the services. */
+    data?: Record<string, unknown>;
     /** The message from the stack when it did not come up. */
     error?: string;
     /** Everything the stack printed, kept for the failure message. */

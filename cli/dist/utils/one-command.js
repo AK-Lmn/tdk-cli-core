@@ -65,6 +65,7 @@ export function parseStackEnvelope(output) {
             const ok = data.ok === true;
             return {
                 ok,
+                data: (parsed.data ?? {}),
                 error: ok ? undefined : (parsed.errors?.[0]?.message ?? "the stack did not come up"),
                 raw: output,
             };

@@ -87,8 +87,31 @@ if (templateArg) {
         else {
             installSpinner.succeed("The service dependencies are installed.");
         }
-        const spinner = startSpinner("Starting the stack (the first build takes a minute)...");
+        const spinner = startSpinner("Starting the stack (the first build takes a few minutes)...");
+        const started = Date.now();
+        // Show what the stack is doing instead of a silent spinner: the resource states, the
+        // elapsed time and where to watch the live logs. The Tilt port is not fixed (another
+        // project may hold the default), so the ports that answer are looked at.
+        const { readStackProgress, formatProgress } = await import("./utils/stack-progress.js");
+        const { classifyTiltPorts } = await import("./utils/tilt-port-owner.js");
+        const candidates = Array.from({ length: 10 }, (_, index) => 10350 + index);
+        let watching = true;
+        void (async () => {
+            while (watching) {
+                const { running } = await classifyTiltPorts(candidates, destination, async (port) => (await readStackProgress(port)) !== undefined);
+                for (const port of running) {
+                    const progress = await readStackProgress(port);
+                    if (progress) {
+                        spinner.text = formatProgress({ ...progress, elapsed: (Date.now() - started) / 1000 });
+                        break;
+                    }
+                }
+                await new Promise((resolve) => setTimeout(resolve, 2000));
+            }
+        })();
         const outcome = await runStackQuiet(binPath, destination);
+        watching = false;
+        const tiltUiUrl = outcome.data?.tiltUrl ?? "http://localhost:10350";
         if (!outcome.ok) {
             spinner.fail("The stack did not come up.");
             console.log(chalk.yellow(outcome.error ?? "The stack stopped before it was ready."));
@@ -96,6 +119,8 @@ if (templateArg) {
             process.exit(1);
         }
         spinner.succeed("The stack is up.");
+        console.log(chalk.gray(`  Tilt UI (live build logs): ${tiltUiUrl}`));
+        console.log(chalk.gray(`  Container logs: docker compose logs -f (in ${destination})`));
         // The browser only opens when a frontend actually answers, the same way `flisk open` does.
         const opened = await openFirstFrontend(destination).catch((error) => {
             console.log(chalk.yellow(`Could not open a browser: ${error instanceof Error ? error.message : String(error)}`));
