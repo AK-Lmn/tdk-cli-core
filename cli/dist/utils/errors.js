@@ -33,6 +33,18 @@ export class TdkError extends Error {
         process.exit(this.exitCode);
     }
 }
+/**
+ * Thrown by the `process.exit` test double so the stack unwinds at an intentional exit.
+ * `runCommand` rethrows it instead of formatting it as a command failure.
+ */
+export class ProcessExitError extends Error {
+    code;
+    constructor(code = 1) {
+        super(`process.exit(${code})`);
+        this.name = "ProcessExitError";
+        this.code = code;
+    }
+}
 function closestNameSuggestions(names, candidates, includeInput = false) {
     const suggestions = new Set();
     for (const name of names) {
@@ -99,7 +111,7 @@ function handleCommandError(err) {
     if (err instanceof TdkError) {
         err.exit();
     }
-    console.error(chalk.red(`Error: ${getErrorMessage(err)}`));
+    showError(getErrorMessage(err));
     process.exit(1);
 }
 export async function runCommand(action, options) {
@@ -107,6 +119,9 @@ export async function runCommand(action, options) {
         return await action();
     }
     catch (err) {
+        if (err instanceof ProcessExitError) {
+            throw err;
+        }
         if (options?.verbose && err instanceof Error && err.stack) {
             console.error(chalk.gray(err.stack));
         }
@@ -137,12 +152,12 @@ export async function withTiltCheck(action, options) {
     }
     return runCommand(action, options);
 }
-export function showErrorAndExit(message, exitCode = 1) {
-    console.error(chalk.red(`Error: ${message}`));
+export function showErrorAndExit(message, exitCode = 1, suggestions) {
+    showError(message, undefined, suggestions);
     process.exit(exitCode);
 }
 /** Display a formatted error message. Does NOT exit. */
-function showError(message, context, suggestions) {
+export function showError(message, context, suggestions) {
     console.error(chalk.red(`❌ ${message}`));
     if (context) {
         console.error(chalk.gray(`   ${context}`));

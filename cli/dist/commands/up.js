@@ -11,7 +11,7 @@ import { handleDryRun } from "../utils/command-helpers.js";
 import { STANDARD_PORTS } from "../utils/constants.js";
 import { getDeferredResourceNames, summarizeTiltBuildError } from "../utils/doctor-runtime.js";
 import { completeEnvFile } from "../utils/env-validator.js";
-import { errorFactories, handleTiltFailure, requireProjectRoot, runCommand, showErrorAndExit, withTiltCheck, } from "../utils/errors.js";
+import { errorFactories, handleTiltFailure, requireProjectRoot, runCommand, showError, showErrorAndExit, withTiltCheck, } from "../utils/errors.js";
 import { ensureSmokeRecordsIgnored } from "../utils/file-helpers.js";
 import { formatCount } from "../utils/formatting.js";
 import { exportHostPortPlan, getHostPortPlan, writeSavedHostPortPlan, } from "../utils/host-port-config.js";
@@ -109,8 +109,7 @@ export function enforceDriftGate(projectRoot, options, exit = process.exit) {
     if (!drift)
         return;
     options.onDrift?.(drift.join("\n"));
-    for (const line of drift)
-        console.error(chalk.red(line));
+    showError(drift.join("\n"));
     exit(DRIFT_EXIT_CODE);
 }
 /**
@@ -127,8 +126,7 @@ export function enforceVersionFloor(projectRoot, options, currentVersion = getPa
     if (floor.status === "none" || floor.status === "ok")
         return;
     options.onFail?.(`${floor.message}\n${floor.fix}`);
-    console.error(chalk.red(floor.message));
-    console.error(chalk.red(floor.fix));
+    showError(`${floor.message}\n${floor.fix}`);
     exit(1);
 }
 const STARTUP_FAILED = Symbol("startup-failed");
@@ -533,8 +531,9 @@ export const upCommand = new Command("up")
                             blocked: [],
                             starting: [],
                         };
-                    for (const line of formatStartupReport(report, readiness.timedOut)) {
-                        console.error(chalk.red(line));
+                    const reportLines = formatStartupReport(report, readiness.timedOut);
+                    if (reportLines.length > 0) {
+                        showError(reportLines.join("\n"));
                     }
                 }
             }
@@ -563,7 +562,7 @@ export const upCommand = new Command("up")
                     }
                     else {
                         smokeFailed = true;
-                        console.error(chalk.red(formatSmokeFailure(smokeResult)));
+                        showError(formatSmokeFailure(smokeResult));
                     }
                 }
                 if (smokeFailed) {

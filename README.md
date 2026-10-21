@@ -401,7 +401,7 @@ published on 21 September 2026. Those dates describe the current repository and 
 
 For the local runtime, install Docker (Desktop, OrbStack, or Colima; Engine 25+, Compose 2.20.2+) and [Tilt](https://docs.tilt.dev/install.html). Bun 1.2+ is used by the default generated services. TDK selects host ports from bounded fallback ranges for HTTP, HTTPS, and Postgres; set `TDK_HTTP_PORT`, `TDK_HTTPS_PORT`, or `TDK_POSTGRES_PORT` to override them. Dev ports listen on `127.0.0.1` only, so other machines on your network cannot reach them. Set `TDK_BIND_ADDRESS` (for example `0.0.0.0`, to test from a phone) to change that; `tdk doctor` warns when it is a wildcard address. TDK supports macOS, Linux, and Windows through WSL2 Ubuntu; native Windows supports CLI inspection only. Run `tdk doctor` to check local readiness (supports `--no-ping` to skip service health checks and `--ping-timeout <ms>`). See [WSL2 setup](docs/wsl2.md).
 
-On native Windows, `tdk --version`, `tdk doctor`, and `tdk up --dry-run` are inspect-only commands. `tdk up` exits 2 with “Landscape startup needs Ubuntu on WSL2. Native Windows is inspect-only.”
+On native Windows, `tdk --version`, `tdk doctor`, and `tdk up --dry-run` are inspect-only commands. `tdk up` exits 1 with “Landscape startup needs Ubuntu on WSL2. Native Windows is inspect-only.”
 
 ## License matrix
 

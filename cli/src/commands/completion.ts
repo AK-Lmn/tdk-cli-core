@@ -12,6 +12,7 @@ import { homedir } from "node:os";
 import { basename, join } from "node:path";
 import chalk from "chalk";
 import { Command } from "commander";
+import { showError } from "../utils/errors.js";
 import {
   buildCompletionCandidates,
   type CompletionCandidates,
@@ -938,8 +939,7 @@ export const completionCommand = new Command("completion")
     }
 
     if (!SUPPORTED_SHELLS.includes(shell as SupportedShell)) {
-      console.error(chalk.red(`❌ Unsupported shell: ${shell}`));
-      console.log(chalk.gray("Supported shells: bash, zsh, fish, powershell"));
+      showError(`Unsupported shell: ${shell}`, "Supported shells: bash, zsh, fish, powershell");
       process.exit(1);
     }
 

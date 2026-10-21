@@ -17,6 +17,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { captureExit } from "../../test-support/doubles.js";
+import { ProcessExitError } from "../../utils/errors.js";
 
 const execSyncMock = vi.fn();
 const execFileSyncMock = vi.fn();
@@ -894,7 +895,7 @@ describe("upgradeCommand action handler", () => {
     try {
       await cmd.parseAsync(args, { from: "user" });
     } catch (err: unknown) {
-      if (!(err instanceof Error && err.message === "process.exit")) {
+      if (!(err instanceof ProcessExitError)) {
         throw err;
       }
     } finally {
