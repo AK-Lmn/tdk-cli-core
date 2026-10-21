@@ -21,7 +21,7 @@
 
 ```bash
 git clone https://github.com/flisk-sh/flisk.git
-cd tdk-cli-core
+cd flisk
 bun install
 bun run typecheck && bun run lint && bun run test   # 约一分钟；在你修改任何东西之前，这些都应该通过
 ```

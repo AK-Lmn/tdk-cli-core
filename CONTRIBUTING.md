@@ -85,7 +85,7 @@ You need Git, [Bun](https://bun.sh) and Node.js 22.12+. Docker and Tilt are not 
 
 ```bash
 git clone https://github.com/flisk-sh/flisk.git
-cd tdk-cli-core
+cd flisk
 bun install
 bun run typecheck && bun run lint && bun run test   # about a minute; all of it should pass before you change anything
 ```

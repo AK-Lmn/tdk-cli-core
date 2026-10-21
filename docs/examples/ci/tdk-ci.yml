@@ -191,7 +191,7 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
 
-      # `--prune-networks` came with tdk-cli-core PR #585; an older tdk rejects
+      # `--prune-networks` came with flisk PR #585; an older tdk rejects
       # the flag, so fall back to a plain `tdk down`.
       - name: tdk down
         if: always()

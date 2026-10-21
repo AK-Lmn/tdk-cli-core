@@ -21,7 +21,7 @@ Git、[Bun](https://bun.sh)、Node.js 22.12+ が必要です。ほとんどの�
 
 ```bash
 git clone https://github.com/flisk-sh/flisk.git
-cd tdk-cli-core
+cd flisk
 bun install
 bun run typecheck && bun run lint && bun run test   # 約1分。何かを変更する前に、すべて成功するはずです
 ```

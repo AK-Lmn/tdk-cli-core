@@ -42,7 +42,7 @@ Docker와 Tilt는 선택 사항이며 기본 컨테이너에 포함되지 않습
 
 ```bash
 git clone https://github.com/flisk-sh/flisk.git
-cd tdk-cli-core
+cd flisk
 bun install
 git switch -c my-change
 ```

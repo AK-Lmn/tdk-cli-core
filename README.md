@@ -394,7 +394,7 @@ repository records its [first commit](https://github.com/flisk-sh/tdk/commit/171
 18 September 2026 was [imported into this repository](https://github.com/flisk-sh/flisk/pull/670) as 306 filtered
 commits. Those commits are now ancestors of `main`; the import did not change the source tree.
 
-This `tdk-cli-core` repository was created on 19 September 2026, and the `@tdk-landscape/tdk-cli-core` npm package was first
+This `flisk` repository was created on 19 September 2026, and the `@tdk-landscape/tdk-cli-core` npm package was first
 published on 21 September 2026. Those dates describe the current repository and package, not the start of TDK development.
 
 ## Requirements and support
@@ -413,7 +413,7 @@ On native Windows, `tdk --version`, `tdk doctor`, and `tdk up --dry-run` are ins
 
 Core stays free. Premium is a separate key for the extras above; no key required to run `tdk up`.
 
-**Ecosystem map:** examples, articles, related tools, and notes live in [awesome-tdk-framework](https://github.com/flisk-sh/awesome-tdk-framework). Star this repo (`tdk-cli-core`) if the CLI is what you run; use the awesome list to browse the rest.
+**Ecosystem map:** examples, articles, related tools, and notes live in [awesome-tdk-framework](https://github.com/flisk-sh/awesome-tdk-framework). Star this repo (`flisk`) if the CLI is what you run; use the awesome list to browse the rest.
 
 <p align="center">
 

@@ -47,7 +47,7 @@ Open a terminal and run:
 
 ```bash
 git clone https://github.com/flisk-sh/flisk.git
-cd tdk-cli-core
+cd flisk
 bun install
 git switch -c my-change
 ```

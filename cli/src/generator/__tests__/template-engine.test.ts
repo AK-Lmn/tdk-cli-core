@@ -492,7 +492,7 @@ describe("template-engine", () => {
     });
 
     it("focus mode always enables nats and every messaging-compose service, not just the hardcoded infra names", () => {
-      // Regression (tdk-cli-core#155): pre-alpha always exercises this focus
+      // Regression (flisk#155): pre-alpha always exercises this focus
       // branch (see the FOCUS_MODE comment above it), and its always-enabled
       // infra list only re-added init-networks/postgres/traefik/golden-layers-build
       // to config.set_enabled_resources(). A resource with "nats" in

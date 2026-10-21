@@ -21,7 +21,7 @@ tdk --version
 
 ```bash
 git clone https://github.com/flisk-sh/flisk.git
-cd tdk-cli-core/examples/one-backend-python
+cd flisk/examples/one-backend-python
 ```
 
 이 예제는 하나의 FastAPI 서비스입니다. 전체 설명은 그 [README](../../../examples/one-backend-python/README.md)에 있습니다.
