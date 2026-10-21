@@ -22,7 +22,9 @@ export interface StackProgress {
     /** How long the stack has been coming up, in seconds. */
     elapsed: number;
 }
+/** Runs `tilt get uiresources` and returns its JSON, or null when Tilt does not answer. */
+export type TiltResourceReader = (port: number) => Promise<string | null>;
 /** Reads the resource states from the Tilt UI API. */
-export declare function readStackProgress(port: number, tiltBin?: string): Promise<Omit<StackProgress, "elapsed"> | undefined>;
+export declare function readStackProgress(port: number, read?: TiltResourceReader): Promise<Omit<StackProgress, "elapsed"> | undefined>;
 /** A one-line summary of the progress, for the progress line. */
 export declare function formatProgress(progress: StackProgress): string;

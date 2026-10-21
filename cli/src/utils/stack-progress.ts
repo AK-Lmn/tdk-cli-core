@@ -22,19 +22,25 @@ export interface StackProgress {
   elapsed: number;
 }
 
-/** Reads the resource states from the Tilt UI API. */
-export async function readStackProgress(
-  port: number,
-  tiltBin = "tilt",
-): Promise<Omit<StackProgress, "elapsed"> | undefined> {
-  const json = await new Promise<string | null>((resolve) => {
+/** Runs `tilt get uiresources` and returns its JSON, or null when Tilt does not answer. */
+export type TiltResourceReader = (port: number) => Promise<string | null>;
+
+const defaultTiltResourceReader: TiltResourceReader = (port) =>
+  new Promise<string | null>((resolve) => {
     execFile(
-      tiltBin,
+      "tilt",
       ["get", "uiresources", "-o", "json", "--port", String(port)],
       { timeout: 15_000, maxBuffer: 16 * 1024 * 1024 },
       (error, stdout) => resolve(error ? null : stdout),
     );
   });
+
+/** Reads the resource states from the Tilt UI API. */
+export async function readStackProgress(
+  port: number,
+  read: TiltResourceReader = defaultTiltResourceReader,
+): Promise<Omit<StackProgress, "elapsed"> | undefined> {
+  const json = await read(port);
   if (!json) return undefined;
 
   let items: {
