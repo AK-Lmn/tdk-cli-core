@@ -15,6 +15,7 @@ describe("PROJECT_TEMPLATES", () => {
   it("offers every public example repo", () => {
     expect(Object.keys(PROJECT_TEMPLATES).sort()).toEqual([
       "agent-stack",
+      "demo",
       "ecommerce",
       "erp",
       "example",
@@ -22,6 +23,10 @@ describe("PROJECT_TEMPLATES", () => {
       "saas",
       "user-management",
     ]);
+  });
+
+  it("points demo at the restaurant example", () => {
+    expect(PROJECT_TEMPLATES.demo.repo).toBe(PROJECT_TEMPLATES.restaurant.repo);
   });
 
   it("points ecommerce at tdk-ecommerce-example", () => {
