@@ -54,6 +54,16 @@ export declare function generateDatabaseManagementCompose(projectConfig: Project
 /** The project has no .tdk/project.json yet, as opposed to one that exists but is unreadable or invalid. */
 export declare class ProjectConfigNotFoundError extends Error {
 }
+/**
+ * Reads, parses, and normalizes `.tdk/project.json` from the given project root.
+ *
+ * The file is read directly instead of being existence-checked first: `fs.existsSync` swallows
+ * filesystem errors and reports an inaccessible config as missing, which hides the real reason.
+ * Only a missing file (`ENOENT`) means "not found"; every other read failure keeps its reason.
+ *
+ * @param projectRoot - Root directory of the TDK project.
+ * @returns The validated and normalized {@link ProjectConfig}.
+ */
 export declare function readProjectConfig(projectRoot: string): ProjectConfig;
 export interface GenerateMasterConfigsOptions {
     /**

@@ -12,6 +12,8 @@ import {
   generateMasterConfigs,
   isTestFile,
   loadTemplate,
+  ProjectConfigNotFoundError,
+  readProjectConfig,
   TemplateEngine,
   verifyMasterConfigs,
 } from "../template-engine.js";
@@ -578,5 +580,155 @@ describe("template-engine", () => {
         expect(loadTemplate("only-in-bundle.hbs")).toBe("bundled-marker");
       });
     });
+  });
+
+  describe("readProjectConfig", () => {
+    /** Reads the file the same way the implementation does and returns the failure reason it reports. */
+    function readFailureReason(filePath: string): string {
+      try {
+        fs.readFileSync(filePath, "utf-8");
+      } catch (error) {
+        return (error as Error).message;
+      }
+      throw new Error(`Expected reading ${filePath} to fail`);
+    }
+
+    function catchFromReadProjectConfig(projectRoot: string): unknown {
+      try {
+        readProjectConfig(projectRoot);
+      } catch (error) {
+        return error;
+      }
+      throw new Error("Expected readProjectConfig to throw");
+    }
+
+    it("throws an Error with the file path and parse reason when .tdk/project.json is malformed (#1521)", () => {
+      const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), "tdk-malformed-project-json-"));
+      try {
+        const tdkDir = path.join(projectRoot, ".tdk");
+        fs.mkdirSync(tdkDir, { recursive: true });
+        const projectJsonPath = path.join(tdkDir, "project.json");
+        const malformedContent = '{ "version": "1.0", broken json ';
+        fs.writeFileSync(projectJsonPath, malformedContent, "utf-8");
+
+        let expectedReason = "";
+        try {
+          JSON.parse(malformedContent);
+        } catch (parseError) {
+          expectedReason = (parseError as Error).message;
+        }
+
+        const caught = catchFromReadProjectConfig(projectRoot);
+
+        expect(caught).toBeInstanceOf(Error);
+        expect((caught as Error).message).toBe(
+          `Could not parse project.json at ${projectJsonPath}: ${expectedReason}`,
+        );
+        expect(caught).not.toBeInstanceOf(ProjectConfigNotFoundError);
+      } finally {
+        fs.rmSync(projectRoot, { recursive: true, force: true });
+      }
+    });
+
+    it("throws an Error with the file path and read reason when .tdk/project.json cannot be read as a file (#1521)", () => {
+      const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), "tdk-unreadable-project-json-"));
+      try {
+        const projectJsonPath = path.join(projectRoot, ".tdk", "project.json");
+        fs.mkdirSync(projectJsonPath, { recursive: true });
+        const expectedReason = readFailureReason(projectJsonPath);
+
+        const caught = catchFromReadProjectConfig(projectRoot);
+
+        expect(caught).toBeInstanceOf(Error);
+        expect((caught as Error).message).toBe(
+          `Could not read project.json at ${projectJsonPath}: ${expectedReason}`,
+        );
+        expect(caught).not.toBeInstanceOf(ProjectConfigNotFoundError);
+      } finally {
+        fs.rmSync(projectRoot, { recursive: true, force: true });
+      }
+    });
+
+    it("throws ProjectConfigNotFoundError when the project has no .tdk directory", () => {
+      const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), "tdk-missing-project-json-"));
+      try {
+        const projectJsonPath = path.join(projectRoot, ".tdk", "project.json");
+
+        const caught = catchFromReadProjectConfig(projectRoot);
+
+        expect(caught).toBeInstanceOf(ProjectConfigNotFoundError);
+        expect((caught as Error).message).toBe(
+          `Project config not found: ${projectJsonPath}. Run 'tdk project --yes' first.`,
+        );
+      } finally {
+        fs.rmSync(projectRoot, { recursive: true, force: true });
+      }
+    });
+
+    it("throws ProjectConfigNotFoundError when .tdk exists but holds no project.json", () => {
+      const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), "tdk-empty-tdk-dir-"));
+      try {
+        const tdkDir = path.join(projectRoot, ".tdk");
+        fs.mkdirSync(tdkDir, { recursive: true });
+        const projectJsonPath = path.join(tdkDir, "project.json");
+
+        const caught = catchFromReadProjectConfig(projectRoot);
+
+        expect(caught).toBeInstanceOf(ProjectConfigNotFoundError);
+        expect((caught as Error).message).toBe(
+          `Project config not found: ${projectJsonPath}. Run 'tdk project --yes' first.`,
+        );
+      } finally {
+        fs.rmSync(projectRoot, { recursive: true, force: true });
+      }
+    });
+
+    it("reports the read failure instead of a missing config when .tdk is not a directory", () => {
+      const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), "tdk-tdk-not-a-directory-"));
+      try {
+        fs.writeFileSync(path.join(projectRoot, ".tdk"), "not a directory", "utf-8");
+        const projectJsonPath = path.join(projectRoot, ".tdk", "project.json");
+        const expectedReason = readFailureReason(projectJsonPath);
+
+        const caught = catchFromReadProjectConfig(projectRoot);
+
+        expect(caught).toBeInstanceOf(Error);
+        expect((caught as Error).message).toBe(
+          `Could not read project.json at ${projectJsonPath}: ${expectedReason}`,
+        );
+        expect(caught).not.toBeInstanceOf(ProjectConfigNotFoundError);
+      } finally {
+        fs.rmSync(projectRoot, { recursive: true, force: true });
+      }
+    });
+
+    // Permission bits are not enforced on Windows, and root bypasses them, so the EACCES
+    // path this guards (existsSync reporting an inaccessible file as missing) cannot be
+    // produced there.
+    it.skipIf(process.platform === "win32" || process.getuid?.() === 0)(
+      "reports the permission failure instead of a missing config when .tdk is not accessible",
+      () => {
+        const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), "tdk-inaccessible-tdk-dir-"));
+        const tdkDir = path.join(projectRoot, ".tdk");
+        try {
+          fs.mkdirSync(tdkDir, { recursive: true });
+          fs.writeFileSync(path.join(tdkDir, "project.json"), "{}", "utf-8");
+          const projectJsonPath = path.join(tdkDir, "project.json");
+          fs.chmodSync(tdkDir, 0o000);
+          const expectedReason = readFailureReason(projectJsonPath);
+
+          const caught = catchFromReadProjectConfig(projectRoot);
+
+          expect(caught).toBeInstanceOf(Error);
+          expect((caught as Error).message).toBe(
+            `Could not read project.json at ${projectJsonPath}: ${expectedReason}`,
+          );
+          expect(caught).not.toBeInstanceOf(ProjectConfigNotFoundError);
+        } finally {
+          fs.chmodSync(tdkDir, 0o755);
+          fs.rmSync(projectRoot, { recursive: true, force: true });
+        }
+      },
+    );
   });
 });
