@@ -162,7 +162,7 @@ export function detectAllInstallations(): InstallInfo[] {
   return [...unique.values()];
 }
 
-const BINARY_RELEASE_REPO = "flisk-sh/tdk-cli-releases";
+const BINARY_RELEASE_REPO = "flisk-sh/releases";
 
 const ENGINE_ASSET_NAME = "tdk-cli-engine.tar.gz";
 const CHECKSUMS_ASSET_NAME = "checksums.txt";
@@ -451,8 +451,8 @@ export async function upgradeViaNpm(): Promise<boolean> {
       console.log(
         chalk.cyan(
           isWindows()
-            ? "   irm https://flisk-sh.github.io/tdk-landscape.github.io/install.ps1 | iex"
-            : "   curl -fsSL https://flisk-sh.github.io/tdk-landscape.github.io/install.sh | sh",
+            ? "   irm https://flisk.sh/install.ps1 | iex"
+            : "   curl -fsSL https://flisk.sh/install.sh | sh",
         ),
       );
     }
@@ -894,7 +894,7 @@ export function createUpgradeCommand(): Command {
           if (isWindows()) {
             console.log(
               chalk.cyan(
-                "   irm https://flisk-sh.github.io/tdk-landscape.github.io/install.ps1 | iex",
+                "   irm https://flisk.sh/install.ps1 | iex",
               ),
             );
           } else {

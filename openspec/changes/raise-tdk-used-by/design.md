@@ -4,7 +4,7 @@
 
 GitHub's dependency graph can surface public repositories that declare an ecosystem package dependency through supported manifests and lockfiles. This change concerns the published npm package `@tdk-landscape/tdk-cli-core` and a portfolio of separately maintained examples and starters. Merely installing a global CLI does not communicate a package dependency from a repository.
 
-The package metadata in the current CLI repository already points to `git+https://github.com/flisk-sh/tdk-cli-core.git`; this should be verified against the published package and retained as a release requirement. GitHub's exact display behavior and refresh timing are external to the repository and should be observed after merges.
+The package metadata in the current CLI repository already points to `git+https://github.com/flisk-sh/flisk.git`; this should be verified against the published package and retained as a release requirement. GitHub's exact display behavior and refresh timing are external to the repository and should be observed after merges.
 
 ## Goals / Non-goals
 
@@ -85,7 +85,7 @@ Secondary repositories were also checked for direct package declarations and doc
 
 - `tdk-skills` documents agent procedures that invoke `tdk` commands, but has no root package manifest; it is a skills catalog, not a CLI package consumer.
 - `awesome-tdk-framework` is a curated links repository with no root package manifest; mentions of the CLI are references.
-- `tdk-website` and `tdk-landscape.github.io` have no root package manifest; the latter documents global installation but does not declare a project dependency.
+- `tdk-website` and `flisk.sh` have no root package manifest; the latter documents global installation but does not declare a project dependency.
 - `tdk-demo-animation` is walkthrough assets with no root package manifest.
 - `tdk-cli-releases` provides release artifacts and global-install instructions, with no root package manifest.
 - `tdk-service-definitions` has a root manifest/lockfile for AJV validation and 84 service definitions; its README says imported seed data has not been runtime-tested. It does not declare the CLI package.
@@ -93,4 +93,4 @@ Secondary repositories were also checked for direct package declarations and doc
 - `tdk-app` uses the installed `tdk` CLI and documents a global package install path for its own app, but does not declare `@tdk-landscape/tdk-cli-core` in its manifest.
 - Additional public organization repositories `tdk-labs`, `platform`, and `tdk-cli-extensions` were not identified as example/starter repos in this first-wave audit; assess them only if their maintained workflows directly install or invoke the published core package.
 
-This audit verifies current manifests and documented setup, not whether every workflow is run by maintainers. The candidates with no local declaration may be valid future dev-dependency targets if their maintainers choose a project-local installation/command workflow and update their documentation/scripts in the same repository PR. Do not add a declaration by itself to repositories that continue to use only a global or binary CLI. The tracking issue with the inventory and supplied baseline is [#1716](https://github.com/flisk-sh/tdk-cli-core/issues/1716).
+This audit verifies current manifests and documented setup, not whether every workflow is run by maintainers. The candidates with no local declaration may be valid future dev-dependency targets if their maintainers choose a project-local installation/command workflow and update their documentation/scripts in the same repository PR. Do not add a declaration by itself to repositories that continue to use only a global or binary CLI. The tracking issue with the inventory and supplied baseline is [#1716](https://github.com/flisk-sh/flisk/issues/1716).

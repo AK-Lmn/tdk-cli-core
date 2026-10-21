@@ -5,10 +5,10 @@
   "homepage": "https://flisk.sh",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/flisk-sh/tdk-cli-core.git"
+    "url": "git+https://github.com/flisk-sh/flisk.git"
   },
   "bugs": {
-    "url": "https://github.com/flisk-sh/tdk-cli-core/issues"
+    "url": "https://github.com/flisk-sh/flisk/issues"
   },
   "private": false,
   "workspaces": [

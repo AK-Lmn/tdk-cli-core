@@ -492,11 +492,11 @@ describe("getLatestBinaryRelease", () => {
       tag: "v1.4.0",
       assetName: "tdk-darwin-arm64",
       downloadUrl:
-        "https://github.com/flisk-sh/tdk-cli-releases/releases/download/v1.4.0/tdk-darwin-arm64",
+        "https://github.com/flisk-sh/releases/releases/download/v1.4.0/tdk-darwin-arm64",
       engineDownloadUrl:
-        "https://github.com/flisk-sh/tdk-cli-releases/releases/download/v1.4.0/tdk-cli-engine.tar.gz",
+        "https://github.com/flisk-sh/releases/releases/download/v1.4.0/tdk-cli-engine.tar.gz",
       checksumsUrl:
-        "https://github.com/flisk-sh/tdk-cli-releases/releases/download/v1.4.0/checksums.txt",
+        "https://github.com/flisk-sh/releases/releases/download/v1.4.0/checksums.txt",
     });
   });
 });
@@ -1105,7 +1105,7 @@ describe("upgradeCommand action handler", () => {
       expect(res.status).toBe(1);
       expect(res.stderr).toContain("Upgrade failed");
       expect(res.stdout).toContain(
-        "irm https://flisk-sh.github.io/tdk-landscape.github.io/install.ps1 | iex",
+        "irm https://flisk.sh/install.ps1 | iex",
       );
     });
   });

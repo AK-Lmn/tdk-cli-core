@@ -5,19 +5,19 @@ tags: docker, typescript, devtools, backend
 canonical_url: https://flisk.sh/docs/quickstart/
 ---
 
-<!-- Draft for #1447. Question source: flisk-sh/tdk-cli-core#756 ("move a small docker-compose project to TDK and ask where you got stuck"). Every command below was run against tdk 1.3.178. -->
+<!-- Draft for #1447. Question source: flisk-sh/flisk#756 ("move a small docker-compose project to TDK and ask where you got stuck"). Every command below was run against tdk 1.3.178. -->
 
 "I have a docker-compose.yml with a handful of services. What do I do when I want TDK to run them, and what happens to my file?"
 
-That is the question behind [issue #756](https://github.com/flisk-sh/tdk-cli-core/issues/756). The short answer: you stop writing the compose file for your app. You write one `service.json` per service, and TDK generates the local runtime files.
+That is the question behind [issue #756](https://github.com/flisk-sh/flisk/issues/756). The short answer: you stop writing the compose file for your app. You write one `service.json` per service, and TDK generates the local runtime files.
 
 ## What you write
 
-Each service gets a `service.json`. This one is from the runnable [one-backend example](https://github.com/flisk-sh/tdk-cli-core/tree/main/examples/one-backend):
+Each service gets a `service.json`. This one is from the runnable [one-backend example](https://github.com/flisk-sh/flisk/tree/main/examples/one-backend):
 
 ```json
 {
-  "$schema": "https://flisk-sh.github.io/tdk-landscape.github.io/schema.service.json",
+  "$schema": "https://flisk.sh/schema.service.json",
   "schemaVersion": 1,
   "appName": "api-backend",
   "appType": "backend",
@@ -57,4 +57,4 @@ If your compose project has a `build:` section, the question is usually where th
 
 ## Try it
 
-The [one-backend example](https://github.com/flisk-sh/tdk-cli-core/tree/main/examples/one-backend) is the smallest runnable version: one service, one generated compose file for Postgres, one command to preview it. Start with the [quickstart](https://flisk.sh/docs/quickstart/), then run `tdk up one-backend --dry-run` in the example folder to see what it would start.
+The [one-backend example](https://github.com/flisk-sh/flisk/tree/main/examples/one-backend) is the smallest runnable version: one service, one generated compose file for Postgres, one command to preview it. Start with the [quickstart](https://flisk.sh/docs/quickstart/), then run `tdk up one-backend --dry-run` in the example folder to see what it would start.
