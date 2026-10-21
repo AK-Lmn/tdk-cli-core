@@ -42,7 +42,7 @@ Docker と Tilt は任意で、デフォルトのコンテナには含まれて�
 
 ```bash
 git clone https://github.com/flisk-sh/flisk.git
-cd tdk-cli-core
+cd flisk
 bun install
 git switch -c my-change
 ```

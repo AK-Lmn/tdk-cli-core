@@ -19,7 +19,7 @@ Copy the `tdk --version` output into the form's "Your setup" box. If the install
 
 ```bash
 git clone https://github.com/flisk-sh/flisk.git
-cd tdk-cli-core/examples/one-backend-python
+cd flisk/examples/one-backend-python
 ```
 
 The example is one FastAPI service. Its own [README](../../examples/one-backend-python/README.md) has the full description.

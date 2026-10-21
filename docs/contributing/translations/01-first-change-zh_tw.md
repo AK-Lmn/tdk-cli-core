@@ -42,7 +42,7 @@ Docker 和 Tilt 是選用的，不包含在預設容器中。只有需要執行 
 
 ```bash
 git clone https://github.com/flisk-sh/flisk.git
-cd tdk-cli-core
+cd flisk
 bun install
 git switch -c my-change
 ```

@@ -69,7 +69,7 @@ describe("buildGeneratedSection", () => {
     assert.ok(!section.includes("# Review this PR in&nbsp;"));
     assert.ok(!section.includes("AI review**"));
     assert.ok(!section.includes("Nothing is posted back"));
-    assert.ok(section.includes("If this helps, please ⭐ [star tdk-cli-core](https://github.com/flisk-sh/flisk)</sub>"));
+    assert.ok(section.includes("If this helps, please ⭐ [star flisk](https://github.com/flisk-sh/flisk)</sub>"));
   });
 });
 
@@ -81,7 +81,7 @@ describe("transformBody", () => {
     assert.ok(r.body.includes("# Review this PR in\n[![Grok]("));
     assert.ok(r.body.startsWith("Author"));
     assert.ok(r.body.includes(encodeURIComponent(buildPrompt(url))));
-    assert.ok(r.body.includes("please ⭐ [star tdk-cli-core](https://github.com/flisk-sh/flisk)"));
+    assert.ok(r.body.includes("please ⭐ [star flisk](https://github.com/flisk-sh/flisk)"));
   });
 
   it("regenerates an existing section when it lacks the star footer", () => {
@@ -89,7 +89,7 @@ describe("transformBody", () => {
     const r = transformBody(`Author\n\n${current}`, url);
     assert.equal(r.action, "patch");
     assert.ok(r.body.startsWith("Author"));
-    assert.ok(r.body.includes("please ⭐ [star tdk-cli-core](https://github.com/flisk-sh/flisk)"));
+    assert.ok(r.body.includes("please ⭐ [star flisk](https://github.com/flisk-sh/flisk)"));
   });
 
   it("skips when the tail already matches", () => {

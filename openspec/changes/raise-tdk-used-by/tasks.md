@@ -50,7 +50,7 @@ Secondary audit-only candidates, generally expected not to need a package declar
 
 ## 4. Document adopter guidance
 
-- [x] 4.1 Identify the canonical maintained adopter documentation page in `tdk-cli-core`: `ADOPTERS.md`.
+- [x] 4.1 Identify the canonical maintained adopter documentation page in `flisk`: `ADOPTERS.md`.
 - [x] 4.2 Explain that public dependency-graph recognition requires genuine dependency declarations in supported manifests and that GitHub controls processing/display timing. Added to `ADOPTERS.md`.
 - [x] 4.3 Keep standalone/global CLI installation guidance independent from package dependency declarations. Clarified in `ADOPTERS.md`.
 

@@ -45,7 +45,7 @@ if [[ "${PUBLISH}" != "--publish-only" ]]; then
   # find engine/ the way a source checkout can. template-engine.ts checks
   # exeDir/tdk-cli as a candidate - bundle the free engine (and the Handlebars
   # templates loadTemplate() reads at module init) there so a standalone binary
-  # works the same as `tdk-cli-core` cloned from source.
+  # works the same as `flisk` cloned from source.
   mkdir -p "${RELEASE_DIR}/tdk-cli"
   cp "${ROOT_DIR}/Tiltfile" "${RELEASE_DIR}/tdk-cli/Tiltfile"
   cp -R "${ROOT_DIR}/engine" "${RELEASE_DIR}/tdk-cli/engine"
