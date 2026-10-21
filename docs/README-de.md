@@ -12,7 +12,7 @@ Vom leeren Ordner zu einem laufenden Tech-Stack mit einem Befehl. Definieren Sie
 Schnellstart:
 
 ```bash
-npm install -g @tdk-landscape/tdk-cli-core
+npm install -g @flisk-sh/flisk
 mkdir shop && cd shop
 tdk project --yes
 tdk resource orders-api --type backend --stack shop --yes

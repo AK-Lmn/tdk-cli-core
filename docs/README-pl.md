@@ -12,7 +12,7 @@ Od pustego folderu do działającego stacka jedną komendą. Zdefiniuj każdą u
 Szybki start:
 
 ```bash
-npm install -g @tdk-landscape/tdk-cli-core
+npm install -g @flisk-sh/flisk
 mkdir shop && cd shop
 tdk project --yes
 tdk resource orders-api --type backend --stack shop --yes

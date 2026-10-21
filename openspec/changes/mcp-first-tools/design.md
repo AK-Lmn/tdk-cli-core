@@ -5,7 +5,7 @@
 ## Goals / Non-Goals
 
 **Goals:**
-- Explain that installing `@tdk-landscape/tdk-cli-core` (or the TDK binary) also installs `tdk mcp`.
+- Explain that installing `@flisk-sh/flisk` (or the TDK binary) also installs `tdk mcp`.
 - Show how to configure Codex and Claude Code to launch the server locally over stdio.
 - Document all six currently available tools and demonstrate `doctor` followed by `up` as the first workflow.
 - Link the setup guide from `tdk-website`'s existing `llms.txt`.

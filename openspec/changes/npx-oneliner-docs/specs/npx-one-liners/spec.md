@@ -1,11 +1,11 @@
 ## ADDED Requirements
 
 ### Requirement: Canonical npx form
-Public markdown SHALL write npx commands as `npx -y @tdk-landscape/tdk-cli-core <tdk-args>`. The package is `@tdk-landscape/tdk-cli-core` and its bin is `tdk` (`package.json` `bin.tdk`). The npx `-y` flag SHALL precede the package name; it only suppresses the npx install prompt and is distinct from TDK's own `--yes`. Docs SHALL NOT write `npx … tdk <cmd>`, SHALL NOT place `-y` after the CLI args, and SHALL NOT use `npm install -g` as the first public command. Bare `tdk` remains valid after a global install or the curl binary.
+Public markdown SHALL write npx commands as `npx -y @flisk-sh/flisk <tdk-args>`. The package is `@flisk-sh/flisk` and its bin is `tdk` (`package.json` `bin.tdk`). The npx `-y` flag SHALL precede the package name; it only suppresses the npx install prompt and is distinct from TDK's own `--yes`. Docs SHALL NOT write `npx … tdk <cmd>`, SHALL NOT place `-y` after the CLI args, and SHALL NOT use `npm install -g` as the first public command. Bare `tdk` remains valid after a global install or the curl binary.
 
 #### Scenario: Scaffolding command is written
 - **WHEN** a doc shows the backend scaffold command
-- **THEN** it reads `npx -y @tdk-landscape/tdk-cli-core resource orders-api --type backend --stack shop --yes`
+- **THEN** it reads `npx -y @flisk-sh/flisk resource orders-api --type backend --stack shop --yes`
 
 #### Scenario: Forbidden forms are absent
 - **WHEN** public markdown is searched for `tdk-cli-core tdk ` or an npx command ending in ` -y`
@@ -34,7 +34,7 @@ Bun, Prisma, and NATS are generated stack contents after `project`; cold npx nei
 - **THEN** it states native Windows is inspect-only and landscape startup needs Ubuntu on WSL2
 
 ### Requirement: Public blocks
-Docs SHALL use these blocks, each prefixed `npx -y @tdk-landscape/tdk-cli-core`:
+Docs SHALL use these blocks, each prefixed `npx -y @flisk-sh/flisk`:
 
 - Try: `--version`
 - Scaffold one backend: `mkdir shop && cd shop`, then `project --yes`, then `resource orders-api --type backend --stack shop --yes`
@@ -42,7 +42,7 @@ Docs SHALL use these blocks, each prefixed `npx -y @tdk-landscape/tdk-cli-core`:
 - Single line: the three commands above chained with `&&`
 - Preview, no containers: `up shop --dry-run`
 - Frontend: `resource web --type frontend --stack shop --yes` and `resource web --type frontend --framework vue --stack shop --yes`
-- Keep-it options, placed after the npx block: `npm install -g @tdk-landscape/tdk-cli-core` and `curl -fsSL https://flisk.sh/install.sh | sh`
+- Keep-it options, placed after the npx block: `npm install -g @flisk-sh/flisk` and `curl -fsSL https://flisk.sh/install.sh | sh`
 
 #### Scenario: Install options ordering
 - **WHEN** a doc lists install options
@@ -53,4 +53,4 @@ The rewrite SHALL cover `README.md`; `README-zh_cn.md`, `README-zh_tw.md`, `READ
 
 #### Scenario: Doc change is conformant
 - **WHEN** a doc change is reviewed
-- **THEN** every first-run command is copy-pasteable, starts with `npx -y @tdk-landscape/tdk-cli-core`, and the first `up` without `--dry-run` is labeled as the Docker + Tilt step
+- **THEN** every first-run command is copy-pasteable, starts with `npx -y @flisk-sh/flisk`, and the first `up` without `--dry-run` is labeled as the Docker + Tilt step

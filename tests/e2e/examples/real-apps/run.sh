@@ -22,7 +22,7 @@ A1() { # install TDK from npm
   log "A1 install TDK from npm"
   cd "$REPO_ROOT"
   TDK_VERSION="${TDK_VERSION:-latest}"
-  node scripts/install-global.mjs "@tdk-landscape/tdk-cli-core@${TDK_VERSION}"
+  node scripts/install-global.mjs "@flisk-sh/flisk@${TDK_VERSION}"
   tdk --version
 }
 

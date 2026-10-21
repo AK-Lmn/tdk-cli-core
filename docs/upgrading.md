@@ -27,7 +27,7 @@ If PATH contains more than one TDK install, run `tdk upgrade --all` to update ea
 
 ## Install a specific version
 
-- npm: `npm install -g @tdk-landscape/tdk-cli-core@1.3.80`
+- npm: `npm install -g @flisk-sh/flisk@1.3.80`
 - `tdk upgrade` always goes to the latest release; it has no version argument.
 - `install.sh` and the release binaries: whether `install.sh` can install an older tag is **not documented**. Versions are listed on the [releases page](https://github.com/flisk-sh/releases/releases).
 

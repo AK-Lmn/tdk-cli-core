@@ -324,7 +324,7 @@ if Determinism.is_deterministic_mode():
 
 ## 🔍 Environment Validation
 
-Cold first run: `npx @tdk-landscape/tdk-cli-core`; diagnostics: `npx @tdk-landscape/tdk-cli-core doctor`.
+Cold first run: `npx @flisk-sh/flisk`; diagnostics: `npx @flisk-sh/flisk doctor`.
 
 ```bash
 # Check local environment and project readiness

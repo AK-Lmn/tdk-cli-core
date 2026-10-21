@@ -10,5 +10,5 @@
 
 ## 3. Verification
 - [ ] 3.1 Grep public markdown for `tdk-cli-core tdk ` and npx commands with trailing `-y`; expect no hits.
-- [ ] 3.2 Run `npx -y @tdk-landscape/tdk-cli-core --version` and `up shop --dry-run` from a scratch project and confirm they work without Docker/Tilt.
+- [ ] 3.2 Run `npx -y @flisk-sh/flisk --version` and `up shop --dry-run` from a scratch project and confirm they work without Docker/Tilt.
 - [ ] 3.3 Confirm each `up` without `--dry-run` is labeled Docker + Tilt and carries the native Windows / WSL2 note.

@@ -53,7 +53,7 @@ jobs:
 
       - name: Install tdk
         run: |
-          npm install --global "@tdk-landscape/tdk-cli-core@${TDK_VERSION}"
+          npm install --global "@flisk-sh/flisk@${TDK_VERSION}"
           tdk --version
 
       # A fresh clone has neither the git-ignored .env nor .tdk/.tdk-out/, so
@@ -99,7 +99,7 @@ jobs:
 
       - name: Install tdk
         run: |
-          npm install --global "@tdk-landscape/tdk-cli-core@${TDK_VERSION}"
+          npm install --global "@flisk-sh/flisk@${TDK_VERSION}"
           tdk --version
 
       - name: Generate the local project files

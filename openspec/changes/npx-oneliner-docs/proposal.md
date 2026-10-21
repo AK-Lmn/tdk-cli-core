@@ -4,7 +4,7 @@ Public markdown opens with bare `tdk project` / `tdk up` or with a global instal
 
 ## What Changes
 
-- Define the canonical form `npx -y @tdk-landscape/tdk-cli-core <tdk-args>` (npx flags first, package name is the bin, no second `tdk` token).
+- Define the canonical form `npx -y @flisk-sh/flisk <tdk-args>` (npx flags first, package name is the bin, no second `tdk` token).
 - Specify per-command host requirements so docs do not imply npx removes Docker or Tilt.
 - Rewrite first-run commands in README (all locales), `docs/README.md`, example READMEs, the website quickstart, and the `awesome-tdk-framework` install line to lead with npx; global install and curl follow as keep-it options.
 

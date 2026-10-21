@@ -12,7 +12,7 @@ Pasa de una carpeta vacía a un stack en ejecución con un solo comando. Define 
 Inicio rápido:
 
 ```bash
-npm install -g @tdk-landscape/tdk-cli-core
+npm install -g @flisk-sh/flisk
 mkdir shop && cd shop
 tdk project --yes
 tdk resource orders-api --type backend --stack shop --yes

@@ -22,7 +22,7 @@ This page is the setup path, from installing TDK to a first `doctor` and `up`. F
 Install the CLI with npm (Node.js 22.12 or newer):
 
 ```bash
-npm install -g @tdk-landscape/tdk-cli-core
+npm install -g @flisk-sh/flisk
 ```
 
 Or install the prebuilt binary, which needs no Node.js (macOS and Linux):

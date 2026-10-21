@@ -12,7 +12,7 @@ D'un dossier vide à une stack qui tourne en une seule commande. Définissez cha
 Démarrage rapide:
 
 ```bash
-npm install -g @tdk-landscape/tdk-cli-core
+npm install -g @flisk-sh/flisk
 mkdir shop && cd shop
 tdk project --yes
 tdk resource orders-api --type backend --stack shop --yes
