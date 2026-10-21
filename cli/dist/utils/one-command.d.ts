@@ -19,3 +19,8 @@ export declare function parseStackEnvelope(output: string): StackOutcome | undef
  * thousands of Docker and Traefik lines. The stack keeps running in the background.
  */
 export declare function runStackQuiet(binPath: string, cwd: string, env?: NodeJS.ProcessEnv, spawnFn?: typeof spawn): Promise<StackOutcome>;
+/**
+ * A free directory for the project. A second demo in the same folder gets its own directory
+ * (`name-2`, `name-3`, ...) instead of failing because the first one is still there.
+ */
+export declare function nextAvailableProjectDir(base: string, isTaken: (candidate: string) => boolean): string;
