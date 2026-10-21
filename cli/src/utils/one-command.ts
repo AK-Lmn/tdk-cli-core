@@ -24,11 +24,59 @@ export function findFrontendUrl(output: string): string | undefined {
 export type StackOutcome = {
   /** True when the stack came up and its services are healthy. */
   ok: boolean;
+  /** The machine envelope the stack printed, with the Tilt UI url and the services. */
+  data?: Record<string, unknown>;
   /** The message from the stack when it did not come up. */
   error?: string;
   /** Everything the stack printed, kept for the failure message. */
   raw: string;
 };
+
+export type SetupOutcome = {
+  /** True when the project was initialized. */
+  ok: boolean;
+  /** The last line the setup printed, kept for the failure message. */
+  error?: string;
+};
+
+/**
+ * Initializes a cloned project.
+ *
+ * A starter repository holds services and a Tiltfile, but no project configuration, and
+ * `flisk up` refuses to run without one. So the one-command flow initializes the folder it
+ * just cloned before it starts the stack.
+ */
+export function initializeProject(
+  binPath: string,
+  cwd: string,
+  env: NodeJS.ProcessEnv = process.env,
+  spawnFn: typeof spawn = spawn,
+): Promise<SetupOutcome> {
+  return new Promise((resolve) => {
+    const child = spawnFn(process.execPath, [binPath, "project", "--yes"], {
+      cwd,
+      env,
+      stdio: ["inherit", "inherit", "pipe"],
+    });
+    let errors = "";
+    child.stderr?.on("data", (chunk: Buffer | string) => {
+      errors += String(chunk);
+    });
+    child.on("error", (error) => resolve({ ok: false, error: error.message }));
+    child.on("close", (code) => {
+      if (code === 0) {
+        resolve({ ok: true });
+        return;
+      }
+      const last = errors
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .pop();
+      resolve({ ok: false, error: last ?? `the project setup failed (code ${code})` });
+    });
+  });
+}
 
 interface MachineEnvelope {
   data?: { ok?: boolean } | null;
@@ -46,6 +94,7 @@ export function parseStackEnvelope(output: string): StackOutcome | undefined {
       const ok = data.ok === true;
       return {
         ok,
+        data: (parsed.data ?? {}) as Record<string, unknown>,
         error: ok ? undefined : (parsed.errors?.[0]?.message ?? "the stack did not come up"),
         raw: output,
       };

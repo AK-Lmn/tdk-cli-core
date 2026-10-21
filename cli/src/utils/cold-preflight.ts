@@ -15,6 +15,7 @@ import { BUN_FLOOR_LABEL, bunMeetsFloor } from "./bun-floor.js";
 import { projectNeedsBun } from "./bun-requirement.js";
 import { readyNextStep } from "./cli-command.js";
 import { PROJECT_JSON } from "./constants.js";
+import { checkColima } from "./colima.js";
 import { checkNatsBroker } from "./doctor-wiring.js";
 import { getHostPortPlan } from "./host-port-config.js";
 import { findProjectRoot } from "./paths.js";
@@ -22,7 +23,7 @@ import { discoverResourcesFromRoot } from "./services.js";
 import { findOnPath } from "./which.js";
 
 export type PreflightItem = {
-  id: "node" | "docker" | "compose" | "tilt" | "bun" | "ports" | "nats" | "prisma";
+  id: "node" | "docker" | "compose" | "tilt" | "bun" | "ports" | "nats" | "prisma" | "colima";
   ok: boolean;
   message: string;
   fix?: string;
@@ -138,6 +139,19 @@ export async function runColdPreflight(
   // The runtime executables are only probed when the command actually starts a
   // stack. Scaffolding a project must not depend on a running Docker daemon.
   if (scope === "runtime") {
+    // Docker on Colima is only useful when the VM is up: a stopped VM looks like a broken
+    // Docker daemon, and the port publishing silently stops working.
+    const colima = checkColima();
+    if (colima.isColima) {
+      items.push({
+        id: "colima",
+        ok: colima.running,
+        message: colima.running
+          ? `Colima VM is running${colima.arch ? ` (${colima.arch})` : ""}`
+          : (colima.problem ?? "The Colima VM is not running"),
+        fix: colima.running ? undefined : colima.fix,
+      });
+    }
     items.push(await safeCheck("docker", checkDockerRuntime, "Docker daemon is not running"));
     items.push(
       await safeCheck(

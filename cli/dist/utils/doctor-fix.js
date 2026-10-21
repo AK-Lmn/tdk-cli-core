@@ -1,10 +1,11 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
-import { execFile } from "node:child_process";
+import { execFile, execFileSync } from "node:child_process";
 import { realpathSync, statfsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
+import { checkColima, nativeLimaPath, planColimaRepair } from "./colima.js";
 import { DISK_WARN_GIB } from "./doctor-host.js";
 import { findProjectTiltUpPids, projectNetworkNames, tdkNetworkOwner, tdkNetworkPrefixes, } from "./down-cleanup.js";
 import { tiltGetUiResources } from "./up-readiness.js";
@@ -21,6 +22,20 @@ const runDocker = async (args) => {
     });
     return stdout;
 };
+/** Whether the Docker daemon answers right now. */
+function dockerAnswers() {
+    try {
+        execFileSync("docker", ["info", "--format", "{{.ServerVersion}}"], {
+            encoding: "utf-8",
+            timeout: 15_000,
+            stdio: ["ignore", "pipe", "ignore"],
+        });
+        return true;
+    }
+    catch {
+        return false;
+    }
+}
 function firstLine(error) {
     const stderr = String(error.stderr ?? error).trim();
     return stderr.split(/\r?\n/)[0] ?? "";
@@ -72,6 +87,9 @@ async function tiltProcessStatus(pid) {
 }
 export function createDockerFixDeps(run = runDocker) {
     return {
+        colima: runColima,
+        colimaStatus: () => checkColima(),
+        dockerAnswers,
         async listNetworks() {
             const names = (await run(["network", "ls", "--format", "{{.Name}}"]))
                 .split(/\r?\n/)
@@ -167,6 +185,14 @@ export function createDockerFixDeps(run = runDocker) {
     };
 }
 export const dockerFixDeps = createDockerFixDeps();
+/** Starts or restarts Colima, with a native limactl first on PATH when one is installed. */
+async function runColima(action) {
+    const nativeDir = nativeLimaPath();
+    const env = nativeDir
+        ? { ...process.env, PATH: `${nativeDir}:${process.env.PATH ?? ""}` }
+        : process.env;
+    await execFilePromise("colima", [action], { encoding: "utf-8", timeout: 300_000, env });
+}
 /**
  * What `--fix` would do: stop this project's stale Tilt; remove unused networks that are a leftover doctor probe or
  * this project's own (the exact names the engine creates, skipped while its Tilt runs). Other Flisk projects' unused
@@ -195,6 +221,43 @@ export async function planDoctorFixes(projectName, deps = dockerFixDeps, context
     const projectBusy = liveTilt.length > 0
         ? `Tilt is running for this project (pid ${liveTilt.join(", ")}); run flisk down first`
         : undefined;
+    // The Docker runtime itself: a Colima VM that is not running, one whose daemon does not
+    // answer, or a colima CLI that cannot see the VM. All three look like "Docker is broken".
+    const colima = deps.colimaStatus();
+    const repair = planColimaRepair(colima, deps.dockerAnswers());
+    if (repair === "start") {
+        actions.push({
+            id: "colima:start",
+            check: "Colima",
+            scope: "host",
+            command: "colima start",
+            status: "planned",
+            reason: colima.problem ?? "the Colima VM is not running",
+        });
+    }
+    else if (repair === "restart") {
+        actions.push({
+            id: "colima:restart",
+            check: "Colima",
+            scope: "host",
+            command: "colima restart",
+            status: "planned",
+            reason: "the Colima VM is running but its Docker daemon does not answer",
+        });
+    }
+    else if (repair === "native-lima") {
+        const nativeDir = nativeLimaPath();
+        actions.push({
+            id: "colima:native-lima",
+            check: "Colima",
+            scope: "host",
+            command: nativeDir ? `PATH="${nativeDir}:$PATH" colima status` : "brew reinstall lima",
+            status: nativeDir ? "skipped" : "planned",
+            reason: nativeDir
+                ? `the colima CLI on this PATH cannot see the VM; a native limactl is installed in ${nativeDir} (add it to PATH)`
+                : "the colima CLI on this PATH cannot see the VM; lima is installed as an x86_64 build (brew reinstall lima)",
+        });
+    }
     const networks = await deps.listNetworks();
     const freeGib = deps.freeDiskGib();
     if (freeGib !== null && freeGib < DISK_WARN_GIB) {
@@ -301,6 +364,20 @@ export async function applyDoctorFixes(actions, options, deps = dockerFixDeps) {
             if (action.id.startsWith("prune:")) {
                 await deps.prune(action.id === "prune:builder" ? "builder" : "images");
                 results.push({ ...action, status: "applied", reason: "pruned" });
+                continue;
+            }
+            if (action.id.startsWith("colima:")) {
+                const what = action.id.slice("colima:".length);
+                if (what === "start" || what === "restart") {
+                    await deps.colima(what);
+                    results.push({ ...action, status: "applied", reason: `colima ${what} ran` });
+                    continue;
+                }
+                results.push({
+                    ...action,
+                    status: "skipped",
+                    reason: "needs a native lima: see the command",
+                });
                 continue;
             }
             if (action.id.startsWith("stop-tilt:")) {
