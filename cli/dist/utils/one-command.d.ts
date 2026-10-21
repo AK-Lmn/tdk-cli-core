@@ -24,3 +24,13 @@ export declare function runStackQuiet(binPath: string, cwd: string, env?: NodeJS
  * (`name-2`, `name-3`, ...) instead of failing because the first one is still there.
  */
 export declare function nextAvailableProjectDir(base: string, isTaken: (candidate: string) => boolean): string;
+/** The service folders of a project that have their own package.json. */
+export declare function findServiceDirs(projectRoot: string, maxDepth?: number): string[];
+/**
+ * Installs the host dependencies of the services. The stack typechecks the services on the
+ * host, so a fresh clone needs its dependencies before it can come up.
+ */
+export declare function installServiceDependencies(projectRoot: string, run?: (command: string, args: string[], cwd: string) => Promise<number>): Promise<{
+    dir: string;
+    ok: boolean;
+}[]>;

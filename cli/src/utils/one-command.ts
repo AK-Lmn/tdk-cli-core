@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: MIT
 
 import { spawn } from "node:child_process";
+import { readdirSync } from "node:fs";
+import { join } from "node:path";
 
 /** The marker the stack prints before the frontend URLs. */
 const FRONTEND_MARKER = "Frontend URLs";
@@ -115,4 +117,51 @@ export function nextAvailableProjectDir(
     if (!isTaken(candidate)) return candidate;
   }
   return base;
+}
+
+/** The service folders of a project that have their own package.json. */
+export function findServiceDirs(projectRoot: string, maxDepth = 4): string[] {
+  const dirs: string[] = [];
+  const walk = (dir: string, depth: number) => {
+    if (depth > maxDepth) return;
+    let entries: string[];
+    try {
+      entries = readdirSync(dir, { withFileTypes: true }).map((entry) => entry.name);
+    } catch {
+      return;
+    }
+    if (entries.includes("package.json")) dirs.push(dir);
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (!entry.isDirectory() || entry.name === "node_modules" || entry.name.startsWith("."))
+        continue;
+      walk(join(dir, entry.name), depth + 1);
+    }
+  };
+  walk(projectRoot, 0);
+  return dirs;
+}
+
+/**
+ * Installs the host dependencies of the services. The stack typechecks the services on the
+ * host, so a fresh clone needs its dependencies before it can come up.
+ */
+export async function installServiceDependencies(
+  projectRoot: string,
+  run: (command: string, args: string[], cwd: string) => Promise<number> = defaultRun,
+): Promise<{ dir: string; ok: boolean }[]> {
+  const results: { dir: string; ok: boolean }[] = [];
+  for (const dir of findServiceDirs(projectRoot)) {
+    const code = await run("bun", ["install"], dir);
+    results.push({ dir, ok: code === 0 });
+  }
+  return results;
+}
+
+/** Runs a command and resolves with its exit code. */
+function defaultRun(command: string, args: string[], cwd: string): Promise<number> {
+  return new Promise((resolve) => {
+    const child = spawn(command, args, { cwd, stdio: "ignore" });
+    child.on("error", () => resolve(1));
+    child.on("close", (code) => resolve(code ?? 1));
+  });
 }

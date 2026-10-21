@@ -65,6 +65,32 @@ if (templateArg) {
     const { openFirstFrontend } = await import("./commands/open.js");
     const { startSpinner } = await import("./utils/spinner.js");
 
+    // A stack for this project may already be running (the same example in another folder
+    // shares its compose project). Then there is nothing to start: open what is up.
+    const { findReadyFrontend } = await import("./commands/open.js");
+    const running = await findReadyFrontend(destination, 0);
+    if (running) {
+      console.log(chalk.gray(`A stack for this project is already running (${running.name}).`));
+      const { openFirstFrontend } = await import("./commands/open.js");
+      await openFirstFrontend(destination);
+      process.exit(0);
+    }
+
+    // A fresh clone has no host dependencies, and the stack typechecks the services on the
+    // host, so install them before the stack starts.
+    const { installServiceDependencies } = await import("./utils/one-command.js");
+    const installSpinner = startSpinner("Installing the service dependencies...");
+    const installs = await installServiceDependencies(destination);
+    const failed = installs.filter((entry) => !entry.ok);
+    if (failed.length > 0) {
+      installSpinner.fail("Some services could not install their dependencies.");
+      for (const entry of failed) {
+        console.log(chalk.yellow(`  - ${entry.dir}: run "bun install" there`));
+      }
+    } else {
+      installSpinner.succeed("The service dependencies are installed.");
+    }
+
     const spinner = startSpinner("Starting the stack (the first build takes a minute)...");
     const outcome = await runStackQuiet(binPath, destination);
     if (!outcome.ok) {
