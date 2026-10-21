@@ -98,7 +98,15 @@ export async function openFirstFrontend(projectRootOverride) {
             // publishing it to the host. Saying that is more useful than "not serving yet".
             console.log(chalk.yellow(`The stack is running, but this machine cannot reach port ${ingress}.`));
             console.log(chalk.gray("  Docker is not publishing the port to the host."));
-            console.log(chalk.gray("  Restart Docker Desktop, then run `flisk open` again."));
+            const { checkColima } = await import("../utils/colima.js");
+            const colima = checkColima();
+            if (colima.isColima && !colima.running) {
+                console.log(chalk.gray(`  ${colima.problem ?? "The Colima VM is not running"}`));
+                console.log(chalk.gray(`  Fix: ${colima.fix ?? "colima start"}`));
+            }
+            else {
+                console.log(chalk.gray("  Restart the Docker runtime (Docker Desktop or Colima), then run `flisk open` again."));
+            }
         }
         else {
             console.log(chalk.yellow("The stack is not serving the frontend yet."));

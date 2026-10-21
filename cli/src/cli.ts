@@ -66,6 +66,16 @@ if (templateArg) {
     const { openFirstFrontend } = await import("./commands/open.js");
     const { startSpinner } = await import("./utils/spinner.js");
 
+    // Docker on Colima is only usable while the VM is up, and a stopped VM looks like a
+    // broken Docker daemon. Say so before the long wait instead of after it.
+    const { checkColima } = await import("./utils/colima.js");
+    const colima = checkColima();
+    if (colima.isColima && !colima.running) {
+      console.log(chalk.yellow(colima.problem ?? "The Colima VM is not running."));
+      console.log(chalk.gray(`  Fix: ${colima.fix ?? "colima start"}`));
+      process.exit(1);
+    }
+
     // A stack for this project may already be running (the same example in another folder
     // shares its compose project). Then there is nothing to start: open what is up.
     const { findReadyFrontend } = await import("./commands/open.js");
