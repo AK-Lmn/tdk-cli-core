@@ -10,7 +10,11 @@ import {
   resolveAgentDurability,
   resolveAgentRuntime,
 } from "../agent-runtimes/registry.js";
-import { listBackendFrameworks, resolveBackendFramework } from "../backend-frameworks/registry.js";
+import {
+  DEFAULT_BACKEND_FRAMEWORK,
+  listBackendFrameworks,
+  resolveBackendFramework,
+} from "../backend-frameworks/registry.js";
 import {
   getBackendIndexTemplate,
   getDrizzleBackendIndexTemplate,
@@ -650,6 +654,33 @@ export const resourceCommand = addYesOption(new Command("resource"))
         resourceName,
       );
       const backendLanguage = resolveBackendLanguage(resourceType, options.language);
+      // A backend on a language that owns its runtime (python, go, rust, node) has no framework to
+      // pick: `resolveBackendFramework` rejects that combination, so the prompt only offers the
+      // frameworks the resolver accepts.
+      const backendFrameworkChoices =
+        resourceType === "backend"
+          ? listBackendFrameworks(options.language).filter((framework) => framework.compatible)
+          : [];
+      if (
+        resourceType === "backend" &&
+        frameworkOption === undefined &&
+        !options.yes &&
+        process.stdin.isTTY &&
+        backendFrameworkChoices.length > 0
+      ) {
+        frameworkOption = await promptSelect({
+          message: "Backend framework:",
+          choices: backendFrameworkChoices
+            .map((f) => ({ title: f.label, value: f.id }))
+            .sort((a, b) =>
+              a.value === DEFAULT_BACKEND_FRAMEWORK
+                ? -1
+                : b.value === DEFAULT_BACKEND_FRAMEWORK
+                  ? 1
+                  : 0,
+            ),
+        });
+      }
       const backendFramework = resolveBackendFramework(
         resourceType,
         frameworkOption,

@@ -15,6 +15,10 @@ provider's optional `compilerOptions`. The id is saved as `framework` in `servic
 `framework` field and the output is byte-identical to before. A framework cannot be combined with a language that owns its
 runtime (`--language python`, `--language go`, `--language rust` or `--language node`).
 
+An interactive terminal asks which framework to use and lists Hono first. The picker offers only the frameworks the
+requested language allows, so a language that owns its runtime (Python, Go, Rust, Node) is never asked. `--yes`, a piped
+run and a script never ask either: they keep the historical Hono scaffold.
+
 | File | Responsibility |
 | --- | --- |
 | `cli/src/backend-frameworks/<id>.ts` | Framework id, dependencies, dev dependencies, and the `src/index.ts` template |

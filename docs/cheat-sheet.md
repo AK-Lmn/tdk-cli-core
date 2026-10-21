@@ -169,6 +169,7 @@ See [leaving TDK](leaving-tdk.md).
 
 ```bash
 tdk resource api --type backend --yes                         # Bun + Hono
+tdk resource api --type backend                                # asks for the framework (Hono first)
 tdk resource api --type backend --framework fastify --yes
 tdk resource api --type backend --language python --yes
 tdk resource api --type backend --feature prisma --yes

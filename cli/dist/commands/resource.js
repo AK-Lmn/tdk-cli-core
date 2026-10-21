@@ -5,7 +5,7 @@ import { isAbsolute, relative, resolve } from "node:path";
 import chalk from "chalk";
 import { Command } from "commander";
 import { DEFAULT_AGENT_RUNTIME, resolveAgentDurability, resolveAgentRuntime, } from "../agent-runtimes/registry.js";
-import { listBackendFrameworks, resolveBackendFramework } from "../backend-frameworks/registry.js";
+import { DEFAULT_BACKEND_FRAMEWORK, listBackendFrameworks, resolveBackendFramework, } from "../backend-frameworks/registry.js";
 import { getBackendIndexTemplate, getDrizzleBackendIndexTemplate, } from "../backend-languages/bun.js";
 import { resolveBackendLanguage } from "../backend-languages/registry.js";
 import { DEFAULT_FRONTEND_FRAMEWORK, listFrontendFrameworks, resolveFrontendFramework, } from "../frontend-frameworks/registry.js";
@@ -462,6 +462,28 @@ export const resourceCommand = addYesOption(new Command("resource"))
         }
         const frontendFramework = resolveFrontendFramework(resourceType, frameworkOption, resourceName);
         const backendLanguage = resolveBackendLanguage(resourceType, options.language);
+        // A backend on a language that owns its runtime (python, go, rust, node) has no framework to
+        // pick: `resolveBackendFramework` rejects that combination, so the prompt only offers the
+        // frameworks the resolver accepts.
+        const backendFrameworkChoices = resourceType === "backend"
+            ? listBackendFrameworks(options.language).filter((framework) => framework.compatible)
+            : [];
+        if (resourceType === "backend" &&
+            frameworkOption === undefined &&
+            !options.yes &&
+            process.stdin.isTTY &&
+            backendFrameworkChoices.length > 0) {
+            frameworkOption = await promptSelect({
+                message: "Backend framework:",
+                choices: backendFrameworkChoices
+                    .map((f) => ({ title: f.label, value: f.id }))
+                    .sort((a, b) => a.value === DEFAULT_BACKEND_FRAMEWORK
+                    ? -1
+                    : b.value === DEFAULT_BACKEND_FRAMEWORK
+                        ? 1
+                        : 0),
+            });
+        }
         const backendFramework = resolveBackendFramework(resourceType, frameworkOption, backendLanguage);
         // The id passed on to the file generators. An mcp resource has one fixed scaffold and no `framework` setting, so it passes none
         // (its provider is selected by the resource type itself).

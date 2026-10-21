@@ -162,6 +162,8 @@ Backend creation defaults to Bun + Hono, exactly as it always has: omit `--langu
 
 The selected id is saved as `framework` in `service.json`. `--framework hono` is accepted and saved too, and omitting it changes nothing. `--framework` cannot be combined with `--language python`, and unknown ids fail before a resource is written. Languages without a provider can use `--type bring-your-own`. See the [backend provider guide](../docs/backend-language-providers.md) and the runnable [Python example](../examples/one-backend-python/README.md).
 
+An interactive terminal asks which backend framework to use and lists Hono first. `--yes`, a piped run and a language that owns its runtime (Python, Go, Rust, Node) never ask, so a script keeps the same output as before.
+
 Run `tdk resource --type backend --frameworks` to list the registered backend frameworks with the language (and runtime) they are scaffolded with, their compatibility with the requested language, and the command that creates them:
 
 ```bash
