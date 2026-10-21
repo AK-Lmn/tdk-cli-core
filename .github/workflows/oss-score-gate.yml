@@ -29,9 +29,16 @@ jobs:
       - name: Read the published Scorecard score
         env:
           REPO: ${{ github.repository }}
+          # Scorecard keys its published scores by the repository path the project
+          # was first indexed under. This repo was renamed from tdk-landscape/tdk-cli-core
+          # to flisk-sh/flisk, so the new path 404s until Scorecard re-indexes it.
+          REPO_FALLBACK: "tdk-landscape/tdk-cli-core"
         run: |
           set -euo pipefail
-          json=$(curl -fsSL --retry 3 "https://api.securityscorecards.dev/projects/github.com/${REPO}")
+          json=$(curl -fsSL --retry 3 "https://api.securityscorecards.dev/projects/github.com/${REPO}" || true)
+          if [ -z "${json:-}" ]; then
+            json=$(curl -fsSL --retry 3 "https://api.securityscorecards.dev/projects/github.com/${REPO_FALLBACK}")
+          fi
           score=$(printf '%s' "$json" | node -p 'JSON.parse(require("fs").readFileSync(0, "utf8")).score')
           date=$(printf '%s' "$json" | node -p 'JSON.parse(require("fs").readFileSync(0, "utf8")).date')
           echo "Published OpenSSF Scorecard: ${score} (as of ${date}); minimum ${MIN_SCORE}."
