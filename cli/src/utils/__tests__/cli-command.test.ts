@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
 
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -15,6 +15,14 @@ import {
   readyNextStep,
   suggestedWorkspace,
 } from "../cli-command.js";
+
+/** A PATH that contains a `flisk` command, so the installed branch is deterministic. */
+function pathWithFlisk(): NodeJS.ProcessEnv {
+  const dir = mkdtempSync(join(tmpdir(), "flisk-bin-"));
+  writeFileSync(join(dir, "flisk"), "#!/bin/sh\n");
+  chmodSync(join(dir, "flisk"), 0o755);
+  return { PATH: dir };
+}
 
 describe("cli-command", () => {
   it("names the command and the package that installs it", () => {
@@ -31,14 +39,8 @@ describe("cli-command", () => {
   });
 
   it("points at the command when it is installed", () => {
-    const env = { PATH: process.env.PATH ?? "" };
     const dir = mkdtempSync(join(tmpdir(), "flisk-workspace-"));
-    const step = readyNextStep(env, dir);
-    if (isCommandOnPath("flisk", env)) {
-      expect(step).toBe("Next: flisk project --yes");
-    } else {
-      expect(step).toContain("npm install -g @flisk-sh/flisk");
-    }
+    expect(readyNextStep(pathWithFlisk(), dir)).toBe("Next: flisk project --yes");
   });
 
   it("tells an ephemeral run how to install the command", () => {
@@ -53,7 +55,7 @@ describe("cli-command", () => {
   it("suggests a project folder instead of the current one when the folder has files", () => {
     const dir = mkdtempSync(join(tmpdir(), "flisk-workspace-"));
     writeFileSync(join(dir, "notes.txt"), "hi");
-    const step = readyNextStep({ PATH: process.env.PATH ?? "" }, dir);
+    const step = readyNextStep(pathWithFlisk(), dir);
     expect(step).toContain("mkdir -p");
     expect(step).toContain("flisk project --yes");
     expect(step).toContain("flisk project example");
@@ -62,8 +64,7 @@ describe("cli-command", () => {
   it("lets a project start in an empty folder", () => {
     const dir = mkdtempSync(join(tmpdir(), "flisk-workspace-"));
     expect(isEmptyWorkspace(dir)).toBe(true);
-    const step = readyNextStep({ PATH: process.env.PATH ?? "" }, dir);
-    expect(step).toBe("Next: flisk project --yes");
+    expect(readyNextStep(pathWithFlisk(), dir)).toBe("Next: flisk project --yes");
   });
 
   it("suggests a workspace under Documents when the machine has one", () => {
