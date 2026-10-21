@@ -155,6 +155,16 @@ describe("buildStartupReport", () => {
   it("reports nothing when Tilt returned no items", () => {
     expect(buildStartupReport("{}", {})).toEqual({ failed: [], blocked: [], starting: [] });
   });
+
+  it("blames a failure for a service that reaches it through a dependency cycle", () => {
+    const report = buildStartupReport(
+      json(item("postgres", "error", "none"), item("api", "pending", "pending")),
+      { api: ["postgres"], postgres: ["api"] },
+    );
+    expect(report.failed).toEqual([{ name: "postgres", message: "error/none" }]);
+    expect(report.blocked).toEqual([{ name: "api", because: ["postgres"] }]);
+    expect(report.starting).toEqual([]);
+  });
 });
 
 describe("transitiveDependencies", () => {
