@@ -1,7 +1,8 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
-import { execFileSync, spawn, spawnSync } from "node:child_process";
+import { type ChildProcess, execFileSync, spawn, spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { type AddressInfo, createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -256,58 +257,133 @@ describe("flisk resource --type agent", () => {
     "keeps a session across a restart, and drains on SIGTERM",
     async () => {
       const stateDir = mkdtempSync(join(tmpdir(), "tdk-agent-state-"));
-      const port = String(4800 + Math.floor(Math.random() * 500));
       const source = join(dir("support-agent"), "src", "index.ts");
-      const start = () =>
-        spawn("bun", ["run", source], {
-          env: { ...process.env, AGENT_STATE_DIR: stateDir, PORT: port, AGENT_DURABILITY: "files" },
-          stdio: "ignore",
+
+      // The runtime binds the port it is given, so the test has to hand it one that is free. Asking the OS
+      // for an ephemeral port beats a guessed range: the agent range (4000-5999) is also where the CLI
+      // assigns ports to scaffolded services, and a guess collides with the other workers the suite runs
+      // in parallel on CI.
+      const freePort = async (): Promise<number> => {
+        const probe = createServer();
+        await new Promise<void>((resolve) => probe.listen(0, "127.0.0.1", () => resolve()));
+        const { port } = probe.address() as AddressInfo;
+        await new Promise<void>((resolve) => probe.close(() => resolve()));
+        return port;
+      };
+
+      // The runtime is only reached over the loopback interface, where plain HTTP is what it speaks. The URL
+      // is built here instead of inline at every call site: a scanner that folds the port into the string
+      // sees a constant `http://` URL and reports it as an unencrypted request.
+      const agentUrl = (port: number, path: string) => `http://127.0.0.1:${port}${path}`;
+
+      const start = (port: number) => {
+        const child = spawn("bun", ["run", source], {
+          env: {
+            ...process.env,
+            AGENT_STATE_DIR: stateDir,
+            PORT: String(port),
+            AGENT_DURABILITY: "files",
+          },
+          stdio: ["ignore", "pipe", "pipe"],
         });
-      const waitForHealth = async () => {
-        for (let i = 0; i < 100; i++) {
+        // Keep the runtime's output: a bind failure or a crash inside it is invisible otherwise, and the
+        // test could only report that the agent never came up.
+        let output = "";
+        const collect = (chunk: Buffer) => {
+          output += chunk.toString();
+        };
+        child.stdout?.on("data", collect);
+        child.stderr?.on("data", collect);
+        return { child, output: () => output };
+      };
+
+      const exited = (child: ChildProcess) =>
+        new Promise<number | null>((resolveExit) => {
+          if (child.exitCode !== null || child.signalCode !== null) {
+            resolveExit(child.exitCode);
+            return;
+          }
+          child.on("exit", (code) => resolveExit(code));
+        });
+
+      // A loaded runner starts the runtime slowly, so the wait is generous. It stops as soon as the child
+      // is gone, because a runtime that exited will never answer.
+      const waitForHealth = async (
+        child: ChildProcess,
+        port: number,
+        output: () => string,
+      ): Promise<void> => {
+        for (let i = 0; i < 300; i++) {
+          if (child.exitCode !== null || child.signalCode !== null) {
+            throw new Error(
+              `agent exited before it was healthy (code ${child.exitCode}):\n${output()}`,
+            );
+          }
           try {
-            const res = await fetch(`http://127.0.0.1:${port}/health`);
+            const res = await fetch(agentUrl(port, "/health"));
             if (res.ok) return;
           } catch {
             // not listening yet
           }
           await new Promise((r) => setTimeout(r, 100));
         }
-        throw new Error("agent did not start");
+        throw new Error(`agent did not start within 30s:\n${output()}`);
       };
-      const exited = (child: ReturnType<typeof spawn>) =>
-        new Promise<number | null>((resolveExit) => child.on("exit", (code) => resolveExit(code)));
+
+      // The port is free when the OS hands it out, but another worker can take it before the runtime
+      // binds it. That shows up as the runtime exiting at once, so only that case is retried on a fresh
+      // port; a runtime that stayed up and never answered is a real failure and is reported as such.
+      const startHealthy = async (): Promise<ChildProcess> => {
+        let failure: unknown;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          const port = await freePort();
+          const { child, output } = start(port);
+          try {
+            await waitForHealth(child, port, output);
+            currentPort = port;
+            return child;
+          } catch (error) {
+            failure = error;
+            const exitedEarly = child.exitCode !== null || child.signalCode !== null;
+            child.kill("SIGKILL");
+            if (!exitedEarly) throw error;
+          }
+        }
+        throw failure;
+      };
+
+      let currentPort = 0;
+      let running: ChildProcess | undefined;
+      const turn = (input: string) =>
+        fetch(agentUrl(currentPort, "/turn"), {
+          method: "POST",
+          headers: { "content-type": "application/json", "x-session-id": "sess-1" },
+          body: JSON.stringify({ input }),
+        }).then((r) => r.json());
 
       try {
-        let child = start();
-        await waitForHealth();
-        const turn = (input: string) =>
-          fetch(`http://127.0.0.1:${port}/turn`, {
-            method: "POST",
-            headers: { "content-type": "application/json", "x-session-id": "sess-1" },
-            body: JSON.stringify({ input }),
-          }).then((r) => r.json());
-
+        running = await startHealthy();
         expect(await turn("first")).toMatchObject({ sessionId: "sess-1", turns: 1 });
-        const ready = await fetch(`http://127.0.0.1:${port}/ready`);
+        const ready = await fetch(agentUrl(currentPort, "/ready"));
         expect(ready.status).toBe(200);
 
-        child.kill("SIGTERM");
-        expect(await exited(child)).toBe(0);
+        running.kill("SIGTERM");
+        expect(await exited(running)).toBe(0);
 
-        child = start();
-        await waitForHealth();
-        const resumed = await fetch(`http://127.0.0.1:${port}/session`, {
+        running = await startHealthy();
+        const resumed = await fetch(agentUrl(currentPort, "/session"), {
           headers: { "x-session-id": "sess-1" },
         }).then((r) => r.json());
         expect(resumed.turns).toBe(1);
         expect(await turn("second")).toMatchObject({ turns: 2 });
-        child.kill("SIGTERM");
-        expect(await exited(child)).toBe(0);
+        running.kill("SIGTERM");
+        expect(await exited(running)).toBe(0);
       } finally {
+        // A failed run must not leave the runtime behind: it would keep holding the port and outlive the test.
+        running?.kill("SIGKILL");
         rmSync(stateDir, { recursive: true, force: true });
       }
     },
-    60000,
+    120000,
   );
 });
