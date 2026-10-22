@@ -675,6 +675,22 @@
 			"required": false,
 			"reason": "Full 100-service fixture boot, weekly and manual, carried over from erp-scale-e2e.yml at the #1302 cutover; suite tests/e2e/scale/erp",
 			"owner": "maintainers"
+		},
+		{
+			"workflow": "e2e-platforms-hardware.yml",
+			"job": "hosted",
+			"tier": "e2e",
+			"required": false,
+			"reason": "Reference run of the Windows hardware suite on windows-latest (#1765); suite tests/e2e/platforms/windows-hardware",
+			"owner": "maintainers"
+		},
+		{
+			"workflow": "e2e-platforms-hardware.yml",
+			"job": "hardware",
+			"tier": "e2e",
+			"required": false,
+			"reason": "Acceptance run of the Windows hardware suite on a self-hosted Windows 11 AMD64 machine, dispatched by hand (#1765)",
+			"owner": "maintainers"
 		}
 	]
 }

@@ -14,6 +14,7 @@
 - [Environment, params and secrets](environment.md): the project `.env`, `params`, `secrets` and auth
 - [Operator runbook](operator-runbook.md): install matrix, version minimums, releases, license key
 - [WSL2 setup](wsl2.md)
+- [Windows hardware checks](windows-hardware.md): what the Windows e2e suites cover, what a real Windows machine adds, and how to run them
 - [Install and use Flisk alongside Helm](with-helm.md)
 
 ## Understand Flisk

@@ -24,7 +24,7 @@ Every live-stack suite lives at `tests/e2e/<group>/<suite>/`, in exactly one gro
 | `resource-types` | one resource type works on a real stack | `resource-types/agent` |
 | `journeys` | a multi-command user flow | quickstart, smoke runner, dev loop, cold start |
 | `examples` | a real example app boots and serves its routes | the default example, saas-starter |
-| `platforms` | a host environment | `platforms/windows`, `platforms/windows-binary`, `platforms/wsl2` |
+| `platforms` | a host environment | `platforms/windows`, `platforms/windows-binary`, `platforms/wsl2`, `platforms/windows-hardware` |
 | `scale` | a large fixture or a benchmark | the 100-service ERP fixture |
 
 Adding an MCP tool that reads a running agent? It belongs in the `agent` suite (or the `mcp` suite for MCP resources). Copy the shape of cases C1 to C3.
@@ -84,6 +84,19 @@ These rules come from real failures in the agent suite. Each one cost a red CI r
 6. **A JSON failure prints exactly one envelope.** `assert envelope <file> <CODE>` checks that stdout is one line holding one parseable envelope with that error code, `data: null`, and no stack trace.
 7. **Show the evidence.** `run <name> <flisk args>` prints the command, its stdout and stderr, its exit code and its time, so the CI log is the proof. Check `$RC` yourself: `run` never aborts the case.
 
+## A suite that checks the host, not a stack
+
+Most suites boot a stack. A `platforms` suite checks a host environment instead, so it has no stack, no ports and no project: it runs the CLI on the machine and asserts what it does there.
+
+[`tests/e2e/platforms/windows-hardware`](../../tests/e2e/platforms/windows-hardware/) is the worked example. It runs the **published** `tdk-windows-amd64.exe` on a real Windows 11 AMD64 machine: the release checksums, the official PowerShell installer, the version and the bundled engine, the native-Windows refusal contract, and the host differences a GitHub-hosted runner cannot show (a path with a space, PATH lookup, a path longer than 260 characters).
+
+Two things make it different from the other suites:
+
+- **The case logic is in PowerShell**, not in bash, because a Windows machine need not have Git Bash. `run.sh` is a thin wrapper that calls `windows-hardware.ps1` once per case, so CI and a developer run the same code.
+- **It runs on a self-hosted runner, by hand.** The workflow [`e2e-platforms-hardware.yml`](../../.github/workflows/e2e-platforms-hardware.yml) runs the suite on `windows-latest` as a reference, and on a self-hosted Windows machine when a maintainer dispatches it. A pull request never reaches the self-hosted runner.
+
+The findings report the suite writes (host facts, one row per case, the SHA-256 of the tested exe) is the artifact an issue links to. See [Windows hardware checks](../../docs/windows-hardware.md) for the checklist and the gaps it covers.
+
 ## Shared helpers
 
 `tests/e2e/lib/` holds everything that is not specific to one suite. Do not copy a helper into your suite. If you need a new one, add it to the library with a unit test.
@@ -134,6 +147,8 @@ Without `CASES`, `make test-e2e` runs every case in order, collects diagnostics 
 ## How CI runs it
 
 Today `e2e-resource-types.yml` runs each suite as one matrix leg that calls `run.sh all`: on pull requests that touch the suite's paths, nightly, after each release, and by hand. On a pull request it tests that pull request's own packed CLI. The group workflow reads `suite.json` for triggers and timeout (through `tests/e2e/lib/suite-matrix.mjs`), so adding a resource-type suite does not need YAML.
+
+The `platforms` group is wired by hand instead: `e2e-platforms.yml` calls one step per case of [`platforms/windows`](../../tests/e2e/platforms/windows/), and [`e2e-platforms-hardware.yml`](../../.github/workflows/e2e-platforms-hardware.yml) runs the hardware suite on `windows-latest` and, when a maintainer dispatches it, on a self-hosted Windows machine. A suite that needs a machine of its own also names the workflow in its `paths`, so the validator can check the two against each other.
 
 ## Prove it can fail
 
