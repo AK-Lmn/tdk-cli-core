@@ -8,6 +8,7 @@
 #   WS3 build the candidate CLI from /root/tdk-ci and install it globally
 #   WS4 run scripts/wsl2-smoke.sh through the routed write path
 #   WS5 collect diagnostics into wsl2-evidence/ (the workflow's artifact)
+#   WS6 run the one-command demo flow and confirm that what it started works
 #
 # The Docker backend is Docker Engine inside WSL2; Docker Desktop WSL integration is not tested here.
 #
@@ -87,6 +88,12 @@ WS5() { # diagnostics for the artifact; runs even when a later step failed
   fi
   docker ps -a >"$REPO_ROOT/wsl2-evidence/containers.log" 2>&1 || true
   uname -a >"$REPO_ROOT/wsl2-evidence/kernel.log"
+}
+
+WS6() { # the one-command demo flow, and the confirmation that what it started works
+  log "WS6 the one-command demo flow"
+  cd /root/tdk-ci
+  bash scripts/wsl2-demo.sh /root/tdk-evidence 2>&1 | tee /root/tdk-evidence/demo-case.log
 }
 
 e2e_main "$@"

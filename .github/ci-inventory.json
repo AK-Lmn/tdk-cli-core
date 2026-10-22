@@ -691,6 +691,14 @@
 			"required": false,
 			"reason": "Acceptance run of the Windows hardware suite on a self-hosted Windows 11 AMD64 machine, dispatched by hand (#1765)",
 			"owner": "maintainers"
+		},
+		{
+			"workflow": "e2e-platforms-wsl2.yml",
+			"job": "wsl2",
+			"tier": "e2e",
+			"required": false,
+			"reason": "The WSL2 suite on a Windows runner, dispatched by hand; suite tests/e2e/platforms/wsl2 (#107, #1765)",
+			"owner": "maintainers"
 		}
 	]
 }

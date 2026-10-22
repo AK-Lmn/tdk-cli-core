@@ -14,7 +14,7 @@ tests/e2e/lib/suite-matrix.mjs         reads every suite.json in a group and pri
 
 Nothing in the workflow lists suites by name. Adding a folder with a `suite.json` adds a leg, once its `triggers` include the event.
 
-The `platforms` group is the exception: its workflows name their cases step by step, because a platform suite checks a host environment rather than a stack. [`platforms/windows-hardware`](../../tests/e2e/platforms/windows-hardware/) runs on `windows-latest` as a reference and on a self-hosted Windows 11 machine when a maintainer dispatches the workflow; it is the one suite that needs a machine of its own.
+The `platforms` group is the exception: its workflows name their cases step by step, because a platform suite checks a host environment rather than a stack. [`platforms/windows-hardware`](../../tests/e2e/platforms/windows-hardware/) runs on `windows-latest` as a reference and on a self-hosted Windows 11 machine when a maintainer dispatches the workflow; it is the one suite that needs a machine of its own. [`platforms/wsl2`](../../tests/e2e/platforms/wsl2/) runs its cases in an Ubuntu 24.04 distro under WSL2 on a Windows runner, dispatched by hand; its `WS6` case runs the one-command demo flow and confirms that every service the demo started answers.
 
 ## The plan job, then the matrix
 

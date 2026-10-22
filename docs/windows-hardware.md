@@ -89,14 +89,11 @@ The design for first-class Windows support asks for a human acceptance run on a 
 | 6 | The exe runs from a path with a space and resolves through PATH | WH5 | |
 | 7 | `tdk project --yes` scaffolds a project in a directory with a space | WH5 (needs Bun) | |
 | 8 | `tdk demo` refuses with WSL2 guidance and clones nothing | WH6 (the published release); `platforms/windows` W4 (the current build) | |
-| 9 | `tdk upgrade --dry-run` reports the standalone binary installation | manual | |
-| 10 | The npm installation works: `npm install -g @flisk-sh/flisk` | manual | |
-| 11 | WSL2 Ubuntu still boots the stack | `tests/e2e/platforms/wsl2` | |
-| 12 | macOS and Linux are unaffected | the usual CI | |
-| 8 | `tdk upgrade --dry-run` reports the standalone binary installation | manual | |
-| 9 | The npm installation works: `npm install -g @flisk-sh/flisk` | manual | |
-| 10 | WSL2 Ubuntu still boots the stack | `tests/e2e/platforms/wsl2` | |
-| 11 | macOS and Linux are unaffected | the usual CI | |
+| 9 | Under WSL2 (the supported Windows path) `tdk demo` starts the stack and every service answers | `platforms/wsl2` WS6 (`scripts/wsl2-demo.sh`) | |
+| 10 | `tdk upgrade --dry-run` reports the standalone binary installation | manual | |
+| 11 | The npm installation works: `npm install -g @flisk-sh/flisk` | manual | |
+| 12 | WSL2 Ubuntu still boots the stack | `tests/e2e/platforms/wsl2` | |
+| 13 | macOS and Linux are unaffected | the usual CI | |
 
 Record the result of each row, with the Windows build, the PowerShell version and the Flisk version, in the issue that asked for the run.
 

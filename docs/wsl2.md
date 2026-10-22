@@ -57,11 +57,23 @@ echo "Worker observed order $order_id"
 
 Stop the stack from the first terminal with `Ctrl+C`, then run `flisk down` from the example directory.
 
+## The one-command demo
+
+The demo is the shortest path to a running stack: it clones the starter into `~/.flisk/flisk-demo`, installs the CLI globally, installs the service dependencies, boots everything and opens the frontend. On native Windows it refuses with the WSL2 guidance, because native Windows is inspection-only; in Ubuntu under WSL2 it works.
+
+```sh
+flisk demo
+```
+
 ## Automated smoke
 
 With Flisk and Docker Desktop WSL integration already available, run `bash scripts/wsl2-smoke.sh` from the Flisk repository checkout inside Ubuntu. It copies the bundled example into a temporary directory, checks doctor and generated configuration, boots the stack, exercises the same routed write and worker observation, and tears the stack down. Pass a directory path to keep the copied example for inspection.
 
+`bash scripts/wsl2-demo.sh` does the same for the demo flow: it runs `flisk demo` the way a user runs it and then confirms that what it started works. Every resource has to be `ready` in `flisk status --json`, every routed service has to answer (the backend at its `/health` path, the frontend at its page), and `flisk down` has to stop the stack again. The demo output, the status and networks reports and the per-service HTTP results land in the evidence directory (the first argument, `/root/tdk-evidence` by default).
+
 The WSL2 smoke workflow was removed at the end-to-end cutover (#1302), so no CI job runs it now. Its steps are the cases of [`tests/e2e/platforms/wsl2`](../tests/e2e/platforms/wsl2/run.sh), and it runs on `windows-2022`, provisions Ubuntu 24.04 under WSL2, and installs Docker Engine inside that distro. [The successful run on merge commit `ad7c5c0`](https://github.com/flisk-sh/flisk/actions/runs/36903887190) records HTTP 200 responses for the routed API, worker-readiness, and app checks, followed by a successful NATS worker observation. This CI path tests Docker Engine inside WSL2; it does not test Docker Desktop WSL integration.
+
+The suite is back in CI as the **🐧 Platforms WSL2 E2E** workflow ([`.github/workflows/e2e-platforms-wsl2.yml`](../.github/workflows/e2e-platforms-wsl2.yml)). It is dispatched by hand: the setup needs a Windows runner and takes a while, and the old job was flaky on `wsl --update` and on the Ubuntu and Docker mirrors (#716, #717). Its `WS6` case runs the demo flow and the confirmation above, and the evidence it uploads is what an acceptance run links to.
 
 ## Troubleshooting
 
