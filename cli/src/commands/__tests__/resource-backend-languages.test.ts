@@ -49,9 +49,11 @@ const sha = (path: string) => createHash("sha256").update(readFileSync(path)).di
 // https://flisk.sh/schema.service.json.
 // It was re-captured a fifth time on 2026-10-21 for the Flisk rebrand: the generated Dockerfile header now names
 // the CLI as Flisk, and that header is the only byte that differs.
+// It was re-captured a sixth time on 2026-10-22 for the vitest version: the scaffold now writes the same vitest
+// the CLI tests itself with (`5.0.5`), so the `vitest` line of the scaffolded package.json is the only byte that differs.
 const BUN_BASELINE: Record<string, string> = {
   Dockerfile: "068f15a55176c3960bae240a370244f1976879f126fddb01920c3eca3af5dd89",
-  "package.json": "398877b088717f97af437af3d2233a7863af6ef442a62ba0fafcf29830d29ee1",
+  "package.json": "2ee050e7c1cb741d02b26b05261c15631602d25ddf261a2c305ffdbde5b184e5",
   "service.json": "550245dee287700a34fabbe6b5adc0620d19ec9d6ac767e9b869075cc4900357",
   "src/index.ts": "f50139530382e929db7128be7cb55f3bbc5f2fae03264979d675d3be4d0f4ef3",
   "tests/orders-api.test.ts": "a4946ac3123eb4bee78d7b84304cad8b7c36d4268688e3c878da2aaa11ef98ab",
