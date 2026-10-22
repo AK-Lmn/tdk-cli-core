@@ -346,9 +346,9 @@ describe("console output helpers", () => {
       const out = loggedLines();
       expect(out).toHaveLength(4);
       expect(out[0]).toBe("");
-      expect(out[1]).toContain("╭" + "─".repeat(18) + "╮");
+      expect(out[1]).toContain(`╭${"─".repeat(18)}╮`);
       expect(out[2]).toContain("My Title");
-      expect(out[3]).toContain("╰" + "─".repeat(18) + "╯");
+      expect(out[3]).toContain(`╰${"─".repeat(18)}╯`);
       expect(out.some((line) => line.includes("├"))).toBe(false);
     });
 
@@ -356,9 +356,9 @@ describe("console output helpers", () => {
       printBoxedHeader("My Title", "example.test", 20);
       const out = loggedLines();
       expect(out).toHaveLength(6);
-      expect(out[3]).toContain("├" + "─".repeat(18) + "┤");
+      expect(out[3]).toContain(`├${"─".repeat(18)}┤`);
       expect(out[4]).toContain("example.test");
-      expect(out[5]).toContain("╰" + "─".repeat(18) + "╯");
+      expect(out[5]).toContain(`╰${"─".repeat(18)}╯`);
     });
 
     it("uses the default box width when none is given", () => {
