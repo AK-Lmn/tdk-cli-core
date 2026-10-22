@@ -21,6 +21,24 @@ import {
   versionMeetsMinimum,
 } from "../doctor.js";
 
+vi.mock("../../utils/windows-doctor.js", () => ({
+  checkWindowsRuntimeTools: vi.fn(() => ({
+    name: "Windows Runtime Tools",
+    didPass: true,
+    message: "Docker and Tilt found on PATH",
+  })),
+  checkWindowsDockerMode: vi.fn(() => ({
+    name: "Docker container mode",
+    didPass: true,
+    message: "Docker Desktop is using Linux containers",
+  })),
+  checkWindowsHostConfiguration: vi.fn(async () => ({
+    name: "Windows ports and DNS",
+    didPass: true,
+    message: "Required ports are available and Flisk localhost DNS resolves to loopback",
+  })),
+}));
+
 describe("doctor environment contract", () => {
   it("requires Tilt 0.25.0 or newer", async () => {
     expect(MIN_TILT_VERSION).toEqual([0, 25, 0]);
@@ -166,9 +184,10 @@ describe("doctor environment contract", () => {
     );
   });
 
-  it("refuses native Windows doctor with WSL2 guidance and exit code 1", async () => {
+  it("refuses native Windows doctor with WSL2 guidance, diagnostics, and exit code 1", async () => {
     const platformDescriptor = Object.getOwnPropertyDescriptor(process, "platform");
     const { exit } = captureExit();
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
     const error = vi.spyOn(console, "error").mockImplementation(() => {});
     try {
       Object.defineProperty(process, "platform", { configurable: true, value: "win32" });
@@ -179,9 +198,14 @@ describe("doctor environment contract", () => {
       expect(error).toHaveBeenCalledWith(NATIVE_WINDOWS_DOCTOR_MESSAGE);
       expect(NATIVE_WINDOWS_DOCTOR_MESSAGE).toContain("WSL2 Ubuntu");
       expect(NATIVE_WINDOWS_DOCTOR_MESSAGE).toContain("docs/wsl2.md");
+      const text = log.mock.calls.map((call) => String(call[0])).join("\n");
+      expect(text).toContain(NATIVE_WINDOWS_DOCTOR_MESSAGE);
+      expect(text).toContain("Docker Desktop is using Linux containers");
+      expect(text).toContain("Required ports are available");
     } finally {
       if (platformDescriptor) Object.defineProperty(process, "platform", platformDescriptor);
       exit.mockRestore();
+      log.mockRestore();
       error.mockRestore();
     }
   });

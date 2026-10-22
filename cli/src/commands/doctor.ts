@@ -101,6 +101,11 @@ import {
 } from "../utils/smoke.js";
 import { evaluateTdkVersionFloor } from "../utils/tdk-version.js";
 import { findOnPath } from "../utils/which.js";
+import {
+  checkWindowsDockerMode,
+  checkWindowsHostConfiguration,
+  checkWindowsRuntimeTools,
+} from "../utils/windows-doctor.js";
 
 export {
   checkIngressPorts,
@@ -1512,31 +1517,37 @@ export const doctorCommand = new Command("doctor")
 
     const host = detectHost();
     if (process.platform === "win32") {
+      const nativeWindowsFinding: CheckResult = {
+        name: "Native Windows support",
+        didPass: false,
+        message: NATIVE_WINDOWS_DOCTOR_MESSAGE,
+        fix: "Use WSL2 Ubuntu with Docker Desktop integration. Guide: docs/wsl2.md",
+      };
+      // Keep Windows diagnostics behind the win32 platform check (Linux/macOS unchanged).
+      const windowsChecks: CheckResult[] = [
+        nativeWindowsFinding,
+        checkWindowsRuntimeTools(),
+        checkWindowsDockerMode(),
+        await checkWindowsHostConfiguration(),
+      ];
+      let windowsPortPlan: HostPortPlan | null = null;
+      try {
+        windowsPortPlan = await createHostPortPlan();
+      } catch {
+        /* The native-Windows platform finding remains the primary failure. */
+      }
       if (options.json) {
-        let windowsPortPlan: HostPortPlan | null = null;
-        try {
-          windowsPortPlan = await createHostPortPlan();
-        } catch {
-          /* The native-Windows platform finding remains the primary failure. */
-        }
         console.log(
           JSON.stringify(
-            createDoctorReport(
-              [
-                {
-                  name: "Native Windows support",
-                  didPass: false,
-                  message: NATIVE_WINDOWS_DOCTOR_MESSAGE,
-                  fix: "Use WSL2 Ubuntu with Docker Desktop integration. Guide: docs/wsl2.md",
-                },
-              ],
-              Boolean(findProjectRoot()),
-              [],
-              windowsPortPlan,
-              { ...host, canUp: false },
-            ),
+            createDoctorReport(windowsChecks, Boolean(findProjectRoot()), [], windowsPortPlan, {
+              ...host,
+              canUp: false,
+            }),
           ),
         );
+      } else {
+        printDoctorResults(windowsChecks);
+        console.log("");
       }
       console.error(NATIVE_WINDOWS_DOCTOR_MESSAGE);
       process.exit(1);

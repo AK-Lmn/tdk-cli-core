@@ -22,6 +22,11 @@ import {
 } from "../../utils/doctor-runtime.js";
 import { checkSharedStackRoutes } from "../../utils/doctor-wiring.js";
 import {
+  checkWindowsDockerMode,
+  checkWindowsHostConfiguration,
+  checkWindowsRuntimeTools,
+} from "../../utils/windows-doctor.js";
+import {
   checkDockerCompose,
   checkDockerVersions,
   checkFrontendDockerPreflight,
@@ -34,11 +39,35 @@ import {
   doctorCommand,
   formatDoctorSummary,
   getDoctorOutcomeMessage,
+  NATIVE_WINDOWS_DOCTOR_MESSAGE,
   renderDoctorOutput,
   requiresContainerRuntime,
   runChecks,
   WSL2_DOCTOR_MESSAGE,
 } from "../doctor.js";
+
+vi.mock("../../utils/windows-doctor.js", () => ({
+  checkWindowsRuntimeTools: vi.fn(() => ({
+    name: "Windows Runtime Tools",
+    didPass: true,
+    message:
+      "Docker (docker.exe) and Tilt found on PATH; Bun was not found (generated services need Bun)",
+  })),
+  checkWindowsDockerMode: vi.fn(() => ({
+    name: "Docker container mode",
+    didPass: false,
+    message:
+      "Docker Desktop is using Windows containers. Switch to Linux containers. Flisk stacks are Linux images.",
+    fix: "Switch Docker Desktop to Linux containers. Flisk does not run Windows containers.",
+  })),
+  checkWindowsHostConfiguration: vi.fn(async () => ({
+    name: "Windows ports and DNS",
+    didPass: false,
+    message:
+      "⚠️ Windows reserved port 80 for Hyper-V/WSL. Fix: disable the conflicting Windows feature or change Flisk ports in project config.\nWindows did not resolve *.tdk.localhost to 127.0.0.1. Browser URLs with hostnames will fail until you fix hosts or use the 127.0.0.1 URLs printed by flisk networks.\ngit core.autocrlf is true; generated files may get CRLF while Docker Linux containers expect LF. Recommended: git config core.autocrlf input in Flisk repos.\nDocker Desktop Settings → Resources → File sharing must include this project directory.",
+    fix: "Windows did not resolve *.tdk.localhost to 127.0.0.1. Browser URLs with hostnames will fail until you fix hosts or use the 127.0.0.1 URLs printed by flisk networks.",
+  })),
+}));
 
 describe("doctor exact guidance", () => {
   it("keeps prerequisite fixes as the specified copy-paste text", () => {
@@ -1690,6 +1719,9 @@ describe("doctor --all, sections, and summary", () => {
       expect(lines.some((line) => line === "Machine")).toBe(false);
       expect(lines.some((line) => line === "\nProject" || line === "Project")).toBe(false);
       expect(lines.some((line) => /^\d+ passed, \d+ failed, \d+ skipped$/.test(line))).toBe(false);
+      expect(checkWindowsRuntimeTools).not.toHaveBeenCalled();
+      expect(checkWindowsDockerMode).not.toHaveBeenCalled();
+      expect(checkWindowsHostConfiguration).not.toHaveBeenCalled();
     } finally {
       process.chdir(originalCwd);
       if (platformDescriptor) Object.defineProperty(process, "platform", platformDescriptor);
@@ -1697,6 +1729,77 @@ describe("doctor --all, sections, and summary", () => {
       log.mockRestore();
       error.mockRestore();
       rmSync(root, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("doctor native Windows diagnostics", () => {
+  afterEach(() => {
+    doctorCommand.setOptionValue("json", false);
+    doctorCommand.setOptionValue("ping", true);
+    vi.mocked(checkWindowsRuntimeTools).mockClear();
+    vi.mocked(checkWindowsDockerMode).mockClear();
+    vi.mocked(checkWindowsHostConfiguration).mockClear();
+  });
+
+  it("prints Windows diagnostics next to the native Windows refusal and exits 1", async () => {
+    const platformDescriptor = Object.getOwnPropertyDescriptor(process, "platform");
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { exit } = captureExit();
+
+    try {
+      Object.defineProperty(process, "platform", { configurable: true, value: "win32" });
+      await expect(doctorCommand.parseAsync([], { from: "user" })).rejects.toThrow(/exit/);
+      expect(exit).toHaveBeenCalledWith(1);
+      expect(error).toHaveBeenCalledWith(NATIVE_WINDOWS_DOCTOR_MESSAGE);
+      expect(checkWindowsRuntimeTools).toHaveBeenCalledOnce();
+      expect(checkWindowsDockerMode).toHaveBeenCalledOnce();
+      expect(checkWindowsHostConfiguration).toHaveBeenCalledOnce();
+
+      const text = log.mock.calls.map((call) => String(call[0])).join("\n");
+      expect(text).toContain(NATIVE_WINDOWS_DOCTOR_MESSAGE);
+      expect(text).toContain("Windows containers");
+      expect(text).toContain("tdk.localhost");
+      expect(text).toContain("core.autocrlf");
+      expect(text).toContain("Hyper-V");
+    } finally {
+      if (platformDescriptor) Object.defineProperty(process, "platform", platformDescriptor);
+      exit.mockRestore();
+      log.mockRestore();
+      error.mockRestore();
+    }
+  });
+
+  it("includes Windows diagnostic findings in --json data.checks while staying unready", async () => {
+    const platformDescriptor = Object.getOwnPropertyDescriptor(process, "platform");
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { exit } = captureExit();
+
+    try {
+      Object.defineProperty(process, "platform", { configurable: true, value: "win32" });
+      await expect(doctorCommand.parseAsync(["--json"], { from: "user" })).rejects.toThrow(/exit/);
+      expect(exit).toHaveBeenCalledWith(1);
+
+      const raw = String(log.mock.calls.find((call) => String(call[0]).startsWith("{"))?.[0]);
+      const report = JSON.parse(raw);
+      expect(report.data.ready).toBe(false);
+      expect(report.data.checks.map((check: CheckResult) => check.name)).toEqual([
+        "Native Windows support",
+        "Windows Runtime Tools",
+        "Docker container mode",
+        "Windows ports and DNS",
+      ]);
+      expect(report.data.checks[0].message).toBe(NATIVE_WINDOWS_DOCTOR_MESSAGE);
+      expect(report.data.checks[2].didPass).toBe(false);
+      expect(report.data.checks[3].message).toContain("core.autocrlf");
+      expect(report.data.host).toMatchObject({ kind: "native-windows", canUp: false });
+    } finally {
+      if (platformDescriptor) Object.defineProperty(process, "platform", platformDescriptor);
+      exit.mockRestore();
+      log.mockRestore();
+      error.mockRestore();
     }
   });
 });

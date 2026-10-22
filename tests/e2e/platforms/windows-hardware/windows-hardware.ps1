@@ -516,6 +516,8 @@ function Invoke-Wh4 {
   if ($doctor.ExitCode -eq 0) { throw 'tdk doctor succeeded on native Windows; it must refuse' }
   Assert-Text $doctor.Text 'WSL2' 'tdk doctor did not point at WSL2'
   Assert-Text $doctor.Text 'Ubuntu' 'tdk doctor did not point at WSL2 Ubuntu'
+  # This case runs the published release (run.sh), which does not contain unreleased
+  # doctor diagnostics. Those are asserted on the source build in native-refusal.ps1.
 
   $doctorJson = Invoke-Exe $exe @('doctor', '--json') $workDir
   if ($doctorJson.ExitCode -eq 0) { throw 'tdk doctor --json succeeded on native Windows; it must refuse' }
