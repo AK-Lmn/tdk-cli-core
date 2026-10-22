@@ -12,7 +12,7 @@ What this page covers is the **evidence** behind the claim on a real Windows mac
 | [`tests/e2e/platforms/windows`](../tests/e2e/platforms/windows/) (W1–W3) | `windows-latest` | The CLI typechecks, builds and runs on Windows; the platform unit tests pass; native Windows refuses `doctor`, `up --dry-run` and `up shop` with WSL2 guidance and starts nothing. | It runs a **source build** (`node bin/tdk.js`), not the published `tdk.exe`. It has no antivirus, no Docker Desktop, no user PATH, no PowerShell profile, and the project lives in the runner's temp directory. |
 | [`tests/e2e/platforms/windows-binary`](../tests/e2e/platforms/windows-binary/) (WB1) | `windows-latest`, in the release workflow | The **release candidate** matches `checksums.txt`, reports its version and finds its bundled engine next to the exe. | It runs the candidate that was just built, not the artifact a user downloads. The engine is unpacked by the test, not by the installer. |
 | [`tests/e2e/platforms/wsl2`](../tests/e2e/platforms/wsl2/) (WS1–WS5) | by hand, under WSL2 | The full stack boots under Ubuntu in WSL2. | It says nothing about native Windows. |
-| [`tests/e2e/platforms/windows-hardware`](../tests/e2e/platforms/windows-hardware/) (WH1–WH5) | a real Windows machine, by hand or on a self-hosted runner | The **published** `tdk-windows-amd64.exe`: its checksums, the official installer, its version and bundled engine, the refusal contract, and the host differences a runner does not have. | It does not boot a stack. Native Windows cannot. |
+| [`tests/e2e/platforms/windows-hardware`](../tests/e2e/platforms/windows-hardware/) (WH1–WH6) | a real Windows machine, by hand or on a self-hosted runner | The **published** `tdk-windows-amd64.exe`: its checksums, the official installer, its version and bundled engine, the refusal contract, the one-command demo flow, and the host differences a runner does not have. | It does not boot a stack. Native Windows cannot. |
 
 ## What a real machine adds
 
@@ -49,6 +49,7 @@ The suite works without Git Bash. It writes a findings report to `%TEMP%\flisk-w
 | WH3 | The exe reports the release version and finds its own engine next to it. |
 | WH4 | `doctor`, `doctor --json`, `up`, `up --dry-run` and `up shop` all refuse with WSL2 and Ubuntu guidance, the JSON report carries the native-Windows finding, and nothing starts: no Tilt, no Docker daemon, no container. |
 | WH5 | The exe starts from a path with a space, resolves through PATH, keeps its refusal in a project directory whose path has a space, and (when Bun is installed) scaffolds a project there. It also records what a path longer than 260 characters does. |
+| WH6 | The one-command demo flow (`tdk demo`) does not boot a stack on native Windows: it exits non-zero, starts no Tilt and no container, and either refuses with the WSL2 guidance before it clones or installs anything, or the report says what the release did before it stopped. The demo runs with a home directory and an npm prefix of its own, so the acceptance run does not change the machine. |
 
 One case at a time, and other inputs:
 
@@ -87,7 +88,7 @@ The design for first-class Windows support asks for a human acceptance run on a 
 | 5 | `tdk up` and `tdk up --dry-run` refuse and start nothing | WH4 | |
 | 6 | The exe runs from a path with a space and resolves through PATH | WH5 | |
 | 7 | `tdk project --yes` scaffolds a project in a directory with a space | WH5 (needs Bun) | |
-| 8 | `tdk demo` refuses with WSL2 guidance and clones nothing | `platforms/windows` W4; check the published release by hand | |
+| 8 | `tdk demo` refuses with WSL2 guidance and clones nothing | WH6 (the published release); `platforms/windows` W4 (the current build) | |
 | 9 | `tdk upgrade --dry-run` reports the standalone binary installation | manual | |
 | 10 | The npm installation works: `npm install -g @flisk-sh/flisk` | manual | |
 | 11 | WSL2 Ubuntu still boots the stack | `tests/e2e/platforms/wsl2` | |

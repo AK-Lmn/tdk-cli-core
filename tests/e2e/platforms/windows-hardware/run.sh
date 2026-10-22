@@ -64,4 +64,8 @@ WH5() { # the exe starts from a path with a space, resolves through PATH and ref
   run_case WH5
 }
 
+WH6() { # the one-command demo flow does not boot a stack on native Windows
+  run_case WH6
+}
+
 e2e_main "$@"

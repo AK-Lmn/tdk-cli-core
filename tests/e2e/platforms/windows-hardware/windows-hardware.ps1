@@ -21,7 +21,7 @@
 #   FLISK_WINDOWS_RELEASE_REPOSITORY the repository the release comes from (default: flisk-sh/releases)
 #   FLISK_WINDOWS_GITHUB_TOKEN  a token for the GitHub API, so the release lookup does not hit the anonymous rate limit
 param(
-  [ValidateSet('WH1', 'WH2', 'WH3', 'WH4', 'WH5', 'all')]
+  [ValidateSet('WH1', 'WH2', 'WH3', 'WH4', 'WH5', 'WH6', 'all')]
   [string]$Case = 'all',
   [string]$Release = '',
   [string]$Exe = '',
@@ -644,6 +644,78 @@ function Invoke-Wh5 {
   }
 }
 
+function Invoke-Wh6 {
+  # WH6: the one-command demo flow on native Windows. The demo clones a starter, installs the CLI
+  # globally, installs the service dependencies and boots the stack. Native Windows cannot boot a
+  # stack, so the demo must not start one. A release that refuses early must not clone or install
+  # anything either; a release that predates that refusal says so in the report.
+  Write-Step 'WH6 the one-command demo flow on native Windows'
+  if ($script:LocalExe) {
+    $exe = $script:LocalExe
+  } else {
+    $layout = Get-ReleaseLayout
+    $exe = $layout.Exe
+  }
+  $workDir = Join-Path $script:WorkDir 'demo'
+  New-Item -ItemType Directory -Force -Path $workDir | Out-Null
+
+  # The demo writes into the home directory and installs the CLI globally. Give it a home and a
+  # prefix of its own, so an acceptance run does not change the machine it runs on.
+  $homeBefore = $env:USERPROFILE
+  $homeEnvBefore = $env:HOME
+  $prefixBefore = $env:npm_config_prefix
+  $allowBefore = $env:TDK_ALLOW_NATIVE_WINDOWS
+  $tempHome = Join-Path $script:WorkDir 'demo home'
+  $tempPrefix = Join-Path $script:WorkDir 'demo npm prefix'
+  New-Item -ItemType Directory -Force -Path $tempHome | Out-Null
+  New-Item -ItemType Directory -Force -Path $tempPrefix | Out-Null
+
+  $processesBefore = Get-RuntimeProcesses
+  $containersBefore = Get-ContainerIds
+  try {
+    $env:USERPROFILE = $tempHome
+    $env:HOME = $tempHome
+    $env:npm_config_prefix = $tempPrefix
+    Remove-Item Env:TDK_ALLOW_NATIVE_WINDOWS -ErrorAction SilentlyContinue
+    $result = Invoke-Exe $exe @('demo') $workDir 600
+  } finally {
+    if ($null -eq $homeBefore) { Remove-Item Env:USERPROFILE -ErrorAction SilentlyContinue } else { $env:USERPROFILE = $homeBefore }
+    if ($null -eq $homeEnvBefore) { Remove-Item Env:HOME -ErrorAction SilentlyContinue } else { $env:HOME = $homeEnvBefore }
+    if ($null -eq $prefixBefore) { Remove-Item Env:npm_config_prefix -ErrorAction SilentlyContinue } else { $env:npm_config_prefix = $prefixBefore }
+    if ($allowBefore) { $env:TDK_ALLOW_NATIVE_WINDOWS = $allowBefore }
+  }
+
+  if ($result.ExitCode -eq 0) { throw 'the demo command succeeded on native Windows; it must not boot a stack' }
+
+  $observations = @()
+  $cloned = Test-Path -LiteralPath (Join-Path $tempHome '.flisk\flisk-demo')
+  $installedGlobally = $result.Text -match '(?i)installed globally'
+  $refused = ($result.Text -match '(?i)WSL2') -and ($result.Text -match '(?i)Ubuntu')
+
+  if ($refused) {
+    if ($cloned) { throw 'the demo command cloned a starter before it refused' }
+    if ($installedGlobally) { throw 'the demo command installed the CLI globally before it refused' }
+    $observations += 'the demo refused with the WSL2 guidance before it cloned or installed anything'
+  } else {
+    $lastLine = ($result.Text -split "`n" | Where-Object { $_.Trim() } | Select-Object -Last 1)
+    $observations += "the demo did not refuse with the WSL2 guidance; it stopped with '$($lastLine.Trim())'"
+    if ($cloned) { $observations += 'the demo cloned the starter before it stopped' }
+    if ($installedGlobally) { $observations += 'the demo installed the CLI globally before it stopped' }
+  }
+
+  $processesAfter = Get-RuntimeProcesses
+  $newProcesses = @($processesAfter | Where-Object { $_ -notin $processesBefore })
+  if ($newProcesses.Count -gt 0) { throw "the demo started runtime processes: $($newProcesses -join ', ')" }
+  $containersAfter = Get-ContainerIds
+  $newContainers = @($containersAfter | Where-Object { $_ -notin $containersBefore })
+  if ($newContainers.Count -gt 0) { throw "the demo started containers: $($newContainers -join ', ')" }
+
+  return @{
+    Detail = 'the demo command did not boot a stack'
+    Observations = $observations
+  }
+}
+
 # --------------------------------------------------------------------------------------------------- the runner
 
 $cases = [ordered]@{
@@ -652,6 +724,7 @@ $cases = [ordered]@{
   'WH3' = @{ Title = 'the exe reports the release version and finds its own engine'; Run = { Invoke-Wh3 } }
   'WH4' = @{ Title = 'native Windows refuses doctor and up with WSL2 guidance and starts nothing'; Run = { Invoke-Wh4 } }
   'WH5' = @{ Title = 'the exe starts from a path with a space, resolves through PATH and refuses in a spaced project'; Run = { Invoke-Wh5 } }
+  'WH6' = @{ Title = 'the one-command demo flow does not boot a stack on native Windows'; Run = { Invoke-Wh6 } }
 }
 
 $selected = if ($Case -eq 'all') { @($cases.Keys) } else { @($Case) }

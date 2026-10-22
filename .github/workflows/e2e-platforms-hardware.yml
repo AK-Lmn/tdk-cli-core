@@ -16,6 +16,7 @@ on:
         default: "latest"
   pull_request:
     paths:
+      - "cli/src/cli.ts"
       - "cli/src/utils/platform.ts"
       - "cli/src/utils/which.ts"
       - "cli/src/utils/windows-doctor.ts"
