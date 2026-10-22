@@ -5,7 +5,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import Handlebars from "handlebars";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ProjectConfig } from "../../types/index.js";
 import {
   generateDatabaseManagementCompose,
@@ -31,6 +31,34 @@ const REAL_TEMPLATES: Record<string, string> = {
   ".tiltignore.hbs": "TILT IGNORE FILE",
   "spec.master.hbs": "spec.master",
 };
+
+// Complete ProjectConfig for the cases below; each test states only what it changes.
+function projectConfig(overrides: Partial<ProjectConfig> = {}): ProjectConfig {
+  return {
+    version: "1.0",
+    project: { name: "test-project", version: "1.0.0" },
+    phases: {
+      pre_alpha: { name: "Pre-Alpha", description: "", enabledStacks: [] },
+      alpha: { name: "Alpha", description: "", enabledStacks: [] },
+      beta: { name: "Beta", description: "", enabledStacks: [] },
+      out_of_scope: { name: "Out of Scope", description: "", enabledStacks: [] },
+    },
+    optional_infra: {
+      monitoring: false,
+      elk: false,
+      debezium: false,
+      golden_image: false,
+      verdaccio: false,
+    },
+    discovery: { paths: ["services/*/*"] },
+    ...overrides,
+  };
+}
+
+function writeProjectJson(projectRoot: string, config: unknown): void {
+  fs.mkdirSync(path.join(projectRoot, ".tdk"), { recursive: true });
+  fs.writeFileSync(path.join(projectRoot, ".tdk", "project.json"), JSON.stringify(config));
+}
 
 describe("template-engine", () => {
   it("interpolates the planned Postgres host port in generated database Compose", () => {
@@ -397,6 +425,81 @@ describe("template-engine", () => {
     it("escapes quotes and backslashes in object keys too", () => {
       expect(render({ 'a"b\\': "x" })).toBe('{"a\\"b\\\\": "x"}');
     });
+
+    it("renders every JSON value kind as Starlark", () => {
+      expect(render(null)).toBe("None");
+      expect(render(undefined)).toBe("None");
+      expect(render(true)).toBe("True");
+      expect(render(false)).toBe("False");
+      expect(render(42)).toBe("42");
+      expect(render([1, 'a"b', { k: null }])).toBe('[1, "a\\"b", {"k": None}]');
+    });
+
+    it("starlarkArray renders [] for a non-array and one item per array element", () => {
+      new TemplateEngine();
+      const template = Handlebars.compile("{{starlarkArray v}}");
+      expect(template({ v: "proxy" })).toBe("[]");
+      expect(template({ v: ["proxy", 1, true] })).toBe('["proxy", 1, True]');
+    });
+
+    it("json helper emits compact JSON", () => {
+      new TemplateEngine();
+      expect(Handlebars.compile("{{{json v}}}")({ v: { a: 1, b: [null] } })).toBe(
+        '{"a":1,"b":[null]}',
+      );
+    });
+  });
+
+  describe("buildContext", () => {
+    it("dedupes repeated enabledStacks without mutating the input config", () => {
+      const config = projectConfig();
+      config.phases.alpha = {
+        name: "Alpha",
+        description: "",
+        enabledStacks: ["proxy", "proxy", "database-management"],
+      };
+
+      const context = new TemplateEngine().buildContext(config);
+
+      expect(context.phases.alpha.enabledStacks).toEqual(["proxy", "database-management"]);
+      expect(config.phases.alpha.enabledStacks).toEqual(["proxy", "proxy", "database-management"]);
+    });
+
+    it("uses the discovery paths from the project config", () => {
+      const context = new TemplateEngine().buildContext(
+        projectConfig({ discovery: { paths: ["apps/*"] } }),
+      );
+      expect(context.discovery.paths).toEqual(["apps/*"]);
+    });
+
+    it("defaults alwaysEnabledInfra and keeps an explicit list as given", () => {
+      const engine = new TemplateEngine();
+      expect(engine.buildContext(projectConfig()).alwaysEnabledInfra).toEqual([
+        "database-management",
+        "proxy",
+      ]);
+      expect(
+        engine.buildContext(projectConfig({ always_enabled_infra: ["proxy"] })).alwaysEnabledInfra,
+      ).toEqual(["proxy"]);
+    });
+  });
+
+  describe("generateDatabaseManagementCompose", () => {
+    it("turns dashes in the project name into valid compose identifiers", () => {
+      const compose = generateDatabaseManagementCompose(
+        projectConfig({ project: { name: "my-shop", version: "1.0.0" } }),
+      );
+      expect(compose).toContain("container_name: my_shop_postgres");
+      expect(compose).toContain("my_shop_postgres_data:/var/lib/postgresql/data");
+      expect(compose).toContain("name: my_shop_database");
+    });
+
+    it("falls back to tdk_project when the project name is empty", () => {
+      const compose = generateDatabaseManagementCompose(
+        projectConfig({ project: { name: "", version: "1.0.0" } }),
+      );
+      expect(compose).toContain("container_name: tdk_project_postgres");
+    });
   });
 
   describe("loadTemplate", () => {
@@ -580,6 +683,36 @@ describe("template-engine", () => {
         expect(loadTemplate("only-in-bundle.hbs")).toBe("bundled-marker");
       });
     });
+
+    it("renders from an explicit templates directory instead of the bundled one", () => {
+      const templatesDir = fs.mkdtempSync(path.join(os.tmpdir(), "tdk-custom-templates-"));
+      try {
+        fs.writeFileSync(
+          path.join(templatesDir, "Tiltfile.hbs"),
+          "custom tilt for {{project.name}}",
+        );
+        const engine = new TemplateEngine(templatesDir);
+        expect(engine.generateTiltfile(engine.buildContext(projectConfig()))).toBe(
+          "custom tilt for test-project",
+        );
+      } finally {
+        fs.rmSync(templatesDir, { recursive: true, force: true });
+      }
+    });
+
+    it("throws Template not found when neither the templates directory nor the embedded copy has it", () => {
+      const templatesDir = fs.mkdtempSync(path.join(os.tmpdir(), "tdk-empty-templates-"));
+      try {
+        const engine = new TemplateEngine(templatesDir) as unknown as {
+          loadTemplate(templateName: string): unknown;
+        };
+        expect(() => engine.loadTemplate("missing-template")).toThrow(
+          `Template not found: ${path.join(templatesDir, "missing-template.hbs")}`,
+        );
+      } finally {
+        fs.rmSync(templatesDir, { recursive: true, force: true });
+      }
+    });
   });
 
   describe("readProjectConfig", () => {
@@ -730,5 +863,245 @@ describe("template-engine", () => {
         }
       },
     );
+
+    const invalidConfigs: Array<[string, unknown]> = [
+      ["a non-object value", "not an object"],
+      ["a non-string version", { version: 1 }],
+      ["a missing project", { version: "1.0" }],
+      ["a project without name/version", { version: "1.0", project: { version: 1 } }],
+      [
+        "phases missing a phase",
+        {
+          version: "1.0",
+          project: { name: "p", version: "1.0.0" },
+          phases: { pre_alpha: { enabledStacks: [] } },
+        },
+      ],
+      [
+        "phases whose enabledStacks is not an array",
+        {
+          version: "1.0",
+          project: { name: "p", version: "1.0.0" },
+          phases: {
+            ...projectConfig().phases,
+            alpha: { name: "Alpha", description: "", enabledStacks: "proxy" },
+          },
+          optional_infra: projectConfig().optional_infra,
+          discovery: { paths: [] },
+        },
+      ],
+      [
+        "a missing optional_infra",
+        {
+          version: "1.0",
+          project: { name: "p", version: "1.0.0" },
+          phases: projectConfig().phases,
+          discovery: { paths: [] },
+        },
+      ],
+      [
+        "a non-boolean optional_infra flag",
+        {
+          ...projectConfig(),
+          optional_infra: { ...projectConfig().optional_infra, verdaccio: "yes" },
+        },
+      ],
+      ["a discovery without paths", { ...projectConfig(), discovery: {} }],
+    ];
+
+    for (const [label, value] of invalidConfigs) {
+      it(`rejects ${label}`, () => {
+        const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), "tdk-invalid-project-json-"));
+        try {
+          writeProjectJson(projectRoot, value);
+
+          const caught = catchFromReadProjectConfig(projectRoot);
+
+          expect(caught).toBeInstanceOf(Error);
+          expect((caught as Error).message).toContain(
+            "Invalid project.json: missing or invalid required fields",
+          );
+          expect(caught).not.toBeInstanceOf(ProjectConfigNotFoundError);
+        } finally {
+          fs.rmSync(projectRoot, { recursive: true, force: true });
+        }
+      });
+    }
+
+    it("migrates a legacy stacks config to phases", () => {
+      const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), "tdk-legacy-stacks-"));
+      try {
+        writeProjectJson(projectRoot, {
+          version: "1.0",
+          project: { name: "legacy", version: "1.0.0" },
+          stacks: {
+            pre_alpha: { name: "Pre-Alpha", description: "d0", services: ["proxy"] },
+            alpha: { name: "Alpha", description: "d1", services: ["database-management"] },
+            beta: { name: "Beta", description: "d2", services: [] },
+            out_of_scope: { name: "Out", description: "d3", services: ["verdaccio"] },
+          },
+          optional_infra: projectConfig().optional_infra,
+          discovery: { paths: ["services/*/*"] },
+          overrides: {},
+        });
+
+        const config = readProjectConfig(projectRoot);
+
+        expect(config.phases.pre_alpha).toEqual({
+          name: "Pre-Alpha",
+          description: "d0",
+          enabledStacks: ["proxy"],
+        });
+        expect(config.phases.alpha.enabledStacks).toEqual(["database-management"]);
+        expect(config.phases.beta.enabledStacks).toEqual([]);
+        expect(config.phases.out_of_scope.enabledStacks).toEqual(["verdaccio"]);
+        expect(config.stacks).toBeUndefined();
+      } finally {
+        fs.rmSync(projectRoot, { recursive: true, force: true });
+      }
+    });
+  });
+
+  describe("generateMasterConfigs", () => {
+    it("warns for unlicensed Sablier and Verdaccio, writes the stack compose, and stays quiet", async () => {
+      const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), "tdk-premium-warnings-"));
+      const oldExtensionSource = process.env.TDK_EXTENSION_SOURCE;
+      const oldLicenseKey = process.env.TDK_LICENSE_KEY;
+      process.env.TDK_EXTENSION_SOURCE = repoRoot;
+      delete process.env.TDK_LICENSE_KEY;
+      const warnings: string[] = [];
+      const logs: string[] = [];
+      vi.spyOn(console, "warn").mockImplementation((message: unknown) => {
+        warnings.push(String(message));
+      });
+      vi.spyOn(console, "log").mockImplementation((message: unknown) => {
+        logs.push(String(message));
+      });
+      try {
+        const config = projectConfig();
+        config.phases.pre_alpha.enabledStacks = ["database-management", "verdaccio"];
+        writeProjectJson(projectRoot, config);
+        for (const name of ["api", "web"]) {
+          const serviceDir = path.join(projectRoot, "services", "shop", name);
+          fs.mkdirSync(serviceDir, { recursive: true });
+          fs.writeFileSync(
+            path.join(serviceDir, "service.json"),
+            JSON.stringify({
+              schemaVersion: 1,
+              appName: name,
+              appType: "backend",
+              stack: "shop",
+              port: 4000,
+              sablier: { enable: true },
+            }),
+          );
+        }
+
+        await generateMasterConfigs(projectRoot, { quiet: true });
+
+        const compose = path.join(
+          projectRoot,
+          "services",
+          "platform",
+          "database-management",
+          "docker-compose.yml",
+        );
+        expect(fs.existsSync(compose)).toBe(true);
+        expect(fs.readFileSync(compose, "utf-8")).toContain(
+          "container_name: test_project_postgres",
+        );
+        const warningText = warnings.join("\n");
+        expect(warningText).toContain("Verdaccio is a Premium feature");
+        expect(warningText).toContain("Sablier (on-demand scaling) is a Premium feature");
+        expect(warningText).toContain("2 resources have a `sablier` block");
+        expect(logs.join("\n")).not.toContain("Generated: .tdk/.tdk-out/Tiltfile");
+        expect(logs.join("\n")).not.toContain("Generated: .tdk/.tdk-out/spec.master");
+      } finally {
+        vi.restoreAllMocks();
+        if (oldExtensionSource === undefined) delete process.env.TDK_EXTENSION_SOURCE;
+        else process.env.TDK_EXTENSION_SOURCE = oldExtensionSource;
+        if (oldLicenseKey === undefined) delete process.env.TDK_LICENSE_KEY;
+        else process.env.TDK_LICENSE_KEY = oldLicenseKey;
+        fs.rmSync(projectRoot, { recursive: true, force: true });
+      }
+    }, 20000);
+  });
+
+  describe("verifyMasterConfigs generated resource files", () => {
+    it("checks generated files against their snapshots and skips service.yaml and .tdk-contract", () => {
+      const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), "tdk-generated-resource-"));
+      try {
+        writeProjectJson(projectRoot, projectConfig());
+        const resourceDir = path.join(projectRoot, "services", "shop", "api");
+        const generatedDir = path.join(resourceDir, ".autogenerated");
+        const contractDir = path.join(generatedDir, ".tdk-contract");
+        const serviceJson = `${JSON.stringify({ appName: "api", appType: "backend" }, null, 2)}\n`;
+        const serviceJsonPath = path.join(resourceDir, "service.json");
+        fs.mkdirSync(resourceDir, { recursive: true });
+        fs.writeFileSync(serviceJsonPath, serviceJson);
+        const generatedErrors = () =>
+          verifyMasterConfigs(projectRoot).errors.filter((error) =>
+            error.includes(".autogenerated"),
+          );
+
+        // No generated directory at all: nothing to verify.
+        expect(generatedErrors()).toEqual([]);
+
+        fs.mkdirSync(contractDir, { recursive: true });
+        fs.writeFileSync(path.join(contractDir, "service.json.source"), serviceJson);
+        expect(generatedErrors()).toEqual([]);
+
+        // service.yaml is a runtime discovery shadow and has no snapshot to compare against.
+        fs.writeFileSync(path.join(generatedDir, "service.yaml"), "kind: Service\n");
+        expect(generatedErrors()).toEqual([]);
+
+        fs.writeFileSync(path.join(generatedDir, "Dockerfile"), "FROM oven/bun:1.2\n");
+        expect(generatedErrors().join("\n")).toContain(
+          "Dockerfile: generated-file snapshot is missing (run flisk up to regenerate)",
+        );
+
+        // Nested files are collected recursively and compared to their nested snapshot.
+        const nestedSource = path.join(generatedDir, "docker", "entrypoint.sh");
+        const nestedSnapshot = path.join(contractDir, "docker", "entrypoint.sh");
+        fs.mkdirSync(path.dirname(nestedSource), { recursive: true });
+        fs.mkdirSync(path.dirname(nestedSnapshot), { recursive: true });
+        fs.writeFileSync(nestedSource, "#!/bin/sh\n");
+        fs.writeFileSync(nestedSnapshot, "#!/bin/sh\n");
+        fs.writeFileSync(
+          path.join(contractDir, "Dockerfile"),
+          fs.readFileSync(path.join(generatedDir, "Dockerfile"), "utf-8"),
+        );
+        const matching = verifyMasterConfigs(projectRoot);
+        expect(matching.errors.filter((error) => error.includes(".autogenerated"))).toEqual([]);
+        expect(matching.handEdited).toEqual([]);
+
+        fs.writeFileSync(nestedSource, "#!/bin/sh\necho edited\n");
+        const edited = verifyMasterConfigs(projectRoot);
+        expect(edited.handEdited).toEqual([
+          "services/shop/api/.autogenerated/docker/entrypoint.sh",
+        ]);
+        expect(edited.errors.join("\n")).toContain(
+          "generated file differs from its Flisk snapshot (run flisk up to regenerate)",
+        );
+
+        fs.rmSync(path.join(contractDir, "service.json.source"));
+        expect(generatedErrors().join("\n")).toContain(
+          "generated-file contract snapshot is missing (run flisk up to regenerate)",
+        );
+
+        // A manifest edited after its outputs were written makes those outputs stale.
+        fs.writeFileSync(path.join(contractDir, "service.json.source"), serviceJson);
+        fs.writeFileSync(serviceJsonPath, serviceJson.replace('"backend"', '"frontend"'));
+        expect(verifyMasterConfigs(projectRoot).errors.join("\n")).toContain(
+          "service.json changed since generated outputs were written",
+        );
+
+        // Callers that already have the manifest list can skip re-discovery.
+        const skipped = verifyMasterConfigs(projectRoot, { manifestPaths: [] });
+        expect(skipped.errors.join("\n")).not.toContain(".autogenerated");
+      } finally {
+        fs.rmSync(projectRoot, { recursive: true, force: true });
+      }
+    });
   });
 });
