@@ -29,6 +29,15 @@ if (process.argv.length === 2) {
 const templateArg = readOptionValue(process.argv, "--template") ?? bareTemplateArg(process.argv);
 const projectArg = readOptionValue(process.argv, "--project");
 if (templateArg) {
+    // Native Windows cannot boot a stack, so the one-command flow refuses before it clones a
+    // template, installs the CLI globally or writes into the home directory.
+    const { nativeWindowsStackRefusal } = await import("./utils/native-windows.js");
+    const platformRefusal = nativeWindowsStackRefusal(process.platform, process.env.TDK_ALLOW_NATIVE_WINDOWS);
+    if (platformRefusal) {
+        console.error(chalk.red(`❌ ${platformRefusal}`));
+        console.error(chalk.gray("   Run it from Ubuntu in WSL2. Guide: docs/wsl2.md"));
+        process.exit(1);
+    }
     const { cloneProjectTemplate, templateTargetDir } = await import("./commands/project.js");
     const { assertMachineReadyOrExit, detectRuntimePrerequisites, formatRuntimeNextSteps } = await import("./utils/cold-preflight.js");
     await assertMachineReadyOrExit({ scope: "scaffold" });

@@ -52,6 +52,7 @@ import {
 import { formatHostPortPlan } from "../utils/host-port-plan.js";
 import { createJsonEmitter, type JsonError } from "../utils/json-output.js";
 import { toMachineError } from "../utils/machine-output.js";
+import { nativeWindowsStackRefusal } from "../utils/native-windows.js";
 import { findProjectRoot, getPackageVersion } from "../utils/paths.js";
 import { findAvailablePort } from "../utils/port-assignment.js";
 import { formatPortFallbackNotice } from "../utils/port-fallback-notice.js";
@@ -105,13 +106,13 @@ export function formatUpSuccess(port: number, appUrls: string[] = []): string[] 
   ];
 }
 
-export function nativeWindowsUpRefusal(
-  platform: string,
-  allowNativeWindows?: string,
-): string | null {
-  if (platform !== "win32" || allowNativeWindows === "1") return null;
-  return "Landscape startup needs Ubuntu on WSL2. Native Windows is inspect-only.";
-}
+/**
+ * The native Windows boundary for a command that starts a stack.
+ *
+ * It lives here because `flisk up` is where the boundary has always been enforced; the
+ * one-command demo flow refuses with the same message before it clones or installs anything.
+ */
+export const nativeWindowsUpRefusal = nativeWindowsStackRefusal;
 
 /** Why `flisk up` cannot work on this host, or null when it may proceed. Docker reachability is only probed in container hosts. */
 export async function hostUpRefusal(

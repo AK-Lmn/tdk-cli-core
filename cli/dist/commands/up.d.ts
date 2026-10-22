@@ -1,8 +1,15 @@
 import { Command } from "commander";
 import type { DiscoveredResource } from "../types/index.js";
 import { type SelectedEnvFile } from "../utils/env-selection.js";
+import { nativeWindowsStackRefusal } from "../utils/native-windows.js";
 export declare function formatUpSuccess(port: number, appUrls?: string[]): string[];
-export declare function nativeWindowsUpRefusal(platform: string, allowNativeWindows?: string): string | null;
+/**
+ * The native Windows boundary for a command that starts a stack.
+ *
+ * It lives here because `flisk up` is where the boundary has always been enforced; the
+ * one-command demo flow refuses with the same message before it clones or installs anything.
+ */
+export declare const nativeWindowsUpRefusal: typeof nativeWindowsStackRefusal;
 /** Why `flisk up` cannot work on this host, or null when it may proceed. Docker reachability is only probed in container hosts. */
 export declare function hostUpRefusal(host?: import("../utils/agent-host.js").HostInfo, dockerReachable?: () => Promise<boolean>): Promise<string | null>;
 /** Exit status for `flisk up` when generated files no longer match service.json / project.json. */
