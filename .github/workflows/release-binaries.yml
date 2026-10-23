@@ -362,7 +362,7 @@ jobs:
             gh release upload "v${VERSION}" --clobber checksums.txt checksums.txt.sigstore.json
           else
             gh release create "v${VERSION}" --draft --latest=false --title "v${VERSION}" \
-              --notes "Signed checksums for flisk ${VERSION}. The binaries are on https://github.com/flisk-sh/releases/releases/tag/v${VERSION} and the npm package is @flisk-sh/flisk@${VERSION}. Verify with: cosign verify-blob --bundle checksums.txt.sigstore.json --certificate-identity-regexp 'https://github.com/flisk-sh/flisk/.github/workflows/release-binaries.yml@.*' --certificate-oidc-issuer https://token.actions.githubusercontent.com checksums.txt" \
+              --notes "Signed checksums for flisk ${VERSION}. The binaries are on https://github.com/flisk-sh/releases/releases/tag/v${VERSION} and the npm package is @flisk-sh/flisk@${VERSION}. Verify with: cosign verify-blob --bundle checksums.txt.sigstore.json --certificate-identity-regexp 'https://github.com/flisk-sh/flisk/.github/workflows/(release-binaries|sign-release)\.yml@.*' --certificate-oidc-issuer https://token.actions.githubusercontent.com checksums.txt" \
               checksums.txt checksums.txt.sigstore.json
           fi
 
@@ -379,12 +379,16 @@ jobs:
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_TOKEN: ${{ secrets.BINARY_RELEASE_TOKEN }}
           VERSION: ${{ needs.build.outputs.version }}
         run: |
           set -euo pipefail
           gh attestation download checksums.txt --repo "$GITHUB_REPOSITORY"
           mv sha256:*.jsonl checksums.txt.intoto.jsonl
           gh release upload "v${VERSION}" --repo "$GITHUB_REPOSITORY" --clobber checksums.txt.intoto.jsonl
+          # flisk-sh/releases is a repository of its own that Scorecard can score, so the provenance goes next to the binaries too.
+          GH_TOKEN="$RELEASE_TOKEN" gh release upload "v${VERSION}" --repo flisk-sh/releases --clobber \
+            checksums.txt.intoto.jsonl || echo "::warning::Could not attach the provenance to the flisk-sh/releases release"
 
       # Keep main in step with what was published. A push made with
       # github.token doesn't trigger workflows, so this can't loop. This runs
