@@ -502,9 +502,14 @@ def _register_run_only_resource(config, resource_path, compose_project_name, aut
     env_file_flag = []
     if str(local("test -f '" + env_file + "' && echo yes || echo no", quiet=True, echo_off=True)).strip() == 'yes':
         env_file_flag = ['--env-file', env_file]
+    # Built as an argv list (extend, not `+`) so no argument is ever joined into shell text.
+    run_only_argv = ['docker', 'compose', '-p', compose_project_name]
+    run_only_argv.extend(compose_files)
+    run_only_argv.extend(env_file_flag)
+    run_only_argv.extend(['up', '-d', '--no-build', config['res_name']])
     local_resource(
         name=config['res_name'] + '-run-only',
-        cmd=['docker', 'compose', '-p', compose_project_name] + compose_files + env_file_flag + ['up', '-d', '--no-build', config['res_name']],
+        cmd=run_only_argv,
         labels=config['labels'] + ['run-only'],
         # The run-only Compose command uses the image produced by the main
         # resource. Keep it behind that resource so --no-build cannot race
