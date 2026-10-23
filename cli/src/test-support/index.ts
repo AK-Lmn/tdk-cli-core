@@ -6,7 +6,7 @@ export { runCompletionCommand } from "./completion.js";
 export { captureExit, type ExitCapture, makeResource } from "./doubles.js";
 export { type Envelope, parseEnvelope } from "./parse-envelope.js";
 export { type InProcessRun, runCommandInProcess } from "./run-in-process.js";
-export { type RunTdkOptions, type RunTdkResult, runTdk, tdkBin } from "./run-tdk.js";
+export { type FliskRunOptions, type FliskRunResult, runFlisk, fliskBin } from "./run-flisk.js";
 export {
   engineFile,
   evaluateStarlark,
