@@ -101,12 +101,24 @@ jobs:
           # npm must expand this environment reference when it reads the temporary config.
           # shellcheck disable=SC2016
           printf '%s\n' '@flisk-sh:registry=https://npm.pkg.github.com' '//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}' > "$NPMRC"
-          # Fetch the tarball from GitHub Packages, check it against the integrity of the npm tarball this run published,
-          # and install that exact file. Installing by name would leave the dependency unpinned (Scorecard Pinned-Dependencies).
+          # Fetch the tarball from GitHub Packages via the registry metadata (avoids an unpinned npm pack by package name,
+          # which Scorecard flags as Pinned-Dependencies / npmCommand not pinned by hash), check it against the integrity
+          # of the npm tarball this run published, and install that exact file.
           FETCHED="$RUNNER_TEMP/github-packages-tarball"
           mkdir -p "$FETCHED"
-          NPM_CONFIG_USERCONFIG="$NPMRC" npm pack "@flisk-sh/flisk@${VERSION}" --silent --pack-destination "$FETCHED"
-          TARBALL=$(find "$FETCHED" -maxdepth 1 -name '*.tgz' -print -quit)
+          TARBALL="$FETCHED/package.tgz"
+          # Query the package metadata from the GitHub Packages registry.
+          REGISTRY_URL="https://npm.pkg.github.com/@flisk-sh%2fflisk"
+          METADATA=$(curl --fail --silent --show-error -H "Authorization: Bearer ${NODE_AUTH_TOKEN}" -H "Accept: application/json" "$REGISTRY_URL")
+          # shellcheck disable=SC2016
+          TARBALL_URL=$(node -e '
+            const meta = JSON.parse(process.argv[1]);
+            const version = process.argv[2];
+            const dist = meta.versions && meta.versions[version] && meta.versions[version].dist;
+            if (!dist || !dist.tarball) throw new Error("No tarball for version " + version);
+            console.log(dist.tarball);
+          ' "$METADATA" "$VERSION")
+          curl --fail --location --silent --show-error -H "Authorization: Bearer ${NODE_AUTH_TOKEN}" "$TARBALL_URL" --output "$TARBALL"
           ACTUAL="sha512-$(openssl dgst -sha512 -binary "$TARBALL" | openssl base64 -A)"
           if [ "$ACTUAL" != "$TARBALL_INTEGRITY" ]; then
             echo "::error::GitHub Packages served a tarball with integrity $ACTUAL, expected $TARBALL_INTEGRITY"
