@@ -159,7 +159,7 @@ To publish an already-released npm version to GitHub Packages without cutting an
 gh workflow run publish-existing-npm-to-github-packages.yml -f version=<version>
 ```
 
-It downloads the exact public npm tarball, publishes it to `npm.pkg.github.com`, and installs it in a clean prefix to verify. If the package is the first publication, make it public in the package settings and confirm it is linked to `flisk-sh/flisk`.
+It downloads the exact public npm tarball, publishes it to `npm.pkg.github.com`, then fetches the tarball back from GitHub Packages, checks its sha512 against the npm tarball, and installs that file in a clean prefix to verify. If the package is the first publication, make it public in the package settings and confirm it is linked to `flisk-sh/flisk`.
 
 ## Unscoped npm package (flisk)
 
