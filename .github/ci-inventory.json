@@ -282,6 +282,14 @@
 			"owner": "maintainers"
 		},
 		{
+			"workflow": "dependabot-automerge.yml",
+			"job": "automerge",
+			"tier": "bot",
+			"required": false,
+			"reason": "Enables squash auto-merge on Dependabot PRs once required checks pass",
+			"owner": "maintainers"
+		},
+		{
 			"workflow": "e2e-scale.yml",
 			"job": "docs",
 			"tier": "gate",
