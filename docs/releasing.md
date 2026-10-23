@@ -104,7 +104,7 @@ gh pr checks <number> --watch && gh pr review <number> --approve
 
 Auto-merge takes it from there. The merge push triggers `tag-bumped-release`, which tags `v<version>` on the bump commit and publishes the checksums draft.
 
-### 5. Verify a release
+## Verify a release
 
 ```bash
 npm view "@flisk-sh/flisk" dist-tags                      # latest = version
