@@ -267,11 +267,11 @@ jobs:
           if-no-files-found: warn
       # main is behind a merge queue, so CI cannot push directly to it (GH013); refresh the badge via a PR instead.
       - name: Regenerate coverage badge
-        if: ${{ !cancelled() && github.event_name == 'schedule' }}
+        if: ${{ !cancelled() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
         working-directory: .
         run: node scripts/coverage-badge.mjs
       - name: Open PR with refreshed coverage badge
-        if: ${{ !cancelled() && github.event_name == 'schedule' }}
+        if: ${{ !cancelled() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
