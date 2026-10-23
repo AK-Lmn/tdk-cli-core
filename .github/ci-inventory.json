@@ -242,6 +242,14 @@
 			"owner": "maintainers"
 		},
 		{
+			"workflow": "codeql.yml",
+			"job": "starlark",
+			"tier": "security",
+			"required": false,
+			"reason": "Unofficial Starlark analyzer (flisk-sh/codeql-starlark); report-only SARIF for Tiltfiles and *.star on every PR and weekly",
+			"owner": "maintainers"
+		},
+		{
 			"workflow": "contributor-merged.yml",
 			"job": "thank",
 			"tier": "bot",
