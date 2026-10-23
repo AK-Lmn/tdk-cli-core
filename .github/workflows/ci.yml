@@ -214,21 +214,17 @@ jobs:
       - run: bun install --frozen-lockfile
       - name: Free host Postgres port before project integration tests
         uses: ./.github/actions/free-postgres-port # zizmor: ignore[self-repository] composite action resolves from this commit
-      - name: Run TypeScript tests through the contributor entry point
-        working-directory: .
-        run: make test-ts
+      # One Vitest run does both jobs: the test verdict and the report-only coverage output (text, HTML and JSON-summary reports
+      # in cli/coverage/, no threshold). It writes the JSON report with the failed test names for the PR summary (#1385) even
+      # when a test fails. Running the suite a second time for coverage doubled the slowest CI job.
+      - name: Run TypeScript unit tests with coverage
+        working-directory: cli
+        run: bun run test:coverage
         env:
           TDK_REQUIRE_TILT: '1'
       - name: Check shell verification script syntax
         working-directory: .
         run: make test-shell
-      # Report-only: writes text, HTML and JSON-summary reports to cli/coverage/ and sets no threshold.
-      # Runs after an earlier test failure too, so the PR summary gets Vitest's JSON report with the failed test names (#1385).
-      - name: Unit test coverage report
-        if: ${{ !cancelled() }}
-        run: bun run test:coverage
-        env:
-          TDK_REQUIRE_TILT: '1'
       # Fails when a high-risk area drops below its baseline in cli/coverage-baseline.json (the ratchet).
       - name: Coverage ratchet for high-risk areas
         if: ${{ !cancelled() }}
