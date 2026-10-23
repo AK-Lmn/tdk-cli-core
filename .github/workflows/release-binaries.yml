@@ -505,9 +505,22 @@ jobs:
           registry-url: "https://registry.npmjs.org"
           package-manager-cache: false
 
-      # Trusted publishing needs an npm CLI that speaks OIDC.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            .github/npm-cli
+      # Trusted publishing needs an npm CLI that speaks OIDC. The npm version is pinned by the lockfile
+      # in .github/npm-cli (npm ci verifies its hashes); the installed copy is put first on PATH.
       - name: Update npm for trusted publishing
-        run: npm install --global npm@12.2.0 # zizmor: ignore[adhoc-packages] npm CLI is pinned for trusted publishing
+        env:
+          NPM_CLI_DIR: ${{ runner.temp }}/npm-cli
+        run: |
+          set -euo pipefail
+          mkdir -p "$NPM_CLI_DIR"
+          cp .github/npm-cli/package.json .github/npm-cli/package-lock.json "$NPM_CLI_DIR"/
+          (cd "$NPM_CLI_DIR" && npm ci --ignore-scripts --no-audit --fund=false)
+          echo "$NPM_CLI_DIR/node_modules/.bin" >> "$GITHUB_PATH"
 
       - name: Build the unscoped archive
         id: unscoped
