@@ -13,7 +13,7 @@
 - [x] 2.4 Add `npm-package-smoke` to the `summary` job `needs` list.
 - [x] 2.5 Register the job in `.github/ci-inventory.json` (`scripts/check-ci-inventory.mjs` passes).
 - [x] 2.6 Check package contents (tests, allowlist, `"type": "module"`) in the `package` job and on the registry tarball; check registry provenance.
-- [ ] 2.7 Publish a release built from this branch and move the pin to it, so `npm-package-smoke` passes.
+- [x] 2.7 Publish a release built from this branch and move the pin to it, so `npm-package-smoke` passes. (1.4.1)
 
 ## 3. Documentation
 
