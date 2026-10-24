@@ -44,7 +44,7 @@
           - "runtime/engine/topologies/tilt/resources/**"
           - "runtime/engine/topologies/platform/**"
           - "runtime/discovery/services/platform/**"
-          - "platform/services/**"
+          - "runtime/platform/services/**"
           - "shared-platform-engineering/**"
           - "cli/shared-platform-engineering/**"
           - "docs/FEATURES.md"
@@ -292,7 +292,7 @@ ci:
           - "runtime/engine/topologies/platform/docker/networking/traefik*.star"
           - "runtime/engine/topologies/platform/docker/compose/traefik*.star"
           - "runtime/engine/topologies/tilt/resources/infra-loader.star"
-          - "platform/services/platform/proxy/**"
+          - "runtime/platform/services/platform/proxy/**"
           - "tests/tilt-engine/test_*traefik*.py"
 
 "tech: postgres":

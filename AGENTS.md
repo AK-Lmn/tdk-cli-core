@@ -10,7 +10,7 @@ Flisk (Topology Development Kit) runs a local development inner loop for microse
 - `runtime/engine/`: Tilt and Starlark topologies, generators, and infrastructure orchestration modules (`runtime/engine/topologies/`).
 - `runtime/discovery/`: Starlark-based service discovery, multi-root manifest scanning, and registry generation.
 - `runtime/ext/`: Tilt extensions, UI enhancements, and IDE components.
-- `platform/`: Shared platform service definitions and topology templates (`platform/services/`).
+- `runtime/platform/`: Shared platform service definitions and topology templates (`runtime/platform/services/`).
 - `docs/`: Architecture guides, tutorials, contributor documentation, and agent contracts (`docs/agents/`).
 - `scripts/`: Shell, Node.js, and Python maintenance, verification, benchmark, and release scripts.
 - `tests/`: End-to-end (e2e) tests, tilt-engine pytest suites, and test fixtures.

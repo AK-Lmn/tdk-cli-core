@@ -71,7 +71,7 @@ For application resources, **`service.json` is the developer-authored source of 
 
 `service.yaml` is generated from JSON for Tilt's UIResource/resource tracking and verification paths. It is a downstream representation, not the canonical place to configure a resource. Do not make discovery read YAML as the authoritative resource manifest. If a manifest field or schema changes, update the JSON schema/normalization/validation and the YAML projection as needed.
 
-The repo has more than one YAML concern: `service.yaml` is generated per resource, while YAML files such as `platform/services/platform/proxy/service.yaml` can also be checked-in definitions for platform resources or optional infrastructure. Do not assume every YAML file is a generated application manifest; check the consumer. Compose configuration is also YAML and belongs to infrastructure/runtime configuration, not the application manifest data model.
+The repo has more than one YAML concern: `service.yaml` is generated per resource, while YAML files such as `runtime/platform/services/platform/proxy/service.yaml` can also be checked-in definitions for platform resources or optional infrastructure. Do not assume every YAML file is a generated application manifest; check the consumer. Compose configuration is also YAML and belongs to infrastructure/runtime configuration, not the application manifest data model.
 
 ## Discovery and runtime flow
 
