@@ -41,7 +41,6 @@ jobs:
               - "cli/**"
               - "scripts/release-binaries.sh"
               - "runtime/**"
-              - "shared-platform-engineering/docker-templates/**"
 
   build:
     needs: changes

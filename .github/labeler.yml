@@ -45,7 +45,7 @@
           - "runtime/engine/topologies/platform/**"
           - "runtime/discovery/services/platform/**"
           - "runtime/platform/services/**"
-          - "shared-platform-engineering/**"
+          - "runtime/shared-platform-engineering/**"
           - "cli/shared-platform-engineering/**"
           - "docs/FEATURES.md"
 
@@ -98,7 +98,7 @@
   - changed-files:
       - any-glob-to-any-file:
           - "platform/**"
-          - "shared-platform-engineering/**"
+          - "runtime/shared-platform-engineering/**"
           - "cli/shared-platform-engineering/**"
 
 "area: packaging":
@@ -191,7 +191,7 @@ ci:
           - "cli/package.json"
           - "cli/src/**"
           - "runtime/engine/topologies/platform/docker/layers/bun_helpers.star"
-          - "shared-platform-engineering/docker-templates/bun-*.sh"
+          - "runtime/shared-platform-engineering/docker-templates/bun-*.sh"
 
 "tech: javascript":
   - changed-files:
@@ -228,7 +228,7 @@ ci:
       - any-glob-to-any-file:
           - "runtime/engine/topologies/platform/docker/layers/prisma/**"
           - "runtime/engine/topologies/tilt/generators/typescript/prisma_config.star"
-          - "shared-platform-engineering/docker-templates/prisma-*.sh"
+          - "runtime/shared-platform-engineering/docker-templates/prisma-*.sh"
           - "cli/shared-platform-engineering/docker-templates/prisma-*.sh"
           - "docs/FEATURES.md"
 
@@ -271,7 +271,7 @@ ci:
       - any-glob-to-any-file:
           - "runtime/engine/topologies/platform/docker/**"
           - "runtime/engine/assets/docker/**"
-          - "shared-platform-engineering/docker-templates/**"
+          - "runtime/shared-platform-engineering/docker-templates/**"
           - "cli/shared-platform-engineering/docker-templates/**"
           - "runtime/discovery/**/docker-compose*.yml"
           - "runtime/engine/topologies/tilt/resources/infra-loader.star"

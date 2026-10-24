@@ -16,7 +16,7 @@ The startup routine begins in [cli/src/commands/up.ts](../cli/src/commands/up.ts
    - **Container Hosts**: If running inside Dev Containers or Codespaces, Flisk probes the Docker daemon socket to ensure container-in-container execution is viable.
 3. **Environment Secrets Synchronization**: An older project may lack newly required secrets (such as `JWT_SECRET`). `completeEnvFile()` scans the project `.env` and generates any missing keys without overwriting existing secrets.
 4. **Master Configs Generation**: If `.flisk/.flisk-out/Tiltfile` does not exist (for example, right after cloning or running `flisk import`), `flisk up` automatically calls `generateMasterConfigs()` to generate the Tiltfile, `spec.master`, and Starlark defaults from Handlebars templates.
-5. **Runtime Asset Refresh**: `ensureProjectRuntimeAssets()` copies essential container scripts (such as `install-deps.sh`, `bun-hoisted-symlink-fix.sh`, `prisma-bun-client-link-fix.sh`, and `prisma-normalize-client.sh`) from `shared-platform-engineering/docker-templates/` into the project root so container builds are reproducible.
+5. **Runtime Asset Refresh**: `ensureProjectRuntimeAssets()` copies essential container scripts (such as `install-deps.sh`, `bun-hoisted-symlink-fix.sh`, `prisma-bun-client-link-fix.sh`, and `prisma-normalize-client.sh`) from `runtime/shared-platform-engineering/docker-templates/` into the project root so container builds are reproducible.
 
 ---
 

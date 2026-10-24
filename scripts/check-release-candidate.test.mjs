@@ -117,7 +117,7 @@ test("releaseInputFor treats a directory entry as a prefix, not a substring", ()
   assert.equal(releaseInputFor("cli"), undefined, "the bare directory name is not a file under cli/**");
   assert.equal(releaseInputFor("clix/a.ts"), undefined);
   assert.equal(releaseInputFor("cli/a/b/c.ts"), "cli/**");
-  assert.equal(releaseInputFor("shared-platform-engineering/docker-templates/x/Dockerfile"), "shared-platform-engineering/docker-templates/**");
+  assert.equal(releaseInputFor("runtime/shared-platform-engineering/docker-templates/x/Dockerfile"), "runtime/**");
   assert.equal(releaseInputFor("shared-platform-engineering/other.md"), undefined);
 });
 

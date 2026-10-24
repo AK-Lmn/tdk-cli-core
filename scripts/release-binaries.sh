@@ -60,7 +60,7 @@ if [[ "${PUBLISH}" != "--publish-only" ]]; then
   cp -R "${ROOT_DIR}/cli/templates" "${RELEASE_DIR}/flisk-cli/cli/templates"
   # `flisk project` copies these into every project; generated Dockerfiles run them.
   mkdir -p "${RELEASE_DIR}/flisk-cli/shared-platform-engineering"
-  cp -R "${ROOT_DIR}/shared-platform-engineering/docker-templates" \
+  cp -R "$(runtime_shared_platform_dir "${ROOT_DIR}")/docker-templates" \
     "${RELEASE_DIR}/flisk-cli/shared-platform-engineering/docker-templates"
 
   # Smoke-test the binary for this machine the way users install it (binary with

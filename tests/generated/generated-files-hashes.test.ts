@@ -153,7 +153,12 @@ describe("generated project files", () => {
   });
 
   it("copies the docker templates byte for byte from the source tree", () => {
-    const sourceDir = path.join(repoRoot, "shared-platform-engineering", "docker-templates");
+    const sourceDir = path.join(
+      repoRoot,
+      "runtime",
+      "shared-platform-engineering",
+      "docker-templates",
+    );
     const copiedDir = path.join(projectRoot, "shared-platform-engineering", "docker-templates");
     const sources = fs
       .readdirSync(sourceDir)

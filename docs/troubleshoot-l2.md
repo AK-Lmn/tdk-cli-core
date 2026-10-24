@@ -77,7 +77,7 @@ Docker builds use a content-addressable cache. Each instruction in a Dockerfile 
   RUN mkdir -p /app/node_modules/.bun
   ```
 - **Golden base image:** [`golden_image_dockerfile.star`](../runtime/engine/topologies/platform/docker/build/golden_image_dockerfile.star) builds the `<project>-l2:latest` golden image with pre-created `/cache/bun` and `/cache/prisma` directories.
-- **Install runner:** [`shared-platform-engineering/docker-templates/install-deps.sh`](../shared-platform-engineering/docker-templates/install-deps.sh) runs `bun install --force` with concurrency guards (`BUN_INSTALL_CONCURRENCY=4`), timeout enforcement (`INSTALL_TIMEOUT_SECONDS`), and private Verdaccio registry detection.
+- **Install runner:** [`shared-platform-engineering/docker-templates/install-deps.sh`](../runtime/shared-platform-engineering/docker-templates/install-deps.sh) runs `bun install --force` with concurrency guards (`BUN_INSTALL_CONCURRENCY=4`), timeout enforcement (`INSTALL_TIMEOUT_SECONDS`), and private Verdaccio registry detection.
 
 ---
 
@@ -316,7 +316,7 @@ error: @myorg/private-pkg@1.0.0 failed to resolve
 - **Cause:**
   1. On the host, the developer is logged into npm via `~/.npmrc`, or has an active VPN/SSH tunnel.
   2. Inside Docker, container builds do not inherit the host's `~/.npmrc` unless explicitly configured.
-  3. As seen in [`install-deps.sh`](../shared-platform-engineering/docker-templates/install-deps.sh), when `FLISK_LICENSE_KEY` is set, Flisk attempts to route private package downloads through Verdaccio at `localhost:4873` or `host.docker.internal:4873`. If the Verdaccio container is stopped, the build terminates immediately.
+  3. As seen in [`install-deps.sh`](../runtime/shared-platform-engineering/docker-templates/install-deps.sh), when `FLISK_LICENSE_KEY` is set, Flisk attempts to route private package downloads through Verdaccio at `localhost:4873` or `host.docker.internal:4873`. If the Verdaccio container is stopped, the build terminates immediately.
 - **Fix:**
   1. If Verdaccio is required, verify that its container is running:
      ```bash

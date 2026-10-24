@@ -4,7 +4,8 @@ import { statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { Command } from "commander";
 import { findCliAssetRoot, loadTemplate } from "../generator/template-engine.js";
-import { describeLayoutProblems, EXTENSION_DIRS, inspectExtensionLayout, resolveExtensionDir, resolveTiltfile, } from "../utils/runtime-layout.js";
+import { describeLayoutProblems, EXTENSION_DIRS, inspectExtensionLayout, resolveExtensionDir, resolveSharedPlatformDir, resolveTiltfile, } from "../utils/runtime-layout.js";
+const SHARED_PLATFORM_TEMPLATES = "shared-platform-engineering/docker-templates";
 const REQUIRED_ASSET_PATHS = [
     { path: "Tiltfile", directory: false },
     { path: "engine", directory: true },
@@ -12,7 +13,7 @@ const REQUIRED_ASSET_PATHS = [
     { path: "specs", directory: true },
     { path: "ext", directory: true },
     { path: "cli/templates", directory: true },
-    { path: "shared-platform-engineering/docker-templates", directory: true },
+    { path: SHARED_PLATFORM_TEMPLATES, directory: true },
 ];
 const EXTENSION_NAMES = new Set(EXTENSION_DIRS);
 const REQUIRED_TEMPLATES = [
@@ -41,7 +42,9 @@ export const runtimeCommand = new Command("runtime")
                     ? resolveExtensionDir(assetRoot, path)
                     : path === "Tiltfile"
                         ? resolveTiltfile(assetRoot)
-                        : join(assetRoot, path));
+                        : path === SHARED_PLATFORM_TEMPLATES
+                            ? join(resolveSharedPlatformDir(assetRoot), "docker-templates")
+                            : join(assetRoot, path));
                 return directory ? !stats.isDirectory() : !stats.isFile();
             }
             catch {

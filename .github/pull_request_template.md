@@ -11,7 +11,7 @@ GitHub uses one static PR template, so it cannot hide or add checklist items bas
 - [ ] Frontend framework provider (`cli/src/frontend-frameworks/`, `runtime/engine/topologies/tilt/generators/vite/`, frontend schemas or templates)
 - [ ] Database or infrastructure (`runtime/engine/topologies/platform/`, `runtime/engine/topologies/tilt/resources/`, `runtime/discovery/services/platform/`)
 - [ ] Engine or service discovery (`runtime/engine/`, `runtime/discovery/`, `Tiltfile`)
-- [ ] Extension or shared platform package (`runtime/ext/`, `shared-platform-engineering/`)
+- [ ] Extension or shared platform package (`runtime/ext/`, `runtime/shared-platform-engineering/`)
 - [ ] Tests, scripts, or benchmarks (`tests/`, `scripts/`, `docs/benchmarks/`)
 - [ ] Spec or schema (`openspec/`, `runtime/specs/`, `runtime/engine/schemas/`)
 - [ ] GitHub Actions or repository setup (`.github/`, package files)
@@ -26,7 +26,7 @@ Open the matching guide below. If more than one area changed, follow every match
 | `runtime/engine/topologies/tilt/**/*.star` or `Tiltfile` | **Starlark / Tilt generators and resources** and **Engine or service discovery** |
 | `runtime/discovery/services/platform/**` or `runtime/discovery/services/**/*.yaml` | **Database or infrastructure tool** and **Engine or service discovery** |
 | `cli/src/**/*.ts`, `cli/src/**/*.tsx`, or `cli/dist/**` | **CLI command or generated output**; include the TUI/doctor guide too when those paths changed |
-| `runtime/ext/**` or `shared-platform-engineering/**` | **Extension or shared platform package** |
+| `runtime/ext/**` or `runtime/shared-platform-engineering/**` | **Extension or shared platform package** |
 | `tests/**`, `**/*.test.ts`, `**/*.test.tsx`, or `scripts/**` | **Tests, scripts, or benchmarks** |
 | `openspec/**`, `runtime/specs/**`, or `runtime/engine/schemas/**` | **OpenSpec, schemas, or generated contracts** |
 | `.github/**`, package manifests, or lockfiles | **GitHub Actions or repository setup** |

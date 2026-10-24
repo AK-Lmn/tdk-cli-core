@@ -15,6 +15,15 @@ runtime_src_dir() {
   fi
 }
 
+runtime_shared_platform_dir() {
+  local root="$1"
+  if [[ -d "${root}/runtime/shared-platform-engineering" ]]; then
+    echo "${root}/runtime/shared-platform-engineering"
+  else
+    echo "${root}/shared-platform-engineering"
+  fi
+}
+
 runtime_tiltfile() {
   local root="$1"
   if [[ -f "${root}/runtime/Tiltfile" ]]; then

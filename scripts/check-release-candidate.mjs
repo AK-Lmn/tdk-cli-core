@@ -16,7 +16,6 @@ export const RELEASE_INPUTS = [
   "cli/**",
   "scripts/release-binaries.sh",
   "runtime/**",
-  "shared-platform-engineering/docker-templates/**",
 ];
 
 // GitHub's compare API returns at most this many files. A list at the cap may be cut short, so it cannot prove anything.

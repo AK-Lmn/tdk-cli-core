@@ -18,6 +18,13 @@ export function resolveTiltfile(sourceRoot) {
     const nested = join(sourceRoot, NESTED_RUNTIME_DIR, "Tiltfile");
     return existsSync(nested) ? nested : join(sourceRoot, "Tiltfile");
 }
+const SHARED_PLATFORM_DIR = "shared-platform-engineering";
+// The Docker helper scripts `flisk project` copies into every project. Like the extension directories they
+// sit under runtime/ in a source checkout and at the bundle root in a packaged layout.
+export function resolveSharedPlatformDir(sourceRoot) {
+    const nested = join(sourceRoot, NESTED_RUNTIME_DIR, SHARED_PLATFORM_DIR);
+    return existsSync(nested) ? nested : join(sourceRoot, SHARED_PLATFORM_DIR);
+}
 // Checks that the Tiltfile and every extension directory come from one layout. The resolvers above pick each
 // entry on its own, so a stale or half-migrated tree would otherwise combine nested and flat entries.
 export function inspectExtensionLayout(sourceRoot) {

@@ -10,6 +10,7 @@ import {
   hasExtensionLayout,
   inspectExtensionLayout,
   resolveExtensionDir,
+  resolveSharedPlatformDir,
   resolveTiltfile,
 } from "../runtime-layout.js";
 
@@ -43,6 +44,14 @@ describe("runtime-layout", () => {
     writeFlat(root);
     expect(resolveExtensionDir(root, "engine")).toBe(join(root, "runtime", "engine"));
     expect(hasExtensionLayout(root)).toBe(true);
+  });
+
+  it("resolves the shared platform helpers under runtime/ and falls back to the bundle root", () => {
+    expect(resolveSharedPlatformDir(root)).toBe(join(root, "shared-platform-engineering"));
+    mkdirSync(join(root, "runtime", "shared-platform-engineering"), { recursive: true });
+    expect(resolveSharedPlatformDir(root)).toBe(
+      join(root, "runtime", "shared-platform-engineering"),
+    );
   });
 
   it("reports no layout without a Tiltfile or engine", () => {

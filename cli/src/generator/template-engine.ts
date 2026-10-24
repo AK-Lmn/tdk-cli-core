@@ -27,6 +27,7 @@ import {
   hasExtensionLayout,
   inspectExtensionLayout,
   resolveExtensionDir,
+  resolveSharedPlatformDir,
   resolveTiltfile,
 } from "../utils/runtime-layout.js";
 import {
@@ -726,10 +727,14 @@ function findSelfContainedEngineRoot(): string | null {
   return null;
 }
 
+function hasDockerTemplates(sourceRoot: string): boolean {
+  return fs.existsSync(path.join(resolveSharedPlatformDir(sourceRoot), "docker-templates"));
+}
+
 export function findCliAssetRoot(): string | null {
   let dir = import.meta.dirname || process.cwd();
   for (let i = 0; i < 8; i++) {
-    if (fs.existsSync(path.join(dir, "shared-platform-engineering", "docker-templates"))) {
+    if (hasDockerTemplates(dir)) {
       return dir;
     }
     const parent = path.dirname(dir);
@@ -743,11 +748,7 @@ export function findCliAssetRoot(): string | null {
     path.join(process.cwd(), "node_modules", "@flisk-sh", "flisk"),
   ];
 
-  return (
-    candidates.find((candidate) =>
-      fs.existsSync(path.join(candidate, "shared-platform-engineering", "docker-templates")),
-    ) ?? null
-  );
+  return candidates.find(hasDockerTemplates) ?? null;
 }
 
 export function ensureProjectRuntimeAssets(projectRoot: string): string[] {
@@ -763,7 +764,7 @@ export function ensureProjectRuntimeAssets(projectRoot: string): string[] {
   }
 
   for (const parts of PROJECT_RUNTIME_ASSET_DIRS) {
-    const source = path.join(sourceRoot, ...parts);
+    const source = path.join(resolveSharedPlatformDir(sourceRoot), ...parts.slice(1));
     const target = assertFliskGeneratedPath(projectRoot, path.join(...parts));
     if (!fs.existsSync(source)) {
       continue;
