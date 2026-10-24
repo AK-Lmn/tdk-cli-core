@@ -18,6 +18,8 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly ROOT_DIR
+# shellcheck source=lib/runtime-layout.sh
+source "${ROOT_DIR}/scripts/lib/runtime-layout.sh"
 readonly CLI_DIR="${ROOT_DIR}/cli"
 readonly DIRS=(engine discovery specs ext)
 
@@ -33,7 +35,7 @@ fi
 cp "${ROOT_DIR}/Tiltfile" "${CLI_DIR}/Tiltfile"
 for d in "${DIRS[@]}"; do
   rm -rf "${CLI_DIR:?}/${d}"
-  cp -R "${ROOT_DIR}/${d}" "${CLI_DIR}/${d}"
+  cp -R "$(runtime_src_dir "${ROOT_DIR}" "${d}")" "${CLI_DIR}/${d}"
 done
 
 echo "Staged Tiltfile, ${DIRS[*]} into cli/ for npm publish"

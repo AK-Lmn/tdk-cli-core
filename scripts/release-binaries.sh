@@ -6,6 +6,8 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly ROOT_DIR
+# shellcheck source=lib/runtime-layout.sh
+source "${ROOT_DIR}/scripts/lib/runtime-layout.sh"
 readonly RELEASE_REPOSITORY="flisk-sh/releases"
 VERSION="$(node -p "require('${ROOT_DIR}/cli/package.json').version")"
 readonly VERSION
@@ -50,10 +52,10 @@ if [[ "${PUBLISH}" != "--publish-only" ]]; then
   # works the same as `flisk` cloned from source.
   mkdir -p "${RELEASE_DIR}/flisk-cli"
   cp "${ROOT_DIR}/Tiltfile" "${RELEASE_DIR}/flisk-cli/Tiltfile"
-  cp -R "${ROOT_DIR}/engine" "${RELEASE_DIR}/flisk-cli/engine"
-  cp -R "${ROOT_DIR}/discovery" "${RELEASE_DIR}/flisk-cli/discovery"
-  cp -R "${ROOT_DIR}/specs" "${RELEASE_DIR}/flisk-cli/specs"
-  cp -R "${ROOT_DIR}/ext" "${RELEASE_DIR}/flisk-cli/ext"
+  cp -R "$(runtime_src_dir "${ROOT_DIR}" engine)" "${RELEASE_DIR}/flisk-cli/engine"
+  cp -R "$(runtime_src_dir "${ROOT_DIR}" discovery)" "${RELEASE_DIR}/flisk-cli/discovery"
+  cp -R "$(runtime_src_dir "${ROOT_DIR}" specs)" "${RELEASE_DIR}/flisk-cli/specs"
+  cp -R "$(runtime_src_dir "${ROOT_DIR}" ext)" "${RELEASE_DIR}/flisk-cli/ext"
   mkdir -p "${RELEASE_DIR}/flisk-cli/cli"
   cp -R "${ROOT_DIR}/cli/templates" "${RELEASE_DIR}/flisk-cli/cli/templates"
   # `flisk project` copies these into every project; generated Dockerfiles run them.
