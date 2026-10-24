@@ -2,7 +2,7 @@
 
 ### Requirement: Every template verifies itself
 
-Each template repository SHALL run `.github/workflows/verify.yml` on every pull request and on pushes to its default branch. The workflow SHALL build the image from the `Dockerfile`, run it with `PORT=4000`, wait up to the template's start window, and require HTTP 200 on `healthPath`. A failing build, a container that exits, or a non-200 status SHALL fail the workflow and upload the container log as an artifact.
+Each template repository SHALL run `.github/workflows/verify.yml` on every pull request and on pushes to its default branch. The workflow SHALL build the image from the `Dockerfile`, run it with `PORT=4000`, wait up to the template's start window, and require HTTP 200 on `healthCheckPath`. A failing build, a container that exits, or a non-200 status SHALL fail the workflow and upload the container log as an artifact.
 
 #### Scenario: Passing template
 
@@ -16,7 +16,7 @@ Each template repository SHALL run `.github/workflows/verify.yml` on every pull 
 
 #### Scenario: Non-200 answer
 
-- **WHEN** `healthPath` returns 404
+- **WHEN** `healthCheckPath` returns 404
 - **THEN** the workflow fails and prints the status code
 
 ### Requirement: Shared verify script, not twelve copies

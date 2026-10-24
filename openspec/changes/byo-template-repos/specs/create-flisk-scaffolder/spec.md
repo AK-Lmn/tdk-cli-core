@@ -34,7 +34,7 @@ When run in a terminal without `--template`, the scaffolder SHALL show a picker 
 
 ### Requirement: List and inspect
 
-`--list` SHALL print one row per template: `id`, `label`, `port`, `healthPath`, `upstream`, tab separated, in registry order, and exit 0. `--show <id>` SHALL print that template's `template.json` and its repository URL. Both SHALL work without network access to the template repositories by reading the registry shipped in the package.
+`--list` SHALL print one row per template: `id`, `label`, `port`, `healthCheckPath`, `upstream`, tab separated, in registry order, and exit 0. `--show <id>` SHALL print that template's `service.json` and its repository URL. Both SHALL work without network access to the template repositories by reading the registry shipped in the package.
 
 #### Scenario: List output
 
@@ -84,6 +84,12 @@ After writing files, the scaffolder SHALL run the `flisk resource <name> --type 
 - **WHEN** `flisk resource` exits non-zero
 - **THEN** the scaffolder exits non-zero with the same message
 - **AND** the files it wrote are left in place so the user can retry by hand
+
+#### Scenario: Command comes from service.json
+
+- **WHEN** the scaffolder registers a template
+- **THEN** it derives the `flisk resource` command from the template's `service.json` (`stack`, `port`, `healthCheckPath`, `dockerfile`)
+- **AND** it does not read a `resourceCommand` field, because no template carries one
 
 ### Requirement: Resource naming
 

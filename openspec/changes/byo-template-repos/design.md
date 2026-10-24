@@ -86,7 +86,7 @@ The archive is extracted with a path check (Decision 7). The scaffolder never bu
       "repository": "flisk-sh/flisk-template-vue",
       "tag": "v1.0.0",
       "port": 3000,
-      "healthPath": "/",
+      "healthCheckPath": "/",
       "upstream": "npm create vue@latest",
       "label": "Vue (create-vue)"
     }
@@ -94,11 +94,13 @@ The archive is extracted with a path check (Decision 7). The scaffolder never bu
 }
 ```
 
+The manifest is `service.json` because that is the file Flisk reads for a resource, so a template needs no second metadata file for Flisk fields.
+
 The same file is copied into the scaffolder at release, and a release check fails if the two differ (Requirement: Registry parity). The folder name is stored explicitly because `create-next-app` becomes id `next-app`, which cannot be derived from the folder by only dropping a prefix once other prefixes appear later.
 
 ### Decision 6: Sync script behavior
 
-`scripts/sync-byo-templates.sh` uses `git clone --depth 1 --branch <tag>`. It verifies `template.json` `id`, writes into a temp directory first, then swaps the folder, so a failed run leaves the old content. It never calls `sudo`. When the network is down it fails fast and prints the manual `git clone` command, matching the repository's rule of printing a manual command instead of escalating.
+`scripts/sync-byo-templates.sh` uses `git clone --depth 1 --branch <tag>`. It verifies `service.json` `template.id`, writes into a temp directory first, then swaps the folder, so a failed run leaves the old content. It never calls `sudo`. When the network is down it fails fast and prints the manual `git clone` command, matching the repository's rule of printing a manual command instead of escalating.
 
 Synced folders are git-ignored and guarded by a pre-commit check, so no one commits a copy that then disagrees with the pin. Because the folders are absent on a clean clone, unit tests and lint must not depend on them (Requirement: Clean checkouts do not need the templates).
 

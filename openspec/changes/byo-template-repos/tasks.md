@@ -5,15 +5,15 @@
 
 ## 1. Skeleton and shared workflow
 
-- [ ] 1.1 Create `flisk-sh/flisk-template-skeleton` as a GitHub template repository with `Dockerfile`, `README.md`, `template.json` (placeholders), `LICENSE`, `CONTRIBUTING.md`, `CODEOWNERS`, issue forms and a pull request template.
+- [ ] 1.1 Create `flisk-sh/flisk-template-skeleton` as a GitHub template repository with `Dockerfile`, `README.md`, `service.json` (placeholders), `LICENSE`, `CONTRIBUTING.md`, `CODEOWNERS`, issue forms and a pull request template.
 - [ ] 1.2 Write `byo-template.schema.json` and the skeleton check that fails on `REPLACE_ME`.
 - [ ] 1.3 Write the reusable `verify-template.yml` workflow and `verify-byo-template.sh` (build, run with `PORT=4000`, require HTTP 200, upload log, clean up what it created).
-- [ ] 1.4 Add the checks for unpinned `FROM`, non-root user and README/`template.json` agreement.
+- [ ] 1.4 Add the checks for unpinned `FROM`, non-root user and README/`service.json` agreement.
 - [ ] 1.5 Verify the skeleton passes its own workflow.
 
 ## 2. Split the first three templates
 
-- [ ] 2.1 Run `git filter-repo --subdirectory-filter examples/byo/create-vue` on a fresh clone; add `template.json`, `LICENSE`, `CONTRIBUTING.md`, workflow and issue forms; push to `flisk-sh/flisk-template-vue`; tag `v1.0.0`.
+- [ ] 2.1 Run `git filter-repo --subdirectory-filter examples/byo/create-vue` on a fresh clone; add `service.json`, `LICENSE`, `CONTRIBUTING.md`, workflow and issue forms; push to `flisk-sh/flisk-template-vue`; tag `v1.0.0`.
 - [ ] 2.2 Repeat for `create-hono` (`oven/bun:1` base) and `create-astro`.
 - [ ] 2.3 Confirm each repository's verify workflow passes and paste the run links in the pull request.
 - [ ] 2.4 Seed two `good first issue` issues and the topics `flisk`, `template`, `docker` and the framework name in each.
