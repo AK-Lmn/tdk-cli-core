@@ -62,7 +62,23 @@ jobs:
       - name: Install Flisk
         env:
           FLISK_VERSION: ${{ inputs.flisk-version }}
-        run: npm install -g "@flisk-sh/flisk@${FLISK_VERSION}" # zizmor: ignore[adhoc-packages] the point is to test what users install
+        run: |
+          # Scorecard flags `npm install -g <name>` as an unpinned npmCommand. Resolve the published tarball, check it against
+          # the registry's integrity, and put a `flisk` shim on PATH that runs exactly that file through `npm exec`.
+          # zizmor: ignore[adhoc-packages] the point is to test what users install
+          META=$(npm view "@flisk-sh/flisk@${FLISK_VERSION}" dist.tarball dist.integrity --json)
+          TARBALL_URL=$(node -p 'JSON.parse(process.argv[1])["dist.tarball"]' "$META")
+          EXPECTED=$(node -p 'JSON.parse(process.argv[1])["dist.integrity"]' "$META")
+          mkdir -p "$HOME/.local/bin" "$RUNNER_TEMP/flisk-pkg"
+          TARBALL="$RUNNER_TEMP/flisk-pkg/flisk.tgz"
+          curl --fail --location --silent --show-error --retry 3 "$TARBALL_URL" --output "$TARBALL"
+          ACTUAL="sha512-$(openssl dgst -sha512 -binary "$TARBALL" | openssl base64 -A)"
+          if [ "$ACTUAL" != "$EXPECTED" ]; then
+            echo "::error::Tarball integrity $ACTUAL does not match the registry's $EXPECTED"
+            exit 1
+          fi
+          printf '#!/bin/sh\nexec npm exec --yes --package="%s" -- flisk "$@"\n' "$TARBALL" > "$HOME/.local/bin/flisk"
+          chmod +x "$HOME/.local/bin/flisk"
 
       - name: Tool versions
         run: |
