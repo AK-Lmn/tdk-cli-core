@@ -4,7 +4,7 @@
 #
 # The job builds the CLI from the commit being tested (not the published npm package), so the numbers
 # say what main does. Results are for a clean GitHub-hosted runner; they are not comparable with the
-# macOS numbers in benchmarks/results.
+# macOS numbers in docs/benchmarks/results.
 #
 # The measurement cases live in tests/e2e/scale/benchmarks (suite.json, run.sh): B1 generates the project,
 # B2 runs the cold and warm starts, B3 builds the report. This workflow only builds the CLI, installs Tilt, and

@@ -12,7 +12,7 @@ GitHub uses one static PR template, so it cannot hide or add checklist items bas
 - [ ] Database or infrastructure (`engine/topologies/platform/`, `engine/topologies/tilt/resources/`, `discovery/services/platform/`)
 - [ ] Engine or service discovery (`engine/`, `discovery/`, `Tiltfile`)
 - [ ] Extension or shared platform package (`ext/`, `shared-platform-engineering/`)
-- [ ] Tests, scripts, or benchmarks (`tests/`, `scripts/`, `benchmarks/`)
+- [ ] Tests, scripts, or benchmarks (`tests/`, `scripts/`, `docs/benchmarks/`)
 - [ ] Spec or schema (`openspec/`, `specs/`, `engine/schemas/`)
 - [ ] GitHub Actions or repository setup (`.github/`, package files)
 - [ ] Contributor, agent, or user documentation

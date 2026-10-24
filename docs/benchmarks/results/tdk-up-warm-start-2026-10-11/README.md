@@ -7,11 +7,11 @@ Results of `scripts/benchmark/tdk-up-warm-start.sh` on `tdk-restaurant-example`:
 ```bash
 scripts/benchmark/tdk-up-warm-start.sh \
   --project <path to a Flisk project> \
-  --out benchmarks/results/tdk-up-warm-start-$(date +%F) \
+  --out docs/benchmarks/results/tdk-up-warm-start-$(date +%F) \
   --cold-runs 1 --warm-runs 3 --sample-vm
 ```
 
-Read the side effects in [`scripts/benchmark/README.md`](../../../scripts/benchmark/README.md#tdk-up-warm-start-benchmark) first: a cold run removes the project's built images and clears the Docker build cache for every project on the machine.
+Read the side effects in [`scripts/benchmark/README.md`](../../../../scripts/benchmark/README.md#tdk-up-warm-start-benchmark) first: a cold run removes the project's built images and clears the Docker build cache for every project on the machine.
 
 ## Result
 

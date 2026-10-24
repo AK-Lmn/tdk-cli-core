@@ -91,7 +91,7 @@
 "area: benchmarks":
   - changed-files:
       - any-glob-to-any-file:
-          - "benchmarks/**"
+          - "docs/benchmarks/**"
           - "scripts/benchmark/**"
 
 "area: platform":

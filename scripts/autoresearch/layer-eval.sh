@@ -42,7 +42,7 @@ fi
 result="$(python3 - "$marker" <<'PY'
 import glob, os, sys
 marker_ns = os.stat(sys.argv[1]).st_mtime_ns
-paths = [p for p in glob.glob("benchmarks/results/container-scale-*.json")
+paths = [p for p in glob.glob("docs/benchmarks/results/container-scale-*.json")
          if os.stat(p).st_mtime_ns > marker_ns]
 if not paths:
     sys.exit(1)

@@ -18,7 +18,7 @@ import { parseArgs } from "node:util";
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const cliPath = resolve(scriptDir, "../../cli/bin/flisk.js");
 const builtCliPath = resolve(scriptDir, "../../cli/dist/cli.js");
-const resultsDir = resolve(scriptDir, "../../benchmarks/results");
+const resultsDir = resolve(scriptDir, "../../docs/benchmarks/results");
 const { values } = parseArgs({
 	options: {
 		help: { type: "boolean", short: "h" },
@@ -42,7 +42,7 @@ Options:
   --warmup <count>     Warm-up runs per command and size (default: 1)
   --timeout-ms <ms>    Per-command timeout (default: 60000)
   --temp-dir <path>    Parent directory for temporary fixtures and child temp files
-  --output <path>      JSON result path (default: benchmarks/results/)
+  --output <path>      JSON result path (default: docs/benchmarks/results/)
   --skip-status        Omit the probe-bound status command
   -h, --help           Show this help`);
 	process.exit(0);

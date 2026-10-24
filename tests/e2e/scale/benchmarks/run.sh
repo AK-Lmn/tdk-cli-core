@@ -46,7 +46,7 @@ B3() { # the report: the Pages site's HTML and the raw results, plus the job sum
   local summary="${GITHUB_STEP_SUMMARY:-$OUT/step-summary.md}"
   node "$REPO_ROOT/scripts/benchmark/build-report.mjs" \
     --run "$BENCH_OUT" \
-    --history "$REPO_ROOT/benchmarks/results" \
+    --history "$REPO_ROOT/docs/benchmarks/results" \
     --out "$SITE_OUT" \
     --commit "$COMMIT" \
     --run-url "$RUN_URL"

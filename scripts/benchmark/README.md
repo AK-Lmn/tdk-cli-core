@@ -16,7 +16,7 @@ It uses the images built in `../tdk-erp-system`, a 100-service fixture bench of 
 - `docker ps` latency (`flisk doctor` fails above 10 s)
 - p50 `/health` latency and host load
 
-Containers are removed after each tier. Results are printed as a table and saved to `benchmarks/results/*.json`.
+Containers are removed after each tier. Results are printed as a table and saved to `docs/benchmarks/results/*.json`.
 
 **Gate:** at the gate tier, every container must be healthy within the timeout with no crashes. Total memory must fit `(Docker VM memory - 512 MiB) / 100` per service, and `docker ps` must answer in under 10 s. The exit code is 1 when the gate fails.
 
@@ -32,7 +32,7 @@ The CLI launcher loads cli/dist/cli.js. Build it from the repository root first:
 node scripts/benchmark/cli-startup.mjs
 ```
 
-For each service count, the script creates a temporary project with that many schema-version-1 `service.json` manifests, performs one warm-up, then measures `flisk version`, `flisk --help`, `flisk resources`, `flisk stacks`, and `flisk status` in fresh Node processes. The default tiers are 10, 100, and 500 services with 10 measured runs per command and tier. It prints median, minimum, and maximum wall time and writes raw samples and runtime metadata to `benchmarks/results/cli-startup-*.json`.
+For each service count, the script creates a temporary project with that many schema-version-1 `service.json` manifests, performs one warm-up, then measures `flisk version`, `flisk --help`, `flisk resources`, `flisk stacks`, and `flisk status` in fresh Node processes. The default tiers are 10, 100, and 500 services with 10 measured runs per command and tier. It prints median, minimum, and maximum wall time and writes raw samples and runtime metadata to `docs/benchmarks/results/cli-startup-*.json`.
 
 Use `--temp-dir <path>` to keep fixtures and child-process temporary files on a chosen volume. Use `--sizes 10 --runs 1 --warmup 0 --output <path>` for a quick smoke run; normal results should retain the default ten runs and a warm-up. Use `--skip-status` to omit the probe-bound status command for a shorter run; the default still measures status and may take about six minutes when Tilt is unavailable. For example:
 
@@ -50,7 +50,7 @@ Results are specific to the recorded hardware, operating system, and Node runtim
 
 ## `flisk up` warm-start benchmark
 
-Times `flisk up` on a project, one cold run and warm runs, and records per-resource build times, the Docker VM's memory and the container health. It answers "how long does a start take, and what does a warm start save", for any Flisk project. The published run is [`benchmarks/results/flisk-up-warm-start-2026-10-11/`](../../benchmarks/results/flisk-up-warm-start-2026-10-11/summary.md) (tdk-restaurant-example).
+Times `flisk up` on a project, one cold run and warm runs, and records per-resource build times, the Docker VM's memory and the container health. It answers "how long does a start take, and what does a warm start save", for any Flisk project. The published run is [`docs/benchmarks/results/flisk-up-warm-start-2026-10-11/`](../../docs/benchmarks/results/flisk-up-warm-start-2026-10-11/summary.md) (tdk-restaurant-example).
 
 **Requirements:** `flisk`, `tilt`, `docker` (Compose v2 and buildx), `jq` and Node.js 22.12 or newer on `PATH`. Docker Desktop (or another engine) must be running, and nothing else should be building images on the machine.
 
@@ -59,7 +59,7 @@ Times `flisk up` on a project, one cold run and warm runs, and records per-resou
 ```bash
 scripts/benchmark/flisk-up-warm-start.sh \
   --project ../tdk-restaurant-example \
-  --out benchmarks/results/flisk-up-warm-start-$(date +%F) \
+  --out docs/benchmarks/results/flisk-up-warm-start-$(date +%F) \
   --cold-runs 1 --warm-runs 3 --sample-vm
 ```
 

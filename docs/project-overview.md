@@ -24,7 +24,7 @@ This is the core monorepo. Day-to-day CLI work is under `cli/`; `engine/` and `d
 | [`discovery/`](../discovery) | Manifest discovery and dependency graphs. |
 | [`ext/`](../ext) | Tilt extension and IDE/UI components. |
 | [`scripts/`](../scripts) | Release, benchmark, and development tooling. |
-| [`benchmarks/`](../benchmarks) | Container and landscape scale measurements. |
+| [`docs/benchmarks/results/`](benchmarks/results) | Container and landscape scale measurements. |
 | [`Tiltfile`](../Tiltfile) | Entry point connecting Tilt to the engine. |
 
 ## Features and licensing

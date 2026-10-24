@@ -526,7 +526,7 @@ function main(): void {
   const passed = checks.length > 0 && checks.every(([, ok]) => ok);
   for (const container of startedInfra) shOk(`docker stop ${container}`);
 
-  const outDir = join(REPO_ROOT, "benchmarks", "results");
+  const outDir = join(REPO_ROOT, "docs", "benchmarks", "results");
   mkdirSync(outDir, { recursive: true });
   const outFile = join(outDir, `container-scale-${new Date().toISOString().replace(/[:.]/g, "-")}.json`);
   writeFileSync(

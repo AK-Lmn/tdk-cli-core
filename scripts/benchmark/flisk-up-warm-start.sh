@@ -6,7 +6,7 @@
 # N warm runs. A run is timed until every Tilt resource is idle and the expected containers are
 # healthy, or until 30 minutes pass. Every run records an outcome; a run that could not establish
 # its starting state is recorded as failed and is not timed. scripts/benchmark/summarize-flisk-up.mjs
-# turns the run directory into the tables and chart in benchmarks/results/.
+# turns the run directory into the tables and chart in docs/benchmarks/results/.
 #
 # Usage:
 #   scripts/benchmark/flisk-up-warm-start.sh --project <dir> --out <dir> [--cold-runs 1] [--warm-runs 3]
