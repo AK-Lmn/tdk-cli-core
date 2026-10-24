@@ -288,9 +288,9 @@ describe("doctor-runtime utilities", () => {
     });
 
     it("returns true when optional_infra.verdaccio is true in project.json", () => {
-      mkdirSync(join(tmpDir, ".tdk"), { recursive: true });
+      mkdirSync(join(tmpDir, ".flisk"), { recursive: true });
       writeFileSync(
-        join(tmpDir, ".tdk", "project.json"),
+        join(tmpDir, ".flisk", "project.json"),
         JSON.stringify({ optional_infra: { verdaccio: true } }),
       );
       expect(projectConfigEnablesVerdaccio(tmpDir)).toBe(true);
@@ -298,25 +298,25 @@ describe("doctor-runtime utilities", () => {
     });
 
     it("returns true when a phase includes verdaccio in enabledStacks", () => {
-      mkdirSync(join(tmpDir, ".tdk"), { recursive: true });
+      mkdirSync(join(tmpDir, ".flisk"), { recursive: true });
       writeFileSync(
-        join(tmpDir, ".tdk", "project.json"),
+        join(tmpDir, ".flisk", "project.json"),
         JSON.stringify({ phases: { dev: { enabledStacks: ["app", "verdaccio"] } } }),
       );
       expect(projectConfigEnablesVerdaccio(tmpDir)).toBe(true);
     });
 
     it("returns true when .npmrc references :4873 even if project.json does not", () => {
-      mkdirSync(join(tmpDir, ".tdk"), { recursive: true });
-      writeFileSync(join(tmpDir, ".tdk", "project.json"), JSON.stringify({}));
+      mkdirSync(join(tmpDir, ".flisk"), { recursive: true });
+      writeFileSync(join(tmpDir, ".flisk", "project.json"), JSON.stringify({}));
       writeFileSync(join(tmpDir, ".npmrc"), "registry=http://localhost:4873/");
       expect(projectConfigEnablesVerdaccio(tmpDir)).toBe(false);
       expect(projectExpectsVerdaccio(tmpDir)).toBe(true);
     });
 
     it("returns false when verdaccio is nowhere configured", () => {
-      mkdirSync(join(tmpDir, ".tdk"), { recursive: true });
-      writeFileSync(join(tmpDir, ".tdk", "project.json"), JSON.stringify({}));
+      mkdirSync(join(tmpDir, ".flisk"), { recursive: true });
+      writeFileSync(join(tmpDir, ".flisk", "project.json"), JSON.stringify({}));
       expect(projectConfigEnablesVerdaccio(tmpDir)).toBe(false);
       expect(projectExpectsVerdaccio(tmpDir)).toBe(false);
     });
