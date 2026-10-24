@@ -58,6 +58,14 @@
 			"owner": "maintainers"
 		},
 		{
+			"workflow": "byo-template-e2e.yml",
+			"job": "e2e",
+			"tier": "e2e",
+			"required": false,
+			"reason": "Reusable workflow called by flisk-sh/flisk-template-* repositories: one template through flisk up and Traefik (#1965)",
+			"owner": "maintainers"
+		},
+		{
 			"workflow": "ci.yml",
 			"job": "changes",
 			"tier": "gate",
