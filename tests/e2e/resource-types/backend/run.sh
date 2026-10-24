@@ -42,6 +42,9 @@ B1b() { # regression for the unquoted Tilt local() path (manifest_resource.star)
   mkdir -p "$DIR/services/$STACK/$PROBE_DIR"
   # A copy of the api service.json keeps api's appName, and flisk refuses to start two resources with one appName.
   jq '.name = "probe" | .appName = "probe"' "$DIR/services/$STACK/$API/service.json" >"$DIR/services/$STACK/$PROBE_DIR/service.json"
+  # Discovery runs without a stack. The probe is removed before `flisk up`: Compose interpolates the `$(` in its path and fails the whole stack.
+  poll_until "probe listed in flisk status" "$READY_TIMEOUT" probe_listed
+  rm -rf "$DIR/services/$STACK/$PROBE_DIR"
 }
 
 probe_listed() { status_json | jq -e '.data.resources[] | select(.name=="probe")' >/dev/null; }
@@ -54,9 +57,8 @@ B2() { # flisk up, then the backend is listed as a backend in flisk status
   common_wait_status "$API" backend
 }
 
-B2b() { # the probe directory was discovered, and the command in its name did not run
-  log "B2b probe directory is discovered and its name ran no command"
-  poll_until "probe listed in flisk status" "$READY_TIMEOUT" probe_listed
+B2b() { # the command in the probe directory name did not run, during discovery or during `flisk up`
+  log "B2b probe directory name ran no command"
   local found; found="$(find "$DIR" -name "$PROBE_MARK" -print -quit 2>/dev/null)"
   [ -z "$found" ] || die "a command in a service directory name ran; marker found at: $found"
 }
