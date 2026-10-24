@@ -38,6 +38,21 @@ updates:
         patterns:
           - "*"
 
+  # The npm CLI that release-binaries.yml uses for trusted publishing, pinned by
+  # .github/npm-cli/package-lock.json. Its undici and ip-address are bundled inside npm,
+  # so only a new npm release can patch them: check daily with no cooldown so that bump
+  # arrives as soon as npm ships it.
+  - package-ecosystem: npm
+    directory: /.github/npm-cli
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 2
+    labels:
+      - dependencies
+    commit-message:
+      prefix: "⬆️ "
+      include: scope
+
   # First-party image with a pinned base (oven/bun). Root has no Dockerfile;
   # example/byo Dockerfiles are out of scope for this update entry.
   - package-ecosystem: docker
