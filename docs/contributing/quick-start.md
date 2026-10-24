@@ -2,6 +2,10 @@
 
 From a fresh clone to your first passing test run and pull request in about five minutes. For the full walkthrough, see [Get ready to make a change](01-first-change.md).
 
+## Say hello first
+
+Join the [Flisk Discord](https://discord.gg/Sjhb3tnq3) and tell us what you would like to work on. A maintainer will help you choose a first task and answer questions while you set up.
+
 ## 1. Prerequisites
 
 - [Git](https://git-scm.com/)

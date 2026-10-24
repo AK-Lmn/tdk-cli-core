@@ -164,7 +164,8 @@ design:
           - "cli/src/components/**"
           - "runtime/ext/ui-enhancements/**"
           - "runtime/ext/ide-components/**/static/**"
-          - "docs/assets/demo.svg"
+          - "docs/assets/demo-*.svg"
+          - "scripts/demo-svgs.mjs"
 
 ci:
   - changed-files:
