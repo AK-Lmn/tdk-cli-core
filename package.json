@@ -88,5 +88,27 @@
   },
   "engines": {
     "node": ">=22.12.0"
+  },
+  "knip": {
+    "workspaces": {
+      "cli": {
+        "entry": [
+          "src/cli.ts"
+        ],
+        "project": [
+          "src/**/*.ts",
+          "src/**/*.tsx"
+        ],
+        "ignoreBinaries": [
+          "vi",
+          "colima",
+          "podman",
+          "killall",
+          "file",
+          "flisk",
+          "tilt"
+        ]
+      }
+    }
   }
 }

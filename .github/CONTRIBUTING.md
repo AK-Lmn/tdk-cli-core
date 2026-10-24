@@ -266,7 +266,7 @@ If you pick an issue, comment `I'll take this` (or `I would like this one`, `I'd
 
 ## Spell check
 
-Install the pinned checker with `cargo install typos-cli --version 1.50.3`, then run `typos` from the repository root to check spelling.
+Install the pinned checker with `cargo install typos-cli --version 1.50.3`, then run `typos --config .github/_typos.toml` from the repository root to check spelling.
 
 ## Labels
 
