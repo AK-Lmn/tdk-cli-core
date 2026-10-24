@@ -53,10 +53,10 @@ The example pins the official `oci://ghcr.io/bjw-s-labs/helm/app-template` chart
 
 ```bash
 helm pull oci://ghcr.io/bjw-s-labs/helm/app-template \
-  --version 5.2.1 --untar --untardir /tmp/tdk-helm-example
-helm lint /tmp/tdk-helm-example/app-template \
+  --version 5.2.1 --untar --untardir /tmp/flisk-helm-example
+helm lint /tmp/flisk-helm-example/app-template \
   --values examples/one-backend-helm/values.yaml
-helm template api /tmp/tdk-helm-example/app-template \
+helm template api /tmp/flisk-helm-example/app-template \
   --values examples/one-backend-helm/values.yaml
 ```
 
