@@ -85,6 +85,7 @@ def get_template_header(file_type, generator_name, resource_name='', extra_info=
 {c} TO MODIFY THIS CONFIGURATION:
 {c} 1. Edit the source generator in: .tilt/topologies/
 {c} 2. Or update service.json
+{c} Regenerate with: flisk config regenerate
 {c}
 {c} Generation Source: {generator}{resource_line}{extra_line}
 {border}
