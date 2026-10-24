@@ -674,6 +674,64 @@ Then run `flisk doctor` and retry the same task. If the problem persists, [open 
 
 Contributions are welcome. **First step: [say hello on Discord](https://discord.gg/Sjhb3tnq3)**, tell us what you want to work on, and we will point you to a good first task. Then start with [CONTRIBUTING.md](.github/CONTRIBUTING.md) and the [contributor guide](docs/contributing/README.md). For the project structure, see the [architecture and repository map](docs/project-overview.md). To review pull requests, see [Review a pull request](docs/contributing/04-review-a-pr.md). Report security issues using [SECURITY.md](.github/SECURITY.md).
 
+### Contributors
+
+Thank you to everyone who has shipped code, docs, and fixes to Flisk since July 2026. Every merged change makes the local stack better for the next developer.
+
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/kburym"><img src="https://github.com/kburym.png?size=80" width="64" alt="kburym" /><br /><sub><b>kburym</b></sub></a></td>
+    <td align="center"><a href="https://github.com/odykyi"><img src="https://github.com/odykyi.png?size=80" width="64" alt="odykyi" /><br /><sub><b>odykyi</b></sub></a></td>
+    <td align="center"><a href="https://github.com/sb123sb123"><img src="https://github.com/sb123sb123.png?size=80" width="64" alt="sb123sb123" /><br /><sub><b>sb123sb123</b></sub></a></td>
+    <td align="center"><a href="https://github.com/AK-Lmn"><img src="https://github.com/AK-Lmn.png?size=80" width="64" alt="AK-Lmn" /><br /><sub><b>AK-Lmn</b></sub></a></td>
+    <td align="center"><a href="https://github.com/yoreva-01"><img src="https://github.com/yoreva-01.png?size=80" width="64" alt="yoreva-01" /><br /><sub><b>yoreva-01</b></sub></a></td>
+    <td align="center"><a href="https://github.com/minutechreview"><img src="https://github.com/minutechreview.png?size=80" width="64" alt="minutechreview" /><br /><sub><b>minutechreview</b></sub></a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/Delfi2007"><img src="https://github.com/Delfi2007.png?size=80" width="64" alt="Delfi2007" /><br /><sub><b>Delfi2007</b></sub></a></td>
+    <td align="center"><a href="https://github.com/Ghifariezra"><img src="https://github.com/Ghifariezra.png?size=80" width="64" alt="Ghifariezra" /><br /><sub><b>Ghifariezra</b></sub></a></td>
+    <td align="center"><a href="https://github.com/Huang-404-Q"><img src="https://github.com/Huang-404-Q.png?size=80" width="64" alt="Huang-404-Q" /><br /><sub><b>Huang-404-Q</b></sub></a></td>
+    <td align="center"><a href="https://github.com/dbdefault"><img src="https://github.com/dbdefault.png?size=80" width="64" alt="dbdefault" /><br /><sub><b>dbdefault</b></sub></a></td>
+    <td align="center"><a href="https://github.com/Rohith-Saran"><img src="https://github.com/Rohith-Saran.png?size=80" width="64" alt="Rohith-Saran" /><br /><sub><b>Rohith-Saran</b></sub></a></td>
+    <td align="center"><a href="https://github.com/aazminu"><img src="https://github.com/aazminu.png?size=80" width="64" alt="aazminu" /><br /><sub><b>aazminu</b></sub></a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/xiehuanyi"><img src="https://github.com/xiehuanyi.png?size=80" width="64" alt="xiehuanyi" /><br /><sub><b>xiehuanyi</b></sub></a></td>
+    <td align="center"><a href="https://github.com/NimoCao"><img src="https://github.com/NimoCao.png?size=80" width="64" alt="NimoCao" /><br /><sub><b>NimoCao</b></sub></a></td>
+    <td align="center"><a href="https://github.com/rahul05ranjan"><img src="https://github.com/rahul05ranjan.png?size=80" width="64" alt="rahul05ranjan" /><br /><sub><b>rahul05ranjan</b></sub></a></td>
+    <td align="center"><a href="https://github.com/krishna2707"><img src="https://github.com/krishna2707.png?size=80" width="64" alt="krishna2707" /><br /><sub><b>krishna2707</b></sub></a></td>
+    <td align="center"><a href="https://github.com/arxh80"><img src="https://github.com/arxh80.png?size=80" width="64" alt="arxh80" /><br /><sub><b>arxh80</b></sub></a></td>
+    <td align="center"><a href="https://github.com/tnalbant"><img src="https://github.com/tnalbant.png?size=80" width="64" alt="tnalbant" /><br /><sub><b>tnalbant</b></sub></a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/sunny-kavixo"><img src="https://github.com/sunny-kavixo.png?size=80" width="64" alt="sunny-kavixo" /><br /><sub><b>sunny-kavixo</b></sub></a></td>
+    <td align="center"><a href="https://github.com/sohammkk"><img src="https://github.com/sohammkk.png?size=80" width="64" alt="sohammkk" /><br /><sub><b>sohammkk</b></sub></a></td>
+    <td align="center"><a href="https://github.com/sinhaananya812-star"><img src="https://github.com/sinhaananya812-star.png?size=80" width="64" alt="sinhaananya812-star" /><br /><sub><b>sinhaananya812-star</b></sub></a></td>
+    <td align="center"><a href="https://github.com/jay23606"><img src="https://github.com/jay23606.png?size=80" width="64" alt="jay23606" /><br /><sub><b>jay23606</b></sub></a></td>
+    <td align="center"><a href="https://github.com/floatyserve"><img src="https://github.com/floatyserve.png?size=80" width="64" alt="floatyserve" /><br /><sub><b>floatyserve</b></sub></a></td>
+    <td align="center"><a href="https://github.com/eddyflores100-lang"><img src="https://github.com/eddyflores100-lang.png?size=80" width="64" alt="eddyflores100-lang" /><br /><sub><b>eddyflores100-lang</b></sub></a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/denisvmedia"><img src="https://github.com/denisvmedia.png?size=80" width="64" alt="denisvmedia" /><br /><sub><b>denisvmedia</b></sub></a></td>
+    <td align="center"><a href="https://github.com/amritkang165"><img src="https://github.com/amritkang165.png?size=80" width="64" alt="amritkang165" /><br /><sub><b>amritkang165</b></sub></a></td>
+    <td align="center"><a href="https://github.com/airdropia"><img src="https://github.com/airdropia.png?size=80" width="64" alt="airdropia" /><br /><sub><b>airdropia</b></sub></a></td>
+    <td align="center"><a href="https://github.com/adity982"><img src="https://github.com/adity982.png?size=80" width="64" alt="adity982" /><br /><sub><b>adity982</b></sub></a></td>
+    <td align="center"><a href="https://github.com/YuuGR1337"><img src="https://github.com/YuuGR1337.png?size=80" width="64" alt="YuuGR1337" /><br /><sub><b>YuuGR1337</b></sub></a></td>
+    <td align="center"><a href="https://github.com/WilsonSoetomo"><img src="https://github.com/WilsonSoetomo.png?size=80" width="64" alt="WilsonSoetomo" /><br /><sub><b>WilsonSoetomo</b></sub></a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/Vignesh2662006"><img src="https://github.com/Vignesh2662006.png?size=80" width="64" alt="Vignesh2662006" /><br /><sub><b>Vignesh2662006</b></sub></a></td>
+    <td align="center"><a href="https://github.com/Samueldavidddsc"><img src="https://github.com/Samueldavidddsc.png?size=80" width="64" alt="Samueldavidddsc" /><br /><sub><b>Samueldavidddsc</b></sub></a></td>
+    <td align="center"><a href="https://github.com/Murphyvon"><img src="https://github.com/Murphyvon.png?size=80" width="64" alt="Murphyvon" /><br /><sub><b>Murphyvon</b></sub></a></td>
+    <td align="center"><a href="https://github.com/KeuqS"><img src="https://github.com/KeuqS.png?size=80" width="64" alt="KeuqS" /><br /><sub><b>KeuqS</b></sub></a></td>
+    <td align="center"><a href="https://github.com/Golden007-prog"><img src="https://github.com/Golden007-prog.png?size=80" width="64" alt="Golden007-prog" /><br /><sub><b>Golden007-prog</b></sub></a></td>
+    <td align="center"><a href="https://github.com/GeoCeff"><img src="https://github.com/GeoCeff.png?size=80" width="64" alt="GeoCeff" /><br /><sub><b>GeoCeff</b></sub></a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/Enard52"><img src="https://github.com/Enard52.png?size=80" width="64" alt="Enard52" /><br /><sub><b>Enard52</b></sub></a></td>
+  </tr>
+</table>
+
 Flisk is MIT-licensed; see [LICENSE](LICENSE). The [license boundary](docs/project/GOVERNANCE.md#license-boundary-and-donation-scope) says which code is MIT and which is downloaded with a key.
 
 Project governance: [GOVERNANCE.md](docs/project/GOVERNANCE.md), [MAINTAINERS.md](docs/project/MAINTAINERS.md), [ADOPTERS.md](docs/project/ADOPTERS.md).
