@@ -71,7 +71,9 @@ export function detectInstallation() {
                 return { method: "git", path: possibleGitRoot };
             }
         }
-        if (fliskPath.includes("node_modules") || fliskPath.includes(".npm") || fliskPath.includes(".bun")) {
+        if (fliskPath.includes("node_modules") ||
+            fliskPath.includes(".npm") ||
+            fliskPath.includes(".bun")) {
             if (fliskPath.includes(".bun")) {
                 return { method: "bun", path: fliskPath };
             }
@@ -104,7 +106,9 @@ export function detectInstallationForPath(fliskPath) {
                 return { method: "git", path: possibleGitRoot };
             }
         }
-        if (fliskPath.includes("node_modules") || fliskPath.includes(".npm") || fliskPath.includes(".bun")) {
+        if (fliskPath.includes("node_modules") ||
+            fliskPath.includes(".npm") ||
+            fliskPath.includes(".bun")) {
             return { method: fliskPath.includes(".bun") ? "bun" : "npm", path: fliskPath };
         }
         if (isStandaloneBinary(realPath))

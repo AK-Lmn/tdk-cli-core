@@ -5,7 +5,7 @@ import chalk from "chalk";
 import { Command } from "commander";
 import { addYesOption, assertValid, confirmOrCancel } from "../utils/command-helpers.js";
 import { clearDiscoveryCache, createDiscoveryContext } from "../utils/discovery-context.js";
-import { errorFactories, requireProjectRoot, runCommand, FliskError } from "../utils/errors.js";
+import { errorFactories, FliskError, requireProjectRoot, runCommand } from "../utils/errors.js";
 import { writeJsonFile } from "../utils/file-helpers.js";
 import { formatCount, showAllSatisfyCondition, showCommandHeader, showDetail, showSuccess, } from "../utils/formatting.js";
 import { promptMultiSelect, promptText } from "../utils/prompt.js";

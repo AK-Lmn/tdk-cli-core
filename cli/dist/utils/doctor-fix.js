@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { promisify } from "node:util";
 import { checkColima, nativeLimaPath, planColimaRepair } from "./colima.js";
 import { DISK_WARN_GIB } from "./doctor-host.js";
-import { findProjectTiltUpPids, projectNetworkNames, fliskNetworkOwner, fliskNetworkPrefixes, } from "./down-cleanup.js";
+import { findProjectTiltUpPids, fliskNetworkOwner, fliskNetworkPrefixes, projectNetworkNames, } from "./down-cleanup.js";
 import { tiltGetUiResources } from "./up-readiness.js";
 import { findAllOnPath } from "./which.js";
 const execFilePromise = promisify(execFile);

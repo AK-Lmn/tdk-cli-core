@@ -77,7 +77,7 @@ To use it, register a runner on the Windows machine with the labels `self-hosted
 
 ## The manual acceptance checklist
 
-The design for first-class Windows support asks for a human acceptance run on a real Windows 11 AMD64 machine before any support claim changes ([`openspec/changes/tdk-windows-first-class-support/tasks.md`](../openspec/changes/tdk-windows-first-class-support/tasks.md), task 7.3). This is that checklist. The suite automates the parts it can; the rest is still a person.
+The design for first-class Windows support asks for a human acceptance run on a real Windows 11 AMD64 machine before any support claim changes ([`openspec/changes/flisk-windows-first-class-support/tasks.md`](../openspec/changes/flisk-windows-first-class-support/tasks.md), task 7.3). This is that checklist. The suite automates the parts it can; the rest is still a person.
 
 | # | Step | Automated by | Result |
 | --- | --- | --- | --- |

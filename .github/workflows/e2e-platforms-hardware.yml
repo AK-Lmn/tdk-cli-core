@@ -1,6 +1,6 @@
 # The published Windows binary on a real Windows host (#1765). The hosted job runs the same suite on windows-latest, so the
 # suite stays honest and the published release keeps a canary; the hardware job runs it on a self-hosted Windows 11 AMD64
-# machine, which is the acceptance run the design asks for (openspec/changes/tdk-windows-first-class-support, task 7.3).
+# machine, which is the acceptance run the design asks for (openspec/changes/flisk-windows-first-class-support, task 7.3).
 #
 # The hardware job never runs on a pull request: a self-hosted runner would execute untrusted pull-request code. It runs
 # when a maintainer dispatches this workflow by hand on a machine that has a runner registered with the labels

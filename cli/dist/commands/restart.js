@@ -3,7 +3,7 @@
 import chalk from "chalk";
 import { Command } from "commander";
 import { STANDARD_PORTS } from "../utils/constants.js";
-import { errorFactories, ProcessExitError, runCommand, showErrorAndExit, FliskError, } from "../utils/errors.js";
+import { errorFactories, FliskError, ProcessExitError, runCommand, showErrorAndExit, } from "../utils/errors.js";
 import { createMachineEnvelope, writeMachineError } from "../utils/machine-output.js";
 import { findProjectRoot } from "../utils/paths.js";
 import { isTiltAvailable, runTilt } from "../utils/tilt.js";
