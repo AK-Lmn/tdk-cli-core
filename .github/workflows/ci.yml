@@ -475,6 +475,22 @@ jobs:
             exit 1
           fi
 
+      # Registry sites such as bundlephobia size the package from its main entry. Fail when the
+      # installed package has no main, or when main names a file the tarball does not ship.
+      - name: Check the installed package has a shipped main entry
+        run: |
+          node -e '
+            const path = require("node:path");
+            const dir = path.resolve(".github/npm-package-smoke/node_modules/@flisk-sh/flisk");
+            const manifest = require(path.join(dir, "package.json"));
+            if (!manifest.main) {
+              console.error("::error::@flisk-sh/flisk has no main entry in package.json");
+              process.exit(1);
+            }
+            require("node:fs").statSync(path.join(dir, manifest.main));
+            console.log("main: " + manifest.main);
+          '
+
       # Releases publish with --provenance from release-binaries.yml. Fail if the pinned
       # version lacks an SLSA provenance attestation on the registry.
       - name: Check the published version has provenance

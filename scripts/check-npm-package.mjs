@@ -7,7 +7,9 @@
 // - ships test files (1.4.0 shipped ten),
 // - ships a path outside ALLOWED_PATHS, or misses one of REQUIRED_PATHS,
 // - does not declare "type": "module" (registry sites then report the ESM CLI as CommonJS),
-// - has a "bin" entry that is not in the tarball, or no "engines.node".
+// - has a "bin" entry that is not in the tarball, or no "engines.node",
+// - has no "main" entry, or a "main"/"module"/"types" entry that is not in the tarball
+//   (registry sites such as bundlephobia need one to size the package).
 import { execFileSync } from "node:child_process";
 
 // Any "*.test.*" or "*.spec.*" file counts, whatever the extension (.ts, .py, .star, ...).
@@ -37,6 +39,7 @@ export const REQUIRED_PATHS = [
   "LICENSE",
   "cli/package.json",
   "cli/bin/flisk.js",
+  "cli/dist/types/index.js",
   "cli/dist-bundle/cli.js",
   "runtime/Tiltfile",
   "runtime/specs/specs/TILT_TECH_STACK.star",
@@ -68,6 +71,14 @@ export function checkManifest(manifest, paths) {
   for (const [name, target] of Object.entries(manifest.bin ?? {})) {
     const path = target.replace(/^\.\//, "");
     if (!shipped.has(path)) problems.push(`bin "${name}" points to ${target}, which is not in the package`);
+  }
+  if (!manifest.main) {
+    problems.push('package.json has no "main" entry; registry sites such as bundlephobia cannot size the package');
+  }
+  for (const field of ["main", "module", "types"]) {
+    if (!manifest[field]) continue;
+    const path = manifest[field].replace(/^\.\//, "");
+    if (!shipped.has(path)) problems.push(`"${field}" points to ${manifest[field]}, which is not in the package`);
   }
   return problems;
 }

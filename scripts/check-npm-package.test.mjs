@@ -20,6 +20,7 @@ const MANIFEST = {
   type: "module",
   engines: { node: ">=22.12.0" },
   bin: { flisk: "cli/bin/flisk.js" },
+  main: "./cli/dist/types/index.js",
 };
 
 test("flags test files in every shape the package used to ship", () => {
@@ -72,10 +73,16 @@ test("checks type, engines and bin in the manifest", () => {
   assert.match(checkManifest({ ...MANIFEST, bin: { flisk: "./cli/bin/missing.js" } }, REQUIRED_PATHS).join(), /not in the package/);
 });
 
+test("requires a main entry that ships in the package", () => {
+  assert.match(checkManifest({ ...MANIFEST, main: undefined }, REQUIRED_PATHS).join(), /no "main" entry/);
+  assert.match(checkManifest({ ...MANIFEST, main: "./cli/dist/missing.js" }, REQUIRED_PATHS).join(), /"main" points to .*not in the package/);
+  assert.match(checkManifest({ ...MANIFEST, module: "./cli/dist/missing.js" }, REQUIRED_PATHS).join(), /"module" points to/);
+});
+
 test("reports every problem at once", () => {
   const problems = checkPackage(["cli/dist/a.test.js", "docs/x.md"], { ...MANIFEST, type: undefined });
   const headings = problems.filter((line) => !line.startsWith("  "));
-  assert.equal(headings.length, 5); // tests, allowlist, missing paths, type, bin target
+  assert.equal(headings.length, 6); // tests, allowlist, missing paths, type, bin and main targets
 });
 
 test("reads paths and package.json from a tarball", () => {

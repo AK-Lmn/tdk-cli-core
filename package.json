@@ -12,6 +12,7 @@
   },
   "private": false,
   "type": "module",
+  "main": "./cli/dist/types/index.js",
   "workspaces": [
     "cli"
   ],
