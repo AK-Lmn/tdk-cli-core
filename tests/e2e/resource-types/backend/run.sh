@@ -22,10 +22,11 @@ STACK=shop
 API=api
 RESOURCES=("$API")
 # B1b/B2b: the directory name is literal (single quotes) and runs `touch` on the first unquoted Tilt local() call that uses it.
-# A directory name cannot hold `/`, so the marker's absolute path travels in an exported variable that the shell expands inside the substitution:
-# the marker lands at a known path whatever directory Tilt runs local() from.
-export FLISK_PROBE_MARK="$DIR/pwned_by_b1b"
-PROBE_DIR='svc$(touch $FLISK_PROBE_MARK)x'
+# The marker name is relative and holds no variable: Compose and Tilt expand $VAR inside the paths they are given, which would point the
+# env file at a directory that was never created and fail the stack (rc-1.3.208). Tilt runs local() below $DIR (.tdk/.tdk-out), so find
+# under $DIR sees the marker wherever it lands.
+PROBE_MARK=pwned_by_b1b
+PROBE_DIR='svc$(touch pwned_by_b1b)x'
 
 api_healthy() { [ "$(traefik_request "$API" /health -o /dev/null -w '%{http_code}')" = "200" ]; }
 api_container() { running_container "$API"; }
@@ -56,7 +57,8 @@ B2() { # flisk up, then the backend is listed as a backend in flisk status
 B2b() { # the probe directory was discovered, and the command in its name did not run
   log "B2b probe directory is discovered and its name ran no command"
   poll_until "probe listed in flisk status" "$READY_TIMEOUT" probe_listed
-  [ ! -e "$FLISK_PROBE_MARK" ] || die "a command in a service directory name ran; marker found at: $FLISK_PROBE_MARK"
+  local found; found="$(find "$DIR" -name "$PROBE_MARK" -print -quit 2>/dev/null)"
+  [ -z "$found" ] || die "a command in a service directory name ran; marker found at: $found"
 }
 
 B3() { # the routed health check answers 200 through Traefik
