@@ -553,6 +553,7 @@ Set `FLISK_DEBUG=1` before running `flisk up --verbose` to include Starlark debu
 
 ## Docs
 
+- [Flisk 101: a 13-lab course for beginners](docs/101/README.md)
 - [CLI command cheat sheet](cli/README.md#cheat-sheet)
 - [Mega cheat sheet: every command and flag](docs/cheat-sheet.md)
 - [Documentation index](docs/README.md)

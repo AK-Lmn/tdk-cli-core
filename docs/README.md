@@ -4,6 +4,7 @@
 
 ## Start here
 
+- [Flisk 101](101/README.md): a 13-lab course from an empty folder to a running stack, with an AI-agent prompt in every lab
 - [Run one backend locally](../examples/one-backend/README.md)
 - [Run one Python backend locally](../examples/one-backend-python/README.md)
 - [Full multi-service example](../examples/tdk-example/README.md)
