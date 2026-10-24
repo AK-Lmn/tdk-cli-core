@@ -12,7 +12,7 @@ Stability: 1.x local dev. Generated files are a contract; verify with `flisk con
 | Verdaccio, DDD scaffold, Sablier idle stop | no | key |
 | Playwright, C4, AGENTS.md | free if generated in-repo | only if the implementation is downloaded with a key |
 
-Core stays free. Premium is a separate key for the extras above; no key required to run `flisk up`. See the [license boundary and donation scope](../GOVERNANCE.md#license-boundary-and-donation-scope) for which code is MIT and which is downloaded with a key.
+Core stays free. Premium is a separate key for the extras above; no key required to run `flisk up`. See the [license boundary and donation scope](project/GOVERNANCE.md#license-boundary-and-donation-scope) for which code is MIT and which is downloaded with a key.
 
 ## Overview
 

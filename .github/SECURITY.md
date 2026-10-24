@@ -37,4 +37,4 @@ In scope: the `flisk` CLI, the Tilt engine and generated local runtime files in 
 
 ## What Flisk sends and how secrets are handled
 
-See [docs/security.md](docs/security.md).
+See [docs/security.md](../docs/security.md).

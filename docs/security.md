@@ -1,6 +1,6 @@
 # Security: network calls, secrets and supply chain
 
-Answers for a security reviewer. Each line says what was checked in the source at the time of writing; anything not checked is marked **Not audited**. Report a vulnerability through [SECURITY.md](../SECURITY.md).
+Answers for a security reviewer. Each line says what was checked in the source at the time of writing; anything not checked is marked **Not audited**. Report a vulnerability through [SECURITY.md](../.github/SECURITY.md).
 
 ## What Flisk sends over the network
 

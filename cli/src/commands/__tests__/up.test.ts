@@ -91,7 +91,7 @@ vi.mock("../../utils/tilt-port-owner.js", async (importOriginal) => ({
  */
 function documentedExitCode(diagnostic: string): number {
   const contributing = readFileSync(
-    new URL("../../../../CONTRIBUTING.md", import.meta.url),
+    new URL("../../../../.github/CONTRIBUTING.md", import.meta.url),
     "utf-8",
   );
   const section = contributing.split("## Exit codes")[1];

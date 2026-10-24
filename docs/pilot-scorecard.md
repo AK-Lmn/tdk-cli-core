@@ -76,5 +76,5 @@ These are documented limits that most often decide fit. A "yes" to any is a reas
 ## Sharing results
 
 - Memory, CPU and timings can go in a [benchmark issue](https://github.com/flisk-sh/flisk/issues/125) as they are. Remove the project name if it is private.
-- To be listed as an adopter, follow [ADOPTERS.md](../ADOPTERS.md): a public repository or write-up, and the Flisk version you run. A pilot that you ended does not count, and neither does "evaluating".
+- To be listed as an adopter, follow [ADOPTERS.md](project/ADOPTERS.md): a public repository or write-up, and the Flisk version you run. A pilot that you ended does not count, and neither does "evaluating".
 - A pilot that stopped is useful too. Open an [issue](https://github.com/flisk-sh/flisk/issues/new/choose) with the decision line and the `flisk doctor` output; you do not have to name the company.

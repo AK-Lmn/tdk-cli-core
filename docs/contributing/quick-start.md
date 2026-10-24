@@ -58,7 +58,7 @@ node cli/bin/flisk.js doctor
 
 ## 8. Make a change
 
-Edit a file, then rerun the checks from steps 3 to 5. Commit with a [DCO](../../CONTRIBUTING.md) sign-off:
+Edit a file, then rerun the checks from steps 3 to 5. Commit with a [DCO](../../.github/CONTRIBUTING.md) sign-off:
 
 ```bash
 git add path/to/your/files

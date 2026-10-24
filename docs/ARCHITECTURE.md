@@ -8,7 +8,7 @@ This document explains how Flisk's subsystems fit together, traces the data flow
 
 ## 1. The Three Subsystems
 
-The codebase is organized into three distinct subsystems as defined in [CONTRIBUTING.md](../CONTRIBUTING.md):
+The codebase is organized into three distinct subsystems as defined in [CONTRIBUTING.md](../.github/CONTRIBUTING.md):
 
 ```
 flisk/

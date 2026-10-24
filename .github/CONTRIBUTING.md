@@ -1,8 +1,8 @@
 # Contributing to Flisk
 
-English | [简体中文](docs/contributing/translations/CONTRIBUTING-zh_cn.md) | [繁體中文](docs/contributing/translations/CONTRIBUTING-zh_tw.md) | [日本語](docs/contributing/translations/CONTRIBUTING-ja.md) | [한국어](docs/contributing/translations/CONTRIBUTING-ko.md)
+English | [简体中文](../docs/contributing/translations/CONTRIBUTING-zh_cn.md) | [繁體中文](../docs/contributing/translations/CONTRIBUTING-zh_tw.md) | [日本語](../docs/contributing/translations/CONTRIBUTING-ja.md) | [한국어](../docs/contributing/translations/CONTRIBUTING-ko.md)
 
-Welcome! Small fixes and large features are both useful. Start with the short [contributor guide](docs/contributing/README.md); it walks you through finding a change, making it, checking it, and opening a pull request.
+Welcome! Small fixes and large features are both useful. Start with the short [contributor guide](../docs/contributing/README.md); it walks you through finding a change, making it, checking it, and opening a pull request.
 
 ## Table of contents
 
@@ -36,16 +36,16 @@ Looking for an easy place to start?
 
 ## Start here
 
-1. [Choose your change and get the repo ready](docs/contributing/01-first-change.md).
-2. [Follow the recipe for your kind of change](docs/contributing/02-feature-recipes.md).
-3. [Check your work and open a pull request](docs/contributing/03-open-a-pr.md).
-4. [Review someone else's pull request](docs/contributing/04-review-a-pr.md), with one-click AI review buttons.
+1. [Choose your change and get the repo ready](../docs/contributing/01-first-change.md).
+2. [Follow the recipe for your kind of change](../docs/contributing/02-feature-recipes.md).
+3. [Check your work and open a pull request](../docs/contributing/03-open-a-pr.md).
+4. [Review someone else's pull request](../docs/contributing/04-review-a-pr.md), with one-click AI review buttons.
 
-The focused [frontend provider guide](docs/frontend-framework-providers.md) has the exact steps for adding another Vite framework like Vue. The [backend provider guide](docs/backend-language-providers.md) covers adding a backend language like Python. The [architecture guide](docs/ARCHITECTURE.md) explains how the CLI, the engine, and discovery fit together end to end. For AI coding agents and automated contributors, see [AGENTS.md](AGENTS.md) for the repository map, commands, and ground rules.
+The focused [frontend provider guide](../docs/frontend-framework-providers.md) has the exact steps for adding another Vite framework like Vue. The [backend provider guide](../docs/backend-language-providers.md) covers adding a backend language like Python. The [architecture guide](../docs/ARCHITECTURE.md) explains how the CLI, the engine, and discovery fit together end to end. For AI coding agents and automated contributors, see [AGENTS.md](../AGENTS.md) for the repository map, commands, and ground rules.
 
 ## Quick setup
 
-New here? The [contributor quick start](docs/contributing/quick-start.md) goes from clone to your first pull request in about five minutes.
+New here? The [contributor quick start](../docs/contributing/quick-start.md) goes from clone to your first pull request in about five minutes.
 
 **Fastest way (recommended):** open the repository in a ready-to-use environment.
 
@@ -106,7 +106,7 @@ If one of these fails on a clean checkout, that is a bug in the project, not in 
 For developing and running Flisk locally:
 
 - **macOS and Linux**: Supported directly.
-- **Windows**: Supported and recommended via WSL2 (Ubuntu). Native Windows is inspect-only (`flisk --version`, `flisk doctor`, and `flisk up --dry-run`) and refutes startup (`flisk up` exits with an error indicating landscape startup requires Ubuntu on WSL2). See the [WSL2 setup guide](docs/wsl2.md) and tracking in [#622](https://github.com/flisk-sh/flisk/issues/622).
+- **Windows**: Supported and recommended via WSL2 (Ubuntu). Native Windows is inspect-only (`flisk --version`, `flisk doctor`, and `flisk up --dry-run`) and refutes startup (`flisk up` exits with an error indicating landscape startup requires Ubuntu on WSL2). See the [WSL2 setup guide](../docs/wsl2.md) and tracking in [#622](https://github.com/flisk-sh/flisk/issues/622).
 
 ## Getting help
 
@@ -127,7 +127,7 @@ Every change goes through a pull request. Before a pull request is merged:
 - The reviewer checks that the change does what the linked issue asks, that it has tests (see [Tests](#tests)), and that it does not weaken security checks or validation.
 - Review comments that request changes are resolved before merge, or the author explains why they do not apply.
 
-The full steps for reviewers, including what to look at, are in [docs/contributing/04-review-a-pr.md](docs/contributing/04-review-a-pr.md#who-can-approve-and-merge).
+The full steps for reviewers, including what to look at, are in [docs/contributing/04-review-a-pr.md](../docs/contributing/04-review-a-pr.md#who-can-approve-and-merge).
 
 ## Changing the CLI source
 
@@ -145,7 +145,7 @@ The CI bot can rebuild `cli/dist/` and push it for pull requests from this repos
 
 ## Tests
 
-Every new feature or behavior change needs automated tests in the same pull request. A change that affects a running stack (a resource type, a command or MCP tool that talks to the stack, `flisk up`, routing or the engine) also needs an end-to-end test. [Writing an e2e test](docs/contributing/05-write-e2e.md) explains when, where and how, including the deliberate-break evidence a new suite needs. Put tests next to the code they cover, or in the existing suite for that area (`cli/src/**/__tests__/`, `tests/fuzz/`). A bug fix adds a test that fails before the fix and passes after it. If a test is not practical, the pull request says why and links an issue that tracks adding it. Reviewers check this in every pull request, and the checks listed in [03-open-a-pr.md](docs/contributing/03-open-a-pr.md#run-the-checks-for-your-change) run the suite in CI.
+Every new feature or behavior change needs automated tests in the same pull request. A change that affects a running stack (a resource type, a command or MCP tool that talks to the stack, `flisk up`, routing or the engine) also needs an end-to-end test. [Writing an e2e test](../docs/contributing/05-write-e2e.md) explains when, where and how, including the deliberate-break evidence a new suite needs. Put tests next to the code they cover, or in the existing suite for that area (`cli/src/**/__tests__/`, `tests/fuzz/`). A bug fix adds a test that fails before the fix and passes after it. If a test is not practical, the pull request says why and links an issue that tracks adding it. Reviewers check this in every pull request, and the checks listed in [03-open-a-pr.md](../docs/contributing/03-open-a-pr.md#run-the-checks-for-your-change) run the suite in CI.
 
 ### Unit tests and coverage
 
@@ -167,7 +167,7 @@ Flisk uses [Vitest](https://vitest.dev/) for CLI unit testing. You can run tests
   ```
   This runs all unit tests with v8 coverage, prints a summary table in the terminal, generates an HTML report you can open in `cli/coverage/index.html`, and writes machine-readable summaries to `cli/coverage/coverage-summary.json`.
 
-For a comprehensive guide covering Vitest structure, mocking external dependencies, test doubles, temporary projects, and golden files, see [Writing CLI unit tests](docs/contributing/08-write-cli-unit-tests.md).
+For a comprehensive guide covering Vitest structure, mocking external dependencies, test doubles, temporary projects, and golden files, see [Writing CLI unit tests](../docs/contributing/08-write-cli-unit-tests.md).
 
 ### Where to put unit tests
 
@@ -179,7 +179,7 @@ For a comprehensive guide covering Vitest structure, mocking external dependenci
 
 ### Coverage baseline and the ratchet process
 
-High-risk CLI areas are protected by a coverage floor recorded in [`cli/coverage-baseline.json`](cli/coverage-baseline.json). The coverage ratchet script ([`cli/scripts/coverage-ratchet.mjs`](cli/scripts/coverage-ratchet.mjs)) verifies in CI that line and branch coverage in protected areas never regresses.
+High-risk CLI areas are protected by a coverage floor recorded in [`cli/coverage-baseline.json`](../cli/coverage-baseline.json). The coverage ratchet script ([`cli/scripts/coverage-ratchet.mjs`](../cli/scripts/coverage-ratchet.mjs)) verifies in CI that line and branch coverage in protected areas never regresses.
 
 #### 1. Purpose of the baseline file
 
@@ -226,9 +226,9 @@ CI makes coverage feedback accessible across several touchpoints:
 ### Example test patterns to reference
 
 New to writing tests for Flisk? Take a look at these existing test suites for patterns and conventions:
-- **Command execution and flag contracts**: [`cli/src/commands/__tests__/completion-install.test.ts`](cli/src/commands/__tests__/completion-install.test.ts)
-- **Pure logic and validation**: [`cli/src/commands/__tests__/api-path-constants.test.ts`](cli/src/commands/__tests__/api-path-constants.test.ts)
-- **Mocking external processes and environment variables**: [`cli/src/commands/__tests__/agent-sessions.test.ts`](cli/src/commands/__tests__/agent-sessions.test.ts)
+- **Command execution and flag contracts**: [`cli/src/commands/__tests__/completion-install.test.ts`](../cli/src/commands/__tests__/completion-install.test.ts)
+- **Pure logic and validation**: [`cli/src/commands/__tests__/api-path-constants.test.ts`](../cli/src/commands/__tests__/api-path-constants.test.ts)
+- **Mocking external processes and environment variables**: [`cli/src/commands/__tests__/agent-sessions.test.ts`](../cli/src/commands/__tests__/agent-sessions.test.ts)
 
 Run focused checks from the repository root while you work, then use `make test` as the comprehensive pre-PR entry point:
 
@@ -237,7 +237,7 @@ Run focused checks from the repository root while you work, then use `make test`
 | TypeScript or CLI logic | `make test-ts` |
 | Python code, generators or Starlark-related logic | `make test-python` |
 | Shell verification scripts or e2e suite files | `make test-shell` |
-| Anything that runs against a live stack | `make test-e2e GROUP=<group> SUITE=<suite>` (see [writing an e2e test](docs/contributing/05-write-e2e.md)) |
+| Anything that runs against a live stack | `make test-e2e GROUP=<group> SUITE=<suite>` (see [writing an e2e test](../docs/contributing/05-write-e2e.md)) |
 | Multiple areas or anything before a PR | `make test` |
 
 The TypeScript target requires Bun and Node.js 22.12+. The Python target requires the packages in `tests/requirements.txt`; it includes the known clean-checkout failures tracked in [#700](https://github.com/flisk-sh/flisk/issues/700) rather than hiding or skipping them. The shell target runs Bash syntax validation on `scripts/verify-*.sh` and the e2e suites, validates every `tests/e2e/<group>/<suite>/suite.json`, and runs the e2e helper unit tests. It does not start a stack. Run an affected verification script separately when you need its real integration coverage; those scripts document their own arguments and may require Docker, Tilt, a built CLI or network access.
@@ -246,20 +246,20 @@ The TypeScript target requires Bun and Node.js 22.12+. The Python target require
 
 You do not need to write code to help. Run a command, compare what it prints with what Flisk promises (its `--help`, the docs, or another command), and report any difference. That is a bug.
 
-[Finding bugs in Flisk](docs/contributing/finding-bugs.md) has the exact steps: a scratch project to test in, a checklist of commands with the output you should see, the patterns that found past bugs, and the report format maintainers can act on. For example, if `flisk networks` lists no URLs while `flisk up --dry-run` prints them, the two commands disagree, so one of them is wrong.
+[Finding bugs in Flisk](../docs/contributing/finding-bugs.md) has the exact steps: a scratch project to test in, a checklist of commands with the output you should see, the patterns that found past bugs, and the report format maintainers can act on. For example, if `flisk networks` lists no URLs while `flisk up --dry-run` prints them, the two commands disagree, so one of them is wrong.
 
 ## Review pull requests
 
 You can help without writing code by reviewing open [pull requests](https://github.com/flisk-sh/flisk/pulls). Every PR ends with **Grok**, **Claude**, and **Codex** buttons that open an AI chat already asked to review that PR. The AI is your helper: check what it says against the diff, then submit your own review on GitHub as **Comment**, **Approve**, or **Request changes**.
 
-Before your first review, read the [required docs](docs/contributing/04-review-a-pr.md#before-your-first-review-required-reading) (about an hour, once). [Review a pull request](docs/contributing/04-review-a-pr.md) then explains the buttons step by step, with example comments for approving and for requesting changes.
+Before your first review, read the [required docs](../docs/contributing/04-review-a-pr.md#before-your-first-review-required-reading) (about an hour, once). [Review a pull request](../docs/contributing/04-review-a-pr.md) then explains the buttons step by step, with example comments for approving and for requesting changes.
 
 ## Find something to work on
 
-- [The Flisk Journey](docs/journey/README.md): pick an island, finish a quest, rank up (8 kyu → 1 dan)
+- [The Flisk Journey](../docs/journey/README.md): pick an island, finish a quest, rank up (8 kyu → 1 dan)
 - [Good first issues](https://github.com/flisk-sh/flisk/labels/good%20first%20issue)
 - [Help wanted](https://github.com/flisk-sh/flisk/labels/help%20wanted)
-- [Hunt for bugs](docs/contributing/finding-bugs.md) with the step-by-step checklist
+- [Hunt for bugs](../docs/contributing/finding-bugs.md) with the step-by-step checklist
 - [Report a bug or ask a question](https://github.com/flisk-sh/flisk/issues/new/choose)
 
 If you pick an issue, comment `I'll take this` (or `I would like this one`, `I'd like to work on this`, `Can I take this?`). A bot assigns you and adds the `claimed` label so two people do not do the same work. A claim with no pull request is nudged after 14 days and released after 21; a draft PR counts as progress. For a bug report, include the output of `flisk doctor` when you can.
@@ -313,29 +313,29 @@ CLI commands use a single error style and exit code convention. Report user-faci
 
 ## Sign your commits
 
-Every commit needs a [Developer Certificate of Origin](DCO) sign-off. Add it with `git commit -s`, which appends `Signed-off-by: Your Name <you@example.com>`. To fix existing commits, run `git rebase --signoff origin/main` and force-push your branch. A pull request check fails when a commit is missing the line.
+Every commit needs a [Developer Certificate of Origin](../docs/project/DCO) sign-off. Add it with `git commit -s`, which appends `Signed-off-by: Your Name <you@example.com>`. To fix existing commits, run `git rebase --signoff origin/main` and force-push your branch. A pull request check fails when a commit is missing the line.
 
 ## Contributor recognition
 
 Every contribution matters. When your pull request is merged:
 
 - You are credited in the automated GitHub release notes for the next release.
-- Your contribution is recorded in [CHANGELOG.md](CHANGELOG.md).
+- Your contribution is recorded in [CHANGELOG.md](../CHANGELOG.md).
 - You are recognized across the project contributor list and All Contributors records.
 
 ## Contributor badges
 
 Every merged community PR earns you a personal `FLISK HALL OF FAME` badge you can copy into your portfolio or README. Your badge appears in the [Hall of fame: community contributors](https://github.com/flisk-sh/flisk/issues?q=is%3Aissue+is%3Aopen+label%3Acommunity) issue alongside a copy-ready markdown snippet.
 
-See [Contributor badges](docs/contributing/contributor-badges.md) for how to find and use your badge.
+See [Contributor badges](../docs/contributing/contributor-badges.md) for how to find and use your badge.
 
 ## Add your team to the adopters list
 
-Run Flisk on your own repository? You can be listed in [ADOPTERS.md](ADOPTERS.md) in either of two ways: open the [We use Flisk](https://github.com/flisk-sh/flisk/issues/new?template=we-use-flisk.yml) issue form, or add a row to the table in a pull request. [What counts](ADOPTERS.md#what-counts) explains what to link and what does not count.
+Run Flisk on your own repository? You can be listed in [ADOPTERS.md](../docs/project/ADOPTERS.md) in either of two ways: open the [We use Flisk](https://github.com/flisk-sh/flisk/issues/new?template=we-use-flisk.yml) issue form, or add a row to the table in a pull request. [What counts](../docs/project/ADOPTERS.md#what-counts) explains what to link and what does not count.
 
 ## Governance
 
-See [GOVERNANCE.md](GOVERNANCE.md) for how decisions are made and maintainers are added, [MAINTAINERS.md](MAINTAINERS.md) for who can merge, and [ADOPTERS.md](ADOPTERS.md) for teams using Flisk.
+See [GOVERNANCE.md](../docs/project/GOVERNANCE.md) for how decisions are made and maintainers are added, [MAINTAINERS.md](../docs/project/MAINTAINERS.md) for who can merge, and [ADOPTERS.md](../docs/project/ADOPTERS.md) for teams using Flisk.
 
 ## Be kind
 

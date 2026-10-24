@@ -406,6 +406,6 @@ If the page does not cover it, or the fix did not work:
 1. Run `flisk --version` and `flisk doctor` in the project, and keep the output. Add `--no-ping` if no stack is running.
 2. Open a [bug report](https://github.com/flisk-sh/flisk/issues/new?template=bug_report.yml). It asks for the `flisk doctor` output, the Flisk version and your operating system, and for the steps to reproduce.
 3. Include the exact message, not a paraphrase, and say whether `flisk up` got as far as starting Tilt.
-4. For questions that are not bugs, and for what to expect from maintainers, see [SUPPORT.md](../SUPPORT.md).
+4. For questions that are not bugs, and for what to expect from maintainers, see [SUPPORT.md](../.github/SUPPORT.md).
 
 Do not paste your `.env`: it holds a generated database password and JWT secret.

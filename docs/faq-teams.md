@@ -14,13 +14,13 @@ Questions a team lead usually asks before moving client projects onto a new tool
 
 ## What if the project stops being maintained?
 
-- There are two maintainers from two companies ([MAINTAINERS.md](../MAINTAINERS.md)); the project has no foundation or funding commitment. Governance is in [GOVERNANCE.md](../GOVERNANCE.md).
+- There are two maintainers from two companies ([MAINTAINERS.md](project/MAINTAINERS.md)); the project has no foundation or funding commitment. Governance is in [GOVERNANCE.md](project/GOVERNANCE.md).
 - Core is MIT, so you can fork it.
 - **Answered in part:** [Leaving Flisk](leaving-flisk.md) says what `flisk eject` does (it only writes an `EJECTED.md` note), which generated files exist and what they need from Flisk, and what you lose. [Gradual adoption](gradual-adoption.md#taking-it-out-again) lists what to delete. There is still no command that produces plain Compose; moving to Compose or Helm is manual, and your `service.json` files are Flisk-specific.
 
 ## Licence: can we use it on client projects?
 
-Core is MIT and needs no key. Premium is optional and adds Verdaccio, DDD scaffolding and Sablier idle stop. See the [licence matrix](FEATURES.md#license-matrix) and the [licence boundary](../GOVERNANCE.md#license-boundary-and-donation-scope). Check it against your client contracts yourself; this page is not legal advice.
+Core is MIT and needs no key. Premium is optional and adds Verdaccio, DDD scaffolding and Sablier idle stop. See the [licence matrix](FEATURES.md#license-matrix) and the [licence boundary](project/GOVERNANCE.md#license-boundary-and-donation-scope). Check it against your client contracts yourself; this page is not legal advice.
 
 ## Windows machines
 
@@ -61,4 +61,4 @@ The [adoption guide](adopt-flisk.md) is the one-page path: `flisk doctor`, `flis
 
 ## Support and response time
 
-Questions are public issues; we aim to reply within one working day. There is no paid support contract. Premium is a feature key, not an SLA. What the history actually shows, who maintains the project and what premium covers are in [SUPPORT.md](../SUPPORT.md).
+Questions are public issues; we aim to reply within one working day. There is no paid support contract. Premium is a feature key, not an SLA. What the history actually shows, who maintains the project and what premium covers are in [SUPPORT.md](../.github/SUPPORT.md).

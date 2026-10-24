@@ -193,14 +193,14 @@ Production deployment stays with your own tools (Helm, Argo CD, or Kustomize).
 
 ## Who uses Flisk
 
-Teams that run `flisk up` on their own code (listed with their consent in [ADOPTERS.md](ADOPTERS.md)):
+Teams that run `flisk up` on their own code (listed with their consent in [ADOPTERS.md](docs/project/ADOPTERS.md)):
 
 - [Lekast](https://www.linkedin.com/company/lekast/), Flisk 1.3.178
 - [mfin.services](https://medium.com/@mfin.services), Flisk 1.3.140
 - [MakeOffer](https://www.linkedin.com/company/makeofferio), Flisk 1.3.180
 - [Red Moon Digital](https://redmoon.digital/), Flisk 1.3.81
 
-Using Flisk too? [Tell us](https://github.com/flisk-sh/flisk/issues/new?template=we-use-flisk.yml) or [add a row to ADOPTERS.md](ADOPTERS.md).
+Using Flisk too? [Tell us](https://github.com/flisk-sh/flisk/issues/new?template=we-use-flisk.yml) or [add a row to ADOPTERS.md](docs/project/ADOPTERS.md).
 
 If Flisk saves you time, a ⭐ on [this repo](https://github.com/flisk-sh/flisk) helps other developers find it.
 
@@ -477,8 +477,8 @@ Then run `flisk doctor` and retry the same task. If the problem persists, [open 
 
 ## Contributing and license
 
-Contributions are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md) and the [contributor guide](docs/contributing/README.md). For the project structure, see the [architecture and repository map](docs/project-overview.md). To review pull requests, see [Review a pull request](docs/contributing/04-review-a-pr.md). Report security issues using [SECURITY.md](SECURITY.md).
+Contributions are welcome. Start with [CONTRIBUTING.md](.github/CONTRIBUTING.md) and the [contributor guide](docs/contributing/README.md). For the project structure, see the [architecture and repository map](docs/project-overview.md). To review pull requests, see [Review a pull request](docs/contributing/04-review-a-pr.md). Report security issues using [SECURITY.md](.github/SECURITY.md).
 
-Flisk is MIT-licensed; see [LICENSE](LICENSE). The [license boundary](GOVERNANCE.md#license-boundary-and-donation-scope) says which code is MIT and which is downloaded with a key.
+Flisk is MIT-licensed; see [LICENSE](LICENSE). The [license boundary](docs/project/GOVERNANCE.md#license-boundary-and-donation-scope) says which code is MIT and which is downloaded with a key.
 
-Project governance: [GOVERNANCE.md](GOVERNANCE.md), [MAINTAINERS.md](MAINTAINERS.md), [ADOPTERS.md](ADOPTERS.md).
+Project governance: [GOVERNANCE.md](docs/project/GOVERNANCE.md), [MAINTAINERS.md](docs/project/MAINTAINERS.md), [ADOPTERS.md](docs/project/ADOPTERS.md).

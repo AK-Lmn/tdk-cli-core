@@ -23,7 +23,7 @@ A foundation application requires at least 3 maintainers from at least 2 employe
 
 ## License boundary and donation scope
 
-The core CLI is MIT-licensed (see [LICENSE](LICENSE)) and runs without `FLISK_LICENSE_KEY`: `flisk up`, scaffold, Traefik, Postgres, and Tilt live update. See the [license matrix](docs/FEATURES.md#license-matrix).
+The core CLI is MIT-licensed (see [LICENSE](../../LICENSE)) and runs without `FLISK_LICENSE_KEY`: `flisk up`, scaffold, Traefik, Postgres, and Tilt live update. See the [license matrix](../FEATURES.md#license-matrix).
 
 A future foundation donation covers the MIT tree only. It does not include implementations downloaded with `FLISK_LICENSE_KEY`. These are outside foundation scope until that code is committed under the MIT license:
 
@@ -34,4 +34,4 @@ A future foundation donation covers the MIT tree only. It does not include imple
 
 ## Contributions
 
-Commits must carry a DCO sign-off; see [CONTRIBUTING.md](CONTRIBUTING.md) and [DCO](DCO).
+Commits must carry a DCO sign-off; see [CONTRIBUTING.md](../../.github/CONTRIBUTING.md) and [DCO](DCO).

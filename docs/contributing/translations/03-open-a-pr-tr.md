@@ -23,7 +23,7 @@ Bir kontrolü çalıştırmadıysanız geçtiğini söylemeyin. Çalıştıramı
 
 Bir hata düzeltmesi veya davranış değişikliği için mümkünse `main` ve kendi dalınızda aynı adımları çalıştırın. Gerçek önce-sonra çıktısını yapıştırın; hafızanızdan yeniden oluşturmayın. Komutu, projeyi veya test verisini ve tekrarlamak için gereken kurulumu ekleyin. Issue'da adı geçen boş, hata veya kurtarma durumlarını da kapsayın.
 
-Derlenmiş CLI giriş noktasını test ediyorsanız eski derlenmiş dosyaları kullanmamak için önce `bun run build` çalıştırın. `flisk ui` gibi etkileşimli komutları gerçek bir terminalde kontrol edin. Otomatik test yoksa nedenini açıklayın ve testi eklemek için bir issue bağlayın. Yeni davranış ve hata düzeltmeleri aynı pull request içinde testler gerektirir; ayrıntılar için [CONTRIBUTING.md içindeki testlere](../../../CONTRIBUTING.md#tests) bakın.
+Derlenmiş CLI giriş noktasını test ediyorsanız eski derlenmiş dosyaları kullanmamak için önce `bun run build` çalıştırın. `flisk ui` gibi etkileşimli komutları gerçek bir terminalde kontrol edin. Otomatik test yoksa nedenini açıklayın ve testi eklemek için bir issue bağlayın. Yeni davranış ve hata düzeltmeleri aynı pull request içinde testler gerektirir; ayrıntılar için [CONTRIBUTING.md içindeki testlere](../../../.github/CONTRIBUTING.md#tests) bakın.
 
 ## Dalınızı gönderin
 

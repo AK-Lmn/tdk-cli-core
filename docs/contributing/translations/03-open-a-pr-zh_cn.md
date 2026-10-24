@@ -23,7 +23,7 @@
 
 对于 bug 修复或行为改动，如果可能，请在 `main` 和你的分支上执行相同的步骤。粘贴真实的前后输出，不要凭记忆重现。包括命令、项目或夹具，以及重现所需的任何设置。覆盖 issue 中提到的空状态、错误状态或恢复状态。
 
-如果你要测试构建后的 CLI 入口，请先运行 `bun run build`，以免使用旧的编译文件。在真实终端中检查 `flisk ui` 等交互式命令。如果缺少自动化测试，请说明原因，并链接一个用于添加测试的 issue。新行为和 bug 修复需要在同一个 pull request 中包含测试；请参阅 [CONTRIBUTING.md 中的测试](../../../CONTRIBUTING.md#tests)。
+如果你要测试构建后的 CLI 入口，请先运行 `bun run build`，以免使用旧的编译文件。在真实终端中检查 `flisk ui` 等交互式命令。如果缺少自动化测试，请说明原因，并链接一个用于添加测试的 issue。新行为和 bug 修复需要在同一个 pull request 中包含测试；请参阅 [CONTRIBUTING.md 中的测试](../../../.github/CONTRIBUTING.md#tests)。
 
 ## 推送你的分支
 
