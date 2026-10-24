@@ -96,6 +96,24 @@ The first answer is a summary. Ask follow-ups to get a more useful review:
 
 If a PR conflicts with `main`, the [AI conflict buttons workflow](../../.github/workflows/ai-conflict-buttons.yml) posts one comment on the PR with **Resolve conflict** buttons for Grok, Claude, and Codex. These give the AI step-by-step instructions to merge `main` into the branch and push the fix. If the AI cannot push to that branch (for example, a fork you do not own), the instructions tell it to push a `fix/<PR number>-conflict` branch instead and open a replacement PR. If the original PR says `Fixes #N`, the replacement says it too. Check the result like any other change, and comment on the original PR with a link to the replacement. When the conflict is gone, the same comment changes to say so and the buttons disappear.
 
+## Review with Codex
+
+The **Codex** button opens ChatGPT with the review message filled in. The chat may not be able to open the PR link, for example if it cannot reach GitHub. If it cannot read the diff, use the local checkout below.
+
+1. Click **Codex** on the PR and sign in to ChatGPT if asked.
+2. Ask it to list the files that changed, then open each one from the diff.
+3. Ask for the points it is sure about, with the file and line. Check each one in **Files changed** before you agree.
+
+If you already use the Codex CLI, you can review a local checkout instead, so the AI reads the real files:
+
+```bash
+gh pr checkout 123
+```
+
+Then start Codex in that folder and give it the same message, with your own question at the end. Ask it to run nothing that changes state (no installs, pushes, or deletes), and to read the diff against `main`.
+
+Codex answers in your account, just like the other buttons. Do not paste anything from the PR's private context, such as a security report or a private URL, into the chat.
+
 ## What to look at
 
 You do not have to check everything. Pick what you can, and say what you covered.
