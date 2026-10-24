@@ -64,4 +64,4 @@ The example intentionally leaves replicas, probes, ingress, PVCs, resources, sec
 
 ## Keep writing Helm values by hand
 
-There is no Helm export command in this workflow. Write chart values using the schema and documentation for your pinned chart release. The example is a starting point for understanding the handoff, not a supported production chart. `flisk config verify` checks generated project files against `.tdk/project.json`; it does not lint `service.json` or Helm values. `flisk doctor` checks local environment readiness and service issues, not production chart configuration.
+There is no Helm export command in this workflow. Write chart values using the schema and documentation for your pinned chart release. The example is a starting point for understanding the handoff, not a supported production chart. `flisk config verify` checks generated project files against `.flisk/project.json`; it does not lint `service.json` or Helm values. `flisk doctor` checks local environment readiness and service issues, not production chart configuration.
