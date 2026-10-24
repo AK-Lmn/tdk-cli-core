@@ -64,13 +64,19 @@ The scaffolder SHALL fetch the template files for a release from the package its
 
 ### Requirement: Registers through the Flisk CLI
 
-After writing files, the scaffolder SHALL run the `flisk resource <name> --type bring-your-own --dockerfile ./Dockerfile --stack <stack> --yes` command through the installed `flisk` binary. It SHALL NOT write `service.json`, Compose, Tilt or Traefik files itself. When `flisk` is not installed, it SHALL write the template files only, print the exact command to run later, and exit 0 with a notice, not an error.
+After writing files, the scaffolder SHALL run `flisk resource <name> --type bring-your-own --dockerfile ./Dockerfile --stack <stack> --yes` through the installed `flisk` binary. It SHALL copy the template's `Dockerfile` and `README.md` but not its `service.json`, and SHALL NOT write `service.json`, Compose, Tilt or Traefik files itself. Without `flisk` it SHALL write the template files only, print the command to run later, and exit 0 with a notice.
 
 #### Scenario: Flisk is installed
 
 - **WHEN** `flisk` is on `PATH` and the scaffolder runs for `vue`
 - **THEN** `flisk resource` is invoked with `--type bring-your-own` and the template's `Dockerfile`
 - **AND** the generated `service.json` is produced by Flisk, not the scaffolder
+
+#### Scenario: Template service.json is read, not copied
+
+- **WHEN** the scaffolder writes the `vue` template into a project
+- **THEN** the project directory has the template's `Dockerfile` and `README.md`
+- **AND** the template's `service.json` is not copied; its `port`, `healthCheckPath` and `dockerfile` become `flisk resource` options
 
 #### Scenario: Flisk is missing
 

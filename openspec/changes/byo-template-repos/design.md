@@ -110,7 +110,7 @@ The scaffolder copies files. It does not run template code, build images or send
 
 ### Decision 8: Verification split
 
-Each template verifies itself in its own repository, using one shared reusable workflow so there are not twelve copies of the HTTP check. This repository keeps the existing `BY1` leg so the contract between Flisk and the templates stays tested here, and one template is checked through `flisk up` and Traefik. A weekly job rebuilds every template with no cache to catch `@latest` drift and files one issue per broken template.
+Each template verifies itself in its own repository, using one shared reusable workflow so there are not twelve copies of the HTTP check. Every template also runs an `e2e` job that calls this repository's reusable `byo-template-e2e.yml` by commit SHA and brings the template up with a real `flisk up` and Traefik; `verify` alone only proves the image runs, not that Flisk can route to it. This repository keeps the existing `BY1` leg so the contract stays tested here too. A weekly job rebuilds every template with no cache to catch `@latest` drift and files one issue per broken template.
 
 ### Decision 9: Rollout in small pull requests
 

@@ -47,14 +47,24 @@ The BY1 `example` variant in `tests/e2e/resource-types/bring-your-own/suite.json
 - **WHEN** the BY1 matrix is expanded
 - **THEN** there is one job per template id in `templates.json`
 
-### Requirement: Through-Flisk check for one template
+### Requirement: Every template has an e2e check through flisk up
 
-At least one template SHALL be verified through `flisk up` and Traefik, not only as a standalone container, using the existing `verify-byo-tdk.sh` approach: register the resource, start the stack, and request it at `http://<name>.<project>.localhost/`. The check SHALL state the observed status code and SHALL NOT claim more than it observed. A standalone `docker run` SHALL NOT be reported as proof that a template works under Flisk.
+Every template repository SHALL run an `e2e` workflow on each pull request and push to `main`, calling the reusable `byo-template-e2e.yml` workflow of this repository pinned by commit SHA. It SHALL register the template in a throwaway project, run `flisk up`, and require HTTP 200 on `healthCheckPath` through Traefik. A standalone `docker run` SHALL NOT be reported as proof that a template works under Flisk.
 
 #### Scenario: Through the stack
 
-- **WHEN** the `vue` template is registered with `flisk resource` and the stack is brought up
-- **THEN** the request through Traefik returns 200 and the check prints the URL and status
+- **WHEN** a pull request is opened in any template repository
+- **THEN** its `e2e` job brings the template up with `flisk up` and prints `PASS <id>` with the route and status 200
+
+#### Scenario: Template without e2e
+
+- **WHEN** a template repository has no `e2e` workflow
+- **THEN** its registry entry SHALL NOT be added to `examples/byo/templates.json`
+
+#### Scenario: Merge needs both checks
+
+- **WHEN** branch protection on a template repository's `main` is read
+- **THEN** both `verify` and `e2e` are required checks
 
 #### Scenario: Honest claim
 

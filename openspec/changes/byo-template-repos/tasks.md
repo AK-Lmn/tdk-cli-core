@@ -38,10 +38,12 @@
 - [ ] 4.4 For each, add the registry entry and delete the source folder in the same pull request as its passing BY1 leg.
 - [ ] 4.5 Confirm `suite.json` has one BY1 matrix job per template.
 
-## 5. Through-Flisk check
+## 5. e2e through flisk up for every template
 
-- [ ] 5.1 Extend `verify-byo-tdk.sh` usage (or add a case) so one template (`vue`) is registered, brought up with `flisk up` and requested through Traefik.
-- [ ] 5.2 The report states the URL and status code it observed and says "container-only" for standalone checks.
+- [ ] 5.1 Add the reusable `.github/workflows/byo-template-e2e.yml` and `scripts/e2e/verify-byo-template.sh` to this repository.
+- [ ] 5.2 Add `.github/workflows/e2e.yml` to every template repository, pinned to a commit of this repository on `main`.
+- [ ] 5.3 Require `verify` and `e2e` in branch protection on every template repository's `main`.
+- [ ] 5.4 The report states the route and status code it observed and says "container-only" for standalone checks.
 
 ## 6. Scaffolder package
 
