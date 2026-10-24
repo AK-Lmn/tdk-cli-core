@@ -40,7 +40,7 @@ English | [简体中文](docs/README-zh_cn.md) | [繁體中文](docs/README-zh_t
 
 <br />
 
-[Website](https://flisk.sh/) · [Quickstart](https://flisk.sh/docs/quickstart/) · [Examples](https://flisk.sh/docs/examples/) · [Awesome Flisk](https://github.com/flisk-sh/awesome-tdk-framework) · [Demo](https://flisk-sh.github.io/tdk-demo-animation/) · [Report a bug](https://github.com/flisk-sh/flisk/issues)
+[Website](https://flisk.sh/) · [Quickstart](https://flisk.sh/docs/quickstart/) · [Examples](https://flisk.sh/docs/examples/) · [Awesome Flisk](https://github.com/flisk-sh/awesome-tdk-framework) · [Demo](https://flisk-sh.github.io/flisk-demo-animation/) · [Report a bug](https://github.com/flisk-sh/flisk/issues)
 
 </div>
 
