@@ -147,6 +147,22 @@
 		},
 		{
 			"workflow": "ci.yml",
+			"job": "npm-package-smoke",
+			"tier": "test",
+			"required": false,
+			"reason": "Installs the pinned @flisk-sh/flisk from npm and checks its version on every non-docs PR",
+			"owner": "maintainers"
+		},
+		{
+			"workflow": "ci.yml",
+			"job": "npm-registry-audit",
+			"tier": "test",
+			"required": false,
+			"reason": "Audits the pinned published tarball's contents; not gated, since no PR can change a published version",
+			"owner": "maintainers"
+		},
+		{
+			"workflow": "ci.yml",
 			"job": "secret-scan",
 			"tier": "gate",
 			"required": false,

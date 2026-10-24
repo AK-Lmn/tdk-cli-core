@@ -11,6 +11,7 @@
     "url": "https://github.com/flisk-sh/flisk/issues"
   },
   "private": false,
+  "type": "module",
   "workspaces": [
     "cli"
   ],
@@ -21,10 +22,19 @@
     "runtime",
     "!runtime/engine/docs",
     "!runtime/ext/ide-components/code_executor",
+    "!runtime/**/__tests__/**",
+    "!runtime/**/tests/**",
+    "!runtime/**/*.test.*",
+    "!runtime/**/*.spec.*",
+    "!runtime/**/test_*.py",
+    "!runtime/**/*_test.py",
     "examples/tdk-example",
     "cli/bin",
     "cli/dist/**/*.js",
     "cli/dist-bundle/**/*.js",
+    "!cli/dist/**/__tests__/**",
+    "!cli/dist/**/*.test.js",
+    "!cli/dist/**/*.spec.js",
     "cli/templates",
     "cli/package.json",
     "cli/shared-platform-engineering/docker-templates",
