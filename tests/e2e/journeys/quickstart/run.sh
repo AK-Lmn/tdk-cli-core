@@ -14,6 +14,8 @@ SUITE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/lib.sh
 source "$SUITE_DIR/../../lib/lib.sh"
 e2e_init quickstart shop
+# shellcheck source=generated-files.sh
+source "$SUITE_DIR/generated-files.sh"
 # The quickstart directory is fixed so the workflow's diagnostics and artifacts find it (see the header).
 DIR="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/shop"
 RESOURCES=(orders-api storefront vue-app)
@@ -81,6 +83,7 @@ Q2() { # flisk up, then wait for every /health URL to answer through Traefik
     done
     if [ -z "$pending" ]; then
       echo "All healthy after $((n * 10))s:$urls"
+      check_generated_files
       return 0
     fi
     echo "poll $n ($((n * 10))s): waiting on$pending"

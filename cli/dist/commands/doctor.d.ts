@@ -70,6 +70,7 @@ export declare function checkFliskVersion(currentVersion?: string): CheckResult;
  * so a resource outside them is listed and given a URL by `flisk up` yet never started.
  */
 export declare function checkResourceDiscovery(): CheckResult;
+export declare function checkGeneratedFiles(strict?: boolean): CheckResult;
 export declare function checkGeneratedProjectRuntimeAssets(): CheckResult;
 export declare function checkTypeScriptTypeDependencies(): CheckResult;
 export declare function checkFrontendDockerPreflight(): CheckResult;
