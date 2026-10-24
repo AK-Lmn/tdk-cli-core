@@ -39,7 +39,8 @@ B1() { # scaffold a backend in the language under test
 B1b() { # regression for the unquoted Tilt local() path (manifest_resource.star): a service directory named with command substitution
   log "B1b add a service directory whose name runs a command if the generator does not quote it"
   mkdir -p "$DIR/services/$STACK/$PROBE_DIR"
-  jq '.name = "probe"' "$DIR/services/$STACK/$API/service.json" >"$DIR/services/$STACK/$PROBE_DIR/service.json"
+  # A copy of the api service.json keeps api's appName, and flisk refuses to start two resources with one appName.
+  jq '.name = "probe" | .appName = "probe"' "$DIR/services/$STACK/$API/service.json" >"$DIR/services/$STACK/$PROBE_DIR/service.json"
 }
 
 probe_listed() { status_json | jq -e '.data.resources[] | select(.name=="probe")' >/dev/null; }
