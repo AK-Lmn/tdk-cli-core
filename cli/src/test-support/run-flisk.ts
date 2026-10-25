@@ -3,6 +3,7 @@
 import { spawnSync } from "node:child_process";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
+import { cleanEnv } from "./clean-env.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
@@ -13,7 +14,7 @@ export interface FliskRunOptions {
   cwd: string;
   /** Written to the child's stdin. */
   input?: string;
-  /** Merged over `process.env` and `NO_COLOR=1`. A value of `undefined` removes the variable. */
+  /** Merged over `cleanEnv()` and `NO_COLOR=1`. A value of `undefined` removes the variable. */
   env?: Record<string, string | undefined>;
   /** Kill the child after this many milliseconds. */
   timeout?: number;
@@ -31,15 +32,11 @@ export interface FliskRunResult {
  * `status: null` as an exit code.
  */
 export function runFlisk(args: readonly string[], options: FliskRunOptions): FliskRunResult {
-  const env: Record<string, string | undefined> = { ...process.env, NO_COLOR: "1", ...options.env };
-  for (const key of Object.keys(env)) {
-    if (env[key] === undefined) delete env[key];
-  }
   const result = spawnSync(process.execPath, [fliskBin, ...args], {
     cwd: options.cwd,
     encoding: "utf-8",
     input: options.input,
-    env: env as NodeJS.ProcessEnv,
+    env: cleanEnv({ NO_COLOR: "1", ...options.env }),
     timeout: options.timeout,
   });
   const command = `flisk ${args.join(" ")}`;

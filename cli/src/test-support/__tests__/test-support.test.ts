@@ -3,7 +3,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { describe, expect, it } from "vitest";
-import { createTempDir, createTempProject, parseEnvelope, runFlisk } from "../index.js";
+import { cleanEnv, createTempDir, createTempProject, parseEnvelope, runFlisk } from "../index.js";
 
 describe("runFlisk", () => {
   it("returns status, stdout and stderr of a finished run", () => {
@@ -38,6 +38,49 @@ describe("runFlisk", () => {
     const plain = runFlisk(["projects", "--json"], { cwd: project });
     expect(plain.stdout).not.toContain("\u001b[");
     expect(runFlisk(["--version"], { ...base, env: { NO_COLOR: undefined } }).status).toBe(0);
+  });
+});
+
+describe("cleanEnv", () => {
+  it("drops FLISK_* and TDK_* variables from the host and keeps the rest", () => {
+    const saved = {
+      FLISK_EXTENSION_PATH: process.env.FLISK_EXTENSION_PATH,
+      TDK_EXTENSION_PATH: process.env.TDK_EXTENSION_PATH,
+    };
+    process.env.FLISK_EXTENSION_PATH = "x";
+    process.env.TDK_EXTENSION_PATH = "y";
+    try {
+      const env = cleanEnv();
+      expect(env.PATH).toBe(process.env.PATH);
+      expect(env.FLISK_EXTENSION_PATH).toBeUndefined();
+      expect(env.TDK_EXTENSION_PATH).toBeUndefined();
+    } finally {
+      for (const [key, value] of Object.entries(saved)) {
+        if (value === undefined) delete process.env[key];
+        else process.env[key] = value;
+      }
+    }
+  });
+
+  it("applies the extra values, and undefined removes one", () => {
+    const env = cleanEnv({ NO_COLOR: "1", PATH: undefined, FLISK_MODE: "on" });
+    expect(env.NO_COLOR).toBe("1");
+    expect(env.PATH).toBeUndefined();
+    expect(env.FLISK_MODE).toBe("on");
+  });
+});
+
+describe("runFlisk host environment", () => {
+  it("does not pass a host FLISK_* or TDK_* variable to the CLI", () => {
+    const saved = process.env.TDK_EXTENSION_PATH;
+    process.env.TDK_EXTENSION_PATH = "/from/host";
+    try {
+      const result = runFlisk(["projects", "--json"], { cwd: createTempProject() });
+      expect(result.stderr).not.toContain("TDK_EXTENSION_PATH");
+    } finally {
+      if (saved === undefined) delete process.env.TDK_EXTENSION_PATH;
+      else process.env.TDK_EXTENSION_PATH = saved;
+    }
   });
 });
 
