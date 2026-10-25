@@ -39,9 +39,10 @@ COPY {res_path}/public ./public
 COPY {res_path}/src ./src
 
 FROM base AS development
-# next dev writes .next next to the source, and on Linux the bind-mounted checkout is not writable by the run user
-# (EACCES mkdir .next). Keep the build output in a directory the run user owns.
-ENV PORT={port} HOSTNAME=0.0.0.0 NEXT_DIST_DIR=/tmp/next-dist
+# WORKDIR is created by root, and next dev writes .next (and next-env.d.ts) inside it as {run_user}:
+# without this the dev server dies with EACCES: mkdir '.next'. Give the run user the app folder.
+ENV PORT={port} HOSTNAME=0.0.0.0
+RUN chown -R {run_user}:{run_user} /app/{res_path}
 USER {run_user}
 EXPOSE {port}
 CMD ["npx", "next", "dev", "--hostname", "0.0.0.0", "--port", "{port}"]
