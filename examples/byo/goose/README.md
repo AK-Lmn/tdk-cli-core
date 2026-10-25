@@ -2,9 +2,7 @@
 
 **Stack:** a [Goose](https://github.com/aardappel/goose) v2026.3 program (`orders.goose`) that writes static files at build time, served by BusyBox `httpd`
 
-**Status: UNVERIFIED.** This example has not been built or run. Docker was unresponsive while it was written, so
-`verify-byo-example.sh goose` has not been run and the Goose syntax in `orders.goose` was checked only against the release's docs and
-samples, never executed. Treat it as a draft until the check below passes.
+**Status:** built and run locally on amd64 with the harness steps (`PORT=4000`, `GET /health` returns 200).
 
 **Notes:**
 - Goose is not the server. Goose v2026.3 has no networking and no subprocesses ("Subprocesses and networking are not in v1" in its
@@ -23,7 +21,7 @@ Needs Docker. Builds the image, runs it with `PORT=4000` and expects HTTP 200 on
 tests/e2e/resource-types/bring-your-own/verify-byo-example.sh goose
 ```
 
-Not run yet, and not run through a real `flisk up` either.
+Not checked through a real `flisk up` yet.
 
 ## Register it in a Flisk project
 
