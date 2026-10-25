@@ -129,6 +129,9 @@ export function createServiceJson(name, type, stack, port, extraFeatures = [], f
         stack,
         port,
         ...(framework ? { framework: framework.id } : {}),
+        // A server framework (Next.js) is served under /<name>/ with a base path, so the engine's default /health probe finds
+        // nothing there. Probe the framework's own health route under the same prefix.
+        ...(framework?.kind === "server" ? { healthCheckPath: `/${name}/health` } : {}),
         ...(backendFramework && type !== "mcp" && type !== "agent"
             ? { framework: backendFramework.id }
             : {}),

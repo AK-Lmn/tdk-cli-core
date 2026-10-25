@@ -179,6 +179,18 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         description: "Generating Next.js home page",
         emoji: "💻",
       },
+      {
+        filename: "src/app/health/route.ts",
+        content: `// The engine probes /<name>/health; the base path puts this route under the same prefix.
+export const dynamic = 'force-static';
+
+export function GET() {
+  return new Response('ok');
+}
+`,
+        description: "Generating health route",
+        emoji: "🩺",
+      },
       ...(options.backendName
         ? [
             {

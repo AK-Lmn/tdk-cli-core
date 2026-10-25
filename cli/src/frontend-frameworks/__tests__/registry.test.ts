@@ -3,6 +3,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { createServiceJson } from "../../commands/resource.js";
 import { FliskError } from "../../utils/errors.js";
 import {
   FRONTEND_FRAMEWORKS,
@@ -68,6 +69,19 @@ describe("frontend framework resolution", () => {
 
   it("resolves next to the Next.js server provider", () => {
     expect(getFrontendFramework("next", "web").id).toBe("next");
+  });
+
+  it("gives a Next.js resource a health probe under its own base path, and a route that answers it", () => {
+    const manifest = createServiceJson("fe-next", "frontend", "app", 3000, [], "next");
+    expect(manifest.healthCheckPath).toBe("/fe-next/health");
+    // A Vite SPA keeps the engine default (/health, served by nginx).
+    expect(
+      createServiceJson("web", "frontend", "app", 3000, [], "react").healthCheckPath,
+    ).toBeUndefined();
+    const route = getFrontendFramework("next", "fe-next")
+      .createFiles("fe-next")
+      .find((f) => f.filename === "src/app/health/route.ts");
+    expect(route?.content).toContain("export function GET()");
   });
 
   it("hands a meta-framework off to bring-your-own", () => {
