@@ -68,10 +68,10 @@ def test_static_route_rule_matches_docker_label_project_router(tmp_path):
     )
 
     docker_rule_match = re.search(
-        r'traefik\.http\.routers\.data-governance-api-project\.rule=(.+?)"', r["docker_labels"]
+        r'traefik\.http\.routers\.[\w-]*data-governance-api-project\.rule=(.+?)"', r["docker_labels"]
     )
     docker_priority_match = re.search(
-        r'traefik\.http\.routers\.data-governance-api-project\.priority=(\d+)"', r["docker_labels"]
+        r'traefik\.http\.routers\.[\w-]*data-governance-api-project\.priority=(\d+)"', r["docker_labels"]
     )
     assert docker_rule_match and docker_priority_match
 
