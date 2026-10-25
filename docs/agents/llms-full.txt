@@ -80,7 +80,7 @@ flisk resource <name> --type mcp --stack <stack>
 | Type | Description |
 | --- | --- |
 | `backend` | HTTP APIs (Bun, Node, Python, Go, Rust; Express, Hono, Fastify, NestJS, FastAPI, etc.) |
-| `frontend` | Single Page Apps with Vite (React, Vue, Svelte, Preact, Lit, Solid, Qwik) |
+| `frontend` | Single Page Apps with Vite (React, Vue, Svelte, Preact, Lit, Solid, Qwik) or a Next.js app (`--framework next`) |
 | `worker` | Background job processors, queue consumers, cron tasks |
 | `mcp` | Model Context Protocol servers |
 | `agent` | Long-running AI agents with durable checkpoint storage and session routing |

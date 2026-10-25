@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 import { FliskError } from "../utils/errors.js";
 import { litFrontendProvider } from "./lit.js";
+import { nextFrontendProvider } from "./next.js";
 import { preactFrontendProvider } from "./preact.js";
 import { qwikFrontendProvider } from "./qwik.js";
 import { reactFrontendProvider } from "./react.js";
@@ -21,11 +22,11 @@ export const FRONTEND_FRAMEWORKS = {
     qwik: qwikFrontendProvider,
     vanilla: vanillaFrontendProvider,
     "tanstack-router": tanstackRouterFrontendProvider,
+    next: nextFrontendProvider,
 };
-// Frameworks that own their own server or build config. They are never scaffolded as Vite SPA providers; they go through
-// `flisk resource <name> --type bring-your-own` instead.
+// Meta-frameworks that are not registered providers. They are never scaffolded as Vite SPA providers; they go through
+// `flisk resource <name> --type bring-your-own` instead. Next.js is a registered `server` provider, so it is not listed here.
 export const META_FRAMEWORK_IDS = [
-    "next",
     "nuxt",
     "sveltekit",
     "astro",
@@ -49,7 +50,7 @@ export function listFrontendFrameworks() {
     return Object.entries(FRONTEND_FRAMEWORKS).map(([id, provider]) => ({
         id,
         label: provider.label,
-        kind: "vite-spa",
+        kind: provider.kind ?? "vite-spa",
         verified: VERIFIED_FRONTEND_FRAMEWORKS.includes(id),
         command: `flisk resource <name> --type frontend --framework ${id}`,
     }));

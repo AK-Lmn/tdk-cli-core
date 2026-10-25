@@ -321,7 +321,7 @@ def _live_update_sync_source(project_root, full_res_path, sync_path):
     return relative_path
 
 
-def _build_live_update_rules(res_path, full_res_path, syncs, project_root='', language='bun', go_live_reload=False):
+def _build_live_update_rules(res_path, full_res_path, syncs, project_root='', language='bun', go_live_reload=False, node_frontend=False):
     """Build live update sync and run rules for a resource.
 
     Python backends reload their own process after a sync (uvicorn --reload), so they have
@@ -363,7 +363,7 @@ def _build_live_update_rules(res_path, full_res_path, syncs, project_root='', la
         dest = '/app/' + full_res_path + '/' + sync_path
         live_update_rules.append(sync(full_sync_path, dest))
     
-    if language == 'python' or language == 'node':
+    if language == 'python' or language == 'node' or node_frontend:
         return live_update_rules
     
     package_json_path = '/app/' + full_res_path + '/package.json'
@@ -407,6 +407,9 @@ def _wake_compose_invocation(project_root, resource_path, res_name, resource_nam
 
 def _image_target(config):
     """The Dockerfile target Tilt builds and the deferStart prebuild must match: `development` for Go with `dev.liveReload`."""
+    # Next.js runs `next dev` in the development image, so a saved file hot-reloads through the synced sources.
+    if Docker.is_next_frontend(config.get('manifest', {})):
+        return 'development'
     return 'development' if Docker.go_live_reload(config.get('manifest', {})) else 'production'
 
 
@@ -548,6 +551,8 @@ def _register_single_resource(config, resource_path, compose_project_name, auto_
             config['syncs'],
             project_root=config.get('project_root', ''),
             language=config.get('manifest', {}).get('language', 'bun'),
+            # A Next.js image is Node with no Bun install step: syncing sources is enough, `next dev` reloads itself.
+            node_frontend=Docker.is_next_frontend(config.get('manifest', {})),
             go_live_reload=Docker.go_live_reload(config.get('manifest', {})),
         )
         _register_docker_build(config, live_update_rules)

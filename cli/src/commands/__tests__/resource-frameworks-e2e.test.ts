@@ -476,6 +476,57 @@ describe("frontend resource framework selection", () => {
     expect(existsSync(join(path, "vite.config.ts"))).toBe(false);
   }, 15000);
 
+  it("scaffolds Next.js as a server app that owns its build, with the backend health card", () => {
+    const path = join(projectRoot, "apps", "next-web");
+    // The starter's health card calls the stack's backend, so one must exist first.
+    runFlisk(
+      ["resource", "next-api", "--type", "backend", "--stack", "shop", "--path", "apps/next-api"],
+      projectRoot,
+      "y\n",
+    );
+    runFlisk(
+      [
+        "resource",
+        "next-web",
+        "--type",
+        "frontend",
+        "--framework",
+        "next",
+        "--stack",
+        "shop",
+        "--path",
+        "apps/next-web",
+      ],
+      projectRoot,
+      "y\n",
+    );
+
+    const service = JSON.parse(readFileSync(join(path, "service.json"), "utf-8"));
+    const pkg = JSON.parse(readFileSync(join(path, "package.json"), "utf-8"));
+    const tsconfig = JSON.parse(readFileSync(join(path, "tsconfig.json"), "utf-8"));
+
+    expect(service.framework).toBe("next");
+    expect(service.appType).toBe("frontend");
+    expect(pkg.dependencies).toHaveProperty("next");
+    expect(pkg.devDependencies).not.toHaveProperty("vite");
+    // npm installs the image and enforces peers: vitest 5 accepts @types/node ^22 or >=24, not the scaffold's ^20.
+    expect(pkg.devDependencies["@types/node"]).toBe("^22.0.0");
+    expect(pkg.scripts.dev).toBe("next dev");
+    expect(pkg.scripts.build).toBe("next build");
+    expect(pkg.scripts).not.toHaveProperty("predev");
+    expect(tsconfig.compilerOptions.plugins).toEqual([{ name: "next" }]);
+    expect(readFileSync(join(path, "next.config.mjs"), "utf-8")).toContain("FLISK_BASE_PATH");
+    expect(readFileSync(join(path, "src", "app", "page.tsx"), "utf-8")).toContain("HealthCard");
+    expect(readFileSync(join(path, "src", "app", "health-card.tsx"), "utf-8")).toContain(
+      "BACKEND_NAME = 'next-api'",
+    );
+    expect(readFileSync(join(path, "src", "app", "health-card.tsx"), "utf-8")).toContain(
+      "NEXT_PUBLIC_API_URL",
+    );
+    expect(existsSync(join(path, "index.html"))).toBe(false);
+    expect(existsSync(join(path, "vite.config.ts"))).toBe(false);
+  }, 15000);
+
   it("scaffolds Qwik without a second Vite config owner or runtime fork", () => {
     const qwikPath = join(projectRoot, "apps", "qwik-web");
     runFlisk(

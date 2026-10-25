@@ -136,6 +136,7 @@ EXPOSE {port}
 CMD ["node", "src/index.js"]
 """
 
+
 # The watcher the Go development target runs. It compiles a change into a staging binary while the running app keeps serving, and stops
 # and swaps the app only when that build succeeds. Air was tried first and stops the app as soon as it sees a change (engine.go `start`
 # calls stopBin before buildRun), so the service stayed down for the whole compile; a Traefik health check landing in that gap kept the
@@ -245,6 +246,11 @@ def generate_language_dockerfile(res_path, language, port = BASE_PORT_BACKEND, d
         curl = _CURL,
         healthcheck = _HEALTHCHECK.format(port = port),
     )
+
+
+def is_next_frontend(manifest):
+    """True for a frontend whose `framework` is `next`: it runs on Node, not as a Vite build behind nginx."""
+    return bool(manifest) and manifest.get("appType") == "frontend" and manifest.get("framework") == "next"
 
 
 def is_provider_owned_language(manifest):

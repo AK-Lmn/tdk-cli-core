@@ -48,7 +48,7 @@ Found 2 resources:
   shop-web [shop]
 ```
 
-The framework list names `react` (the default), `vue`, `svelte`, `preact`, `lit`, `solid`, `qwik`, `vanilla`, and `tanstack-router`.
+The framework list names `react` (the default), `vue`, `svelte`, `preact`, `lit`, `solid`, `qwik`, `vanilla`, `tanstack-router`, and `next` (Next.js, see [the frontend framework guide](../frontend-framework-providers.md#nextjs)).
 
 ## What just happened
 

@@ -92,20 +92,31 @@ def get_frontend_traefik_labels(res_name, domain, base_path, port, traefik_host=
     # On-demand scaling: attach the Sablier middleware when opted in via the manifest
     sablier_middleware, sablier_enabled = sablier_middleware_suffix(manifest, res_name)
 
+    # Next.js serves under its own basePath, so the prefix must reach it: the route keeps /<name> and adds no stripprefix middleware.
+    strips_prefix = not manifest or manifest.get('framework') != 'next'
+    if strips_prefix:
+        middlewares = middleware_name + maintenance_middleware + sablier_middleware
+        middleware_labels = """        - "traefik.http.routers.{router_name}.middlewares={middlewares}"
+        - "traefik.http.middlewares.{middleware_name}.stripprefix.prefixes={base_path}"
+""".format(router_name=router_name, middlewares=middlewares, middleware_name=middleware_name, base_path=base_path)
+    else:
+        middlewares = (maintenance_middleware + sablier_middleware).lstrip(",")
+        middleware_labels = ""
+        if middlewares:
+            middleware_labels = """        - "traefik.http.routers.{router_name}.middlewares={middlewares}"
+""".format(router_name=router_name, middlewares=middlewares)
+
     labels = """        - "{traefik_enable_label}"
         - 'traefik.http.routers.{router_name}.rule={frontend_route_rule}'
         - "traefik.http.routers.{router_name}.entrypoints={frontend_entrypoints}"
         - "traefik.http.routers.{router_name}.priority={router_priority}"
-        - "traefik.http.routers.{router_name}.middlewares={middleware_name}{maintenance_middleware}{sablier_middleware}"
-        - "traefik.http.middlewares.{middleware_name}.stripprefix.prefixes={base_path}"
-        - "traefik.http.services.{router_name}.loadbalancer.server.port={port}"
+{middleware_labels}        - "traefik.http.services.{router_name}.loadbalancer.server.port={port}"
         - "traefik.docker.network={traefik_network}\"""".format(
         router_name=router_name,
         traefik_enable_label=TRAEFIK_ENABLE_LABEL,
         frontend_route_rule=frontend_route_rule,
         frontend_entrypoints=frontend_entrypoints,
-        middleware_name=middleware_name,
-        base_path=base_path,
+        middleware_labels=middleware_labels,
         port=port,
         router_priority=router_priority,
         traefik_network=TRAEFIK_DOCKER_NETWORK,

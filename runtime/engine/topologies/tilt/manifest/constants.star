@@ -196,6 +196,9 @@ DEFAULT_SYNCS = {
     'bring-your-own': [],
 }
 
+# Next.js owns its entry files (no index.html) and rebuilds from package.json or next.config.*, which are not synced.
+NEXT_FRONTEND_SYNCS = ['src', 'public']
+
 RUNTIME_CONFIGS = {
     'bun': {
         'image_base': 'oven/bun:1.3.11-alpine',

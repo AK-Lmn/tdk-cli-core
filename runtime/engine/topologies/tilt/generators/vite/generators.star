@@ -31,6 +31,9 @@ def generate_for_manifest(manifest, backend_manifest=None, write_fn=None):
         return None
     
     if app_type == 'frontend':
+        # Next.js owns its build config (next.config.mjs); there is no Vite config to generate.
+        if manifest.get('framework') == 'next':
+            return None
         return generate_frontend(manifest, backend_manifest, write_fn)
     elif app_type == 'backend':
         return generate_backend(manifest, write_fn)

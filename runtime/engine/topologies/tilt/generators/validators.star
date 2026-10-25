@@ -571,7 +571,7 @@ def generate_resource_health_check(resource_name, resource_path, manifest, check
     }.get(manifest.get("language", "bun"), ["package.json", "prisma/schema.prisma"])
     required_files = {
         "backend": backend_files,
-        "frontend": ["package.json", "index.html", frontend_entry],
+        "frontend": ["package.json", "next.config.mjs", "src/app/page.tsx"] if manifest.get("framework") == "next" else ["package.json", "index.html", frontend_entry],
         "library": ["package.json"],
     }.get(app_type, ["package.json"])
     

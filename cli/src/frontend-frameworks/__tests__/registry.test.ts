@@ -25,18 +25,32 @@ const SPA_IDS = [
 ];
 
 describe("frontend framework inventory", () => {
-  it("lists exactly the registered vite-spa adapters", () => {
+  it("lists the registered vite-spa adapters and the Next.js server provider", () => {
     const list = listFrontendFrameworks();
-    expect(list.map((f) => f.id).sort()).toEqual([...SPA_IDS].sort());
-    expect(list.every((f) => f.kind === "vite-spa")).toBe(true);
-    for (const meta of ["next", "nuxt", "sveltekit", "astro", "angular"]) {
+    expect(list.map((f) => f.id).sort()).toEqual([...SPA_IDS, "next"].sort());
+    expect(
+      list
+        .filter((f) => f.kind === "vite-spa")
+        .map((f) => f.id)
+        .sort(),
+    ).toEqual([...SPA_IDS].sort());
+    expect(list.find((f) => f.id === "next")?.kind).toBe("server");
+    for (const meta of ["nuxt", "sveltekit", "astro", "angular"]) {
       expect(list.some((f) => f.id === meta)).toBe(false);
     }
   });
 
+  it("does not mark Next.js verified until the frontend e2e suite passes live", () => {
+    expect(listFrontendFrameworks().find((f) => f.id === "next")?.verified).toBe(false);
+  });
+
   it("marks only verified providers as verified", () => {
     expect(VERIFIED_FRONTEND_FRAMEWORKS.every((id) => id in FRONTEND_FRAMEWORKS)).toBe(true);
-    expect(listFrontendFrameworks().every((f) => f.verified)).toBe(true);
+    expect(
+      listFrontendFrameworks()
+        .filter((f) => f.id !== "next")
+        .every((f) => f.verified),
+    ).toBe(true);
   });
 
   it("the frontend e2e suite's matrix is built from the registry's framework list", () => {
@@ -52,9 +66,13 @@ describe("frontend framework resolution", () => {
     expect(resolveFrontendFramework("frontend")?.id).toBe("react");
   });
 
+  it("resolves next to the Next.js server provider", () => {
+    expect(getFrontendFramework("next", "web").id).toBe("next");
+  });
+
   it("hands a meta-framework off to bring-your-own", () => {
     try {
-      getFrontendFramework("next", "web");
+      getFrontendFramework("nuxt", "web");
       expect.unreachable();
     } catch (e) {
       expect(e).toBeInstanceOf(FliskError);

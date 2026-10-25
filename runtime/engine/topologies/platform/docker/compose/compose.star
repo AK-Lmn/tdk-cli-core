@@ -91,6 +91,10 @@ def generate_frontend_compose(resource_path, resource_name, res, manifest=None):
     # healthcheck probe a port nothing listens on, which left the container marked
     # unhealthy -- and Traefik's Docker provider skips unhealthy containers, so the
     # router was never registered and every request 404'd.
+    # Next.js is served by its own Node server (no nginx), on the manifest port, under its basePath.
+    is_next = bool(manifest) and manifest.get('framework') == 'next'
+    if is_next:
+        use_nginx = False
     port = NGINX_CONTAINER_PORT if use_nginx else reject_unsafe_value(manifest.get('port', BASE_PORT_FRONTEND), 'port')
     
     # Base path for routing on {project}.localhost. Shared with the Vite config and
@@ -129,6 +133,13 @@ def generate_frontend_compose(resource_path, resource_name, res, manifest=None):
         manifest=manifest,
     )
     
+    # An nginx frontend answers at /. Next.js answers at its basePath (with a trailing slash, see next.config.mjs), and the image
+    # has curl, not wget.
+    if is_next:
+        health_test = '["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:{}{}/"]'.format(port, base_path)
+    else:
+        health_test = '["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:{}"]'.format(port)
+
     return """  {res_name}:
     image: {image_name}
     init: true
@@ -144,8 +155,9 @@ def generate_frontend_compose(resource_path, resource_name, res, manifest=None):
         - {network_traefik_public}
         - {network_backend}
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:{port}"]
+      test: {health_test}
 {healthcheck_timing}""".format(
+        health_test=health_test,
         res_name=res_name, 
         image_name=image_name,
         build_config=build_config,

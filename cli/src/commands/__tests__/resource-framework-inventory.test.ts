@@ -37,7 +37,8 @@ describe("flisk resource --frameworks", () => {
     const verified = new Map(listFrontendFrameworks().map((entry) => [entry.id, entry.verified]));
     for (const row of listed) {
       expect(row).toHaveLength(5);
-      expect(row[2]).toBe("vite-spa");
+      // Next.js is the one server provider; every other registered framework is a Vite SPA.
+      expect(row[2]).toBe(row[0] === "next" ? "server" : "vite-spa");
       // The verification comes from the registry, so an unverified provider does not break the test.
       expect(row[3]).toBe(verified.get(row[0]) ? "verified" : "unverified");
       expect(row[4]).toBe(`flisk resource <name> --type frontend --framework ${row[0]}`);

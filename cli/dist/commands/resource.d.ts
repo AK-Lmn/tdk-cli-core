@@ -103,25 +103,12 @@ export declare const DRIZZLE_KIT_RANGE = "^0.31.8";
 export declare const DRIZZLE_DB_TEMPLATE = "import { drizzle } from 'drizzle-orm/node-postgres';\nimport { Pool } from 'pg';\n\n// DATABASE_URL is injected by Flisk. The pool connects on the first query, so a missing or\n// unreachable database fails /health/db instead of stopping the service at startup.\nexport const pool = new Pool({ connectionString: process.env.DATABASE_URL });\nexport const db = drizzle(pool);\n";
 export declare const DRIZZLE_SCHEMA_TEMPLATE = "// Define tables here, for example with pgTable from 'drizzle-orm/pg-core'.\nexport {};\n";
 export declare const DRIZZLE_CONFIG_TEMPLATE = "import { defineConfig } from 'drizzle-kit';\n\nexport default defineConfig({\n  dialect: 'postgresql',\n  schema: './src/schema.ts',\n  out: './drizzle',\n  dbCredentials: { url: process.env.DATABASE_URL ?? '' },\n});\n";
-export declare function createResourceTsconfig(resourceType: CreatableResourceType, frameworkId?: string): {
-    compilerOptions: {
-        types?: string[] | undefined;
-        target: string;
-        module: string;
-        moduleResolution: string;
-        strict: boolean;
-        esModuleInterop: boolean;
-        skipLibCheck: boolean;
-        forceConsistentCasingInFileNames: boolean;
-        outDir: string;
-        rootDir: string;
-        declaration: boolean;
-        declarationMap: boolean;
-        sourceMap: boolean;
-    };
+export interface ResourceTsconfig {
+    compilerOptions: Record<string, unknown>;
     include: string[];
     exclude: string[];
-};
+}
+export declare function createResourceTsconfig(resourceType: CreatableResourceType, frameworkId?: string): ResourceTsconfig;
 export declare const TSCONFIG_TEMPLATE: {
     compilerOptions: {
         target: string;

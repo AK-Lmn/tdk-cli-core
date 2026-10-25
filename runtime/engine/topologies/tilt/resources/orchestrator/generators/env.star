@@ -174,6 +174,12 @@ PUBLIC_URL={public_url}
     backend_name=backend_name,
     public_url=public_url,
 )
+        if manifest.get('framework') == 'next':
+            # Next.js reads NEXT_PUBLIC_* (inlined into the browser bundle) and next.config.mjs reads FLISK_BASE_PATH.
+            # The generated Dockerfile copies this file to .env, which `next dev` and `next build` both load.
+            content += """NEXT_PUBLIC_API_URL={api_url}
+FLISK_BASE_PATH={base_path}
+""".format(api_url=frontend_api_url, base_path=base_path)
         content += _build_dependency_env_lines(manifest)
     else:
         db_name = manifest.get('databaseName', PlatformDockerConstants.get_db_name(stack))
