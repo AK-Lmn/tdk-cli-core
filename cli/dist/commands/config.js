@@ -9,6 +9,7 @@ import { hasVerdaccioLicense } from "../generator/extension-fetch.js";
 import { generateMasterConfigs, readProjectConfig, TemplateEngine, verifyMasterConfigs, } from "../generator/template-engine.js";
 import { isMasterConfigFileName } from "../types/index.js";
 import { assertValid, handleDryRun } from "../utils/command-helpers.js";
+import { explainConfigFile } from "../utils/config-explain.js";
 import { MASTER_CONFIG_FILES, PROJECT_JSON } from "../utils/constants.js";
 import { clearDiscoveryCache } from "../utils/discovery-context.js";
 import { checkPrismaConsistency } from "../utils/doctor-wiring.js";
@@ -20,6 +21,12 @@ import { SERVICE_MANIFEST_SCHEMA_VERSION, validateServiceManifest, } from "../ut
 import { discoverResourcesWithProblems, discoverServiceManifestPaths, warnAboutSkippedFiles, } from "../utils/services.js";
 import { evaluateSharedPlatformPostgres } from "../utils/shared-platform-postgres.js";
 import { validateOptionalInfraService } from "../utils/validation.js";
+/** Human wording for `flisk config explain`, one line per drift outcome. */
+const DRIFT_LABELS = {
+    "blocks-up": "yes, until the edit is removed or --ignore-drift is passed",
+    none: "no",
+    unknown: "unknown",
+};
 export const configCommand = new Command("config")
     .description("Manage project configuration and regenerate master files")
     .addCommand(new Command("regenerate")
@@ -257,6 +264,42 @@ export const configCommand = new Command("config")
             }
             process.exit(1);
         }
+    };
+    if (options.json) {
+        try {
+            await action();
+        }
+        catch (error) {
+            writeMachineError(error);
+        }
+        return;
+    }
+    await runCommand(action);
+}))
+    .addCommand(new Command("explain")
+    .description("Explain whether a project file is Flisk-generated and what editing it does on flisk up")
+    .argument("<file>", "Project file to explain, relative to the current directory or absolute")
+    .option("--json", "Emit a machine-readable explanation")
+    .action(async (file, options) => {
+    const action = async () => {
+        const projectRoot = options.json ? findProjectRoot() : requireProjectRoot();
+        if (!projectRoot)
+            throw errorFactories.notInProject();
+        const explanation = explainConfigFile(projectRoot, file);
+        if (options.json) {
+            console.log(JSON.stringify(createMachineEnvelope(explanation)));
+            return;
+        }
+        console.log(chalk.blue(`${explanation.file}\n`));
+        console.log(`  Ownership: ${explanation.ownership}`);
+        console.log(`  ${explanation.reason}`);
+        if (explanation.source)
+            console.log(`  Source: ${explanation.source}`);
+        console.log(`  Edited now: ${explanation.isEditedNow ? "yes" : "no"}`);
+        console.log(`  Editing it blocks flisk up: ${DRIFT_LABELS[explanation.driftOnUp]}`);
+        console.log(chalk.blue("\nNext:"));
+        for (const step of explanation.next)
+            console.log(chalk.gray(`  - ${step}`));
     };
     if (options.json) {
         try {

@@ -337,6 +337,7 @@ flisk logs --since 5m --json
 flisk config regenerate --dry-run      # preview changes to the 4 master files
 flisk config regenerate                # rewrite them from .flisk/project.json
 flisk config verify --json             # do generated files match project.json?
+flisk config explain <file>            # is this file generated, and does editing it block flisk up?
 flisk config migrate                   # move service.json files to the current schema
 flisk config edit                      # open .flisk/project.json in $EDITOR
 flisk config enable-infra monitoring
@@ -480,7 +481,7 @@ Checks that `MAINTAINERS.md` (or `[file]`) lists 3 maintainers from 2 companies.
 
 ## 🤖 JSON output and exit codes
 
-Commands with `--json`: `projects`, `resources`, `stacks`, `status`, `up`, `down`, `logs`, `networks`, `doctor`, `runtime`, `config verify`.
+Commands with `--json`: `projects`, `resources`, `stacks`, `status`, `up`, `down`, `logs`, `networks`, `doctor`, `runtime`, `config verify`, `config explain`.
 
 | Exit code | Meaning |
 | --- | --- |

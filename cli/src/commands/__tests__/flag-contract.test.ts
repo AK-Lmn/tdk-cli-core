@@ -156,6 +156,8 @@ const DOCTOR_JSON: { site: string; command: string[] } = {
  * Shrinking this list is the work; a new entry needs a reason.
  */
 const EXEMPT: Record<string, string> = {
+  "config explain --json":
+    "takes a required <file> argument, so the matrix's argument-less run cannot exercise it; config-explain.test.ts covers the envelope and its error cases",
   "doctor --dry-run":
     "with --fix, prints the Dry run line only when a repair is planned; repairs come from the host's Docker networks and leftover probes, so a temp project may plan none",
   "doctor --yes":
