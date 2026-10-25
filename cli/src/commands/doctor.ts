@@ -600,7 +600,7 @@ export async function checkTilt(exec: ExecAsync = execAsync): Promise<CheckResul
       name: "Tilt CLI",
       didPass: false,
       message: "Tilt CLI not found",
-      fix: DOCTOR_FIXES.tiltMissing,
+      fix: "Install Tilt: curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash\n  Verify: tilt version\n  Docs: https://docs.tilt.dev/install.html",
     };
   }
 
@@ -609,7 +609,7 @@ export async function checkTilt(exec: ExecAsync = execAsync): Promise<CheckResul
       name: "Tilt CLI",
       didPass: false,
       message: `Tilt ${raw || "version unknown"} is below the required v${MIN_TILT_VERSION.join(".")} floor`,
-      fix: `Install Tilt v${MIN_TILT_VERSION.join(".")} or newer: https://docs.tilt.dev/install.html`,
+      fix: `Upgrade Tilt to v${MIN_TILT_VERSION.join(".")} or newer: https://docs.tilt.dev/install.html\n  Verify: tilt version\n  If using Homebrew: brew upgrade tilt`,
     };
   }
   return { name: "Tilt CLI", didPass: true, message: `Tilt ${raw} is available` };
@@ -671,7 +671,7 @@ export async function checkBun(exec: ExecAsync = execAsync): Promise<CheckResult
         name: "Bun",
         didPass: false,
         message: `Bun ${rawVersion || "version unknown"} is below the required ${MIN_BUN_VERSION.join(".")} floor`,
-        fix: `Install Bun ${MIN_BUN_VERSION.join(".")} or newer: https://bun.sh/install`,
+        fix: `Upgrade Bun to ${MIN_BUN_VERSION.join(".")} or newer: https://bun.sh/install\n  Verify: bun --version\n  If using npm: npm install -g bun@latest`,
       };
     }
     return {
@@ -683,8 +683,8 @@ export async function checkBun(exec: ExecAsync = execAsync): Promise<CheckResult
     return {
       name: "Bun",
       didPass: false,
-      message: "Bun is not available",
-      fix: DOCTOR_FIXES.bunMissing,
+      message: "Bun is not installed",
+      fix: "Install Bun: curl -fsSL https://bun.sh/install | bash\n  Verify: bun --version\n  Docs: https://bun.sh/docs/installation",
     };
   }
 }
