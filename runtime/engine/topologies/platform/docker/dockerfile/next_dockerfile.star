@@ -39,7 +39,9 @@ COPY {res_path}/public ./public
 COPY {res_path}/src ./src
 
 FROM base AS development
-ENV PORT={port} HOSTNAME=0.0.0.0
+# next dev writes .next next to the source, and on Linux the bind-mounted checkout is not writable by the run user
+# (EACCES mkdir .next). Keep the build output in a directory the run user owns.
+ENV PORT={port} HOSTNAME=0.0.0.0 NEXT_DIST_DIR=/tmp/next-dist
 USER {run_user}
 EXPOSE {port}
 CMD ["npx", "next", "dev", "--hostname", "0.0.0.0", "--port", "{port}"]

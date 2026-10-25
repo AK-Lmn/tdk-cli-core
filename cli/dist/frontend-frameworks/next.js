@@ -14,6 +14,8 @@ const nextConfig = {
   // Flisk's route is /<name>/; with trailingSlash the page answers there instead of redirecting.
   trailingSlash: true,
   output: 'standalone',
+  // The Docker dev image sets NEXT_DIST_DIR, so next dev never writes into the bind-mounted checkout.
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   reactStrictMode: true,
 };
 
