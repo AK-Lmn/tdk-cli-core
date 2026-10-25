@@ -615,7 +615,7 @@ def _register_frontend_typecheck(res, service_dir, typecheck_cmd):
         # Fixed script, variable parts passed as argv ($1 = service dir, $2 = typecheck command), never spliced into the shell text.
         cmd=[
             'sh', '-c',
-            'cd "$1" && { bunx tsc --version >/dev/null 2>&1 || { echo "typecheck needs host dependencies: run bun install in $1"; exit 1; }; } && eval "$2"',
+            'cd "$1" && { bunx tsc --version >/dev/null 2>&1 && test -f "$1/node_modules/vite/package.json" || { echo "typecheck needs host dependencies: run bun install in $1"; exit 1; }; } && eval "$2"',
             'sh', service_dir, typecheck_cmd,
         ],
         deps=[service_dir + '/src', service_dir + '/tsconfig.json'],
