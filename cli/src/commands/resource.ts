@@ -1053,6 +1053,17 @@ This file contains the resource configuration for Flisk.
       if (prismaEnabled && resourceType === "backend") {
         serviceJson.dependsOn = [`${resourceName}-migrator`];
       }
+      // A frontend is wired to the first backend already in its stack, so its starter can call that API out of the box.
+      const frontendBackendName =
+        resourceType === "frontend"
+          ? allResources.find(
+              (resource) => resource.stack === stackName && resource.type === "backend",
+            )?.name
+          : undefined;
+      if (frontendBackendName) {
+        serviceJson.backendName = frontendBackendName;
+        serviceJson.dependsOn = [frontendBackendName];
+      }
 
       const tasks: FileGenerationTask[] = [
         {
@@ -1125,10 +1136,12 @@ This file contains the resource configuration for Flisk.
         });
       } else if (resourceType === "frontend") {
         tasks.push(
-          ...(frontendFramework?.createFiles(resourceName).map((file) => ({
-            ...file,
-            type: "text" as const,
-          })) ?? []),
+          ...(frontendFramework
+            ?.createFiles(resourceName, { backendName: frontendBackendName })
+            .map((file) => ({
+              ...file,
+              type: "text" as const,
+            })) ?? []),
         );
         // The shared frontend Docker builder unconditionally runs `COPY <resource>/public`
         // (the Vite static-assets folder), and an empty folder can't be committed, so

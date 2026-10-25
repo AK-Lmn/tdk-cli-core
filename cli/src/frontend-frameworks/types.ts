@@ -7,11 +7,16 @@ export interface FrontendFrameworkFile {
   emoji: string;
 }
 
+export interface FrontendFrameworkOptions {
+  /** The backend resource in the same stack. The starter shows a backend health card only when it is set. */
+  backendName?: string;
+}
+
 export interface FrontendFrameworkProvider {
   id: string;
   label: string;
   dependencies: Record<string, string>;
   devDependencies: Record<string, string>;
   compilerOptions: Record<string, string>;
-  createFiles(name: string): FrontendFrameworkFile[];
+  createFiles(name: string, options?: FrontendFrameworkOptions): FrontendFrameworkFile[];
 }

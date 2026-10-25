@@ -409,8 +409,49 @@ describe("resource command", () => {
       expect(files[0]?.content).toContain("<title>sample-web</title>");
       expect(files[0]?.content).toContain("/src/main.tsx");
       expect(files[1]?.content).toContain("ReactDOM.createRoot");
-      expect(files[2]?.content).toContain("Frontend resource created with Flisk");
+      expect(files[2]?.content).toContain("Flisk frontend");
       expect(files.some(({ filename }) => filename === "vite.config.ts")).toBe(false);
+    });
+
+    it("adds the backend health card to the React starter only when a backend is wired", () => {
+      const withBackend = getFrontendFramework().createFiles("sample-web", {
+        backendName: "shop-api",
+      });
+      const app = withBackend.find(({ filename }) => filename === "src/App.tsx")?.content ?? "";
+
+      expect(app).toContain("const API_URL = import.meta.env.VITE_API_URL");
+      expect(app).toContain('/// <reference types="vite/client" />');
+      expect(app).toContain("fetch(API_URL + '/health'");
+      expect(app).toContain("const BACKEND_NAME = 'shop-api'");
+      expect(app).toContain("unreachable");
+      expect(app).toContain("http://localhost:10350");
+      expect(app).toContain("flisk status");
+
+      const standalone = getFrontendFramework().createFiles("sample-web");
+      const plainApp = standalone.find(({ filename }) => filename === "src/App.tsx")?.content ?? "";
+      expect(plainApp).not.toContain("fetch(");
+      expect(plainApp).not.toContain("Backend:");
+      expect(plainApp).toContain("Flisk frontend");
+      expect(plainApp).toContain("http://localhost:10350");
+    });
+
+    it("adds the backend health card to the Vue starter only when a backend is wired", () => {
+      const withBackend = getFrontendFramework("vue").createFiles("sample-web", {
+        backendName: "shop-api",
+      });
+      const app = withBackend.find(({ filename }) => filename === "src/App.vue")?.content ?? "";
+
+      expect(app).toContain("import.meta.env.VITE_API_URL");
+      expect(app).toContain("fetch(API_URL + '/health')");
+      expect(app).toContain("const BACKEND_NAME = 'shop-api'");
+      expect(app).toContain("unreachable");
+
+      const plainApp =
+        getFrontendFramework("vue")
+          .createFiles("sample-web")
+          .find(({ filename }) => filename === "src/App.vue")?.content ?? "";
+      expect(plainApp).not.toContain("fetch(");
+      expect(plainApp).toContain("Flisk frontend");
     });
 
     it("keeps Vue source and dependencies in its provider", () => {
@@ -685,6 +726,17 @@ describe("resource command", () => {
       expect(indexContent).toContain("app.get('/health/ready'");
       expect(indexContent).toContain("async (c)");
       expect(indexContent).toContain(`service: '${name}'`);
+    });
+
+    it("allows CORS from the *.localhost frontend origins and keeps /health unchanged", () => {
+      const indexContent = getBackendIndexTemplate("test-service");
+
+      expect(indexContent).toContain("import { cors } from 'hono/cors';");
+      expect(indexContent).toContain("app.use('*', cors({");
+      expect(indexContent).toContain(String.raw`/^https?:\/\/([a-z0-9-]+\.)+localhost(:\d+)?$/`);
+      expect(indexContent).not.toContain("origin: '*'");
+      expect(indexContent).toContain("app.get('/health', (c) => {");
+      expect(indexContent).toContain("return c.json({ status: 'ok', service: 'test-service' });");
     });
 
     it("should have root endpoint with service info", () => {

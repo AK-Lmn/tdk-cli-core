@@ -116,9 +116,7 @@ describe("frontend resource framework selection", () => {
     expect(readFileSync(join(resourcePath, "src", "main.tsx"), "utf-8")).toContain(
       "ReactDOM.createRoot",
     );
-    expect(readFileSync(join(resourcePath, "src", "App.tsx"), "utf-8")).toContain(
-      "Frontend resource created with Flisk",
-    );
+    expect(readFileSync(join(resourcePath, "src", "App.tsx"), "utf-8")).toContain("Flisk frontend");
   }, 15000);
 
   it("scaffolds Vue without a second Vite config owner or runtime fork", () => {
