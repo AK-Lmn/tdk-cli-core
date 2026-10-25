@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import type { Command } from "commander";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getRegisteredCommands } from "../../commands/registry.js";
+import { PROJECT_TEMPLATES } from "../../utils/project-templates.js";
 import {
   buildLogsArgs,
   buildUpArgs,
@@ -56,6 +57,10 @@ function checkDocCliInvocations(docText: string, commands: Map<string, Command>)
     const subName = match[1];
     const rest = (match[2] ?? "").trim();
     const rootCmd = commands.get(subName);
+    // `flisk <template>` (e.g. `flisk demo`) is a bare template dispatch, not a Commander command.
+    if (!rootCmd && rest === "" && subName in PROJECT_TEMPLATES) {
+      continue;
+    }
     if (!rootCmd) {
       problems.push(`unknown command "flisk ${subName}"`);
       continue;
