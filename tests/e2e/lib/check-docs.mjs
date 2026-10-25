@@ -29,6 +29,12 @@ const llmsFiles = existsSync(path.join(docsDir, "agents"))
       .map((n) => path.join(docsDir, "agents", n))
   : [];
 if (llmsFiles.length === 0) failures.push("docs/agents/llms*.txt: no files found");
+// A fullwidth at-sign (U+FF20) breaks copy-paste commands and the "@grok" trigger in these files.
+for (const file of llmsFiles) {
+  if (readFileSync(file, "utf8").includes("\uFF20")) {
+    failures.push(`${path.relative(root, file)}: contains a fullwidth at-sign (U+FF20); use the ASCII at-sign`);
+  }
+}
 
 // GitHub's heading slug: lower case, drop punctuation, spaces to dashes. Duplicates get -1, -2, ...
 function anchorsOf(file) {
