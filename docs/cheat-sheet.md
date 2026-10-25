@@ -79,7 +79,7 @@ flisk version                 # aliases: flisk v, flisk -v, flisk --version
 
 | Command | Aliases | What it does |
 | --- | --- | --- |
-| `flisk project [template]` | | Create or check the project's master configs, or clone a starter |
+| `flisk project [template]` | `init` | Create or check the project's master configs, or clone a starter |
 | `flisk projects` | `info` | Show project info and config status |
 | `flisk import [dir]` | | Import the services in a directory's root `docker-compose.yml` |
 | `flisk eject` | | Write `EJECTED.md` describing the generated Tilt files |
@@ -104,7 +104,7 @@ flisk version                 # aliases: flisk v, flisk -v, flisk --version
 
 ## 🌍 Project
 
-### `flisk project [template]`
+### `flisk project [template]` (alias: `flisk init`)
 
 ```bash
 flisk project                          # interactive

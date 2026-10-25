@@ -258,6 +258,7 @@ const DEFAULT_PROJECT_JSON: ProjectConfig = {
 };
 
 export const projectCommand = addYesOption(new Command("project"))
+  .alias("init")
   .description("Initialize or validate project-level master configuration")
   .argument(
     "[template]",

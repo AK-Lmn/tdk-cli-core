@@ -214,6 +214,7 @@ const DEFAULT_PROJECT_JSON = {
     overrides: {},
 };
 export const projectCommand = addYesOption(new Command("project"))
+    .alias("init")
     .description("Initialize or validate project-level master configuration")
     .argument("[template]", `Clone a starter example instead of a blank project (${Object.keys(PROJECT_TEMPLATES).join(", ")})`)
     .option("--path <dir>", "Directory to clone the template into (default: the template's repo name)")

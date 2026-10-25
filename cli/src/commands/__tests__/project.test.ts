@@ -343,3 +343,10 @@ describe("projectCommand", () => {
     }
   });
 });
+
+describe("project command alias", () => {
+  it("answers to `init` as well as `project`", () => {
+    expect(projectCommand.name()).toBe("project");
+    expect(projectCommand.aliases()).toContain("init");
+  });
+});
