@@ -102,6 +102,30 @@ describe("not-found error suggestions", () => {
     });
   });
 
+  it("reports an existing directory with relocation guidance", () => {
+    const error = errorFactories.directoryExists("/work/app");
+
+    expect(error).toBeInstanceOf(FliskError);
+    expect(error.message).toBe("Directory already exists: /work/app");
+    expect(error.suggestions).toEqual([
+      "Use `--path` to specify a different location",
+      "Remove the existing directory if no longer needed",
+    ]);
+    expect(error.exitCode).toBe(1);
+  });
+
+  it("reports an invalid path with containment guidance", () => {
+    const error = errorFactories.invalidPath("../outside");
+
+    expect(error).toBeInstanceOf(FliskError);
+    expect(error.message).toBe("Invalid path: ../outside");
+    expect(error.suggestions).toEqual([
+      "Path must be within the project directory",
+      'Path cannot contain special characters like <>:"|?*',
+    ]);
+    expect(error.exitCode).toBe(1);
+  });
+
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -293,6 +317,19 @@ describe("runCommand", () => {
 
     expect(errorOutput(err)).toContain("❌ disk full");
     expect(exit).toHaveBeenCalledWith(1);
+  });
+
+  it("rethrows ProcessExitError instead of formatting it as a command failure", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    mockExit();
+
+    await expect(
+      runCommand(async () => {
+        throw new ProcessExitError(3);
+      }),
+    ).rejects.toThrow("process.exit(3)");
+
+    expect(err).not.toHaveBeenCalled();
   });
 
   it("handles an ordinary Error with the process.exit message as a normal failure", async () => {
