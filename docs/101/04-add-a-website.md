@@ -65,9 +65,10 @@ Use Flisk to add a frontend called shop-web to the shop stack, then show me the 
 ## Checkpoint
 
 - [ ] `flisk stacks --services` shows `orders-api` and `shop-web` in `shop`.
-- [ ] You can name one other framework you could have used.
+- [ ] You can name one other framework you could have used, for example Vue or Next.js.
 
 ## Stuck?
 
 - **The folder is not where you expected:** Flisk puts services where discovery looks, `services/*/*` by default. Use `--path` to choose another folder, but keep it inside a discovered location or `flisk up` will not find it.
 - **Want Vue instead:** `flisk resource shop-web --type frontend --framework vue --stack shop --yes`.
+- **Want Next.js (App Router) instead:** `flisk resource shop-web --type frontend --framework next --stack shop --yes`. It needs Flisk 1.4.3 or newer; on an older version the command says `next` is not a supported framework. It runs `next dev` with live reload under `flisk up`.

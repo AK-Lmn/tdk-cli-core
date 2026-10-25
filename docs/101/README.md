@@ -29,7 +29,7 @@ Lab 1 checks that all of this works. On Windows, use WSL2 Ubuntu ([WSL2 setup](.
 | [1. Check your machine](01-check-your-machine.md) | Run `flisk doctor` and read the result | 5 min |
 | [2. Create a project](02-create-a-project.md) | Turn an empty folder into a Flisk project | 5 min |
 | [3. Add an API](03-add-an-api.md) | Scaffold a backend with one command | 5 min |
-| [4. Add a website](04-add-a-website.md) | Scaffold a frontend and group both into a stack | 5 min |
+| [4. Add a website](04-add-a-website.md) | Scaffold a frontend (React, Vue or Next.js) and group both into a stack | 5 min |
 | [5. Preview, then start](05-preview-then-start.md) | See what will run, then start it | 10 min |
 | [6. See it run](06-see-it-run.md) | Find your URLs and check that the services answer | 5 min |
 | [7. Change code, see it live](07-change-code-see-it-live.md) | Add an endpoint and watch it appear without a rebuild | 10 min |
