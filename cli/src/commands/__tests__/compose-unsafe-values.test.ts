@@ -118,6 +118,17 @@ generate_frontend_compose('services/shop', 'shop-frontend', {'name': 'shop-front
       expect(result.stderr).toContain(`MANIFEST ERROR: '${field}'`);
     });
 
+    it("gives a Next.js frontend its own memory anchor, not the 64M SPA one (next dev is OOM-killed at 64M)", () => {
+      const result = runTiltfile(`
+load(${composeStar}, 'generate_frontend_compose')
+manifest = {'appType': 'frontend', 'framework': 'next', 'stack': 'shop', 'port': 3000, 'appName': 'shop-frontend'}
+entry = generate_frontend_compose('services/shop', 'shop-frontend', {'name': 'shop-frontend', '_resource_path': 'services/shop/shop-frontend'}, manifest)
+if '<<: *next-memory-limit' not in entry: fail('a Next.js entry must merge the next memory anchor')
+if '<<: *frontend-memory-limit' in entry: fail('a Next.js entry must not merge the 64M SPA anchor')
+`);
+      expect(result.status, result.stderr).toBe(0);
+    });
+
     it("traefik labels: refuse a line break even when called directly", () => {
       const result = runTiltfile(`
 load(${traefikStar}, 'get_backend_traefik_labels')

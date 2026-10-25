@@ -77,6 +77,19 @@ def _compute_env_file_rel_path(resource_path, full_resource_path, env_filename):
 # 🚦 FRONTEND / BACKEND ENTRIES
 # =============================================================================
 
+# The memory anchors a frontend service merges. Next.js gets its own (next dev needs far more than the 64M an nginx SPA fits in,
+# and the OOM kill exits 0, so the container looks like a clean exit). The engine finds frontend entries by these strings.
+_FRONTEND_MEMORY_ANCHORS = ["<<: *frontend-memory-limit", "<<: *next-memory-limit"]
+
+
+def _has_frontend_memory_anchor(entry):
+    """True when a compose entry merges one of the frontend memory anchors."""
+    for anchor in _FRONTEND_MEMORY_ANCHORS:
+        if anchor in entry:
+            return True
+    return False
+
+
 def generate_frontend_compose(resource_path, resource_name, res, manifest=None):
     """Generate frontend docker-compose entry with Traefik routing."""
     res_name = res['name']
@@ -133,6 +146,7 @@ def generate_frontend_compose(resource_path, resource_name, res, manifest=None):
         manifest=manifest,
     )
     
+    memory_anchor = "<<: *next-memory-limit" if is_next else "<<: *frontend-memory-limit"
     # An nginx frontend answers at /. Next.js answers at its basePath (with a trailing slash, see next.config.mjs), and the image
     # has curl, not wget.
     if is_next:
@@ -144,7 +158,7 @@ def generate_frontend_compose(resource_path, resource_name, res, manifest=None):
     image: {image_name}
     init: true
 {build_config}
-    <<: *frontend-memory-limit
+    {memory_anchor}
     env_file:
       - {env_file_rel_path}
     environment:
@@ -159,6 +173,7 @@ def generate_frontend_compose(resource_path, resource_name, res, manifest=None):
 {healthcheck_timing}""".format(
         health_test=health_test,
         res_name=res_name, 
+        memory_anchor=memory_anchor,
         image_name=image_name,
         build_config=build_config,
         env_file_rel_path=env_file_rel_path,
@@ -451,7 +466,7 @@ def _generate_port_anchors(resource_entries):
                             sdk_port = int(port_str)
                             break
         # Check if this is a frontend (has frontend-memory-limit but not SDK)
-        elif "<<: *frontend-memory-limit" in entry and not ("-sdk:" in entry or entry.strip().startswith("identity-sdk:")):
+        elif _has_frontend_memory_anchor(entry) and not ("-sdk:" in entry or entry.strip().startswith("identity-sdk:")):
             has_frontend = True
             # Extract frontend port from entry
             if "loadbalancer.server.port=" in entry:
@@ -464,7 +479,7 @@ def _generate_port_anchors(resource_entries):
                             break
         # Check if this is a backend (has a port, not frontend, not SDK)
         # Backend entries have "healthcheck:" section with backend port
-        elif "healthcheck:" in entry and "<<: *frontend-memory-limit" not in entry and not ("-sdk:" in entry or entry.strip().startswith("identity-sdk:")):
+        elif "healthcheck:" in entry and not _has_frontend_memory_anchor(entry) and not ("-sdk:" in entry or entry.strip().startswith("identity-sdk:")):
             has_backend = True
             # Extract backend port from entry
             if "loadbalancer.server.port=" in entry:
@@ -533,6 +548,15 @@ x-frontend-memory-limit: &frontend-memory-limit
         cpus: '0.15'
       reservations:
         memory: 32M
+
+x-next-memory-limit: &next-memory-limit
+  deploy:
+    resources:
+      limits:
+        memory: 1G
+        cpus: '1.0'
+      reservations:
+        memory: 256M
 
 services:
 """.format(port_anchors=port_anchors)
