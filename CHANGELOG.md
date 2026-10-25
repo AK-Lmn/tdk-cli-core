@@ -2,7 +2,7 @@
 
 Notable changes to the `flisk` CLI. Versions match [npm](https://www.npmjs.com/package/@flisk-sh/flisk?activeTab=versions) and the [binary releases](https://github.com/flisk-sh/releases/releases).
 
-## Unreleased
+## 1.4.3 (2026-10-25)
 
 - `flisk init` is now an alias of `flisk project`. It accepts the same template names and flags.
 
