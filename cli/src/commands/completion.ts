@@ -570,7 +570,14 @@ _flisk_resources() {
 ${subCommandLists}
 
 ${typeValueFunctions}
-compdef _flisk flisk
+
+# Autoloaded from fpath, this file is the body of _flisk, so run it now to complete the first TAB.
+# Sourced (\`source <(flisk completion zsh)\`), register it instead.
+if [ "$funcstack[1]" = "_flisk" ]; then
+    _flisk "$@"
+else
+    compdef _flisk flisk
+fi
 `;
 }
 

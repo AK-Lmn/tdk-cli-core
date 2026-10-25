@@ -111,6 +111,26 @@ describe("flisk completion --install and --output", () => {
     expect(stdout).toContain("Fish completions loaded automatically");
   });
 
+  // zsh only loads a completion file named after the command, so `_tdk` never registered for flisk.
+  it.each([
+    [
+      "bash",
+      [".bash_completion.d", "flisk-completion.bash"],
+      [".bash_completion.d", "tdk-completion.bash"],
+    ],
+    ["zsh", [".zsh", "completions", "_flisk"], [".zsh", "completions", "_tdk"]],
+    [
+      "fish",
+      [".config", "fish", "completions", "flisk.fish"],
+      [".config", "fish", "completions", "tdk.fish"],
+    ],
+  ])("names the installed %s completion file after flisk", async (shell, expected, old) => {
+    await runCompletion([shell, "--install"]);
+
+    expect(existsSync(join(home.dir, ...expected))).toBe(true);
+    expect(existsSync(join(home.dir, ...old))).toBe(false);
+  });
+
   it("installs the PowerShell block into WindowsPowerShell when PowerShell 7 modules are absent", async () => {
     delete process.env.PSModulePath;
 
