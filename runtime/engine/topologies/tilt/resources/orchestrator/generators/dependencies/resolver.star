@@ -7,37 +7,63 @@
 #          Auto-inject configuration from internal dependencies
 # =============================================================================
 
-load("../../../../../../../discovery/registry.star", "get_resource_by_name")
+load("../../../../../../../discovery/registry.star", "get_app_resources", "get_resource_by_name")
+load("../../../../../platform/docker/networking/traefik_helpers.star", "cli_api_path")
 
-def resolve_backend_api_path(manifest):
-    """Resolve API path from backend manifest if backendName is specified.
-    
-    Frontend manifests often reference a backend via backendName.
-    This function looks up the backend's apiPath for consistency.
-    
-    Args:
-        manifest: Frontend service manifest
-    
+def _find_backend_resource(resource_name):
+    """Find a discovered resource by its own name, e.g. "api".
+
+    Registry services are stacks (`app`) whose resources are the runnable pieces (`api`, `web`), so the lookup
+    must search resources rather than service names. Frontends are skipped.
+    """
+    for service in get_app_resources():
+        for resource in service.get("resources", []):
+            if resource.get("name") != resource_name:
+                continue
+            app_type = resource.get("_manifest", {}).get("appType") or resource.get("appType")
+            if app_type == "frontend":
+                continue
+            return resource
+    return None
+
+
+def _find_frontend_backend(manifest):
+    """Find the backend a frontend talks to: `backendName` first, then the first API `dependsOn` entry.
+
     Returns:
-        str: API path from backend manifest, or None if not found
+        tuple: (backend resource name, backend manifest), or (None, None) when the frontend has no discovered backend
     """
     backend_name = manifest.get("backendName")
-    if not backend_name:
+    if backend_name:
+        backend = _find_backend_resource(backend_name)
+        if backend:
+            return backend_name, backend.get("_manifest", {})
+
+    for dep_name in manifest.get("dependsOn", []):
+        dep = _find_backend_resource(dep_name)
+        if dep and dep.get("_manifest", {}).get("appType") in ["backend", "mcp", "agent"]:
+            return dep_name, dep.get("_manifest", {})
+
+    return None, None
+
+
+def resolve_backend_api_path(manifest):
+    """Resolve the URL path a frontend uses to reach its backend, e.g. "/api/api".
+
+    The path is the backend's route on api.{project}.localhost: its explicit `apiPath` when set, otherwise
+    `/api/{name}` with a trailing `-api` stripped, the same rule `flisk up` prints and Traefik serves.
+    Frontends that have no discovered backend get None, so callers keep their stack-management fallback.
+
+    Args:
+        manifest: Frontend service manifest
+
+    Returns:
+        str: API path of the frontend's backend, or None if there is no backend
+    """
+    backend_name, backend_manifest = _find_frontend_backend(manifest)
+    if backend_name == None:
         return None
-    
-    # Try to find the backend service
-    backend_service = get_resource_by_name(backend_name)
-    if not backend_service:
-        return None
-    
-    # Get the backend manifest
-    backend_resources = backend_service.get("resources", [])
-    for resource in backend_resources:
-        if resource.get("name") == backend_name:
-            backend_manifest = resource.get("_manifest", {})
-            return backend_manifest.get("apiPath")
-    
-    return None
+    return cli_api_path(backend_name, backend_manifest)
 
 
 def resolve_dependency_api_urls(manifest):
