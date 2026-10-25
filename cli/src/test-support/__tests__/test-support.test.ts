@@ -42,18 +42,18 @@ describe("runFlisk", () => {
 });
 
 describe("cleanEnv", () => {
-  it("drops FLISK_* and TDK_* variables from the host and keeps the rest", () => {
+  it("drops legacy TDK_* variables from the host and keeps the rest", () => {
     const saved = {
-      FLISK_EXTENSION_PATH: process.env.FLISK_EXTENSION_PATH,
       TDK_EXTENSION_PATH: process.env.TDK_EXTENSION_PATH,
+      FLISK_HTTP_PORT: process.env.FLISK_HTTP_PORT,
     };
-    process.env.FLISK_EXTENSION_PATH = "x";
     process.env.TDK_EXTENSION_PATH = "y";
+    process.env.FLISK_HTTP_PORT = "8080";
     try {
       const env = cleanEnv();
       expect(env.PATH).toBe(process.env.PATH);
-      expect(env.FLISK_EXTENSION_PATH).toBeUndefined();
       expect(env.TDK_EXTENSION_PATH).toBeUndefined();
+      expect(env.FLISK_HTTP_PORT).toBe("8080");
     } finally {
       for (const [key, value] of Object.entries(saved)) {
         if (value === undefined) delete process.env[key];
@@ -71,7 +71,7 @@ describe("cleanEnv", () => {
 });
 
 describe("runFlisk host environment", () => {
-  it("does not pass a host FLISK_* or TDK_* variable to the CLI", () => {
+  it("does not pass a host TDK_* variable to the CLI", () => {
     const saved = process.env.TDK_EXTENSION_PATH;
     process.env.TDK_EXTENSION_PATH = "/from/host";
     try {

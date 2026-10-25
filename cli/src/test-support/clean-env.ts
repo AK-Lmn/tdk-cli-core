@@ -2,14 +2,15 @@
 // SPDX-License-Identifier: MIT
 
 /**
- * `process.env` for a spawned CLI child, without the FLISK_* and TDK_* variables of the host shell. A developer's
- * profile can export them (the CLI still reads the legacy TDK_* names and warns about them), and a test that
- * inherits them gets output the test did not ask for. A test that needs one sets it through its own `env`.
+ * `process.env` for a spawned CLI child, without the legacy TDK_* variables of the host shell. A developer's profile
+ * can export them, and the CLI warns about each one that has no FLISK_* equivalent, so a test that inherits them
+ * gets output it did not ask for. FLISK_* stays: the CLI reads settings such as ports from it, and removing those
+ * would change behavior, not only output. A test that needs a variable sets it through its own `env`.
  */
 export function cleanEnv(extra: Record<string, string | undefined> = {}): NodeJS.ProcessEnv {
   const env: Record<string, string | undefined> = { ...process.env };
   for (const key of Object.keys(env)) {
-    if (key.startsWith("FLISK_") || key.startsWith("TDK_")) delete env[key];
+    if (key.startsWith("TDK_")) delete env[key];
   }
   for (const [key, value] of Object.entries(extra)) {
     if (value === undefined) delete env[key];
