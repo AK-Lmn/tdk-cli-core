@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { captureExit } from "../../test-support/index.js";
 import { errorFactories } from "../../utils/errors.js";
 
 const tilt = vi.hoisted(() => ({
@@ -79,6 +80,21 @@ afterEach(() => {
   logsCommand.setOptionValue("tail", "200");
   logsCommand.setOptionValue("json", false);
   delete process.env.TILT_PORT;
+});
+
+describe("flisk logs argument errors", () => {
+  it("tells the user to pass a service with --service when given a positional name", async () => {
+    const stderr: string[] = [];
+    logsCommand.configureOutput({ writeErr: (text) => stderr.push(text) });
+    const { exit } = captureExit();
+    try {
+      await expect(logsCommand.parseAsync(["orders-api"], { from: "user" })).rejects.toThrow();
+    } finally {
+      logsCommand.configureOutput({ writeErr: (text) => process.stderr.write(text) });
+      exit.mockRestore();
+    }
+    expect(stderr.join("")).toContain("flisk logs --service <name>");
+  });
 });
 
 describe("flisk logs --json", () => {

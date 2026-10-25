@@ -40,6 +40,7 @@ async function tiltResourceNames(port: string): Promise<string[] | null> {
 
 export const logsCommand = new Command("logs")
   .description("Print a bounded snapshot of recent logs from the running stack")
+  .showHelpAfterError("\nService names are not positional. Use: flisk logs --service <name>")
   .option("-s, --service <names...>", "Only these services (Tilt resource names)")
   .option("--tail <n>", "Number of most recent lines to return", String(DEFAULT_LOG_TAIL))
   .option("--since <duration>", "Only logs newer than this duration, for example 30s, 5m, 1h")
