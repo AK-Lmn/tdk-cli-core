@@ -313,9 +313,12 @@ describe("flisk status", () => {
       expect(output).toContain("✓ invoices  ready");
     });
 
-    it("prints no Services section when no Tilt answers", async () => {
+    it("says service states are unknown in the human output when no Tilt answers", async () => {
       const output = await runStatus();
-      expect(output).not.toContain("Services:");
+      expect(output).toContain("Services:");
+      expect(output).toContain("unknown: no Tilt answers");
+      expect(output).toContain("nothing is confirmed running");
+      expect(output).toContain("flisk up");
     });
   });
 

@@ -206,6 +206,13 @@ export const statusCommand = new Command("status")
             `${mark} ${resource.name}  ${state.status}${state.reason ? ` (${state.reason})` : ""}`,
           );
         }
+      } else if (discovery.resources.length > 0) {
+        // Without a running Tilt, no service state can be read. Say so instead of printing nothing.
+        console.log();
+        console.log(chalk.bold("Services:"));
+        showDetail(
+          `unknown: no Tilt answers on port ${tiltPort}, so nothing is confirmed running. Start with: flisk up`,
+        );
       }
 
       if (options.tilt && tiltAvailable) {
