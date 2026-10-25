@@ -431,6 +431,20 @@ jobs:
           test -f services/shop/orders-api/service.json
           echo "✅ Installed package scaffolds a project and a resource"
 
+      # No stack runs in CI, so doctor exits 1 (not ready) by design. Fail only when doctor reports errors (2) or crashes.
+      - name: Run flisk doctor on the scaffolded project
+        working-directory: ${{ runner.temp }}/smoke-project
+        run: |
+          set +e
+          flisk doctor > doctor.log 2>&1
+          code=$?
+          cat doctor.log
+          if [ "$code" -ge 2 ]; then
+            echo "::error::flisk doctor reported errors (exit $code)"
+            exit 1
+          fi
+          echo "✅ flisk doctor ran on the scaffolded project (exit $code)"
+
       # examples/tdk-example ships in the package for this command; fail if it stops working.
       - name: Copy the bundled example
         working-directory: ${{ runner.temp }}
