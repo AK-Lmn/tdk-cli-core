@@ -481,12 +481,17 @@ export const upCommand = new Command("up")
         }
 
         const newlyEnabledStacks = enableDiscoveredStacks(projectRoot, discoveredResources);
-        if (newlyEnabledStacks.length > 0 && !options.quiet) {
-          console.log(
-            chalk.gray(
-              `Added ${newlyEnabledStacks.join(", ")} to the pre_alpha phase in .flisk/project.json`,
-            ),
-          );
+        if (newlyEnabledStacks.length > 0) {
+          // project.json just changed, so the generated spec.master is now stale. Regenerate it here, or the next
+          // `flisk config verify` reports it out of sync.
+          await generateMasterConfigs(projectRoot, { quiet: options.quiet });
+          if (!options.quiet) {
+            console.log(
+              chalk.gray(
+                `Added ${newlyEnabledStacks.join(", ")} to the pre_alpha phase in .flisk/project.json`,
+              ),
+            );
+          }
         }
       }
 
