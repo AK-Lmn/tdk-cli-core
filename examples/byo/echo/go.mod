@@ -1,3 +1,5 @@
 module echo-example
 
 go 1.25
+
+require github.com/labstack/echo/v4 v4.16.0
