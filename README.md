@@ -605,7 +605,7 @@ published on 21 September 2026. Those dates describe the current repository and 
 
 ## Requirements and support
 
-For the local runtime, install Docker (Desktop, OrbStack, or Colima; Engine 25+, Compose 2.20.2+) and [Tilt](https://docs.tilt.dev/install.html). Bun 1.2+ is used by the default generated services. Flisk selects host ports from bounded fallback ranges for HTTP, HTTPS, and Postgres; set `FLISK_HTTP_PORT`, `FLISK_HTTPS_PORT`, or `FLISK_POSTGRES_PORT` to override them. Dev ports listen on `127.0.0.1` only, so other machines on your network cannot reach them. Set `FLISK_BIND_ADDRESS` (for example `0.0.0.0`, to test from a phone) to change that; `flisk doctor` warns when it is a wildcard address. Flisk supports macOS, Linux, and Windows through WSL2 Ubuntu; native Windows supports CLI inspection only. Run `flisk doctor` to check local readiness (supports `--no-ping` to skip service health checks and `--ping-timeout <ms>`). See [WSL2 setup](docs/wsl2.md).
+For the local runtime, install Docker (Desktop, OrbStack, or Colima; Engine 25+, Compose 2.20.2+) and [Tilt](https://docs.tilt.dev/install.html). Bun 1.2+ is used by the default generated services. Flisk selects host ports from bounded fallback ranges for HTTP, HTTPS, and Postgres; set `FLISK_HTTP_PORT`, `FLISK_HTTPS_PORT`, or `FLISK_POSTGRES_PORT` to override them. Dev ports listen on `127.0.0.1` only, so other machines on your network cannot reach them. Set `FLISK_BIND_ADDRESS` (for example `0.0.0.0`, to test from a phone) to change that; `flisk doctor` warns when it is a wildcard address. Flisk supports macOS, Linux, and **Windows through WSL2 Ubuntu**; native Windows supports CLI inspection only (`flisk --version`, `flisk doctor`, `flisk up --dry-run`). `flisk up` exits with a clear refusal pointing to WSL2. See the **[Windows & WSL2 guide](docs/wsl2.md)** for the recommended setup, prerequisites, verification steps, and troubleshooting.
 
 On native Windows, `flisk --version`, `flisk doctor`, and `flisk up --dry-run` are inspect-only commands. `flisk up` exits 1 with “Landscape startup needs Ubuntu on WSL2. Native Windows is inspect-only.”
 
@@ -646,7 +646,7 @@ No. Core CLI is MIT and needs no key to run `flisk up`. Premium extras are optio
 <details>
 <summary><strong>Which platforms are supported?</strong></summary>
 
-macOS and Linux are supported directly. Windows is supported through WSL2 Ubuntu; native Windows supports CLI inspection only (`flisk --version`, `flisk doctor`, and `flisk up --dry-run`). See [Requirements and support](#requirements-and-support) and [WSL2 setup](docs/wsl2.md).
+macOS and Linux are supported directly. Windows is supported through WSL2 Ubuntu; native Windows supports CLI inspection only (`flisk --version`, `flisk doctor`, `flisk up --dry-run`). See [Requirements and support](#requirements-and-support) and the **[Windows & WSL2 guide](docs/wsl2.md)** for the recommended setup, prerequisites, verification steps, and troubleshooting.
 
 </details>
 
