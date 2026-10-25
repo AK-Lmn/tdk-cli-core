@@ -227,12 +227,9 @@ Fastest way (recommended): open the [Flisk starter](https://github.com/flisk-sh/
 
 </details>
 
-### ⚡ A running stack in about 14 seconds
+### ⚡ A one-backend stack is healthy in about 14 seconds
 
-On a one-backend quickstart with warm image layers, `flisk up` reaches a healthy API in 12.8 to 13.8 seconds ([timing notes](docs/benchmarks/quickstart-timing.md)). An 8-service stack settles in 32 to 42 seconds warm and about 4.5 minutes on its first cold build ([benchmark](docs/benchmarks/results/tdk-up-warm-start-2026-10-11/summary.md)). No vendor lock-in and no hand-written plumbing. Flisk works with:
-* **Runtimes & Frameworks:** Bun, Node, Python, Go, Rust, React, Vue, Svelte, Elysia, Fastify, NestJS
-* **Databases & Tooling:** Prisma, Drizzle, Atlas, Dbmate
-* **Messaging & Gateway:** NATS, Traefik
+On a one-backend quickstart with warm image layers, `flisk up` reaches a healthy API in 12.8 to 13.8 seconds ([timing notes](docs/benchmarks/quickstart-timing.md)). An 8-service stack settles in 32 to 42 seconds warm and about 4.5 minutes on its first cold build ([benchmark](docs/benchmarks/results/tdk-up-warm-start-2026-10-11/summary.md)). No vendor lock-in and no hand-written plumbing.
 
 ### 🤖 Run your AI agents next to your services
 
@@ -314,6 +311,12 @@ See [how `flisk up` works](docs/how-flisk-up-works.md) for the full startup sequ
 | Check your machine | Reports Docker, Tilt, and port readiness | `flisk doctor` |
 | Catch config drift | Compares generated files with what Flisk last wrote | `flisk config verify` |
 | Keep Flisk current | Upgrades the CLI in place | `flisk upgrade` |
+
+Flisk works with:
+
+* **Runtimes & Frameworks:** Bun, Node, Python, Go, Rust, React, Vue, Svelte, Elysia, Fastify, NestJS
+* **Databases & Tooling:** Prisma, Drizzle, Atlas, Dbmate
+* **Messaging & Gateway:** NATS, Traefik
 
 ## Who uses Flisk
 
