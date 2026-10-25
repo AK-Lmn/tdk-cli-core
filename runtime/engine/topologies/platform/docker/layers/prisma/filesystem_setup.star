@@ -19,6 +19,7 @@ load(
 load(
     './constants.star',
     'APP_BUN_STORE_DIR',
+    'APP_DIR',
     'APP_GENERATED_CLIENT_DIR',
     'APP_NODE_MODULES_BIN_DIR',
     'APP_NODE_MODULES_DIR',
@@ -46,10 +47,16 @@ def prisma_dir_and_permissions():
     Create directories that Prisma writes to at runtime and ensure the `bun` user owns
     them.  Handles both the standard `node_modules/.prisma/client` path and custom
     output paths like `../src/generated` or `../generated-client`.
+
+    `/app` itself is owned by `bun` too: `migrate.sh` runs `prisma generate` as `bun`,
+    and a generator output such as `../generated/prisma` (the `flisk resource
+    --feature prisma` scaffold) makes Prisma create a new directory directly under
+    `/app`, which fails with EACCES while root owns it.
     """
     return (
         "# Ensure Prisma can write generated files including custom output paths\n"
         + "RUN mkdir -p " + APP_NODE_MODULES_DIR + " " + APP_SRC_DIR + " " + APP_GENERATED_CLIENT_DIR
+        + " && chown " + BUN_USER + ":" + BUN_USER + " " + APP_DIR
         + " && chown -R " + BUN_USER + ":" + BUN_USER
         + " " + APP_PRISMA_DIR + " " + APP_NODE_MODULES_DIR + " " + APP_SRC_DIR + " " + APP_GENERATED_CLIENT_DIR
         + " " + PRISMA_CONFIG_ABS_PATH + " || true\n"
