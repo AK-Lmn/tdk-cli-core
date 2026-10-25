@@ -10,12 +10,12 @@ export interface ProjectTemplate {
 /** Public starter repositories plus the bundled default product example. */
 export const PROJECT_TEMPLATES: Record<string, ProjectTemplate> = {
   demo: {
-    repo: "https://github.com/flisk-sh/tdk-restaurant-example.git",
+    repo: "https://github.com/flisk-sh/flisk-restaurant-example.git",
     description: "The demo stack: restaurant ops with reservations, kitchen and floor control",
     fixedDir: "flisk-demo",
   },
   restaurant: {
-    repo: "https://github.com/flisk-sh/tdk-restaurant-example.git",
+    repo: "https://github.com/flisk-sh/flisk-restaurant-example.git",
     description: "Restaurant ops: reservations, kitchen, floor control (Hono + Vite + Bun)",
   },
   saas: {
@@ -24,7 +24,7 @@ export const PROJECT_TEMPLATES: Record<string, ProjectTemplate> = {
       "SaaS starter: account dashboard and a working checkout button (Hono + Vite + Bun)",
   },
   erp: {
-    repo: "https://github.com/flisk-sh/tdk-erp-system.git",
+    repo: "https://github.com/flisk-sh/flisk-erp-system.git",
     description: "Enterprise ERP: 100 microservices across 7 business domains",
   },
   "user-management": {
