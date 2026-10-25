@@ -39,16 +39,41 @@ import { parseTiltPort, resolveTiltPort, secondUpAction, stopTiltForUp, } from "
 import { findUnknownServices, resolveOnlySelection } from "../utils/up-only.js";
 import { tiltGetUiResources, waitForTiltResourcesReady } from "../utils/up-readiness.js";
 import { enableDiscoveredStacks } from "./project.js";
-export function formatUpSuccess(port, appUrls = []) {
-    return [
-        "Flisk is up.",
-        `Tilt UI: http://localhost:${port}`,
-        "App URLs:",
-        ...(appUrls.length > 0
-            ? appUrls.slice(0, 5).map((url) => `  ${url}`)
-            : ["  run: flisk networks"]),
-        "Stop: flisk down",
-    ];
+export function formatUpSuccess(port, options = {}) {
+    const { appUrls = [], serviceHealth = [], showLogsHint = serviceHealth.length > 0 } = options;
+    const lines = [];
+    lines.push("Flisk is up.");
+    lines.push(`Tilt UI: http://localhost:${port}`);
+    if (serviceHealth.length > 0) {
+        lines.push("Services:");
+        for (const svc of serviceHealth.slice(0, 10)) {
+            const icon = svc.status === "ready" ? "✓" : svc.status === "failed" ? "✗" : "⟳";
+            const urlPart = svc.url ? ` → ${svc.url}` : "";
+            lines.push(`  ${icon} ${svc.name}${urlPart}`);
+        }
+        if (serviceHealth.length > 10) {
+            lines.push(`  … and ${serviceHealth.length - 10} more`);
+        }
+    }
+    else if (appUrls.length > 0) {
+        lines.push("App URLs:");
+        for (const url of appUrls.slice(0, 5)) {
+            lines.push(`  ${url}`);
+        }
+        if (appUrls.length > 5) {
+            lines.push(`   … and ${appUrls.length - 5} more`);
+        }
+    }
+    else {
+        lines.push("App URLs:");
+        lines.push("  run: flisk networks");
+    }
+    lines.push("Stop: flisk down");
+    if (showLogsHint) {
+        lines.push("Logs: flisk logs <service>");
+    }
+    lines.push("Next: flish help  # or visit https://flisk.sh/docs");
+    return lines;
 }
 /**
  * The native Windows boundary for a command that starts a stack.
@@ -618,7 +643,32 @@ export const upCommand = new Command("up")
                 }
             }
             if (uiReady && !options.quiet && !startupFailed) {
-                for (const line of formatUpSuccess(port))
+                const deferred = getDeferredResourceNames(discoveredResources);
+                const dependsOn = Object.fromEntries(discoveredResources.map((r) => [r.name, r.config?.dependsOn ?? []]));
+                const readiness = await waitForTiltResourcesReady(port, {
+                    deferred,
+                    isStalled: (text) => isStartupStalled(text, dependsOn, deferred),
+                });
+                const serviceHealth = readiness.enabled.map((name) => {
+                    const failed = readiness.failures.find((f) => f.name === name);
+                    const svc = discoveredResources.find((r) => r.name === name);
+                    const isReady = !failed && !readiness.failures.some((f) => f.name === name);
+                    const isStarting = !isReady && !failed;
+                    const url = svc?.config?.appType === "frontend"
+                        ? `http://localhost:${port}${svc.config.basePath ?? `/${svc.name}`}`
+                        : svc?.config?.appType === "backend" || isApiServiceType(svc?.config?.appType)
+                            ? `http://localhost:${port}/api/${svc?.name?.replace(/-api$/, "")}`
+                            : undefined;
+                    return {
+                        name,
+                        status: failed ? "failed" : isStarting ? "starting" : "ready",
+                        url,
+                    };
+                });
+                for (const line of formatUpSuccess(port, {
+                    serviceHealth,
+                    showLogsHint: true,
+                }))
                     console.log(chalk.blue(line));
                 printedSuccess = true;
             }
@@ -679,7 +729,32 @@ export const upCommand = new Command("up")
             process.exit(1);
         }
         if (!options.quiet && result.exitCode === 0 && !printedSuccess) {
-            for (const line of formatUpSuccess(port))
+            const deferred = getDeferredResourceNames(discoveredResources);
+            const dependsOn = Object.fromEntries(discoveredResources.map((r) => [r.name, r.config?.dependsOn ?? []]));
+            const readiness = await waitForTiltResourcesReady(port, {
+                deferred,
+                isStalled: (text) => isStartupStalled(text, dependsOn, deferred),
+            });
+            const serviceHealth = readiness.enabled.map((name) => {
+                const failed = readiness.failures.find((f) => f.name === name);
+                const svc = discoveredResources.find((r) => r.name === name);
+                const isReady = !failed && !readiness.failures.some((f) => f.name === name);
+                const isStarting = !isReady && !failed;
+                const url = svc?.config?.appType === "frontend"
+                    ? `http://localhost:${port}${svc.config.basePath ?? `/${svc.name}`}`
+                    : svc?.config?.appType === "backend" || isApiServiceType(svc?.config?.appType)
+                        ? `http://localhost:${port}/api/${svc?.name?.replace(/-api$/, "")}`
+                        : undefined;
+                return {
+                    name,
+                    status: failed ? "failed" : isStarting ? "starting" : "ready",
+                    url,
+                };
+            });
+            for (const line of formatUpSuccess(port, {
+                serviceHealth,
+                showLogsHint: true,
+            }))
                 console.log(chalk.blue(line));
         }
     };

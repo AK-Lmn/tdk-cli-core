@@ -2,7 +2,16 @@ import { Command } from "commander";
 import type { DiscoveredResource } from "../types/index.js";
 import { type SelectedEnvFile } from "../utils/env-selection.js";
 import { nativeWindowsStackRefusal } from "../utils/native-windows.js";
-export declare function formatUpSuccess(port: number, appUrls?: string[]): string[];
+export interface ServiceHealth {
+    name: string;
+    status: "ready" | "failed" | "starting";
+    url?: string;
+}
+export declare function formatUpSuccess(port: number, options?: {
+    appUrls?: string[];
+    serviceHealth?: ServiceHealth[];
+    showLogsHint?: boolean;
+}): string[];
 /**
  * The native Windows boundary for a command that starts a stack.
  *

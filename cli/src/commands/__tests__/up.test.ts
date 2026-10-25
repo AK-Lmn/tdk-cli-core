@@ -110,18 +110,44 @@ function documentedExitCode(diagnostic: string): number {
 
 describe("flisk up success output", () => {
   it("prints the first-win block with exact UI and networks copy", () => {
-    expect(formatUpSuccess(10350)).toEqual([
+    expect(formatUpSuccess(10350, {})).toEqual([
       "Flisk is up.",
       "Tilt UI: http://localhost:10350",
       "App URLs:",
       "  run: flisk networks",
       "Stop: flisk down",
+      "Next: flish help  # or visit https://flisk.sh/docs",
     ]);
   });
 
-  it("includes at most five discovered app URLs", () => {
-    const lines = formatUpSuccess(10351, ["a", "b", "c", "d", "e", "f"]);
-    expect(lines.filter((line) => /^ {2}/.test(line))).toEqual(["  a", "  b", "  c", "  d", "  e"]);
+  it("includes at most five discovered app URLs when no service health provided", () => {
+    const lines = formatUpSuccess(10351, { appUrls: ["a", "b", "c", "d", "e", "f"] });
+    // Filter for lines with exactly two leading spaces (the URL lines), not the "… and X more" line which has three
+    expect(lines.filter((line) => /^ {2}[^ ]/.test(line))).toEqual([
+      "  a",
+      "  b",
+      "  c",
+      "  d",
+      "  e",
+    ]);
+  });
+
+  it("shows service health with status icons and URLs", () => {
+    const lines = formatUpSuccess(10350, {
+      serviceHealth: [
+        { name: "api", status: "ready", url: "http://localhost:10350/api/orders" },
+        { name: "web", status: "starting" },
+        { name: "worker", status: "failed" },
+      ],
+    });
+    expect(lines).toContain("Services:");
+    expect(
+      lines.some((l) => l.includes("✓ api") && l.includes("http://localhost:10350/api/orders")),
+    ).toBe(true);
+    expect(lines.some((l) => l.includes("⟳ web"))).toBe(true);
+    expect(lines.some((l) => l.includes("✗ worker"))).toBe(true);
+    expect(lines).toContain("Stop: flisk down");
+    expect(lines).toContain("Logs: flisk logs <service>");
   });
 });
 
