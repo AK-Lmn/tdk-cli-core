@@ -12,7 +12,7 @@
     ".github/workflows/e2e-resource-types.yml"
   ],
   "cases": ["F1", "F2", "F3"],
-  "triggers": ["nightly", "release", "manual"],
+  "triggers": ["pr", "nightly", "release", "manual"],
   "timeoutMinutes": 30,
   "needsSecrets": []
 }
