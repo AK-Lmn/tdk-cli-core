@@ -34,4 +34,18 @@ describe("portConflictFix", () => {
   it("gives no next step for other failures", () => {
     expect(portConflictFix("ConnectionRefused downloading package manifest")).toBeNull();
   });
+
+  it("names the occupant when it is known", () => {
+    expect(
+      portConflictFix("host port 5432 is already allocated", { pid: 4321, command: "postgres" }),
+    ).toBe(
+      "Fix: port 5432 is held by postgres (pid 4321). Stop it, or set FLISK_POSTGRES_PORT to a free port and run flisk up",
+    );
+  });
+
+  it("names the occupant for a port without an env var", () => {
+    expect(
+      portConflictFix("host port 9000 is already allocated", { pid: 7, command: "node" }),
+    ).toBe("Fix: port 9000 is held by node (pid 7). Stop it");
+  });
 });

@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { parseTiltResourceFailures } from "../doctor-runtime.js";
 import {
   buildStartupReport,
@@ -200,6 +200,31 @@ describe("formatStartupReport", () => {
       "✗ api is not ready because postgres failed",
       "The environment is not ready: postgres failed, so 1 dependent service is not ready. Tilt is still running; inspect it or run: flisk down",
     ]);
+  });
+
+  it("names the process holding the port when it is known", () => {
+    const lines = formatStartupReport(
+      {
+        failed: [{ name: "postgres", message: "host port 5432 is already allocated" }],
+        blocked: [],
+        starting: [],
+      },
+      false,
+      () => ({ pid: 4321, command: "postgres" }),
+    );
+    expect(lines[1]).toBe(
+      "  Fix: port 5432 is held by postgres (pid 4321). Stop it, or set FLISK_POSTGRES_PORT to a free port and run flisk up",
+    );
+  });
+
+  it("looks up the occupant only for port conflicts", () => {
+    const occupantOf = vi.fn(() => null);
+    formatStartupReport(
+      { failed: [{ name: "worker", message: "exited with 1" }], blocked: [], starting: [] },
+      false,
+      occupantOf,
+    );
+    expect(occupantOf).not.toHaveBeenCalled();
   });
 
   it("ends with how many dependent services each failure leaves not ready", () => {

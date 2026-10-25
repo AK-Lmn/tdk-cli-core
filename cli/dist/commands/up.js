@@ -24,6 +24,7 @@ import { nativeWindowsStackRefusal } from "../utils/native-windows.js";
 import { findProjectRoot, getPackageVersion } from "../utils/paths.js";
 import { findAvailablePort } from "../utils/port-assignment.js";
 import { formatPortFallbackNotice } from "../utils/port-fallback-notice.js";
+import { findPortOccupant } from "../utils/port-occupant.js";
 import { isApiServiceType } from "../utils/resource-kind.js";
 import { enforceSchemaVersionGate } from "../utils/schema-version-gate.js";
 import { enforceServiceConfigGate, warnSchemaVersions } from "../utils/service-config-checks.js";
@@ -605,7 +606,7 @@ export const upCommand = new Command("up")
                             blocked: [],
                             starting: [],
                         };
-                    const reportLines = formatStartupReport(report, readiness.timedOut);
+                    const reportLines = formatStartupReport(report, readiness.timedOut, (port) => findPortOccupant(port));
                     if (reportLines.length > 0) {
                         showError(reportLines.join("\n"));
                     }
