@@ -175,9 +175,10 @@ export async function runColdPreflight(
   const bunPath = bunNeeded ? findOnPath("bun") : undefined;
   if (bunPath) {
     try {
+      // A cold start of bun can pass 3s on a busy machine; a timeout there reads as "not installed".
       const version = execFileSync(bunPath, ["--version"], {
         encoding: "utf-8",
-        timeout: 3000,
+        timeout: 10_000,
       }).trim();
       bun = bunMeetsFloor(version);
     } catch {
