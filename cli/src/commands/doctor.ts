@@ -413,7 +413,9 @@ export async function checkColima(): Promise<CheckResult> {
     name: "Colima",
     didPass: false,
     message: status.problem ?? "The Colima VM is not running",
-    fix: status.fix,
+    fix:
+      status.fix ??
+      "Start Colima: colima start\n  Verify: colima status\n  Docs: https://github.com/abiosoft/colima",
   };
 }
 
@@ -431,7 +433,7 @@ export async function checkDockerRuntime(): Promise<CheckResult> {
         name: CONTAINER_RUNTIME_CHECK,
         didPass: false,
         message: "Docker is not running",
-        fix: DOCTOR_FIXES.dockerDaemonDown,
+        fix: "Start Docker Desktop, enable WSL2 integration, then retry: flisk doctor\n  Verify: docker ps\n  Docs: https://docs.docker.com/desktop/wsl/",
       };
     }
   }
@@ -449,8 +451,8 @@ export async function checkDockerRuntime(): Promise<CheckResult> {
       return {
         name: CONTAINER_RUNTIME_CHECK,
         didPass: false,
-        message: "Docker daemon is not responding",
-        fix: DOCTOR_FIXES.dockerDaemonDown,
+        message: "Docker daemon is not responding (timeout)",
+        fix: "Restart Docker daemon: systemctl restart docker (Linux) or restart Docker Desktop/Colima\n  Verify: docker ps\n  Docs: https://docs.docker.com/config/daemon/",
       };
     }
   }
@@ -472,7 +474,7 @@ export async function checkDockerRuntime(): Promise<CheckResult> {
       name: CONTAINER_RUNTIME_CHECK,
       didPass: false,
       message: "Colima is installed but not running",
-      fix: DOCTOR_FIXES.dockerDaemonDown,
+      fix: "Start Colima: colima start\n  Verify: colima status\n  Docs: https://github.com/abiosoft/colima",
     };
   }
   if (await succeeds("podman ps")) {
@@ -488,15 +490,15 @@ export async function checkDockerRuntime(): Promise<CheckResult> {
       name: CONTAINER_RUNTIME_CHECK,
       didPass: false,
       message: "Docker daemon is not running",
-      fix: DOCTOR_FIXES.dockerDaemonDown,
+      fix: "Start Docker daemon: systemctl start docker (Linux) or start Docker Desktop\n  Verify: docker ps\n  Docs: https://docs.docker.com/engine/daemon/",
     };
   }
 
   return {
     name: CONTAINER_RUNTIME_CHECK,
     didPass: false,
-    message: "Docker is not running",
-    fix: DOCTOR_FIXES.dockerMissing,
+    message: "Docker is not installed",
+    fix: "Install Docker: https://docs.docker.com/get-docker/\n  Verify: docker --version\n  After install, start Docker and retry: flisk doctor",
   };
 }
 
@@ -583,7 +585,7 @@ export async function checkDockerVersions(exec: ExecAsync = execAsync): Promise<
     name: "Docker Versions",
     didPass: false,
     message: `Docker is too old for generated healthchecks (they use start_interval):\n    ${problems.join("\n    ")}`,
-    fix: "Update Docker Desktop, or on Linux update docker-ce and the docker-compose-plugin package",
+    fix: "Update Docker: Docker Desktop (auto-updates), or Linux: apt/yum/dnf update docker-ce docker-compose-plugin\n  Verify: docker version --format '{{.Server.Version}}' && docker compose version --short\n  Docs: https://docs.docker.com/engine/install/",
   };
 }
 checkDockerVersions.requiresContainerRuntime = true;
@@ -634,7 +636,7 @@ export async function checkDockerOperatingSystem(
       name: "Docker OS",
       didPass: false,
       message: `Docker is using the ${osType || "unknown"} engine; Flisk requires Linux containers`,
-      fix: "Switch Docker Desktop to Linux containers, enable WSL2 integration, then retry flisk doctor.",
+      fix: "Switch Docker Desktop to Linux containers: Settings > General > Use the WSL 2 based engine\n  Or on Windows: docker context use default (if using WSL2 backend)\n  Verify: docker info --format '{{.OSType}}'\n  Docs: https://docs.docker.com/desktop/wsl/",
     };
   }
   return { name: "Docker OS", didPass: true, message: "Docker is using Linux containers" };
