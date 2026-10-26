@@ -33,7 +33,7 @@ foreach ($asset in @("flisk-windows-amd64.exe", "flisk-cli-engine.tar.gz")) {
 
 $exePath = Join-Path $releaseDir "flisk.exe"
 Copy-Item -LiteralPath (Join-Path $releaseDir "flisk-windows-amd64.exe") -Destination $exePath
-tar -xzf (Join-Path $releaseDir "tdk-cli-engine.tar.gz") -C $releaseDir
+tar -xzf (Join-Path $releaseDir "flisk-cli-engine.tar.gz") -C $releaseDir
 if ($LASTEXITCODE -ne 0) { throw "Engine archive extraction failed" }
 
 $actualVersion = (& $exePath --version).Trim()
