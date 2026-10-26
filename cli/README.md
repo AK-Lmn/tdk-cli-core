@@ -479,7 +479,7 @@ To bring an existing Compose repo in, `flisk import` runs [flisk-import](https:/
 
 ## 📝 License
 
-[MIT](../LICENSE) © [Flisk Landscape](https://github.com/flisk-sh)
+[MIT](../LICENSE) © [Flisk](https://github.com/flisk-sh)
 
 ---
 
