@@ -7,19 +7,19 @@ written or started (follow-up to #564, CI usage coordinated with #1756).
 
 ## What Changes
 
-- Add optional `pinnedFliskVersion` (`MAJOR.MINOR.PATCH`) to `.tdk/project.json`.
+- Add optional `pinnedFliskVersion` (`MAJOR.MINOR.PATCH`) to `.flisk/project.json`.
 - Add `evaluateFliskVersionPin` in `cli/src/utils/flisk-version.ts`
   (`none | ok | mismatch | malformed`).
 - Check the pin from `enforceVersionFloor` (`flisk up`, also under `--dry-run`),
   from `flisk doctor`, and before commands that write project files.
 - A mismatch reports expected and current versions plus a copyable install command.
 - Update the project schema, `docs/upgrading.md`, `docs/ci.md`, `docs/troubleshooting.md`, `docs/cheat-sheet.md`, and the CHANGELOG.
-- Rename `minTdkVersion` to `minFliskVersion` (schema, evaluator, `up`, `doctor`, tests, docs).
+- Rename `minFliskVersion` to `minFliskVersion` (schema, evaluator, `up`, `doctor`, tests, docs).
 
 ## Capabilities
 
 ### New Capabilities
-- `pinned-tdk-version`: exact CLI version pinning per repository.
+- `pinned-flisk-version`: exact CLI version pinning per repository.
 
 ### Modified Capabilities
 - None.

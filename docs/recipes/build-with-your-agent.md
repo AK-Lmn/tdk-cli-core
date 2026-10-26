@@ -245,6 +245,6 @@ With Flisk 1.4.2 on 26 Oct 2026:
 
 - The shop steps (a website and an API) and the AI agent steps (an agent, an MCP tools server and an API with a database) were run end to end, and every health URL answered.
 - Every other block was run up to `flisk up --dry-run`, which lists the services and URLs without starting them. That includes each starter after `flisk project --yes`.
-- The starters still keep their settings in `.tdk/`, so in 1.4.2 `flisk up` fails right after cloning with `Could not find project root`. The extra `flisk project --yes` in those blocks fixes that. The app code itself is written by your agent, so its quality depends on the agent.
+- The starters ship `.flisk/project.json`, so `flisk up` works right after cloning; the `flisk project --yes` lines in those blocks are safe but not required. The app code itself is written by your agent, so its quality depends on the agent.
 
 When something does not start, ask your agent to run `flisk doctor` and explain the result in plain words.

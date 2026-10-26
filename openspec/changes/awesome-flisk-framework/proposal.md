@@ -4,7 +4,7 @@ Flisk resources are spread across organization repositories, documentation, exam
 
 ## What Changes
 
-- Create a public GitHub repository named `awesome-tdk-framework` as a curated directory for the Flisk ecosystem.
+- Create a public GitHub repository named `awesome-flisk-framework` as a curated directory for the Flisk ecosystem.
 - Keep the repository intentionally minimal with a root `README.md` catalog and a root `CONTRIBUTING.md` guide; do not add source code, data files, assets, or automation/configuration files.
 - Make the README the complete catalog of links, grouped into a broad, navigable taxonomy covering official projects, getting started, documentation, examples, templates, extensions, integrations, deployment, observability, security, community, and learning resources.
 - Include GitHub repositories, gists, articles, videos, packages, tools, and other relevant links, with concise descriptions and clear labels that distinguish official from community-maintained resources.
@@ -20,7 +20,7 @@ Flisk resources are spread across organization repositories, documentation, exam
 
 ## Impact
 
-- New public GitHub repository: `flisk-sh/awesome-tdk-framework`.
+- New public GitHub repository: `flisk-sh/awesome-flisk-framework`.
 - Existing organization profile README in `flisk-sh/.github` gains a prominent link to the catalog.
 - Initial content draws from existing Flisk repositories and public resources; external links must be checked and described accurately during implementation.
 - No runtime code, APIs, or package dependencies are introduced.

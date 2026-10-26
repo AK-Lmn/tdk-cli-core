@@ -16,12 +16,12 @@
 | Informative lines | ~5 | same |
 | Garbled lines (spinner interleaved with child stdout) | 5 | same |
 | `flisk project --yes` alone | 26 lines | reproduced in temp clone with `@1.3.205` |
-| Demo repo tracked size | 146 files / 2,753 lines | `tdk-restaurant-example` |
+| Demo repo tracked size | 146 files / 2,753 lines | `flisk-restaurant-example` |
 | After `flisk project --yes` | **492 files / 35,789 lines / 240 generated files** | `~/.flisk`-style probe |
 | App services | **6** (2 frontend, 3 backend, 1 worker) across **4 stacks** | `service.json` scan |
-| Platform services | `proxy` (Traefik), `database-management` (Postgres) | `.tdk/project.json` |
+| Platform services | `proxy` (Traefik), `database-management` (Postgres) | `.flisk/project.json` |
 | Frontend URL shape | `http://app.flisk-demo.localhost/<name>` | `service-urls.ts:49,82` |
-| Ink availability | bundled in `dist-bundle` for npm; **not** used by this flow | `bin/tdk.js:31-35` |
+| Ink availability | bundled in `dist-bundle` for npm; **not** used by this flow | `bin/flisk.js:31-35` |
 | `npx` bare spec | **stale forever** — `1.3.204` while `@latest` = `1.3.205` | measured twice |
 | Tests asserting demo output | **0** | `cli/src/utils/__tests__/one-command.test.ts` |
 
@@ -34,7 +34,7 @@
 | ~15 lines of git progress | `project.ts:176` `stdio:"inherit"` | Cut |
 | `Next steps: 1. cd 2. flisk doctor 3. flisk up` | `project.ts:190-193` | **Lie** — demo does all three at `cli.ts:118,168` |
 | `Runtime readiness: …` × 2 | `project.ts:194` + `project.ts:357` | Duplicate; cut both in demo path |
-| `Flisk Project Configuration`, `Project root:`, `✓ .tdk/project.json exists`, `📋 Regenerating…` | `project.ts:310-334` | Cut |
+| `Flisk Project Configuration`, `Project root:`, `✓ .flisk/project.json exists`, `📋 Regenerating…` | `project.ts:310-334` | Cut |
 | `✓ Generated: …` × 7 | `template-engine.ts:612-633` | Cut — `quiet` option already exists, never used by `project` |
 | `💡 To start Tilt: flisk up` | `template-engine.ts` | **Lie** in demo path |
 | `✅ Project configuration regenerated!` + `Generated in …:` list | `project.ts:352-356` | Cut, and duplicates the `✓ Generated` list |
@@ -71,7 +71,7 @@ Rules that make this work:
 1. **Pure renderer.** `renderDemoFrame` returns `string[]`. No `process.stdout`, no `Date.now()` inside. Time and counts are injected. This is what makes it (a) snapshot-testable without a TTY, (b) deterministic for video, (c) reusable by `--json`.
 2. **Fixed row count.** Always `FRAME_ROWS` lines. `paint` moves up `FRAME_ROWS`, clears each line, rewrites. No `\x1b[2J` (flashes on camera), no scrolling.
 3. **TTY gate.** `process.stderr.isTTY === true` → paint. Otherwise one plain line per phase (same discipline as `spinner.ts:16`).
-4. **No new dependencies.** Raw ANSI. Ink *is* bundled (`bin/tdk.js:31`), but its async reconciler can flicker on camera and it is not used by this flow today. Do not introduce React into the startup path.
+4. **No new dependencies.** Raw ANSI. Ink *is* bundled (`bin/flisk.js:31`), but its async reconciler can flicker on camera and it is not used by this flow today. Do not introduce React into the startup path.
 
 ### Component boundaries
 
@@ -258,7 +258,7 @@ No schema, no index, no migration. State touched:
 
 | State | Risk |
 | --- | --- |
-| `.tdk/project.json` | Regenerated idempotently; `quiet` does not change content |
+| `.flisk/project.json` | Regenerated idempotently; `quiet` does not change content |
 | `.env` | Created with defaults; unchanged |
 | `.gitignore` | Appends only |
 | `~/.flisk/flisk-demo` | **Deleted on every run** (S4) — only real data-loss surface |
@@ -288,7 +288,7 @@ No N+1 risk. `findServiceDirs` walks the tree twice per directory (`readdirSync`
 Three fixes, pick one:
 
 - **(a) Reuse before refresh.** Move the `findReadyFrontend` check (`cli.ts:106`) *above* the `rmSync`. If the demo is already running → open it, ~2s. Good for takes 2..N, but shows no work.
-- **(b) `--keep` flag.** Skip the `rmSync` and reuse `node_modules` + `.tdk`. Real work still happens (image build is cached), so the stage still has something to show.
+- **(b) `--keep` flag.** Skip the `rmSync` and reuse `node_modules` + `.flisk`. Real work still happens (image build is cached), so the stage still has something to show.
 - **(c) Keep current behavior, record take 1 only.** Fragile.
 
 Recommend **(b)** as the default behavior and **(a)** as an automatic fast path.

@@ -57,7 +57,7 @@ CI SHALL run `scripts/check-npm-package.mjs` on the root package pack in the `pa
 
 #### Scenario: An unexpected path would ship
 
-- **WHEN** the pack contains a path outside `cli/bin`, `cli/dist`, `cli/dist-bundle`, `cli/templates`, `cli/shared-platform-engineering/docker-templates`, `runtime/`, `examples/tdk-example/`, or the top-level `package.json`, `README.md`, `LICENSE`, `CHANGELOG.md`
+- **WHEN** the pack contains a path outside `cli/bin`, `cli/dist`, `cli/dist-bundle`, `cli/templates`, `cli/shared-platform-engineering/docker-templates`, `runtime/`, `examples/flisk-example/`, or the top-level `package.json`, `README.md`, `LICENSE`, `CHANGELOG.md`
 - **THEN** the check exits non-zero and lists each such path
 
 #### Scenario: The module format is not declared
@@ -80,10 +80,10 @@ CI SHALL run `scripts/check-npm-package.mjs` on the root package pack in the `pa
 
 #### Scenario: A required path is missing
 
-- **WHEN** the tarball lacks any of `cli/bin/flisk.js`, `cli/dist-bundle/cli.js`, `cli/package.json`, `runtime/Tiltfile`, `runtime/specs/specs/TILT_TECH_STACK.star`, `examples/tdk-example/Tiltfile`, `package.json`, `README.md`, or `LICENSE`
+- **WHEN** the tarball lacks any of `cli/bin/flisk.js`, `cli/dist-bundle/cli.js`, `cli/package.json`, `runtime/Tiltfile`, `runtime/specs/specs/TILT_TECH_STACK.star`, `examples/flisk-example/Tiltfile`, `package.json`, `README.md`, or `LICENSE`
 - **THEN** the check exits non-zero and names each missing path
 
 #### Scenario: The bundled example stops working
 
-- **WHEN** `flisk project example --yes` from the installed tarball does not write `tdk-example/Tiltfile` and `tdk-example/TILT_TECH_STACK.star`
+- **WHEN** `flisk project example --yes` from the installed tarball does not write `flisk-example/Tiltfile` and `flisk-example/TILT_TECH_STACK.star`
 - **THEN** the `package-smoke` job fails

@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Repository declares one pinned CLI version
-A repository MUST be able to set `pinnedFliskVersion` in `.tdk/project.json` as a `MAJOR.MINOR.PATCH` string. Flisk MUST reject any other value as malformed.
+A repository MUST be able to set `pinnedFliskVersion` in `.flisk/project.json` as a `MAJOR.MINOR.PATCH` string. Flisk MUST reject any other value as malformed.
 
 #### Scenario: Valid pin
 - **WHEN** `pinnedFliskVersion` is `"1.3.80"` and the running CLI is 1.3.80
@@ -69,13 +69,13 @@ A project without `pinnedFliskVersion` MUST behave exactly as before, including 
 - **THEN** it warns that the pin was not checked and continues
 
 ### Requirement: Legacy floor field is still read for one release
-The `minTdkVersion` field MUST keep working as a deprecated alias of `minFliskVersion` for one release, with the same floor behavior.
+The `minFliskVersion` field MUST keep working as a deprecated alias of `minFliskVersion` for one release, with the same floor behavior.
 
 #### Scenario: Legacy field only
-- **WHEN** `.tdk/project.json` sets `minTdkVersion` and not `minFliskVersion`
+- **WHEN** `.flisk/project.json` sets `minFliskVersion` and not `minFliskVersion`
 - **THEN** the floor is evaluated with that value
-- **AND** the command warns that `minTdkVersion` is deprecated and names `minFliskVersion` as its replacement
+- **AND** the command warns that `minFliskVersion` is deprecated and names `minFliskVersion` as its replacement
 
 #### Scenario: Both fields set
-- **WHEN** both `minTdkVersion` and `minFliskVersion` are set
+- **WHEN** both `minFliskVersion` and `minFliskVersion` are set
 - **THEN** `minFliskVersion` is used and the alias is ignored with a warning

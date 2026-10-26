@@ -31,7 +31,7 @@ The free MIT CLI is the product. Premium costs $19 per developer per month for e
 
 ## Repository About copy
 
-Use the exact lines from the supplied organization spec for `flisk-sh`, `flisk`, `flisk-sh/website`, `flisk.sh`, `tdk-example`, `tdk-erp-system`, `tdk-saas-starter`, `tdk-restaurant-example`, `tdk-user-management`, `tdk-auth-queue-email-example`, `tdk-ecommerce-example`, `tdk-docker-compose-example`, `flisk-sh/releases`, `tdk-labs`, `tdk-demo-animation`, `create-flisk`, `awesome-tdk-framework`, `tdk-skills`, and `flisk-discovery`. The archived `flisk-discovery` About field cannot be changed while the repository is archived.
+Use the exact lines from the supplied organization spec for `flisk-sh`, `flisk`, `flisk-sh/website`, `flisk.sh`, `flisk-example`, `flisk-erp-system`, `flisk-saas-starter`, `flisk-restaurant-example`, `flisk-user-management`, `flisk-auth-queue-email-example`, `flisk-ecommerce-example`, `flisk-docker-compose-example`, `flisk-sh/releases`, `flisk-labs`, `flisk-demo-animation`, `create-flisk`, `awesome-flisk-framework`, `flisk-skills`, and `flisk-discovery`. The archived `flisk-discovery` About field cannot be changed while the repository is archived.
 
 ## Scope replies
 

@@ -48,4 +48,4 @@ If you are using `libfx` or LangGraph, you still need a local database, persiste
 - CPU and RAM use for a small stack on a 16 GB laptop has not been benchmarked; see [bench notes](benchmarks/scale-bench.md) for what is measured.
 - The project is young, so docs, examples, and community knowledge are limited.
 - Shutdown sends SIGTERM, but draining in-flight work (queues, background jobs) is the service's responsibility; a healthy container can still lose work if it ignores SIGTERM.
-- Environment variables are moving from the `TDK_` prefix to `FLISK_`. Both work today (`FLISK_X` wins); `TDK_X` prints a deprecation notice. Set `FLISK_QUIET_DEPRECATIONS=1` to silence it in CI.
+- Environment variables are moving from the `FLISK_` prefix to `FLISK_`. Both work today (`FLISK_X` wins); `FLISK_X` prints a deprecation notice. Set `FLISK_QUIET_DEPRECATIONS=1` to silence it in CI.

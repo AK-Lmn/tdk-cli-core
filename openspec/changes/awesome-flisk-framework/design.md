@@ -42,7 +42,7 @@ The Flisk ecosystem already has an organization profile and multiple public repo
 ## Migration Plan
 
 1. Assemble and verify the initial link inventory from the existing organization profile, Flisk repositories, docs, public gists, and other known ecosystem resources.
-2. Create the public `flisk-sh/awesome-tdk-framework` repository with root `README.md` and `CONTRIBUTING.md`; publish the curated taxonomy and link the README to the guide.
+2. Create the public `flisk-sh/awesome-flisk-framework` repository with root `README.md` and `CONTRIBUTING.md`; publish the curated taxonomy and link the README to the guide.
 3. Add a prominent catalog link to the existing Flisk organization profile README and check the link in the rendered profile.
 4. Confirm the final tracked file list is exactly `README.md` and `CONTRIBUTING.md`, and confirm both render from the public repository.
 

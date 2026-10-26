@@ -1,6 +1,6 @@
 ## Context
 
-`minTdkVersion` (renamed to `minFliskVersion` by this change) lives in `.tdk/project.json` with an evaluator shared by
+`minFliskVersion` (renamed to `minFliskVersion` by this change) lives in `.flisk/project.json` with an evaluator shared by
 `flisk up` and `flisk doctor`. It is a floor: newer CLIs pass. Teams need an exact pin.
 
 ## Goals / Non-Goals
@@ -12,9 +12,9 @@ a copyable fix, CI-readable, no change for unpinned repos.
 
 ## Decisions
 
-1. **Field in `.tdk/project.json`, named `pinnedFliskVersion` (per maintainer review).** Reuses the file and
+1. **Field in `.flisk/project.json`, named `pinnedFliskVersion` (per maintainer review).** Reuses the file and
    schema the floor uses; CI can read it with `jq` without running Flisk. A separate
-   `.tdk-version` file would create a second source of truth next to `minFliskVersion`.
+   `.flisk-version` file would create a second source of truth next to `minFliskVersion`.
 2. **Exact `MAJOR.MINOR.PATCH`**, same pattern as `minFliskVersion`. Ranges are a follow-up.
 3. **Mismatch is two-way.** A newer CLI than the pin is also a mismatch; that is the
    point of pinning. The fix is not `flisk upgrade` (it only goes to latest):
@@ -24,8 +24,8 @@ a copyable fix, CI-readable, no change for unpinned repos.
 5. **Bypass with the existing `--ignore-version`**, with a warning. `flisk doctor` still reports it.
 6. **Exempt commands:** `upgrade`, `version`, `completion`, help. Blocking them would
    leave no way out of a mismatch.
-7. **Enforcement point:** keep `enforceVersionFloor` as the single call site for `up`. Other commands call a shared gate right after resolving the project root, before any read-modify-write: `config` (regenerate, migrate, verify, enable-infra, disable-infra), `eject`, `resource` (not `resource --frameworks`), and `stack`. `project` is not gated: a new project has no `.tdk/project.json`, so the pin evaluates to none. `config edit` and `resource --frameworks` stay exempt.
-8. **Rename `minTdkVersion` to `minFliskVersion`**, per maintainer review. `minTdkVersion` stays readable as a deprecated alias for one release: it is read only when `minFliskVersion` is absent, `flisk up` and `flisk doctor` warn that it is deprecated, and the alias is removed in the next minor release. If both fields are set, `minFliskVersion` wins and the alias is ignored with a warning. Existing files keep working without edits.
+7. **Enforcement point:** keep `enforceVersionFloor` as the single call site for `up`. Other commands call a shared gate right after resolving the project root, before any read-modify-write: `config` (regenerate, migrate, verify, enable-infra, disable-infra), `eject`, `resource` (not `resource --frameworks`), and `stack`. `project` is not gated: a new project has no `.flisk/project.json`, so the pin evaluates to none. `config edit` and `resource --frameworks` stay exempt.
+8. **Rename `minFliskVersion` to `minFliskVersion`**, per maintainer review. `minFliskVersion` stays readable as a deprecated alias for one release: it is read only when `minFliskVersion` is absent, `flisk up` and `flisk doctor` warn that it is deprecated, and the alias is removed in the next minor release. If both fields are set, `minFliskVersion` wins and the alias is ignored with a warning. Existing files keep working without edits.
 
 ## Risks / Trade-offs
 

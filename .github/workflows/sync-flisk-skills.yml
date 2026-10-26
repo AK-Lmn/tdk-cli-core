@@ -3,7 +3,7 @@ name: 🔁 Automation | Sync shared Flisk skills
 on:
   workflow_dispatch:
   repository_dispatch:
-    types: [flisk-skills-updated, tdk-skills-updated] # tdk-skills-updated: sent by flisk-skills before its rename
+    types: [flisk-skills-updated]
 
 permissions:
   contents: read

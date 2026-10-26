@@ -32,7 +32,7 @@ The table below documents verified capabilities across supported Unix platforms,
 | **Dry-run planning (`up --dry-run`)** | Supported | Supported | Supported | Supported (no containers started) |
 | **Stack startup (`flisk up`)** | Supported (Docker/Tilt) | Supported (Docker/Tilt) | Supported (Docker/Tilt) | **Refused** (requires WSL2 Ubuntu) |
 | **One-command demo (`flisk demo`)** | Supported | Supported | Supported (WS6 verified) | **Refused** early (no clone/install) |
-| **Escape hatch (`TDK_ALLOW_NATIVE_WINDOWS=1`)**| N/A | N/A | N/A | Available (unsupported / experimental) |
+| **Escape hatch (`FLISK_ALLOW_NATIVE_WINDOWS=1`)**| N/A | N/A | N/A | Available (unsupported / experimental) |
 
 ---
 
@@ -76,7 +76,7 @@ A thorough spike evaluated the mechanical and orchestration differences between 
 1. **WSL2 Ubuntu Provides a Superior Experience:** Docker Desktop on Windows already runs its container engine inside a WSL2 lightweight utility VM. Developing within Ubuntu in WSL2 (with the working repository stored in the WSL2 Linux filesystem rather than Windows-mounted `/mnt/c/...` paths) gives developers native POSIX signals, inotify file watching, standard Unix domain sockets, and container filesystem performance comparable to native Linux, which is not reliably achieved when the repository sits on a Windows-mounted path.
 2. **Predictability and Reliability (Principle of #661):** Per Flisk's guiding principle *"Do not make Flisk bigger. Make Flisk trustworthy."*, supporting native Windows runtime execution would require continuous maintenance of an extensive compatibility layer (Starlark POSIX emulation, Windows Job Object cancellation, volume mount translation, DNS workarounds) that adds significant fragility.
 3. **Inspection and Scaffolding Remain First-Class:** Native Windows developers can install the official binary, run diagnostics (`flisk doctor`), scaffold projects (`flisk project`), inspect dry-run plans (`flisk up --dry-run`), and install completions. When ready to boot the stack, they transition seamlessly to Ubuntu in WSL2.
-4. **Unsupported Escape Hatch Preserved:** For developers and contributors conducting experiments, `TDK_ALLOW_NATIVE_WINDOWS=1` remains in place to bypass the refusal check without changing official support guarantees.
+4. **Unsupported Escape Hatch Preserved:** For developers and contributors conducting experiments, `FLISK_ALLOW_NATIVE_WINDOWS=1` remains in place to bypass the refusal check without changing official support guarantees.
 
 ---
 

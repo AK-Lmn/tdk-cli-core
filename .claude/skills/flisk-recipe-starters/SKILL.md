@@ -35,7 +35,7 @@ flisk up <stack> --json &    # or omit <stack> to start every stack
 flisk networks --raw
 ```
 
-**Note (Flisk 1.4.2):** the starters still keep their settings in `.tdk/`, so right after cloning, `flisk up` and `flisk stacks` stop with `Could not find project root (no .flisk/project.json found)`. Running `flisk project --yes` inside the cloned folder creates `.flisk/` and the starter then works (checked for every template above with `flisk up --dry-run`).
+The starters ship `.flisk/project.json`, so `flisk up` and `flisk stacks` work right after cloning. Running `flisk project --yes` inside the clone is safe but not required.
 
 Then change the starter to what the user asked for: rename things in the app code, add resources with `flisk resource ... --stack <stack>`, and follow the flisk-build skill to check every URL and report them.
 
