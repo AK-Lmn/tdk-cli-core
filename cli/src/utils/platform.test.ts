@@ -12,9 +12,9 @@ import {
 
 describe("platform mappings", () => {
   it.each([
-    ["linux", "x64", "tdk-linux-amd64"],
-    ["darwin", "arm64", "tdk-darwin-arm64"],
-    ["win32", "x64", "tdk-windows-amd64.exe"],
+    ["linux", "x64", "flisk-linux-amd64"],
+    ["darwin", "arm64", "flisk-darwin-arm64"],
+    ["win32", "x64", "flisk-windows-amd64.exe"],
     ["win32", "arm64", null],
     ["freebsd", "x64", null],
   ])("maps %s/%s to %s", (platformName, architecture, expected) => {

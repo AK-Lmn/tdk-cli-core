@@ -429,7 +429,7 @@ def _register_deferred_image_prebuild(config, auto_init_apps):
     """Build a deferStart resource's image during `flisk up` without creating its container.
 
     `auto_init=False` on the dc_resource skips its docker_build too (confirmed
-    live on tdk-erp-system, task 7.2), so a fresh project's first request would
+    live on flisk-erp-system, task 7.2), so a fresh project's first request would
     find no image and the wake gateway would fall back to `tilt trigger`, which
     queues behind every other build. This local_resource builds the same image
     (same Dockerfile and target as docker_build: `production`, or `development` for Go with `dev.liveReload`; host network, and an allowlist

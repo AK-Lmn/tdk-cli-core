@@ -4,14 +4,14 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-source_repo="${FLISK_SKILLS_REPO:-$(cd "$repo_root/.." && pwd)/tdk-skills}"
+source_repo="${FLISK_SKILLS_REPO:-$(cd "$repo_root/.." && pwd)/flisk-skills}"
 
 if [[ ! -f "$source_repo/.claude-plugin/marketplace.json" ]]; then
   echo "Missing Flisk skills source repo: $source_repo" >&2
   exit 1
 fi
 
-# Skills authored in this repo (not in tdk-skills) are listed in .claude/skills/LOCAL, one name per line; the sync keeps them
+# Skills authored in this repo (not in flisk-skills) are listed in .claude/skills/LOCAL, one name per line; the sync keeps them
 # and re-creates their .agents/skills links. Blank lines and # comments are ignored.
 local_skills=()
 if [[ -f "$repo_root/.claude/skills/LOCAL" ]]; then

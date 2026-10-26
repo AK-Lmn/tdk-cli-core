@@ -427,7 +427,7 @@
 			}
 		},
 		{
-			"workflow": "publish-tdk-import.yml",
+			"workflow": "publish-flisk-import.yml",
 			"job": "token",
 			"tier": "gate",
 			"required": false,
@@ -435,22 +435,22 @@
 			"owner": "maintainers"
 		},
 		{
-			"workflow": "publish-tdk-import.yml",
+			"workflow": "publish-flisk-import.yml",
 			"job": "build",
 			"tier": "release",
 			"required": false,
-			"reason": "Builds tdk-import (manual)",
+			"reason": "Builds flisk-import (manual)",
 			"owner": "maintainers",
 			"exempt": {
 				"check-name": "#1279"
 			}
 		},
 		{
-			"workflow": "publish-tdk-import.yml",
+			"workflow": "publish-flisk-import.yml",
 			"job": "publish",
 			"tier": "release",
 			"required": false,
-			"reason": "Publishes tdk-import (manual)",
+			"reason": "Publishes flisk-import (manual)",
 			"owner": "maintainers",
 			"exempt": {
 				"check-name": "#1279"
@@ -583,7 +583,7 @@
 			"owner": "maintainers"
 		},
 		{
-			"workflow": "sync-tdk-skills.yml",
+			"workflow": "sync-flisk-skills.yml",
 			"job": "sync",
 			"tier": "bot",
 			"required": false,

@@ -57,7 +57,7 @@ vi.mock("../../utils/paths.js", async (importOriginal) => {
 const platformMock = {
   isWindows: vi.fn((): boolean => process.platform === "win32"),
   binaryAssetName: vi.fn((): string | null =>
-    process.platform === "win32" ? "tdk-windows-amd64.exe" : "tdk-darwin-arm64",
+    process.platform === "win32" ? "flisk-windows-amd64.exe" : "flisk-darwin-arm64",
   ),
   executableName: vi.fn((): string => (process.platform === "win32" ? "flisk.exe" : "flisk")),
 };
@@ -115,15 +115,15 @@ describe("upgradeViaBinary", () => {
     fliskPath = join(installDir, "flisk");
     release = {
       tag: "v1.3.21",
-      assetName: "tdk-darwin-arm64",
-      downloadUrl: "https://example.test/tdk-darwin-arm64",
-      engineDownloadUrl: "https://example.test/tdk-cli-engine.tar.gz",
+      assetName: "flisk-darwin-arm64",
+      downloadUrl: "https://example.test/flisk-darwin-arm64",
+      engineDownloadUrl: "https://example.test/flisk-cli-engine.tar.gz",
       checksumsUrl: "https://example.test/checksums.txt",
     };
     checksums = [
-      `${sha256(BINARY_BYTES)}  tdk-darwin-arm64`,
-      `${sha256("other platform")}  tdk-linux-amd64`,
-      `${sha256(ENGINE_BYTES)}  tdk-cli-engine.tar.gz`,
+      `${sha256(BINARY_BYTES)}  flisk-darwin-arm64`,
+      `${sha256("other platform")}  flisk-linux-amd64`,
+      `${sha256(ENGINE_BYTES)}  flisk-cli-engine.tar.gz`,
     ].join("\n");
     execSyncMock.mockReset();
     fetchMock.mockReset();
@@ -193,7 +193,7 @@ describe("upgradeViaBinary", () => {
       "the engine tarball does not match",
       () => checksums.replace(sha256(ENGINE_BYTES), sha256("x")),
     ],
-    ["checksums.txt has no entry for the binary", () => checksums.replace("tdk-darwin-arm64", "x")],
+    ["checksums.txt has no entry for the binary", () => checksums.replace("flisk-darwin-arm64", "x")],
   ])("refuses to install when %s", async (_case, makeChecksums) => {
     checksums = makeChecksums();
     const ok = await upgradeViaBinary(fliskPath, release);
@@ -205,7 +205,7 @@ describe("upgradeViaBinary", () => {
   it("still installs releases whose checksums.txt predates the engine entry", async () => {
     checksums = checksums
       .split("\n")
-      .filter((line) => !line.endsWith("tdk-cli-engine.tar.gz"))
+      .filter((line) => !line.endsWith("flisk-cli-engine.tar.gz"))
       .join("\n");
     const ok = await upgradeViaBinary(fliskPath, release);
 
@@ -357,11 +357,11 @@ describe("parseChecksums", () => {
     const a = "a".repeat(64);
     const b = "B".repeat(64);
     const sums = parseChecksums(
-      `${a}  tdk-linux-amd64\n${b} *tdk-cli-engine.tar.gz\n\nnot a checksum line\n`,
+      `${a}  flisk-linux-amd64\n${b} *flisk-cli-engine.tar.gz\n\nnot a checksum line\n`,
     );
 
-    expect(sums.get("tdk-linux-amd64")).toBe(a);
-    expect(sums.get("tdk-cli-engine.tar.gz")).toBe("b".repeat(64));
+    expect(sums.get("flisk-linux-amd64")).toBe(a);
+    expect(sums.get("flisk-cli-engine.tar.gz")).toBe("b".repeat(64));
     expect(sums.size).toBe(2);
   });
 });
@@ -456,7 +456,7 @@ describe("getLatestBinaryRelease", () => {
   });
 
   it("returns null when GitHub API responds with non-ok status", async () => {
-    platformMock.binaryAssetName.mockReturnValueOnce("tdk-darwin-arm64");
+    platformMock.binaryAssetName.mockReturnValueOnce("flisk-darwin-arm64");
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValueOnce({
@@ -468,7 +468,7 @@ describe("getLatestBinaryRelease", () => {
   });
 
   it("returns null when response json does not contain tag_name", async () => {
-    platformMock.binaryAssetName.mockReturnValueOnce("tdk-darwin-arm64");
+    platformMock.binaryAssetName.mockReturnValueOnce("flisk-darwin-arm64");
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValueOnce({
@@ -480,13 +480,13 @@ describe("getLatestBinaryRelease", () => {
   });
 
   it("returns null when fetch throws an error", async () => {
-    platformMock.binaryAssetName.mockReturnValueOnce("tdk-darwin-arm64");
+    platformMock.binaryAssetName.mockReturnValueOnce("flisk-darwin-arm64");
     vi.stubGlobal("fetch", vi.fn().mockRejectedValueOnce(new Error("network timeout")));
     expect(await getLatestBinaryRelease()).toBeNull();
   });
 
   it("returns a binary release object when release is found", async () => {
-    platformMock.binaryAssetName.mockReturnValueOnce("tdk-darwin-arm64");
+    platformMock.binaryAssetName.mockReturnValueOnce("flisk-darwin-arm64");
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValueOnce({
@@ -497,10 +497,10 @@ describe("getLatestBinaryRelease", () => {
     const release = await getLatestBinaryRelease();
     expect(release).toEqual({
       tag: "v1.4.0",
-      assetName: "tdk-darwin-arm64",
-      downloadUrl: "https://github.com/flisk-sh/releases/releases/download/v1.4.0/tdk-darwin-arm64",
+      assetName: "flisk-darwin-arm64",
+      downloadUrl: "https://github.com/flisk-sh/releases/releases/download/v1.4.0/flisk-darwin-arm64",
       engineDownloadUrl:
-        "https://github.com/flisk-sh/releases/releases/download/v1.4.0/tdk-cli-engine.tar.gz",
+        "https://github.com/flisk-sh/releases/releases/download/v1.4.0/flisk-cli-engine.tar.gz",
       checksumsUrl: "https://github.com/flisk-sh/releases/releases/download/v1.4.0/checksums.txt",
     });
   });
@@ -867,7 +867,7 @@ describe("upgradeCommand action handler", () => {
     promptConfirmMock.mockResolvedValue(true);
     getPackageVersionMock.mockReturnValue("1.3.186");
     platformMock.isWindows.mockReturnValue(false);
-    platformMock.binaryAssetName.mockReturnValue("tdk-darwin-arm64");
+    platformMock.binaryAssetName.mockReturnValue("flisk-darwin-arm64");
     platformMock.executableName.mockReturnValue("flisk");
   });
 

@@ -445,7 +445,7 @@ jobs:
           fi
           echo "✅ flisk doctor ran on the scaffolded project (exit $code)"
 
-      # examples/tdk-example ships in the package for this command; fail if it stops working.
+      # examples/flisk-example ships in the package for this command; fail if it stops working.
       - name: Copy the bundled example
         working-directory: ${{ runner.temp }}
         run: |

@@ -55,8 +55,8 @@
 
 5. **Boot the example stack**
    ```sh
-   flisk project example --path "$HOME/tdk-example"
-   cd "$HOME/tdk-example"
+   flisk project example --path "$HOME/flisk-example"
+   cd "$HOME/flisk-example"
    flisk project --yes
    sed -i 's/^INFISICAL_ENABLED=.*/INFISICAL_ENABLED=false/' .env
    flisk config verify
@@ -68,8 +68,8 @@
 6. **Verify the stack works** (in another Ubuntu terminal)
    ```sh
    export HTTP_PORT=<port printed by flisk up>
-   curl -fsS "http://api.tdk-example.localhost:$HTTP_PORT/api/orders/health"
-   curl -fsS "http://app.tdk-example.localhost:$HTTP_PORT"
+   curl -fsS "http://api.flisk-example.localhost:$HTTP_PORT/api/orders/health"
+   curl -fsS "http://app.flisk-example.localhost:$HTTP_PORT"
    ```
 
 7. **Clean up**

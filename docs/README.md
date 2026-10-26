@@ -8,7 +8,7 @@
 - [Flisk 101](101/README.md): a 13-lab course from an empty folder to a running stack, with an AI-agent prompt in every lab
 - [Run one backend locally](../examples/one-backend/README.md)
 - [Run one Python backend locally](../examples/one-backend-python/README.md)
-- [Full multi-service example](../examples/tdk-example/README.md)
+- [Full multi-service example](../examples/flisk-example/README.md)
 - [Mega cheat sheet](cheat-sheet.md): every `flisk` command, alias and flag
 - [Configuration and editor schemas](configuration.md)
 - [Resource features](resource-features.md): code generators, Prisma, and `featuresEnabled`

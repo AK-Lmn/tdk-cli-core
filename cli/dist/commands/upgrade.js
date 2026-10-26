@@ -140,7 +140,7 @@ export function detectAllInstallations() {
     return [...unique.values()];
 }
 const BINARY_RELEASE_REPO = "flisk-sh/releases";
-const ENGINE_ASSET_NAME = "tdk-cli-engine.tar.gz";
+const ENGINE_ASSET_NAME = "flisk-cli-engine.tar.gz";
 const CHECKSUMS_ASSET_NAME = "checksums.txt";
 /** Parses `shasum -a 256` / `sha256sum` output ("<hash>  <name>" or "<hash> *<name>"). */
 /** @internal Exported for unit tests only; not part of the package API. */
@@ -656,7 +656,7 @@ export function createUpgradeCommand() {
                     showErrorAndExit("Flisk Windows v1 supports AMD64 only. Use WSL2 Ubuntu or a 64-bit Intel/AMD PC.");
                 }
                 if (process.platform === "win32") {
-                    showErrorAndExit("No Windows AMD64 binary in this Flisk release. Need asset tdk-windows-amd64.exe.");
+                    showErrorAndExit("No Windows AMD64 binary in this Flisk release. Need asset flisk-windows-amd64.exe.");
                 }
                 showErrorAndExit(`Unsupported OS: Flisk does not support this OS: ${process.platform}. Supported: linux, darwin, win32.`);
             }

@@ -120,7 +120,7 @@ You get an orders API and a storefront behind one local gateway, with Postgres a
 
 <p><strong><a href="#quick-start">Quick start</a> · <a href="#why-flisk-cli">Why Flisk</a> · <a href="#examples">Examples</a> · <a href="#installation">Installation</a> · <a href="#faq">FAQ</a> · <a href="#docs">Documentation</a></strong></p>
 
-[Website](https://flisk.sh/) · [Quickstart](https://flisk.sh/docs/quickstart/) · [Examples](https://flisk.sh/docs/examples/) · [Awesome Flisk](https://github.com/flisk-sh/awesome-tdk-framework) · [Demo](https://flisk-sh.github.io/flisk-demo-animation/) · [Report a bug](https://github.com/flisk-sh/flisk/issues)
+[Website](https://flisk.sh/) · [Quickstart](https://flisk.sh/docs/quickstart/) · [Examples](https://flisk.sh/docs/examples/) · [Awesome Flisk](https://github.com/flisk-sh/awesome-flisk-framework) · [Demo](https://flisk-sh.github.io/flisk-demo-animation/) · [Report a bug](https://github.com/flisk-sh/flisk/issues)
 
 <a id="readme-languages"></a>
 
@@ -596,7 +596,7 @@ Runnable examples show Flisk on real stacks. Start with the smallest one:
 | [one-backend-helm](examples/one-backend-helm/README.md) | Working alongside Helm |
 | [byo](examples/byo/README.md) | Bringing your own existing resources |
 | [byo-jobs](examples/byo-jobs/README.md) | Bring-your-own jobs |
-| [tdk-example](examples/tdk-example/README.md) | A full multi-service stack |
+| [flisk-example](examples/flisk-example/README.md) | A full multi-service stack |
 
 ## Use Flisk with your AI agent
 
@@ -648,7 +648,7 @@ Set `FLISK_DEBUG=1` before running `flisk up --verbose` to include Starlark debu
 - [Generated service files and drift checks](docs/generated-files.md)
 - [Runnable one-backend example](examples/one-backend/README.md)
 - [Runnable Python backend example](examples/one-backend-python/README.md)
-- [Full multi-service example](examples/tdk-example/README.md)
+- [Full multi-service example](examples/flisk-example/README.md)
 - [Features and license limits](docs/FEATURES.md)
 - [Tool comparison: docker-compose, Tilt, Skaffold, DevSpace, kind](docs/comparison.md)
 - [Honest comparison and known limits](docs/compare-honest.md)
@@ -686,7 +686,7 @@ On native Windows, `flisk --version`, `flisk doctor`, and `flisk up --dry-run` a
 
 Core stays free. Premium is a separate key for the extras above; no key required to run `flisk up`.
 
-**Ecosystem map:** examples, articles, related tools, and notes live in [awesome-tdk-framework](https://github.com/flisk-sh/awesome-tdk-framework). Star this repo (`flisk`) if the CLI is what you run; use the awesome list to browse the rest.
+**Ecosystem map:** examples, articles, related tools, and notes live in [awesome-flisk-framework](https://github.com/flisk-sh/awesome-flisk-framework). Star this repo (`flisk`) if the CLI is what you run; use the awesome list to browse the rest.
 
 <p align="center">
 

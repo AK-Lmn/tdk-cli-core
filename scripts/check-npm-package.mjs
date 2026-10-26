@@ -15,7 +15,7 @@ import { execFileSync } from "node:child_process";
 // Any "*.test.*" or "*.spec.*" file counts, whatever the extension (.ts, .py, .star, ...).
 const TEST_PATH = /(^|\/)(__tests__|tests)\/|\.(test|spec)\.[^/]+$|(^|\/)test_[^/]*\.py$|_test\.py$/;
 
-// Every shipped path starts with one of these. examples/tdk-example backs `flisk project example`;
+// Every shipped path starts with one of these. examples/flisk-example backs `flisk project example`;
 // runtime/ holds the Tiltfile, engine, discovery, specs and ext that `flisk up` loads.
 export const ALLOWED_PATHS = [
   "cli/bin/",
@@ -25,7 +25,7 @@ export const ALLOWED_PATHS = [
   "cli/shared-platform-engineering/docker-templates/",
   "cli/package.json",
   "runtime/",
-  "examples/tdk-example/",
+  "examples/flisk-example/",
   "CHANGELOG.md",
   "LICENSE",
   "README.md",
@@ -43,7 +43,7 @@ export const REQUIRED_PATHS = [
   "cli/dist-bundle/cli.js",
   "runtime/Tiltfile",
   "runtime/specs/specs/TILT_TECH_STACK.star",
-  "examples/tdk-example/Tiltfile",
+  "examples/flisk-example/Tiltfile",
 ];
 
 export function findTestFiles(paths) {

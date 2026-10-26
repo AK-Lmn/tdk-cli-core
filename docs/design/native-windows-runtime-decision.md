@@ -9,7 +9,7 @@
 
 ## 1. Context and Problem Statement
 
-Flisk currently supports macOS, Linux, and Ubuntu in WSL2 for local runtime workflows (`flisk up`, live-reloading Tilt orchestration, Traefik routing, and background service lifecycle). On native Windows (Windows 10 22H2+, Windows 11, and Windows Server 2022+ on AMD64), the CLI executable `tdk.exe` is fully compiled, packaged, and distributed, but its runtime behavior is intentionally restricted to **inspection-only**: commands such as `flisk --version`, `flisk doctor`, `flisk project`, `flisk upgrade`, `flisk completion`, and `flisk up --dry-run` work, while commands that start containers (`flisk up` and `flisk demo`) refuse execution before touching the system with the message:
+Flisk currently supports macOS, Linux, and Ubuntu in WSL2 for local runtime workflows (`flisk up`, live-reloading Tilt orchestration, Traefik routing, and background service lifecycle). On native Windows (Windows 10 22H2+, Windows 11, and Windows Server 2022+ on AMD64), the CLI executable `flisk.exe` is fully compiled, packaged, and distributed, but its runtime behavior is intentionally restricted to **inspection-only**: commands such as `flisk --version`, `flisk doctor`, `flisk project`, `flisk upgrade`, `flisk completion`, and `flisk up --dry-run` work, while commands that start containers (`flisk up` and `flisk demo`) refuse execution before touching the system with the message:
 
 > `"Landscape startup needs Ubuntu on WSL2. Native Windows is inspect-only."`
 
@@ -50,7 +50,7 @@ A thorough spike evaluated the mechanical and orchestration differences between 
 
 ### 3.3 File Watching and Hot Reloading
 - **Filesystem Event Discrepancies:** Windows uses `ReadDirectoryChangesW`, which behaves differently from Linux `inotify` or macOS `kqueue` regarding recursive subdirectory watching and atomic file renames.
-- **CRLF vs. LF Line Endings:** Git checkouts on Windows with `core.autocrlf=true` alter file line endings, which corrupts content hashes used by Flisk snapshot drift detection (`.tdk-contract`) and golden layer cache invalidation.
+- **CRLF vs. LF Line Endings:** Git checkouts on Windows with `core.autocrlf=true` alter file line endings, which corrupts content hashes used by Flisk snapshot drift detection (`.flisk-contract`) and golden layer cache invalidation.
 - **Path Case Sensitivity:** Windows NTFS is case-preserving but case-insensitive by default, whereas the container runtime inside the Linux VM is strictly case-sensitive. This discrepancy causes import path failures that only appear inside the running container.
 
 ### 3.4 Paths and Filesystem Restrictions
@@ -74,7 +74,7 @@ A thorough spike evaluated the mechanical and orchestration differences between 
 
 ### Rationale:
 1. **WSL2 Ubuntu Provides a Superior Experience:** Docker Desktop on Windows already runs its container engine inside a WSL2 lightweight utility VM. Developing within Ubuntu in WSL2 (with the working repository stored in the WSL2 Linux filesystem rather than Windows-mounted `/mnt/c/...` paths) gives developers native POSIX signals, inotify file watching, standard Unix domain sockets, and container filesystem performance comparable to native Linux, which is not reliably achieved when the repository sits on a Windows-mounted path.
-2. **Predictability and Reliability (Principle of #661):** Per Flisk's guiding principle *"Do not make TDK bigger. Make TDK trustworthy."*, supporting native Windows runtime execution would require continuous maintenance of an extensive compatibility layer (Starlark POSIX emulation, Windows Job Object cancellation, volume mount translation, DNS workarounds) that adds significant fragility.
+2. **Predictability and Reliability (Principle of #661):** Per Flisk's guiding principle *"Do not make Flisk bigger. Make Flisk trustworthy."*, supporting native Windows runtime execution would require continuous maintenance of an extensive compatibility layer (Starlark POSIX emulation, Windows Job Object cancellation, volume mount translation, DNS workarounds) that adds significant fragility.
 3. **Inspection and Scaffolding Remain First-Class:** Native Windows developers can install the official binary, run diagnostics (`flisk doctor`), scaffold projects (`flisk project`), inspect dry-run plans (`flisk up --dry-run`), and install completions. When ready to boot the stack, they transition seamlessly to Ubuntu in WSL2.
 4. **Unsupported Escape Hatch Preserved:** For developers and contributors conducting experiments, `TDK_ALLOW_NATIVE_WINDOWS=1` remains in place to bypass the refusal check without changing official support guarantees.
 

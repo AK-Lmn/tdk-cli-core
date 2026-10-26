@@ -31,10 +31,10 @@ D1() {
 }
 
 D2() {
-  log "D2 sync-tdk-skills.sh keeps the skills in .claude/skills/LOCAL and deletes a skill removed upstream"
+  log "D2 sync-flisk-skills.sh keeps the skills in .claude/skills/LOCAL and deletes a skill removed upstream"
   local tmp; tmp="$(mktemp -d)"
   mkdir -p "$tmp/repo/scripts" "$tmp/repo/.claude" "$tmp/repo/.agents"
-  cp "$REPO_ROOT/scripts/sync-tdk-skills.sh" "$tmp/repo/scripts/"
+  cp "$REPO_ROOT/scripts/sync-flisk-skills.sh" "$tmp/repo/scripts/"
   cp -R "$REPO_ROOT/.claude/skills" "$tmp/repo/.claude/skills"
   cp -R "$REPO_ROOT/.agents/skills" "$tmp/repo/.agents/skills"
   # A skill the previous sync brought in that the source repo no longer has.
@@ -45,7 +45,7 @@ D2() {
   echo '{"name":"fixture","plugins":[]}' >"$tmp/src/.claude-plugin/marketplace.json"
   echo '{"name":"flisk-cli"}' >"$tmp/src/plugins/flisk-cli/.claude-plugin/plugin.json"
   echo "# kept" >"$tmp/src/skills/kept-upstream/SKILL.md"; echo "# new" >"$tmp/src/skills/new-upstream/SKILL.md"
-  (cd "$tmp/repo" && FLISK_SKILLS_REPO="$tmp/src" bash scripts/sync-tdk-skills.sh) || die "sync-tdk-skills.sh failed on the fixture"
+  (cd "$tmp/repo" && FLISK_SKILLS_REPO="$tmp/src" bash scripts/sync-flisk-skills.sh) || die "sync-flisk-skills.sh failed on the fixture"
   ls -l "$tmp/repo/.agents/skills"
   local name kept=0
   while IFS= read -r name; do

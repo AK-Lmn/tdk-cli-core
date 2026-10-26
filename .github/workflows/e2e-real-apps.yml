@@ -48,7 +48,7 @@ jobs:
             web_checks: |
               dashboard-app|/
               checkout-app|/
-          - repo: tdk-restaurant-example
+          - repo: flisk-restaurant-example
             # Patterns match the service name in the URL (e.g. "reservation"
             # from /api/reservation/health), not the stack name ("guest") --
             # they only happen to be the same word for kitchen.

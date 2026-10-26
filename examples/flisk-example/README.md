@@ -10,10 +10,10 @@ flisk project --yes
 flisk up
 ```
 
-Open `http://app.tdk-example.localhost/orders-app/` and create an order, or use the routed API:
+Open `http://app.flisk-example.localhost/orders-app/` and create an order, or use the routed API:
 
 ```sh
-curl -fsS -X POST http://api.tdk-example.localhost/api/orders \
+curl -fsS -X POST http://api.flisk-example.localhost/api/orders \
   -H 'content-type: application/json' -d '{"item":"coffee"}'
 ```
 

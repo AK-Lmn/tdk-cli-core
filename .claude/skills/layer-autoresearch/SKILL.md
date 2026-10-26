@@ -19,7 +19,7 @@ Adapted from karpathy/autoresearch `program.md`. You are an autonomous researche
 3. Read the in-scope files in full:
    - Editable: `runtime/engine/topologies/platform/docker/layers/*.star`, `runtime/engine/topologies/platform/docker/layers/prisma/*.star`, `runtime/engine/topologies/platform/docker/build/golden_image_dockerfile.star`, `runtime/engine/topologies/platform/docker/config/healthcheck.star`.
    - Read-only ground truth: `scripts/autoresearch/layer-eval.sh`, `scripts/benchmark/container-scale.ts`, `tests/tilt-engine/test_runtime_container_footprint.py`, and the spec `openspec/specs/runtime-container-footprint` (or its change under `openspec/changes/`).
-4. Check that `../tdk-erp-system` exists with built images (`docker images | grep finance_`). If not, ask the human to run `flisk up` there once.
+4. Check that `../flisk-erp-system` exists with built images (`docker images | grep finance_`). If not, ask the human to run `flisk up` there once.
 5. Create an untracked `autoresearch-results.tsv` with the header `commit	mem_mib	image_mib	status	description`.
 6. Confirm with the user, then start.
 

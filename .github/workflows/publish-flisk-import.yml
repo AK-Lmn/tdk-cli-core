@@ -1,17 +1,17 @@
-name: 📤 Release | Publish tdk-import
+name: 📤 Release | Publish flisk-import
 
-# tdk-import lives in flisk-sh/flisk-import but is published with this repo's NPM_TOKEN,
+# flisk-import lives in flisk-sh/flisk-import but is published with this repo's NPM_TOKEN,
 # the only place the secret is set. Run manually with a tag of that repo (for example v0.1.0).
 # Leave "dry_run" on first to check what would be published.
 #
 # Two jobs on purpose: the tag's install and test scripts run in "build", which never sees the
-# token. "publish" does not check out or run any tdk-import code; it only publishes the tarball
+# token. "publish" does not check out or run any flisk-import code; it only publishes the tarball
 # "build" produced, so the tag cannot reach NPM_TOKEN (for example through BASH_ENV).
 on:
   workflow_dispatch:
     inputs:
       ref:
-        description: "tdk-import tag to publish (must equal v<version in its package.json>)"
+        description: "flisk-import tag to publish (must equal v<version in its package.json>)"
         required: true
         type: string
       dry_run:
@@ -40,9 +40,9 @@ jobs:
       - id: check
         run: |
           if [ -z "$NPM_TOKEN" ]; then
-            echo "::warning title=NPM_TOKEN not configured::Skipped publishing tdk-import. Add the NPM_TOKEN Actions secret to publish; the build still ran."
+            echo "::warning title=NPM_TOKEN not configured::Skipped publishing flisk-import. Add the NPM_TOKEN Actions secret to publish; the build still ran."
             {
-              echo "### ⚠️ tdk-import publish skipped"
+              echo "### ⚠️ flisk-import publish skipped"
               echo
               echo "The \`NPM_TOKEN\` Actions secret is not configured, so nothing was published. The build job still ran. Add the secret to publish."
             } >> "$GITHUB_STEP_SUMMARY"
@@ -91,7 +91,7 @@ jobs:
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: tdk-import-tarball
+          name: flisk-import-tarball
           path: ${{ runner.temp }}/pack/*.tgz
           if-no-files-found: error
           retention-days: 1
@@ -105,7 +105,7 @@ jobs:
       # Pinned: this job holds the token. Everything it runs comes from these two actions and npm.
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: tdk-import-tarball
+          name: flisk-import-tarball
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -113,7 +113,7 @@ jobs:
           registry-url: "https://registry.npmjs.org"
           package-manager-cache: false
 
-      # No --provenance: the attestation would name this repo's workflow, not tdk-import's source.
+      # No --provenance: the attestation would name this repo's workflow, not flisk-import's source.
       - name: Publish to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

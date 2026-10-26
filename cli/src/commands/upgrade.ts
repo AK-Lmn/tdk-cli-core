@@ -173,7 +173,7 @@ export function detectAllInstallations(): InstallInfo[] {
 
 const BINARY_RELEASE_REPO = "flisk-sh/releases";
 
-const ENGINE_ASSET_NAME = "tdk-cli-engine.tar.gz";
+const ENGINE_ASSET_NAME = "flisk-cli-engine.tar.gz";
 const CHECKSUMS_ASSET_NAME = "checksums.txt";
 
 /** @internal Exported for unit tests only; not part of the package API. */
@@ -758,7 +758,7 @@ export function createUpgradeCommand(): Command {
           }
           if (process.platform === "win32") {
             showErrorAndExit(
-              "No Windows AMD64 binary in this Flisk release. Need asset tdk-windows-amd64.exe.",
+              "No Windows AMD64 binary in this Flisk release. Need asset flisk-windows-amd64.exe.",
             );
           }
           showErrorAndExit(

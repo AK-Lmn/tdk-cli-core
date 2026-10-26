@@ -79,7 +79,7 @@ An MCP (Model Context Protocol) server is an API resource like a backend: it use
 
 `featuresEnabled` is optional; leave it empty or omit it unless the server opts into a platform feature. `dependsOn` follows the same rule as any other resource — it lists resources that must start first (here a database the tools read from). See the [AI Agents in Flisk guide](agents/ai-agents.md) for the MCP hosting model.
 
-Run `flisk resource <name> --type backend`, `flisk resource <name> --type frontend`, `flisk resource <name> --type worker`, or `flisk resource <name> --type mcp` to generate a starting manifest. Existing examples are in [`examples/tdk-example`](../examples/tdk-example).
+Run `flisk resource <name> --type backend`, `flisk resource <name> --type frontend`, `flisk resource <name> --type worker`, or `flisk resource <name> --type mcp` to generate a starting manifest. Existing examples are in [`examples/flisk-example`](../examples/flisk-example).
 
 ## Required identity and compatibility fields
 

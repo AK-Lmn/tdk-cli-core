@@ -27,7 +27,7 @@ export const PROJECT_TEMPLATES = {
     },
     example: {
         repo: "https://github.com/flisk-sh/flisk-example.git",
-        bundledPath: "examples/tdk-example",
+        bundledPath: "examples/flisk-example",
         description: "Hono + Postgres + NATS worker + Vite example with a routed write path",
     },
     "agent-stack": {

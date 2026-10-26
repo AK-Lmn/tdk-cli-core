@@ -308,7 +308,7 @@
 				"one-backend-python": {
 					"leg": "examples/python"
 				},
-				"tdk-example": {
+				"flisk-example": {
 					"leg": "examples/default"
 				}
 			},

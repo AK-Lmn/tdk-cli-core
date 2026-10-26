@@ -152,11 +152,11 @@ def test_wake_gateway_mounts_project_root_at_its_own_absolute_path(tmp_path):
     project must exist at the same absolute path in the gateway container."""
     r = _run_starlark(
         tmp_path,
-        "os.environ['FLISK_PROJECT_ROOT'] = '/Users/dev/tdk-erp-system/.flisk/.flisk-out/../..'\n"
+        "os.environ['FLISK_PROJECT_ROOT'] = '/Users/dev/flisk-erp-system/.flisk/.flisk-out/../..'\n"
         "load('@COMPOSE/traefik_standalone.star', 'generate_standalone_traefik_compose')\n"
         "r = {'yaml': generate_standalone_traefik_compose(True)}\n",
     )
-    assert "- /Users/dev/tdk-erp-system:/Users/dev/tdk-erp-system:ro" in r["yaml"]
+    assert "- /Users/dev/flisk-erp-system:/Users/dev/flisk-erp-system:ro" in r["yaml"]
 
 
 @pytest.mark.skipif(shutil.which("tilt") is None, reason="tilt CLI not installed")

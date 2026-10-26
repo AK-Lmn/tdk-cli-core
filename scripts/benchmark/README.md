@@ -8,7 +8,7 @@ bun scripts/benchmark/container-scale.ts --tiers 5,10 --gate 10
 bun scripts/benchmark/container-scale.ts --legacy-healthcheck  # old 10s probes, for comparison
 ```
 
-It uses the images built in `../tdk-erp-system`, a 100-service fixture bench of generated `/health` services (not an ERP product; override with `--project` or `FLISK_BENCH_PROJECT`). For each tier it starts N service containers with the generated runtime settings (`--init`, 512 MiB / 0.5 CPU limits, healthchecks against `/health`). It then records:
+It uses the images built in `../flisk-erp-system`, a 100-service fixture bench of generated `/health` services (not an ERP product; override with `--project` or `FLISK_BENCH_PROJECT`). For each tier it starts N service containers with the generated runtime settings (`--init`, 512 MiB / 0.5 CPU limits, healthchecks against `/health`). It then records:
 
 - launch time, first-healthy and all-healthy time
 - crashes and OOM kills, with each container's exit code and last log line
@@ -50,7 +50,7 @@ Results are specific to the recorded hardware, operating system, and Node runtim
 
 ## `flisk up` warm-start benchmark
 
-Times `flisk up` on a project, one cold run and warm runs, and records per-resource build times, the Docker VM's memory and the container health. It answers "how long does a start take, and what does a warm start save", for any Flisk project. The published run is [`docs/benchmarks/results/flisk-up-warm-start-2026-10-11/`](../../docs/benchmarks/results/flisk-up-warm-start-2026-10-11/summary.md) (tdk-restaurant-example).
+Times `flisk up` on a project, one cold run and warm runs, and records per-resource build times, the Docker VM's memory and the container health. It answers "how long does a start take, and what does a warm start save", for any Flisk project. The published run is [`docs/benchmarks/results/flisk-up-warm-start-2026-10-11/`](../../docs/benchmarks/results/flisk-up-warm-start-2026-10-11/summary.md) (flisk-restaurant-example).
 
 **Requirements:** `flisk`, `tilt`, `docker` (Compose v2 and buildx), `jq` and Node.js 22.12 or newer on `PATH`. Docker Desktop (or another engine) must be running, and nothing else should be building images on the machine.
 
@@ -58,7 +58,7 @@ Times `flisk up` on a project, one cold run and warm runs, and records per-resou
 
 ```bash
 scripts/benchmark/flisk-up-warm-start.sh \
-  --project ../tdk-restaurant-example \
+  --project ../flisk-restaurant-example \
   --out docs/benchmarks/results/flisk-up-warm-start-$(date +%F) \
   --cold-runs 1 --warm-runs 3 --sample-vm
 ```

@@ -11,7 +11,7 @@ afterEach(() => {
   for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true });
 });
 
-function project(savedHttp: number | null, name = "tdk-restaurant-example"): string {
+function project(savedHttp: number | null, name = "flisk-restaurant-example"): string {
   const root = realpathSync(mkdtempSync(join(tmpdir(), "flisk-runtime-port-")));
   dirs.push(root);
   mkdirSync(join(root, ".flisk", ".flisk-out"), { recursive: true });

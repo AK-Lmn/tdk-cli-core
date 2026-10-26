@@ -559,7 +559,7 @@ describe("doctor JSON command", () => {
     const probeFailingCheck: CheckResult = {
       name: "Service Health",
       didPass: false,
-      message: "http://api.tdk.localhost:8080/health returned 503 Service Unavailable",
+      message: "http://api.flisk.localhost:8080/health returned 503 Service Unavailable",
       fix: "flisk logs to inspect container health",
     };
     const probePassingCheck: CheckResult = {

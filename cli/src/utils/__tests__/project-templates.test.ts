@@ -8,7 +8,7 @@ import { bareTemplateArg, PROJECT_TEMPLATES } from "../project-templates.js";
 
 const exampleRoot = resolve(
   dirname(fileURLToPath(import.meta.url)),
-  "../../../../examples/tdk-example",
+  "../../../../examples/flisk-example",
 );
 
 describe("PROJECT_TEMPLATES", () => {
@@ -40,7 +40,7 @@ describe("PROJECT_TEMPLATES", () => {
   });
 
   it("bundles the product example with the CLI package", () => {
-    expect(PROJECT_TEMPLATES.example.bundledPath).toBe("examples/tdk-example");
+    expect(PROJECT_TEMPLATES.example.bundledPath).toBe("examples/flisk-example");
     expect(PROJECT_TEMPLATES.example.description).toContain("NATS worker");
     const manifests = [
       "services/shop/orders-api/service.json",

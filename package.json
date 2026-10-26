@@ -29,7 +29,7 @@
     "!runtime/**/*.spec.*",
     "!runtime/**/test_*.py",
     "!runtime/**/*_test.py",
-    "examples/tdk-example",
+    "examples/flisk-example",
     "cli/bin",
     "cli/dist/**/*.js",
     "cli/dist-bundle/**/*.js",

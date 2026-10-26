@@ -48,7 +48,7 @@ test("keeps shipped runtime and CLI files", () => {
     "runtime/engine/assets/docker/wake-gateway/decide.ts",
     "runtime/engine/topologies/tilt/manifest/loader.star",
     "runtime/specs/specs/TILT_TECH_STACK.star",
-    "examples/tdk-example/Tiltfile",
+    "examples/flisk-example/Tiltfile",
   ];
   assert.deepEqual(findTestFiles(paths), []);
   assert.deepEqual(findUnexpectedPaths(paths), []);

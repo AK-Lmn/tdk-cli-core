@@ -1,6 +1,6 @@
 ---
 name: flisk-troubleshoot
-description: Diagnose and fix Flisk (flisk) local-dev problems with verified commands. Covers `flisk doctor`, `flisk up` or `flisk down` failing or hanging, "Docker daemon is not responding", red Tilt resources (pull access denied for golden images, missing shared-platform-engineering files, TS2688 bun types, run-only "No such image"), Postgres crash loops, services never reaching healthy, a machine overloaded by many services, Docker image size vs memory questions, and benchmarking how many services fit on a machine. Use this whenever someone works in flisk or a Flisk project (tdk-erp-system, tdk-saas-starter, tdk-restaurant-example, auth-user) and anything about flisk, Tilt, or Docker is broken, slow, or being measured, even if they never say "troubleshoot".
+description: Diagnose and fix Flisk (flisk) local-dev problems with verified commands. Covers `flisk doctor`, `flisk up` or `flisk down` failing or hanging, "Docker daemon is not responding", red Tilt resources (pull access denied for golden images, missing shared-platform-engineering files, TS2688 bun types, run-only "No such image"), Postgres crash loops, services never reaching healthy, a machine overloaded by many services, Docker image size vs memory questions, and benchmarking how many services fit on a machine. Use this whenever someone works in flisk or a Flisk project (flisk-erp-system, flisk-saas-starter, flisk-restaurant-example, auth-user) and anything about flisk, Tilt, or Docker is broken, slow, or being measured, even if they never say "troubleshoot".
 license: MIT
 compatibility: Requires the flisk CLI, Docker and Tilt on the local machine. Does not deploy.
 metadata:
@@ -10,7 +10,7 @@ metadata:
 
 # Flisk troubleshooting
 
-This skill comes from a long session on 2026-09-25. It brought `tdk-erp-system` (107 services) up, measured it, and wasted a lot of the user's time along the way. Everything below marked **measured** or **verified** was run on the user's 16 GB MacBook Air (Docker VM: 8 CPUs, 7,934 MiB). Anything else is labelled as unknown.
+This skill comes from a long session on 2026-09-25. It brought `flisk-erp-system` (107 services) up, measured it, and wasted a lot of the user's time along the way. Everything below marked **measured** or **verified** was run on the user's 16 GB MacBook Air (Docker VM: 8 CPUs, 7,934 MiB). Anything else is labelled as unknown.
 
 ## How to work (the expensive lessons)
 
@@ -191,7 +191,7 @@ tr '\n' '\0' < cmds.txt | xargs -0 -n1 -P8 sh -c
 
 ## Environment traps
 
-- **`.flisk/.project-id` is not gitignored by default and is easy to accidentally stage.** It's created the first time anything checks a Premium license (`getOrCreateProjectId` in `cli/src/generator/extension-fetch.ts`) - a random UUID sent alongside `FLISK_LICENSE_KEY` to the license server for per-project tracking, not itself a secret credential, but it's local machine state that has no business in a shared repo. Found staged (`git status`, not yet committed - caught before it reached `origin/main`) in `tdk-erp-system` on 2026-09-26; `tdk-saas-starter` and `tdk-restaurant-example` had the same `.gitignore` gap with no file yet; `tdk-user-management` has **no `.gitignore` at all** (currently harmless - only 35 minimal tracked files, nothing sensitive - but unprotected the moment real development starts there). The CLI has no `.gitignore` template of its own to fix at the source (`flisk project` doesn't generate one; each starter repo ships its own) - check every project's `.gitignore` for `.flisk/.project-id` individually, and `git status`/`git log --all -- .flisk/.project-id` before assuming it's fine.
+- **`.flisk/.project-id` is not gitignored by default and is easy to accidentally stage.** It's created the first time anything checks a Premium license (`getOrCreateProjectId` in `cli/src/generator/extension-fetch.ts`) - a random UUID sent alongside `FLISK_LICENSE_KEY` to the license server for per-project tracking, not itself a secret credential, but it's local machine state that has no business in a shared repo. Found staged (`git status`, not yet committed - caught before it reached `origin/main`) in `flisk-erp-system` on 2026-09-26; `flisk-saas-starter` and `flisk-restaurant-example` had the same `.gitignore` gap with no file yet; `tdk-user-management` has **no `.gitignore` at all** (currently harmless - only 35 minimal tracked files, nothing sensitive - but unprotected the moment real development starts there). The CLI has no `.gitignore` template of its own to fix at the source (`flisk project` doesn't generate one; each starter repo ships its own) - check every project's `.gitignore` for `.flisk/.project-id` individually, and `git status`/`git log --all -- .flisk/.project-id` before assuming it's fine.
 
 - **Auto-commit tool.** Something outside Claude commits and pushes edits in `~/Developer/Codex/*` repos to `origin/main` within about a minute, with messages like "skill" or "specs". Do experiments in a worktree outside that folder:
 
