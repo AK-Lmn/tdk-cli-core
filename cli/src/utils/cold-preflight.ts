@@ -329,13 +329,15 @@ export function formatColdPreflight(
 
 /** Exits before machine-dependent command work when any machine check fails. */
 export async function assertMachineReadyOrExit(
-  opts: { scope?: PreflightScope } = {},
+  opts: { scope?: PreflightScope; hints?: string[] } = {},
 ): Promise<void> {
   const result = await runColdPreflight({ scope: opts.scope });
   const blockingIds = blockingCheckIds(result.scope);
   const machineFailure = result.items.some((check) => blockingIds.includes(check.id));
   if (machineFailure) {
     console.error(formatColdPreflight(result));
+    // What to run once the machine checks pass; the caller knows its own next step.
+    for (const hint of opts.hints ?? []) console.error(`→ ${hint}`);
     process.exit(1);
   }
 }

@@ -35,7 +35,6 @@ import {
   errorFactories,
   FliskError,
   getErrorMessage,
-  handleTiltFailure,
   requireProjectRoot,
   runCommand,
   showError,
@@ -103,6 +102,7 @@ import {
   secondUpAction,
   stopTiltForUp,
 } from "../utils/tilt-startup.js";
+import { upFailureHints } from "../utils/up-hints.js";
 import { findUnknownServices, resolveOnlySelection } from "../utils/up-only.js";
 import {
   createUpProgressReporter,
@@ -469,8 +469,11 @@ export const upCommand = new Command("up")
     if (options.json) options.quiet = true;
     const portSetting = parseTiltPort(process.env.TILT_PORT);
     if (!portSetting.ok) {
-      emit?.({ ok: false }, [{ code: "INVALID_TILT_PORT", message: portSetting.message }]);
-      showErrorAndExit(portSetting.message);
+      const suggestions = upFailureHints({ kind: "invalid-tilt-port" });
+      emit?.({ ok: false }, [
+        { code: "INVALID_TILT_PORT", message: portSetting.message, suggestions },
+      ]);
+      showErrorAndExit(portSetting.message, 1, suggestions);
     }
     const configuredTiltPort = portSetting.port;
     // First, before the host/Docker checks below: an old CLI must stop with one clear line, not a half-working stack.
@@ -602,7 +605,7 @@ export const upCommand = new Command("up")
     }
     if (!options.dryRun) {
       const { assertMachineReadyOrExit } = await import("../utils/cold-preflight.js");
-      await assertMachineReadyOrExit();
+      await assertMachineReadyOrExit({ hints: upFailureHints({ kind: "machine" }) });
     }
     const action = async (): Promise<void> => {
       const foundRoot = options.dryRun ? requireProjectRoot() : findProjectRoot();
@@ -956,6 +959,10 @@ export const upCommand = new Command("up")
               {
                 code: readiness.timedOut ? "UP_TIMEOUT" : "UP_RESOURCE_FAILED",
                 message: `${readiness.timedOut ? "Timed out waiting for resources" : "Resources failed"}${detail ? ` (${detail})` : ""}. Tilt is still running; inspect it or run: flisk down`,
+                suggestions: upFailureHints({
+                  kind: "services",
+                  failed: readiness.failures.map((failure) => failure.name),
+                }),
               },
             ]);
           }
@@ -1000,7 +1007,14 @@ export const upCommand = new Command("up")
               findPortOccupant(port),
             );
             if (reportLines.length > 0) {
-              showError(reportLines.join("\n"));
+              showError(
+                reportLines.join("\n"),
+                undefined,
+                upFailureHints({
+                  kind: "services",
+                  failed: report.failed.map((failure) => failure.name),
+                }),
+              );
             }
           }
         }
@@ -1047,19 +1061,27 @@ export const upCommand = new Command("up")
               envFiles: envFileSelection ? [envFileSelection.path] : [],
             }),
           });
+          const smokeFailures: string[] = [];
           for (const smokeResult of results) {
             if (smokeResult.ok) {
               if (!options.quiet)
                 console.log(chalk.green(`Smoke check passed: ${smokeResult.name}`));
             } else {
               smokeFailed = true;
+              smokeFailures.push(smokeResult.name);
               showError(formatSmokeFailure(smokeResult));
             }
           }
           if (smokeFailed) {
             stopTiltOnPort(port);
+            const suggestions = upFailureHints({ kind: "smoke", failed: smokeFailures });
+            showError("A smoke check failed; Tilt was stopped", undefined, suggestions);
             emit?.({ ok: false }, [
-              { code: "UP_SMOKE_FAILED", message: "A smoke check failed; Tilt was stopped" },
+              {
+                code: "UP_SMOKE_FAILED",
+                message: "A smoke check failed; Tilt was stopped",
+                suggestions,
+              },
             ]);
           }
         }
@@ -1082,7 +1104,11 @@ export const upCommand = new Command("up")
       }
 
       if (result.exitCode !== 0) {
-        handleTiltFailure("up", result.exitCode);
+        showErrorAndExit(
+          `tilt up failed with exit code ${result.exitCode}`,
+          result.exitCode,
+          upFailureHints({ kind: "tilt-exited" }),
+        );
       }
 
       if (startupFailed && result.exitCode === 0) {

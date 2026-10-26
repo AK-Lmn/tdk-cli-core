@@ -259,6 +259,9 @@ export async function assertMachineReadyOrExit(opts = {}) {
     const machineFailure = result.items.some((check) => blockingIds.includes(check.id));
     if (machineFailure) {
         console.error(formatColdPreflight(result));
+        // What to run once the machine checks pass; the caller knows its own next step.
+        for (const hint of opts.hints ?? [])
+            console.error(`→ ${hint}`);
         process.exit(1);
     }
 }

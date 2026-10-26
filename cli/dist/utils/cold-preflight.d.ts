@@ -51,6 +51,7 @@ export declare function formatColdPreflight(result: PreflightResult, options?: {
 /** Exits before machine-dependent command work when any machine check fails. */
 export declare function assertMachineReadyOrExit(opts?: {
     scope?: PreflightScope;
+    hints?: string[];
 }): Promise<void>;
 export type RuntimePrerequisiteStatus = {
     hasDockerCli: boolean;

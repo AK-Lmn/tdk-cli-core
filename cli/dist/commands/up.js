@@ -12,7 +12,7 @@ import { STANDARD_PORTS } from "../utils/constants.js";
 import { getDeferredResourceNames, summarizeTiltBuildError } from "../utils/doctor-runtime.js";
 import { applyEnvFileSelection, assertEngineSupportsEnvFile, EnvFileError, envFileWarning, PROJECT_ENV_FILE_VAR, selectEnvFile, } from "../utils/env-selection.js";
 import { completeEnvFile } from "../utils/env-validator.js";
-import { errorFactories, FliskError, getErrorMessage, handleTiltFailure, requireProjectRoot, runCommand, showError, showErrorAndExit, withTiltCheck, } from "../utils/errors.js";
+import { errorFactories, FliskError, getErrorMessage, requireProjectRoot, runCommand, showError, showErrorAndExit, withTiltCheck, } from "../utils/errors.js";
 import { ensureSmokeRecordsIgnored } from "../utils/file-helpers.js";
 import { evaluateFliskVersionFloor } from "../utils/flisk-version.js";
 import { formatCount } from "../utils/formatting.js";
@@ -39,6 +39,7 @@ import { buildTiltUpArgs, runTilt } from "../utils/tilt.js";
 import { classifyTiltPorts } from "../utils/tilt-port-owner.js";
 import { stopTiltOnPort } from "../utils/tilt-process.js";
 import { parseTiltPort, resolveTiltPort, secondUpAction, stopTiltForUp, } from "../utils/tilt-startup.js";
+import { upFailureHints } from "../utils/up-hints.js";
 import { findUnknownServices, resolveOnlySelection } from "../utils/up-only.js";
 import { createUpProgressReporter, fetchWithProgress, shouldRedrawUpProgress, } from "../utils/up-progress.js";
 import { tiltGetUiResources, waitForTiltResourcesReady } from "../utils/up-readiness.js";
@@ -319,8 +320,11 @@ export const upCommand = new Command("up")
         options.quiet = true;
     const portSetting = parseTiltPort(process.env.TILT_PORT);
     if (!portSetting.ok) {
-        emit?.({ ok: false }, [{ code: "INVALID_TILT_PORT", message: portSetting.message }]);
-        showErrorAndExit(portSetting.message);
+        const suggestions = upFailureHints({ kind: "invalid-tilt-port" });
+        emit?.({ ok: false }, [
+            { code: "INVALID_TILT_PORT", message: portSetting.message, suggestions },
+        ]);
+        showErrorAndExit(portSetting.message, 1, suggestions);
     }
     const configuredTiltPort = portSetting.port;
     // First, before the host/Docker checks below: an old CLI must stop with one clear line, not a half-working stack.
@@ -442,7 +446,7 @@ export const upCommand = new Command("up")
     }
     if (!options.dryRun) {
         const { assertMachineReadyOrExit } = await import("../utils/cold-preflight.js");
-        await assertMachineReadyOrExit();
+        await assertMachineReadyOrExit({ hints: upFailureHints({ kind: "machine" }) });
     }
     const action = async () => {
         const foundRoot = options.dryRun ? requireProjectRoot() : findProjectRoot();
@@ -741,6 +745,10 @@ export const upCommand = new Command("up")
                         {
                             code: readiness.timedOut ? "UP_TIMEOUT" : "UP_RESOURCE_FAILED",
                             message: `${readiness.timedOut ? "Timed out waiting for resources" : "Resources failed"}${detail ? ` (${detail})` : ""}. Tilt is still running; inspect it or run: flisk down`,
+                            suggestions: upFailureHints({
+                                kind: "services",
+                                failed: readiness.failures.map((failure) => failure.name),
+                            }),
                         },
                     ]);
                 }
@@ -781,7 +789,10 @@ export const upCommand = new Command("up")
                         };
                     const reportLines = formatStartupReport(report, readiness.timedOut, (port) => findPortOccupant(port));
                     if (reportLines.length > 0) {
-                        showError(reportLines.join("\n"));
+                        showError(reportLines.join("\n"), undefined, upFailureHints({
+                            kind: "services",
+                            failed: report.failed.map((failure) => failure.name),
+                        }));
                     }
                 }
             }
@@ -827,6 +838,7 @@ export const upCommand = new Command("up")
                         envFiles: envFileSelection ? [envFileSelection.path] : [],
                     }),
                 });
+                const smokeFailures = [];
                 for (const smokeResult of results) {
                     if (smokeResult.ok) {
                         if (!options.quiet)
@@ -834,13 +846,20 @@ export const upCommand = new Command("up")
                     }
                     else {
                         smokeFailed = true;
+                        smokeFailures.push(smokeResult.name);
                         showError(formatSmokeFailure(smokeResult));
                     }
                 }
                 if (smokeFailed) {
                     stopTiltOnPort(port);
+                    const suggestions = upFailureHints({ kind: "smoke", failed: smokeFailures });
+                    showError("A smoke check failed; Tilt was stopped", undefined, suggestions);
                     emit?.({ ok: false }, [
-                        { code: "UP_SMOKE_FAILED", message: "A smoke check failed; Tilt was stopped" },
+                        {
+                            code: "UP_SMOKE_FAILED",
+                            message: "A smoke check failed; Tilt was stopped",
+                            suggestions,
+                        },
                     ]);
                 }
             }
@@ -862,7 +881,7 @@ export const upCommand = new Command("up")
             process.exit(1);
         }
         if (result.exitCode !== 0) {
-            handleTiltFailure("up", result.exitCode);
+            showErrorAndExit(`tilt up failed with exit code ${result.exitCode}`, result.exitCode, upFailureHints({ kind: "tilt-exited" }));
         }
         if (startupFailed && result.exitCode === 0) {
             process.exit(1);
