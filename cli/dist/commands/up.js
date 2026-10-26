@@ -40,6 +40,7 @@ import { classifyTiltPorts } from "../utils/tilt-port-owner.js";
 import { stopTiltOnPort } from "../utils/tilt-process.js";
 import { parseTiltPort, resolveTiltPort, secondUpAction, stopTiltForUp, } from "../utils/tilt-startup.js";
 import { findUnknownServices, resolveOnlySelection } from "../utils/up-only.js";
+import { createUpProgressReporter, fetchWithProgress, shouldRedrawUpProgress, } from "../utils/up-progress.js";
 import { tiltGetUiResources, waitForTiltResourcesReady } from "../utils/up-readiness.js";
 import { enableDiscoveredStacks, writeDefaultProjectConfig } from "./project.js";
 export function formatUpSuccess(port, options = {}) {
@@ -749,10 +750,22 @@ export const upCommand = new Command("up")
             if (uiReady && !emit) {
                 const deferred = getDeferredResourceNames(discoveredResources);
                 const dependsOn = Object.fromEntries(discoveredResources.map((r) => [r.name, r.config?.dependsOn ?? []]));
+                const progress = createUpProgressReporter({
+                    write: (text) => process.stdout.write(text),
+                    redraw: shouldRedrawUpProgress({
+                        isTTY: process.stdout.isTTY,
+                        quiet: Boolean(options.quiet),
+                        env: process.env,
+                    }),
+                    deferred,
+                    columns: process.stdout.columns,
+                });
                 const readiness = await waitForTiltResourcesReady(port, {
                     deferred,
                     isStalled: (text) => isStartupStalled(text, dependsOn, deferred),
+                    fetchJson: fetchWithProgress(tiltGetUiResources, progress),
                 });
+                progress.finish();
                 if (!readiness.ready) {
                     startupFailed = true;
                     const resourcesJson = await tiltGetUiResources(port);
