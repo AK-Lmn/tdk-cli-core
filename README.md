@@ -11,9 +11,9 @@ Ask your AI agent for an app, or type four commands yourself.<br />Flisk sets up
 
 <a href="https://trendshift.io/repositories/266432?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-266432" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/266432/weekly?language=Starlark" alt="flisk-sh%2Fflisk | Trendshift" width="250" height="55"/></a>
 
-<img src="docs/assets/demo-ai.svg" alt="An AI coding agent builds a small online shop with Flisk and runs it locally" width="900" />
+<img src="docs/assets/demo-claude-in-warp.svg" alt="Claude Code, running in the Warp terminal, builds a small online shop with Flisk and runs it locally" width="900" />
 
-<sub>An illustrative agent session. The Flisk commands, and the service list and URLs Flisk prints, come from a real run. Copy the prompt from <a href="#with-your-ai-agent">Try it</a>.</sub>
+<sub>An illustrative Claude Code session in the Warp terminal. The Flisk commands, their output, and the URLs Flisk prints come from a real run. Copy the prompt from <a href="#with-your-ai-agent">Try it</a>.</sub>
 
 </div>
 
