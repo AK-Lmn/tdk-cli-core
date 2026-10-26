@@ -275,11 +275,11 @@ B5() { # TILT_TRIGGER_FAILED (Tilt is up)
   assert check "$OUT/b5.out" "j.errors[0].message.includes('no-such-resource')" "Tilt's error text names the resource"
 }
 
-B6() { # SESSION_ID_REQUIRED: nothing listens, so any request would have produced AGENT_NOT_RUNNING instead
-  log "B6 SESSION_ID_REQUIRED before any request"
+B6() { # no --session-id is the list case: it makes a request, so with nothing listening it is AGENT_NOT_RUNNING
+  log "B6 list without --session-id is no longer SESSION_ID_REQUIRED"
   run b6 agent sessions "$AGENT" --json
   [ "$RC" -eq 1 ] || die "expected exit 1, got $RC"
-  assert envelope "$OUT/b6.out" SESSION_ID_REQUIRED
+  assert envelope "$OUT/b6.out" AGENT_NOT_RUNNING
 }
 
 B7() { # UNKNOWN_RESOURCE, NOT_AN_AGENT, NO_PORT: one smoke each
