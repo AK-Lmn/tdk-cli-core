@@ -308,9 +308,12 @@ describe("flisk status", () => {
       vi.mocked(tiltGetUiResources).mockResolvedValue(apiDown);
       const output = await runStatus();
       expect(output).toContain("Services:");
-      expect(output).toContain("✗ orders-api  error");
-      expect(output).toContain("✗ orders-web  error (orders-api failed)");
-      expect(output).toContain("✓ invoices  ready");
+      expect(output).toContain("✗ orders-api → http://");
+      expect(output).toContain("error (error/none)");
+      expect(output).toContain("✗ orders-web → http://");
+      expect(output).toContain("error (orders-api failed)");
+      expect(output).toContain("✓ invoices → http://");
+      expect(output).toContain("ready");
     });
 
     it("says service states are unknown in the human output when no Tilt answers", async () => {
