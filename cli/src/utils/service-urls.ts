@@ -88,6 +88,20 @@ export function resolveServicePath(resource: DiscoveredResource): string {
 }
 
 /**
+ * The ingress URL of one service (no /health suffix), or undefined for services with no Traefik route. This is where the service
+ * answers, unlike the Tilt UI port, which serves its own page for any path.
+ */
+export function resolveServiceUrl(
+  resource: DiscoveredResource,
+  ingressPort?: number,
+): string | undefined {
+  const appType = resource.config?.appType;
+  if (appType !== "frontend" && !isApiServiceType(appType)) return undefined;
+  const { appBase, apiBase } = resolveSubdomainBases(ingressPort);
+  return `${appType === "frontend" ? appBase : apiBase}${resolveServicePath(resource)}`;
+}
+
+/**
  * Health URLs for every routable service, matching what `flisk up` prints.
  * Workers, libraries, SDKs and migrators have no Traefik route, so they are
  * skipped rather than reported as unreachable.
