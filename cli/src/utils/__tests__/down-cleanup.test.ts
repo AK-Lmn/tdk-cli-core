@@ -59,6 +59,20 @@ describe("fliskNetworkPrefixes", () => {
     const networks = ["traefik-public", "traefik-private"];
     expect(fliskNetworkPrefixes(networks)).toEqual(new Set());
   });
+
+  it("treats a prefix with traefik-public as Flisk-owned", () => {
+    const networks = ["shop_traefik-public", "shop_backend"];
+    const prefixes = fliskNetworkPrefixes(networks);
+    expect(prefixes.has("shop")).toBe(true);
+    expect(fliskNetworkOwner("shop_backend", prefixes)).toBe("shop");
+  });
+
+  it("does not treat a prefix with no Traefik network as Flisk-owned", () => {
+    const networks = ["unrelated_backend", "unrelated_database"];
+    const prefixes = fliskNetworkPrefixes(networks);
+    expect(prefixes.has("unrelated")).toBe(false);
+    expect(fliskNetworkOwner("unrelated_backend", prefixes)).toBeNull();
+  });
 });
 
 describe("fliskNetworkOwner", () => {
