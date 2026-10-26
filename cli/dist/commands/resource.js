@@ -90,7 +90,7 @@ export function resolveResourcePort(resourceType, value, assignedPort, resources
     }
     return port;
 }
-export function createServiceJson(name, type, stack, port, extraFeatures = [], frameworkId, languageId, agent) {
+export function createServiceJson(name, type, stack, port, extraFeatures = [], frameworkId, languageId, agent, basePath) {
     const framework = resolveFrontendFramework(type, frameworkId);
     // Only an explicit selection is persisted: a missing `language` has always meant Bun.
     const language = languageId === undefined ? undefined : resolveBackendLanguage(type, languageId);
@@ -137,6 +137,7 @@ export function createServiceJson(name, type, stack, port, extraFeatures = [], f
             : {}),
         ...(language ? { language: language.id } : {}),
         ...(type === "agent" && agent ? { agent } : {}),
+        ...(type === "frontend" && basePath ? { basePath } : {}),
     };
 }
 export function createByoServiceJson(name, stack, port, options) {
@@ -406,6 +407,7 @@ export const resourceCommand = addYesOption(new Command("resource"))
     .option("--restart <policy>", "Compose restart policy: no, on-failure, unless-stopped, always (bring-your-own only; use no for one-shot jobs)")
     .option("--image <name>", "Docker image name instead of building from Dockerfile (for bring-your-own)")
     .option("--port <port>", "Port for the resource, within its type's range (default: next free port in that range)")
+    .option("--base-path <path>", "Base path for frontend routing (e.g., /storefront). Default is /{stack}s. Frontend only.")
     .option("--feature <feature...>", "Enable a resource feature (for example: prisma, drizzle)")
     .option("--runtime <id>", "Agent runtime (for agent only): custom (default)")
     .option("--durability <kind>", "Where agent sessions are checkpointed (for agent only): files (default, named volume) or postgres")
@@ -782,7 +784,7 @@ This file contains the resource configuration for Flisk.
         // Prepare file generation tasks
         const prismaEnabled = requestedFeatures.includes("prisma");
         const drizzleEnabled = requestedFeatures.includes("drizzle");
-        const serviceJson = createServiceJson(resourceName, resourceType, stackName, assignedPort, [...(dddEnabled ? ["ddd"] : []), ...requestedFeatures], scaffoldFrameworkId, options.language === undefined ? undefined : backendLanguage?.id, agentConfig);
+        const serviceJson = createServiceJson(resourceName, resourceType, stackName, assignedPort, [...(dddEnabled ? ["ddd"] : []), ...requestedFeatures], scaffoldFrameworkId, options.language === undefined ? undefined : backendLanguage?.id, agentConfig, resourceType === "frontend" ? options.basePath : undefined);
         const packageJson = createPackageJson(resourceName, resourceType, scaffoldFrameworkId, prismaEnabled, agentConfig, drizzleEnabled);
         if (prismaEnabled && resourceType === "backend") {
             serviceJson.dependsOn = [`${resourceName}-migrator`];

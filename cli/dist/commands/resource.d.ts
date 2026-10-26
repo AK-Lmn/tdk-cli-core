@@ -33,7 +33,7 @@ export declare function resolveResourcePort(resourceType: PortAssignableResource
         port?: number;
     };
 }>): number;
-export declare function createServiceJson(name: string, type: CreatableResourceType, stack: string, port: number, extraFeatures?: string[], frameworkId?: string, languageId?: string, agent?: AgentConfig): any;
+export declare function createServiceJson(name: string, type: CreatableResourceType, stack: string, port: number, extraFeatures?: string[], frameworkId?: string, languageId?: string, agent?: AgentConfig, basePath?: string): any;
 export declare function createByoServiceJson(name: string, stack: string, port: number, options: {
     healthCheckPath: string;
     dockerfile: string;
