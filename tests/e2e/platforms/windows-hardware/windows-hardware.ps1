@@ -383,7 +383,7 @@ function Invoke-Installer {
   $userPathBefore = [Environment]::GetEnvironmentVariable('Path', 'User')
   $pathBefore = $env:PATH
   try {
-    $env:TDK_INSTALL_DIR = $InstallDir
+    $env:FLISK_INSTALL_DIR = $InstallDir
     $env:PATH = $Path
     $process = Start-Process -FilePath $shellExe -ArgumentList @('-NoProfile', '-File', "`"$installer`"") -NoNewWindow -PassThru `
       -RedirectStandardOutput $stdoutFile -RedirectStandardError $stderrFile
@@ -402,7 +402,7 @@ function Invoke-Installer {
       UserPathAfter = [Environment]::GetEnvironmentVariable('Path', 'User')
     }
   } finally {
-    Remove-Item Env:TDK_INSTALL_DIR -ErrorAction SilentlyContinue
+    Remove-Item Env:FLISK_INSTALL_DIR -ErrorAction SilentlyContinue
     $env:PATH = $pathBefore
     # The installer appends the install directory to the user PATH. Put the machine back the way it was.
     [Environment]::SetEnvironmentVariable('Path', $userPathBefore, 'User')

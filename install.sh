@@ -17,8 +17,8 @@ set -euo pipefail
 
 # Pinned to a commit of flisk-sh/flisk-sh.github.io and verified
 # against the SHA-256 of that exact install.sh before it is executed.
-readonly OFFICIAL_INSTALLER="https://raw.githubusercontent.com/flisk-sh/flisk-sh.github.io/ed5478b2e868252c7146e484c5fd4e6211ec3a55/install.sh"
-readonly OFFICIAL_INSTALLER_SHA256="c44d35f099306369a32fa5569b78d637035df04377bd43ff425efbc55078b836"
+readonly OFFICIAL_INSTALLER="https://raw.githubusercontent.com/flisk-sh/flisk-sh.github.io/8971b9773f83a19cf57880eb2ae910331b90c226/install.sh"
+readonly OFFICIAL_INSTALLER_SHA256="6b493d67ffb6f7d480f9ace45c66f4634e88d8ee11c9581cb94d2df6b00390e0"
 
 echo "Using the official Flisk installer: ${OFFICIAL_INSTALLER}" >&2
 installer_tmp="$(mktemp)"
