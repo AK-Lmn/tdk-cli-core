@@ -1,6 +1,6 @@
 ---
 name: flisk-release
-description: Guides an AI assistant through cutting a Flisk CLI release end to end - picking the commit, running the release candidate, dispatching the release workflow, finishing the GitHub releases, npm (@flisk-sh/flisk, unscoped flisk, GitHub Packages) and the binary release on flisk-sh/releases, verifying every channel, and repairing a release that only half finished. Use when asked to "release", "run release", "ship a version", "publish to npm", or when a Release | Binaries or Release | Candidate run is red.
+description: Guides an AI assistant through cutting a Flisk CLI release end to end - picking the commit, running the release candidate, dispatching the release workflow, finishing the GitHub releases, npm (@flisk-sh/flisk, GitHub Packages) and the binary release on flisk-sh/releases, verifying every channel, and repairing a release that only half finished. Use when asked to "release", "run release", "ship a version", "publish to npm", or when a Release | Binaries or Release | Candidate run is red.
 license: MIT
 compatibility: Requires the gh CLI authenticated with write access to flisk-sh/flisk (and flisk-sh/releases for repairs), curl and Node 22+. Runs entirely through GitHub Actions; no local build is needed.
 metadata:
@@ -17,7 +17,7 @@ Workflows (IDs are stable, names have emoji, so use the file name):
 | File | What it does |
 | --- | --- |
 | `release-candidate.yml` | Packs the CLI, runs quickstart (Q1-Q4) and every release-blocking resource-type suite on that tarball. Runs only on `release/*` branches and `rc-*` tags. ~25 min. |
-| `release-binaries.yml` | `build` → `windows-binary` → `publish` (gate, binaries to `flisk-sh/releases`, npm, signing, bump or tag) → `publish-github-packages`, `publish-unscoped-npm`. ~6 min. |
+| `release-binaries.yml` | `build` → `windows-binary` → `publish` (gate, binaries to `flisk-sh/releases`, npm, signing, bump or tag) → `publish-github-packages`. ~6 min. |
 | `sign-release.yml` | Signs an already published version after the fact. |
 | `publish-existing-npm-to-github-packages.yml` | Backfills GitHub Packages for a version already on npm. |
 
@@ -82,7 +82,6 @@ curl -s https://registry.npmjs.org/@flisk-sh%2fflisk/$V | grep -o '"version":"[^
 gh release view v$V -R flisk-sh/releases --json isDraft,assets --jq '{draft:.isDraft,n:(.assets|length)}'
 gh release view v$V -R flisk-sh/flisk --json isDraft,assets --jq '{draft:.isDraft,assets:[.assets[].name]}'
 gh api repos/flisk-sh/flisk/git/refs/tags/v$V --jq .object.sha                                # tag exists
-curl -s https://registry.npmjs.org/flisk | head -c 120                                        # unscoped npm
 ```
 
 Expected:
@@ -104,7 +103,7 @@ Repairs, all without a new release:
   4. Publish only once the draft has `checksums.txt` and `checksums.txt.sigstore.json`: `gh release edit v$V -R flisk-sh/flisk --tag v$V --draft=false --latest=false`. Never publish an unsigned release.
 - **Signature missing:** `gh workflow run sign-release.yml -f version=$V`. It attaches `checksums.txt` and its signature to both releases.
 - **GitHub Packages missing:** `gh workflow run publish-existing-npm-to-github-packages.yml -f version=$V`.
-- **Unscoped `flisk` 404 on npm:** the package has never been created. An npm owner must claim it and add the trusted publisher (`docs/releasing.md#unscoped-npm-package-flisk`). Report it; you cannot fix it from CI.
+- **No unscoped `flisk` on npm:** expected. npm rejects the name as too similar to `plist` (`E403`), so the release no longer publishes it (`docs/releasing.md#unscoped-npm-package-flisk`).
 
 ## 7. Report and improve
 

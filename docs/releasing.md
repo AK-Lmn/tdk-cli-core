@@ -23,7 +23,6 @@ The ops checklist for cutting a Flisk CLI release, repairing one that only half 
 | Binary release | [`flisk-sh/releases`](https://github.com/flisk-sh/releases/releases) tag `v<version>` | `install.sh`, winget-style installers, checksums | `publish` job (`scripts/release-binaries.sh --publish-only`) |
 | GitHub Packages | `@flisk-sh/flisk` on `npm.pkg.github.com` | environments that require GitHub-hosted packages ([setup](github-packages.md)) | `publish-github-packages` job |
 | Checksums release | `flisk-sh/flisk` tag `v<version>` | OpenSSF Scorecard Signed-Releases; signature verification | `publish` job (cosign sign + attestation) |
-| Unscoped npm | `flisk` | users who type `npm i -g flisk` | `publish-unscoped-npm` job ([status](#unscoped-npm-package-flisk)) |
 
 The version is picked by the workflow, not by a file: the highest of `package.json` and the latest npm version, plus one for every version already on npm or on `flisk-sh/releases`. `package.json` on `main` can lag; the workflow bumps it back through a PR.
 
@@ -33,7 +32,6 @@ The version is picked by the workflow, not by a file: the highest of `package.js
 
 ```text
 build ──► windows-binary ──► publish ──► publish-github-packages
-                         │            └─► publish-unscoped-npm
                          │
                     (on the bump-PR merge push to main)
                     tag-bumped-release: tag vX.Y.Z + publish the checksums draft
@@ -100,7 +98,7 @@ It accepts an **exact** candidate, or an **ancestor** candidate when no commit s
 gh workflow run release-binaries.yml --ref main
 ```
 
-Dispatch on `main` only when `main` is still at the candidate's commit, or no release input changed since (the gate above). Watch the run. `build`, `windows-binary` and `publish` must be green; `publish-unscoped-npm` may be red until the [unscoped package](#unscoped-npm-package-flisk) exists (it does not block the others). Publication happens inside `publish`: by the time it finishes, npm and `flisk-sh/releases` are live even if later steps failed.
+Dispatch on `main` only when `main` is still at the candidate's commit, or no release input changed since (the gate above). Watch the run. `build`, `windows-binary` and `publish` must be green. Publication happens inside `publish`: by the time it finishes, npm and `flisk-sh/releases` are live even if later steps failed.
 
 ### 4. Merge the version-bump PR
 
@@ -185,19 +183,7 @@ It downloads the exact public npm tarball, publishes it to `npm.pkg.github.com`,
 
 ## Unscoped npm package (flisk)
 
-`publish-unscoped-npm` republishes the same archive under the unscoped name `flisk`. It fails with `404 Not Found - PUT https://registry.npmjs.org/flisk` while the `flisk` package does not exist on npmjs.com: OIDC can publish to a package that has a trusted publisher configured, it cannot create one. The scoped `@flisk-sh/flisk` release is unaffected.
-
-One-time owner setup (needs an npm account that may create the name):
-
-```bash
-npm login
-# claim the name: publish the current archive under the unscoped name once, or create a stub package
-npm pkg set name=flisk   # in a scratch copy of the packed package; do not change this repository's name
-npm publish --access public
-npm trust github flisk --file release-binaries.yml --repo flisk-sh/flisk --allow-publish
-```
-
-Or in the npm UI: open the `flisk` package → **Settings → Trusted Publisher → GitHub Actions** → org `flisk-sh`, repo `flisk`, workflow `release-binaries.yml`, allow publish. The alternative is an `NPM_TOKEN` secret with publish rights on `flisk`; the workflow now uses it as a fallback, exactly like the scoped publish. Once either exists, the job skips versions that are already on npm and publishes the rest.
+There is no unscoped `flisk` package, and the release does not try to publish one. npm refuses the name: the 1.4.7 run's `publish-unscoped-npm` job got `E403 Forbidden - PUT https://registry.npmjs.org/flisk - Package name too similar to existing package plist`. npm's name-similarity rule rejects that publish for any account and any token, so claiming the name, a stub package, `npm trust` or an `NPM_TOKEN` cannot fix it; only npm support can grant an exception. Install with `npm i -g @flisk-sh/flisk`. The job was removed after that run; its earlier hint about a `404` was wrong for this name.
 
 ## Troubleshooting
 
@@ -210,9 +196,7 @@ Or in the npm UI: open the `flisk` package → **Settings → Trusted Publisher 
 | Candidate `package`: `Release candidates run on a release/* branch or an rc-* tag, not refs/heads/main` | The candidate was dispatched on `main` | Dispatch it on a `release/*` branch or push an `rc-*` tag at the commit ([step 2](#2-release-candidate)) |
 | Candidate quickstart Q4: `entry script '/static/js/main.<hash>.js' is not under /<frontend>/` | The CLI under test printed Tilt UI URLs (`localhost:10350`) in its health list; Q4 loaded Tilt's own React page. Fixed by #2498 | Cut the candidate from a `main` that has #2498 |
 | `Release \| Binaries` red, but npm and both GitHub releases fine except `v<version>` on `flisk-sh/flisk` is a draft with no tag | `main` already had the version, so no bump PR and no `tag-bumped-release` (before the publish job tagged it itself) | `gh api repos/flisk-sh/flisk/git/refs -f ref=refs/tags/v<version> -f sha=<released commit>`, then `gh release edit v<version> --repo flisk-sh/flisk --tag v<version> --draft=false --latest=false` |
-| `publish-unscoped-npm`: `find: 'package': No such file or directory` | `actions/checkout` ran after `download-artifact` and emptied the workspace | Fixed: the job checks out first |
 | `npm ERR! code EOTP` | An empty `NPM_TOKEN` was exported; npm tried token auth instead of OIDC | Never export an empty `NODE_AUTH_TOKEN`; the workflow only exports it when the secret exists |
-| `404 Not Found - PUT .../flisk` | The unscoped package does not exist on npm | [Unscoped npm package](#unscoped-npm-package-flisk) |
 | Workflow red but npm and `flisk-sh/releases` are live | A post-publication step failed (bump push, signing) | [Repair a half-finished release](#repair-a-half-finished-release) |
 | GitHub Packages verify: `bin/flisk: No such file or directory` | Pre-rebrand releases link `bin/flisk`, newer ones link `bin/flisk` | The backfill workflow accepts both names |
 | Tag exists but `package.json` on it is one version behind | Tag pointed at the pre-bump commit | Tags must point at the version-bump commit (`tag-bumped-release` does this; fix by re-tagging the bump commit) |
