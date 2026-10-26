@@ -229,7 +229,7 @@ Fastest way (recommended): open the [Flisk starter](https://github.com/flisk-sh/
 
 ### ⚡ A one-backend stack is healthy in about 14 seconds
 
-On a one-backend quickstart with warm image layers, `flisk up` reaches a healthy API in 12.8 to 13.8 seconds ([timing notes](docs/benchmarks/quickstart-timing.md)). An 8-service stack settles in 32 to 42 seconds warm and about 4.5 minutes on its first cold build ([benchmark](docs/benchmarks/results/flisk-up-warm-start-2026-10-11/summary.md)). No vendor lock-in and no hand-written plumbing.
+On a one-backend quickstart with warm image layers, `flisk up` reaches a healthy API in 12.8 to 13.8 seconds ([timing notes](docs/benchmarks/quickstart-timing.md)). An 8-service stack settles in 32 to 42 seconds warm and about 4.5 minutes on its first cold build ([benchmark](docs/benchmarks/results/tdk-up-warm-start-2026-10-11/summary.md)). No vendor lock-in and no hand-written plumbing.
 
 ### 🤖 Run your AI agents next to your services
 
