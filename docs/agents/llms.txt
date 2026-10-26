@@ -7,6 +7,7 @@ See also the product site [llms.txt](https://flisk.sh/llms.txt).
 ## Core Concepts & Capabilities
 
 - **Local Runtime, Not a Deployment Tool**: Flisk configures and runs services locally on your machine via Docker and Tilt. It does not replace Helm, Argo CD, or Kubernetes in production.
+- **No Docker for simple apps**: A service whose `service.json` declares `command` runs as a local process. When every service has one, `flisk up` needs only the service's runtime (Node.js, Python, Go, Bun): no Docker, no Tilt, no generated files. Use Docker + Tilt for databases, gateway routing and container parity. Guide: docs/run-without-docker.md.
 - **Resource Types**: `backend`, `frontend`, `worker`, `mcp`, `agent`, `bring-your-own` (plus config types `library`, `sdk`, `migrator`).
 - **AI Agent Systems**:
   - `agent` resource type: Long-running agent process with `files` durability (named volume surviving `flisk down`), sticky session routing via `x-session-id`, graceful SIGTERM turn draining, `/health` (liveness) and `/ready` (application readiness for callers).
@@ -33,7 +34,7 @@ See also the product site [llms.txt](https://flisk.sh/llms.txt).
 - `flisk up [stack] [--only <service...>] [--dry-run] [--json]`: Start local containers and live reload.
 - `flisk down [--json]`: Stop services and clean up containers (named volumes survive; remove agent-state volumes with `docker volume rm`).
 - `flisk status [--json]`: Report health, readiness, and active URLs.
-- `flisk doctor [--fix] [--json]`: Verify container engine (Docker/Podman/Colima), ports, and system prerequisites.
+- `flisk doctor [--fix] [--json]`: Verify what the project uses: the container engine (Docker/Podman/Colima), Tilt and ports, or, for a project of `command` services, only that their programs are installed.
 - `flisk logs [--service <name>] [--tail <n>] [--json]`: Inspect service output.
 - `flisk mcp`: Launch the Flisk MCP server over stdio for coding assistants.
 

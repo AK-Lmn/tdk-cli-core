@@ -49,6 +49,13 @@ export interface ResourceConfigFields {
     image?: string;
     /** agent only: how the agent runtime is scaffolded and where its session state lives. See agent-runtimes/. */
     agent?: AgentConfig;
+    /**
+     * Run the service as a local process with this shell command instead of a container (no image, no Dockerfile). Started from
+     * the service directory with PORT set to `port`. See utils/native-service.ts.
+     */
+    command?: string;
+    /** Extra environment for a `command` service. Values may reference `${VAR}` from the project .env or the shell. */
+    env?: Record<string, string>;
 }
 export interface AgentConfig {
     /** Runtime scaffold the resource was created with. `custom` is the only one today and carries no vendor dependency. */

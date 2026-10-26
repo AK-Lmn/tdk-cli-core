@@ -20,6 +20,9 @@ import { exportHostPortPlan, getHostPortPlan, writeSavedHostPortPlan, } from "..
 import { formatHostPortPlan } from "../utils/host-port-plan.js";
 import { createJsonEmitter } from "../utils/json-output.js";
 import { toMachineError } from "../utils/machine-output.js";
+import { hasNearbyServiceJson } from "../utils/native-project.js";
+import { formatMixedRuntimeRefusal, isNativeProject, isNativeService, resolveRuntimeMode, } from "../utils/native-service.js";
+import { runNativeUp } from "../utils/native-up.js";
 import { nativeWindowsStackRefusal } from "../utils/native-windows.js";
 import { findProjectRoot, getPackageVersion } from "../utils/paths.js";
 import { findAvailablePort } from "../utils/port-assignment.js";
@@ -38,7 +41,7 @@ import { stopTiltOnPort } from "../utils/tilt-process.js";
 import { parseTiltPort, resolveTiltPort, secondUpAction, stopTiltForUp, } from "../utils/tilt-startup.js";
 import { findUnknownServices, resolveOnlySelection } from "../utils/up-only.js";
 import { tiltGetUiResources, waitForTiltResourcesReady } from "../utils/up-readiness.js";
-import { enableDiscoveredStacks } from "./project.js";
+import { enableDiscoveredStacks, writeDefaultProjectConfig } from "./project.js";
 export function formatUpSuccess(port, options = {}) {
     const { appUrls = [], serviceHealth = [], showLogsHint = serviceHealth.length > 0 } = options;
     const lines = [];
@@ -235,6 +238,67 @@ function envFileFailure(error) {
         exitCode: error instanceof FliskError ? error.exitCode : 2,
     };
 }
+/**
+ * Decides whether `flisk up` runs the selection as local processes (#2229). Returns null for today's Docker + Tilt path, which
+ * a project without any `command` service always takes. Outside a project, a directory whose services all declare `command`
+ * becomes the project. Refuses (through `fail`) an unknown stack or service, an invalid service.json, and a run that would mix
+ * native and container services.
+ */
+export function selectNativeRun(stackName, only, fail, cwd = process.cwd()) {
+    const foundRoot = findProjectRoot(cwd);
+    if (!foundRoot && !hasNearbyServiceJson(cwd))
+        return null;
+    const projectRoot = foundRoot ?? cwd;
+    let discovered;
+    try {
+        discovered = discoverResourcesWithProblems(projectRoot);
+    }
+    catch {
+        return null;
+    }
+    const all = discovered.resources;
+    if (!all.some(isNativeService))
+        return null;
+    if (!foundRoot && !isNativeProject(all))
+        return null;
+    if (discovered.problems.length > 0) {
+        fail("INVALID_SERVICE_CONFIG", discovered.problems
+            .map((problem) => `Invalid service.json at ${problem.path}: ${problem.reason}`)
+            .join("\n"));
+    }
+    let requested = all;
+    if (stackName) {
+        if (!stackExists(stackName, all)) {
+            const error = errorFactories.stackNotFound(stackName, discoverStacks(all).map((s) => s.name));
+            fail("STACK_NOT_FOUND", error.message, error.suggestions);
+        }
+        requested = getResourcesForStack(stackName, all);
+    }
+    if (only) {
+        const unknown = findUnknownServices(only, requested);
+        if (unknown.length > 0) {
+            const error = errorFactories.unknownServices(unknown, requested.map((service) => service.name));
+            fail("UNKNOWN_SERVICE", error.message, error.suggestions);
+        }
+    }
+    // A process cannot start before what it depends on, so a stack or --only selection always brings its dependsOn closure.
+    const names = only ?? requested.map((service) => service.name);
+    const selection = resolveOnlySelection(names, all);
+    const { mode, mixed } = resolveRuntimeMode(selection.selected, all);
+    if (mode === "container") {
+        const containerNames = (selection.selected.some(isNativeService) ? selection.selected : all)
+            .filter((service) => !isNativeService(service))
+            .map((service) => service.name);
+        fail("MIXED_RUNTIME", formatMixedRuntimeRefusal(mixed, containerNames));
+    }
+    return {
+        projectRoot,
+        isNewProject: !foundRoot,
+        all,
+        selected: selection.selected,
+        dependencies: only ? selection.dependencies : [],
+    };
+}
 export const upCommand = new Command("up")
     .description("Start all services (optionally filtered by stack)")
     .alias("deploy")
@@ -265,6 +329,60 @@ export const upCommand = new Command("up")
             ignoreVersion: options.ignoreVersion,
             onFail: (message) => emit?.({ ok: false }, [{ code: "FLISK_VERSION_TOO_OLD", message }]),
         });
+    }
+    // Every selected service declares `command`: run them as local processes, with no Docker, Compose, Tilt or generated
+    // files (#2229). Decided before any Docker or Tilt check; a project without `command` services never enters this branch.
+    const nativeRun = selectNativeRun(stackName, options.only, (code, message, suggestions) => {
+        emit?.({ ok: false }, [
+            { code, message, ...(suggestions && suggestions.length > 0 ? { suggestions } : {}) },
+        ]);
+        return showErrorAndExit(message, 1, suggestions);
+    });
+    if (nativeRun) {
+        const platformRefusal = nativeWindowsUpRefusal(process.platform, process.env.FLISK_ALLOW_NATIVE_WINDOWS);
+        if (platformRefusal)
+            showErrorAndExit(platformRefusal);
+        const { projectRoot } = nativeRun;
+        let envFilePath;
+        if (options.envFile !== undefined) {
+            try {
+                envFilePath = selectEnvFile(projectRoot, options.envFile).path;
+            }
+            catch (error) {
+                const { failure, exitCode } = envFileFailure(error);
+                emit?.({ ok: false }, [failure]);
+                showErrorAndExit(failure.message, exitCode, failure.suggestions);
+            }
+        }
+        if (!nativeRun.isNewProject) {
+            enforceSchemaVersionGate(projectRoot, {
+                resources: nativeRun.all,
+                onInvalid: (message) => emit?.({ ok: false }, [{ code: "INVALID_SCHEMA_VERSION", message }]),
+            });
+        }
+        enforceServiceConfigGate(projectRoot, {
+            resources: nativeRun.all,
+            onInvalid: (message) => emit?.({ ok: false }, [{ code: "INVALID_SERVICE_CONFIG", message }]),
+        });
+        if (nativeRun.isNewProject && !options.dryRun) {
+            writeDefaultProjectConfig(projectRoot);
+            if (!options.quiet) {
+                console.log(chalk.gray("Created .flisk/project.json (this directory is now a Flisk project)"));
+            }
+        }
+        await runNativeUp({
+            projectRoot,
+            selected: nativeRun.selected,
+            dependencies: nativeRun.dependencies,
+            stackName,
+            only: options.only,
+            envFilePath,
+            dryRun: options.dryRun,
+            quiet: options.quiet,
+            force: options.force,
+            emit,
+        });
+        return;
     }
     // The env file of the run. `--env-file` replaces the project .env for this run, so the file is
     // resolved and read before any prerequisite check, any write and any service starts.

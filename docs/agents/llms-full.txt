@@ -22,6 +22,7 @@ See also the product site [llms.txt](https://flisk.sh/llms.txt).
    - **Tilt**: Watches directories and live-updates containers on code edits with sub-second hot reload.
    - **Traefik**: Acts as the local reverse proxy gateway (`*.localhost`), eliminating manual port management.
 4. **Drift Detection**: `flisk config verify` checks for drift between `service.json` and generated files, making CI checks reliable.
+5. **Local processes, no Docker**: A service whose `service.json` declares `command` (for example `{"schemaVersion": 1, "name": "api", "command": "node server.js", "port": 4000}`) runs as a local process. When every service has one, `flisk up` starts them in `dependsOn` order without Docker, Tilt or generated files, prefixes their logs, restarts crashes, and prints `http://localhost:<port>` URLs; `flisk down`, `status`, `logs` and `doctor` work the same way. Prefer this for simple apps; use Docker + Tilt for databases, gateway routing and container parity. A project cannot mix both yet. Guide: docs/run-without-docker.md.
 
 ---
 

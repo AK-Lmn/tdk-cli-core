@@ -11,4 +11,10 @@ export declare function templateTargetDir(templateName: string, targetDir?: stri
 export declare function cloneProjectTemplate(templateName: string, targetDir: string | undefined, runtimeNextSteps: string[], options?: {
     quiet?: boolean;
 }): Promise<void>;
+/**
+ * Writes .flisk/project.json with the defaults `flisk project --yes` uses, and nothing else: no generated Tiltfile, Compose file,
+ * .env or engine copy. `flisk up` uses it to adopt a directory of `command` services as a project, so `flisk down` and
+ * `flisk doctor` find it afterwards.
+ */
+export declare function writeDefaultProjectConfig(projectRoot: string): void;
 export declare const projectCommand: Command;

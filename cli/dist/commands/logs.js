@@ -4,10 +4,13 @@ import { Command } from "commander";
 import { STANDARD_PORTS } from "../utils/constants.js";
 import { errorFactories, FliskError, runCommand, showErrorAndExit } from "../utils/errors.js";
 import { createMachineEnvelope } from "../utils/machine-output.js";
+import { readNativeLogLines } from "../utils/native-runtime.js";
+import { isNativeProject } from "../utils/native-service.js";
 import { findProjectRoot } from "../utils/paths.js";
 import { EnvUnreadableError, envSecretValues, redactSecrets, redactValue, } from "../utils/secret-redaction.js";
+import { discoverResourcesFromRoot } from "../utils/services.js";
 import { isTiltAvailable, runTilt } from "../utils/tilt.js";
-import { DEFAULT_LOG_TAIL, isTiltConnectionFailure, isValidPort, isValidSince, isValidTail, MAX_LOG_TAIL, parseTiltLogLines, } from "../utils/tilt-logs.js";
+import { DEFAULT_LOG_TAIL, isTiltConnectionFailure, isValidPort, isValidSince, isValidTail, MAX_LOG_TAIL, parseTiltLogLines, sinceMilliseconds, } from "../utils/tilt-logs.js";
 import { tiltUnreachableMessage } from "../utils/tilt-unreachable-message.js";
 /** Resource names Tilt knows about, or null when they cannot be listed (the logs call then reports the real error). */
 async function tiltResourceNames(port) {
@@ -22,6 +25,17 @@ async function tiltResourceNames(port) {
         return (items ?? []).flatMap((item) => (item.metadata?.name ? [item.metadata.name] : []));
     }
     catch {
+        return null;
+    }
+}
+/** The project's services when every one declares `command` (they run as local processes), else null. */
+function nativeResources(projectRoot) {
+    try {
+        const resources = discoverResourcesFromRoot(projectRoot);
+        return isNativeProject(resources) ? resources : null;
+    }
+    catch {
+        // Discovery problems are reported by the commands that start the stack; logs still asks Tilt.
         return null;
     }
 }
@@ -80,6 +94,29 @@ export const logsCommand = new Command("logs")
             fail("ENV_UNREADABLE", error.message, 1, [
                 "Fix the read permission on .env, or move it out of the project",
             ]);
+        }
+        // A project of `command` services keeps its output in .flisk/native/logs, so no Tilt is involved.
+        const resources = nativeResources(projectRoot);
+        if (resources) {
+            const known = resources.map((resource) => resource.name);
+            const unknown = services.filter((name) => !known.includes(name));
+            if (unknown.length > 0) {
+                const error = errorFactories.unknownServices(unknown, known);
+                fail("UNKNOWN_SERVICE", error.message, error.exitCode, error.suggestions);
+            }
+            const lines = readNativeLogLines(projectRoot, services.length > 0 ? services : known, {
+                tail,
+                sinceMs: options.since === undefined ? undefined : sinceMilliseconds(options.since),
+            });
+            if (options.json) {
+                console.log(JSON.stringify(redactValue(createMachineEnvelope({ services, tail, since: options.since ?? null, lines }), secrets)));
+                return;
+            }
+            const width = Math.max(0, ...lines.map((line) => line.resource.length));
+            for (const line of lines) {
+                console.log(redactSecrets(`${line.resource.padEnd(width)} | ${line.text}`, secrets));
+            }
+            return;
         }
         if (!(await isTiltAvailable())) {
             fail("TILT_MISSING", "Tilt is not installed. Run: flisk doctor");

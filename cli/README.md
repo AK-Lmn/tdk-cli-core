@@ -8,7 +8,7 @@ New to contributing? Start with the [step-by-step contributor guide](../docs/con
 
 ## Cheat sheet
 
-Run in a project with Bun, Docker, and Tilt. On Windows, run the CLI in WSL2.
+Run in a project with Bun, Docker, and Tilt, or, when every service's `service.json` declares a `command`, with only your app's runtime: `flisk up` then runs the services as local processes ([guide](../docs/run-without-docker.md)). On Windows, run the CLI in WSL2.
 
 `flisk project` writes the project configuration and clones starter templates without a running Docker daemon or an installed Tilt; the runtime is only needed by `flisk up`.
 
@@ -201,6 +201,7 @@ The frontend provider owns root `index.html` and starter source. After Flisk gen
 | `flisk up <stack>` | 🚀 Start a stack | `flisk up api` |
 | `flisk up --dry-run` | 👀 Preview the services and URLs without Docker, Tilt, or file changes | `flisk up api --dry-run` |
 | `flisk up --env-file <path>` | 🔀 Use another project env file for the run instead of `.env` (inside the project) | `flisk up --env-file .env.integration` |
+| `flisk up` (services with `command`) | 🏃 Run them as local processes without Docker or Tilt, in `dependsOn` order, with prefixed logs and restarts; Ctrl+C or `flisk down` stops them | `flisk up` |
 | `flisk down` | ⏹️ Stop all services | `flisk down` |
 | `flisk status` | 📊 Show resource status | `flisk status` |
 | `flisk logs` | 📜 Print a bounded snapshot of recent logs from the running stack (`--json`) | `flisk logs` |
@@ -219,7 +220,7 @@ The frontend provider owns root `index.html` and starter source. After Flisk gen
 | `flisk config regenerate` | ♻️ Regenerate master config files from `.flisk/project.json` |
 | `flisk config verify` | ✅ Check generated files match `.flisk/project.json` |
 | `flisk config enable-infra <service>` | ➕ Enable an optional infrastructure service (`disable-infra` to turn it off) |
-| `flisk doctor` | 🔍 Print ranked cold-start failures first, then check environment (Docker, Bun, Tilt, ports) |
+| `flisk doctor` | 🔍 Print ranked cold-start failures first, then check environment (Docker, Bun, Tilt, ports); a project of `command` services is checked only for what its processes need |
 | `flisk completion --install` | ⌨️ Install shell completions (`--shell bash\|zsh\|fish\|powershell`); setup steps in the [cheat sheet](../docs/cheat-sheet.md#flisk-completion-shell) |
 | `flisk upgrade` | ⬆️ Self-update to the latest version (`--dry-run`, `--force`, `--all`) |
 | `flisk version` | ℹ️ Show version |

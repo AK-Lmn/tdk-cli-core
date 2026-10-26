@@ -12,7 +12,12 @@
         },
         "required": [
           "appType"
-        ]
+        ],
+        "not": {
+          "required": [
+            "command"
+          ]
+        }
       },
       "then": {
         "properties": {
@@ -35,7 +40,12 @@
         },
         "required": [
           "appType"
-        ]
+        ],
+        "not": {
+          "required": [
+            "command"
+          ]
+        }
       },
       "then": {
         "properties": {
@@ -55,7 +65,12 @@
         },
         "required": [
           "appType"
-        ]
+        ],
+        "not": {
+          "required": [
+            "command"
+          ]
+        }
       },
       "then": {
         "properties": {
@@ -79,7 +94,12 @@
         },
         "required": [
           "appType"
-        ]
+        ],
+        "not": {
+          "required": [
+            "command"
+          ]
+        }
       },
       "then": {
         "properties": {
@@ -92,9 +112,62 @@
           "port"
         ]
       }
+    },
+    {
+      "if": {
+        "required": [
+          "command"
+        ]
+      },
+      "then": {
+        "anyOf": [
+          {
+            "required": [
+              "appName"
+            ]
+          },
+          {
+            "required": [
+              "name"
+            ]
+          }
+        ],
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "image"
+              ]
+            },
+            {
+              "required": [
+                "dockerfile"
+              ]
+            }
+          ]
+        }
+      },
+      "else": {
+        "required": [
+          "appName",
+          "stack"
+        ],
+        "anyOf": [
+          {
+            "required": [
+              "appType"
+            ]
+          },
+          {
+            "required": [
+              "type"
+            ]
+          }
+        ]
+      }
     }
   ],
-  "description": "Configuration for Flisk resources. Drives Tilt orchestration, Docker Compose generation, and dependency resolution. Supports both explicit service.json files and synthesis from directory structure.",
+  "description": "Configuration for Flisk resources. Drives Tilt orchestration, Docker Compose generation, and dependency resolution. Supports both explicit service.json files and synthesis from directory structure. A service runs from exactly one source: a container (image, dockerfile, or a generated Dockerfile) or a local command.",
   "properties": {
     "$schema": {
       "description": "JSON Schema reference for IDE validation",
@@ -513,25 +586,30 @@
           "default": "files"
         }
       }
+    },
+    "command": {
+      "description": "Run the service as a local process with this shell command instead of a container, for example \"node server.js\" or \"uvicorn main:app --port $PORT\". It runs from the service directory with PORT set to port. No image, Dockerfile or generated files: flisk up starts, supervises and restarts it without Docker or Tilt. Cannot be combined with image or dockerfile.",
+      "minLength": 1,
+      "type": "string"
+    },
+    "env": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Environment variables for a command service. Values may reference ${VAR} (or ${VAR:-default}) from the project .env or the shell.",
+      "propertyNames": {
+        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+      },
+      "type": "object"
+    },
+    "name": {
+      "description": "Service name. Same as appName; a command service may use either.",
+      "type": "string"
     }
   },
   "required": [
-    "appName",
-    "stack",
     "schemaVersion"
   ],
   "title": "Flisk Resource Configuration",
-  "type": "object",
-  "anyOf": [
-    {
-      "required": [
-        "appType"
-      ]
-    },
-    {
-      "required": [
-        "type"
-      ]
-    }
-  ]
+  "type": "object"
 }

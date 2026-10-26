@@ -12,8 +12,10 @@ import {
 import { errorFactories, handleTiltFailure, withTiltCheck } from "../utils/errors.js";
 import { createJsonEmitter } from "../utils/json-output.js";
 import { writeMachineError } from "../utils/machine-output.js";
+import { readNativeRunState, stopNativeRun } from "../utils/native-runtime.js";
+import { isNativeProject } from "../utils/native-service.js";
 import { findProjectRoot } from "../utils/paths.js";
-import { discoverResources, discoverStacks } from "../utils/services.js";
+import { discoverResources, discoverResourcesFromRoot, discoverStacks } from "../utils/services.js";
 import { buildTiltDownArgs, getTiltfilePath, runTilt } from "../utils/tilt.js";
 
 function allStackNames(): string[] | undefined {
@@ -22,6 +24,16 @@ function allStackNames(): string[] | undefined {
     return names.length > 0 ? names : undefined;
   } catch {
     return undefined;
+  }
+}
+
+/** True when `flisk down` stops local processes instead of Tilt: a native run is on record, or every service declares `command`. */
+function isNativeRun(projectRoot: string): boolean {
+  if (readNativeRunState(projectRoot)) return true;
+  try {
+    return isNativeProject(discoverResourcesFromRoot(projectRoot));
+  } catch {
+    return false;
   }
 }
 
@@ -75,6 +87,33 @@ export const downCommand = addYesOption(new Command("down"))
     }
 
     const emit = options.json ? createJsonEmitter("DOWN_FAILED", "flisk down") : undefined;
+    // A project of `command` services (or one with a native run on record) stops without Docker or Tilt.
+    const projectRoot = findProjectRoot() as string;
+    if (isNativeRun(projectRoot)) {
+      if (emit && options.dryRun) {
+        emit({ ok: true, dryRun: true, runtime: "native" });
+        return;
+      }
+      if (
+        handleDryRun(
+          options,
+          "not stopping local processes",
+          "stop the local processes of this project",
+        )
+      ) {
+        return;
+      }
+      const stopped = await stopNativeRun(projectRoot);
+      if (!options.json) {
+        console.log(
+          stopped.wasRunning
+            ? chalk.blue(`Stopped local processes: ${stopped.services.join(", ")}`)
+            : chalk.gray("Nothing is running for this project."),
+        );
+      }
+      emit?.({ ok: true, runtime: "native", stopped: stopped.services });
+      return;
+    }
     await withTiltCheck(async () => {
       if (emit && options.dryRun) {
         emit({ ok: true, dryRun: true });

@@ -15,6 +15,7 @@ import { isPathDiscovered, readDiscoveryPaths } from "../utils/discovery-paths.j
 import { checkCrashLoopingContainers } from "../utils/doctor-crashloop.js";
 import { applyDoctorFixes, checkDuplicateFliskInstalls, hasFailedActions, planDoctorFixes, projectTiltPids, } from "../utils/doctor-fix.js";
 import { checkDiskSpace, dockerDesktopStuck } from "../utils/doctor-host.js";
+import { checkNativeCommands, checkNativeDependsOn, checkNativeRuntime, checkNativeServiceHealth, } from "../utils/doctor-native.js";
 import { collectDoctorChecks, createDoctorReport, getDoctorExitCode, } from "../utils/doctor-report.js";
 import { checkHealthRoutes, checkIngressPorts, checkPrivateNpmRegistry, checkTiltResourceHealth, projectConfigEnablesVerdaccio, summarizeAdvertisedProbes, summarizeServiceProbes, summarizeSmokeResults, } from "../utils/doctor-runtime.js";
 import { checkStarlarkLoadExports } from "../utils/doctor-starlark.js";
@@ -25,6 +26,7 @@ import { evaluateFliskVersionFloor } from "../utils/flisk-version.js";
 import { formatCount } from "../utils/formatting.js";
 import { getHostPortPlan, resolveRuntimeIngressPort } from "../utils/host-port-config.js";
 import { createHostPortPlan } from "../utils/host-port-plan.js";
+import { findNativeProject } from "../utils/native-project.js";
 import { findProjectRoot, getPackageVersion } from "../utils/paths.js";
 import { promptConfirm } from "../utils/prompt.js";
 import { EnvUnreadableError, envSecretValues, redactSecrets, redactValue, } from "../utils/secret-redaction.js";
@@ -1285,8 +1287,13 @@ export const doctorCommand = new Command("doctor")
         process.exit(2);
         return;
     }
+    // A project whose services all declare `command` runs as local processes: doctor checks only what they need (#2231).
+    const nativeProject = findNativeProject();
+    const nativeResources = nativeProject?.resources ?? null;
     if (!options.json) {
-        console.log("Flisk doctor checks your local Docker + Tilt development environment; it does not check cluster deployments.");
+        console.log(nativeResources
+            ? "Flisk doctor checks what this project's local processes need; its services declare commands, so Docker and Tilt are not checked."
+            : "Flisk doctor checks your local Docker + Tilt development environment; it does not check cluster deployments.");
     }
     const host = detectHost();
     if (process.platform === "win32") {
@@ -1343,10 +1350,15 @@ export const doctorCommand = new Command("doctor")
         console.log(`\n${chalk.bold("🔍 Flisk Doctor")}\n`);
         console.log("Checking environment...\n");
     }
-    const projectRoot = findProjectRoot();
+    // A directory of command services is a project for doctor even before `flisk up` writes its .flisk/project.json.
+    const projectRoot = findProjectRoot() ?? nativeProject?.projectRoot ?? null;
     // Repairs run before the checks so the checks report the state after the fix.
     let fixActions;
-    if (options.fix) {
+    if (options.fix && nativeResources) {
+        // The repairs are for Docker networks and Tilt probes, which a project of local processes does not have.
+        fixActions = [];
+    }
+    else if (options.fix) {
         try {
             let projectName;
             if (projectRoot) {
@@ -1388,16 +1400,19 @@ export const doctorCommand = new Command("doctor")
         if (!options.json)
             printFixActions(fixActions, options.dryRun);
     }
+    // The host port plan places the gateway and Postgres containers; a project of local processes has neither.
     let hostPortPlan;
     let portPlanError;
-    try {
-        hostPortPlan = await getHostPortPlan(projectRoot ?? process.cwd());
+    if (!nativeResources) {
+        try {
+            hostPortPlan = await getHostPortPlan(projectRoot ?? process.cwd());
+        }
+        catch (error) {
+            hostPortPlan = null;
+            portPlanError = error instanceof Error ? error.message : String(error);
+        }
     }
-    catch (error) {
-        hostPortPlan = null;
-        portPlanError = error instanceof Error ? error.message : String(error);
-    }
-    const machineChecks = [
+    const containerMachineChecks = [
         () => hostPortPlan
             ? {
                 name: "Host Ports",
@@ -1434,7 +1449,7 @@ export const doctorCommand = new Command("doctor")
         requiresContainerRuntime("Docker Network Pool", () => checkDockerNetworkCapacity()),
         () => checkDuplicateFliskInstalls(),
     ];
-    const projectChecks = [
+    const containerProjectChecks = [
         () => checkFliskVersion(),
         checkMasterConfigs,
         checkGeneratedProjectRuntimeAssets,
@@ -1495,8 +1510,31 @@ export const doctorCommand = new Command("doctor")
         // When Tilt is up, surface red resources (Traefik/apps never started).
         requiresContainerRuntime("Tilt Resources", checkTiltResourceHealth),
     ];
+    const machineChecks = nativeResources
+        ? [
+            () => checkNativeRuntime(nativeResources),
+            () => checkNativeCommands(nativeResources),
+            () => checkWslProjectLocation(findProjectRoot() ?? process.cwd(), options.strict),
+            () => checkDuplicateFliskInstalls(),
+        ]
+        : containerMachineChecks;
+    const projectChecks = nativeResources
+        ? [
+            () => checkFliskVersion(),
+            () => checkDuplicateResourceNames(),
+            () => checkDependsOnShape(),
+            () => checkNativeDependsOn(nativeResources),
+            () => checkCircularDependencies(),
+            () => checkServicePorts(),
+            () => checkSchemaVersions(undefined, options.strict),
+            () => checkDuplicateResourcePorts(),
+        ]
+        : containerProjectChecks;
+    if (options.ping && nativeResources && projectRoot) {
+        projectChecks.push(() => checkNativeServiceHealth(projectRoot, nativeResources, pingTimeout));
+    }
     // Runs last: needs routable services (and working Traefik) to mean anything.
-    if (options.ping) {
+    if (options.ping && !nativeResources) {
         // Probe the port a running stack is actually on, not the one the next `flisk up` would pick.
         const pingPort = projectRoot
             ? resolveRuntimeIngressPort(projectRoot, hostPortPlan?.ingressHttp)

@@ -57,6 +57,8 @@ const RESOURCE_CONFIG_FIELDS = [
   "image",
   "exposeViaProxy",
   "agent",
+  "command",
+  "env",
 ] as const satisfies readonly (keyof ResourceConfigFields)[];
 type ResourceConfigFieldsAreComplete =
   Exclude<keyof ResourceConfigFields, (typeof RESOURCE_CONFIG_FIELDS)[number]> extends never
@@ -270,5 +272,35 @@ describe("bring-your-own health path", () => {
   it("keeps the healthCheckPath pattern when a bring-your-own service sets one", () => {
     expect(validateService({ ...byo, healthCheckPath: "/health" })).toBe(true);
     expect(validateService({ ...byo, healthCheckPath: "health" })).toBe(false);
+  });
+});
+
+describe("command services (the minimal contract)", () => {
+  const minimal = { name: "api", command: "node server.js", schemaVersion: 1 };
+
+  it("accepts a service with only a name, a command and schemaVersion", () => {
+    expect(validateService(minimal)).toBe(true);
+    expect(
+      validateService({ ...minimal, port: 8080, env: { API_URL: "http://localhost:4000" } }),
+    ).toBe(true);
+  });
+
+  it("does not apply the Docker port ranges to a local process", () => {
+    expect(validateService({ ...minimal, appType: "backend", port: 8080 })).toBe(true);
+    expect(validateService({ ...minimal, appType: "frontend", port: 5173 })).toBe(true);
+  });
+
+  it("refuses a second runtime source next to command", () => {
+    expect(validateService({ ...minimal, image: "nginx" })).toBe(false);
+    expect(validateService({ ...minimal, dockerfile: "Dockerfile" })).toBe(false);
+  });
+
+  it("still needs a name and schemaVersion", () => {
+    expect(validateService({ command: "node server.js", schemaVersion: 1 })).toBe(false);
+    expect(validateService({ name: "api", command: "node server.js" })).toBe(false);
+  });
+
+  it("requires env values to be strings", () => {
+    expect(validateService({ ...minimal, env: { PORT2: 1 } })).toBe(false);
   });
 });

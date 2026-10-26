@@ -8,15 +8,15 @@ Tracked as epics and sub-tasks in flisk-sh/flisk: #2216 (audit), #2217 (minimal 
 - [x] 1.2 Identify generated files that overwrite or assume a framework (#2223)
 - [x] 1.3 Identify hard-coded dependencies on Bun, Traefik, Postgres, Docker, and Tilt (#2224)
 - [x] 1.4 Document which defaults are required for `flisk up` versus optional (#2225)
-- [ ] 1.5 Add an `unopinionated` test fixture with no generated framework files (#2226)
+- [x] 1.5 Add an `unopinionated` test fixture with no generated framework files (#2226): an API and a website with `command`, started by `flisk up` in `cli/src/commands/__tests__/up-native-e2e.test.ts`
 
 ## 2. Define the minimal core
 
-- [ ] 2.1 Define a minimal service contract: name, command or image, ports, env, dependencies (see `specs/core-platform/spec.md`)
+- [ ] 2.1 Define a minimal service contract: name, command or image, ports, env, dependencies (see `specs/core-platform/spec.md`). Done for `command` services (name, command, port, env, dependsOn, healthCheckPath; a second runtime source is refused). An `image` service still needs `appType` and `stack`.
 - [ ] 2.2 Allow a service to run from an existing Dockerfile without generation
-- [ ] 2.3 Allow a service to run from a direct local command without Docker
-- [ ] 2.4 Make `flisk up` work with zero generated files when the user supplies their own runtime config
-- [ ] 2.5 Ensure `flisk doctor` validates only the capabilities actually enabled
+- [x] 2.3 Allow a service to run from a direct local command without Docker (#2229): see `design.md`
+- [ ] 2.4 Make `flisk up` work with zero generated files when the user supplies their own runtime config. Done for `command` services (only `.flisk/project.json` and `.flisk/native/` are written); not yet for an own Dockerfile or Compose file.
+- [x] 2.5 Ensure `flisk doctor` validates only the capabilities actually enabled (#2231): a project of `command` services is checked for its programs, dependsOn, ports and health, not for Docker, Compose, Tilt, Bun or the gateway/database ports. Finer per-capability checks (gateway, database) come with 3.1 and 3.2.
 
 ## 3. Make integrations optional
 

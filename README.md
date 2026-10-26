@@ -114,7 +114,7 @@ flisk resource shop-web --type frontend --stack shop --yes
 flisk up shop
 ```
 
-You get an orders API and a storefront behind one local gateway, with Postgres and live reload. You need Docker, [Tilt](https://docs.tilt.dev/install.html), Node.js 22.12+, and [Bun](https://bun.sh/) 1.2+; `flisk doctor` checks your machine. Prefer to answer questions instead? `npm init create-microservices my-project` asks what to create. See the [quick start](#quick-start) for every option.
+You get an orders API and a storefront behind one local gateway, with Postgres and live reload. You need Docker, [Tilt](https://docs.tilt.dev/install.html), Node.js 22.12+, and [Bun](https://bun.sh/) 1.2+; `flisk doctor` checks your machine. A simpler app needs none of those: give each service a `command` and [run it as local processes](docs/run-without-docker.md). Prefer to answer questions instead? `npm init create-microservices my-project` asks what to create. See the [quick start](#quick-start) for every option.
 
 <div align="center">
 
@@ -245,7 +245,7 @@ flisk up shop
 Agents get durable checkpoint volumes that survive `flisk down`, sticky session routing via `x-session-id`, graceful SIGTERM drain during hot reloads, a Docker health check on `/health`, and application-level readiness checks on `/ready`. See the [AI agents guide](docs/agents/ai-agents.md) and [honest comparison with agent frameworks](docs/compare-honest.md#ai-agent-frameworks-and-workflow-engines-libfx-langgraph-mastra-vercel-workflows-temporal).
 
 
-**What Flisk is:** a local development runtime. Define each service in `service.json` and run `flisk up`. Docker runs the containers, Tilt live-updates them while you code, and Flisk writes the configuration both use. No local Kubernetes is needed.
+**What Flisk is:** a local development runtime. Define each service in `service.json` and run `flisk up`. A service with a `command` runs as a local process, with nothing else installed. When you need a database, one gateway URL, or the container you deploy, Docker runs the containers, Tilt live-updates them while you code, and Flisk writes the configuration both use. No local Kubernetes is needed.
 
 **What Flisk is not:** a deploy tool or a Compose file. Production deployment stays with Helm, Argo CD, or Kustomize.
 
@@ -337,16 +337,39 @@ Get a running local stack in **3 commands**. Works on macOS, Linux, and Windows 
 
 ### Prerequisites (install once)
 
-| Tool | Version | Install | Install path |
-|------|---------|---------|--------------|
-| **Docker** | Engine 25+, Compose 2.20.2+ | [docker.com](https://www.docker.com/products/docker-desktop/) | All paths |
-| **Tilt** | 0.25+ | `curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh \| bash` | All paths |
-| **Node.js** | 22.12+ | [nodejs.org](https://nodejs.org/) | npm path (`npm install -g @flisk-sh/flisk`) |
-| **Bun** | 1.2+ | `curl -fsSL https://bun.sh/install \| bash` | Bun path (`bun add -g @flisk-sh/flisk`) |
+| Tool | Version | Install | Needed for |
+|------|---------|---------|------------|
+| **Your app's runtime** | whatever your app uses | Node.js, Python, Go, Bun, ... | Every path: it runs your code |
+| **Node.js** | 22.12+ | [nodejs.org](https://nodejs.org/) | npm install (`npm install -g @flisk-sh/flisk`) |
+| **Docker** | Engine 25+, Compose 2.20.2+ | [docker.com](https://www.docker.com/products/docker-desktop/) | Docker + Tilt path only |
+| **Tilt** | 0.25+ | `curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh \| bash` | Docker + Tilt path only |
+| **Bun** | 1.2+ | `curl -fsSL https://bun.sh/install \| bash` | Bun install (`bun add -g @flisk-sh/flisk`), or generated JavaScript services |
 
-> **Conditional prerequisites**: Node.js is only required when you install Flisk via npm (`npm install -g @flisk-sh/flisk`). Bun is only required when you install via Bun or your project has generated JavaScript services. Docker and Tilt are required for every path.
+> **Two paths.** A project whose services each declare a `command` runs them as local processes: you need only Flisk and your app's runtime ([simplest path](#simplest-path-no-docker)). Docker and Tilt are needed for the Docker + Tilt path: databases such as Postgres, one gateway URL for every service, and running the same container you deploy. `flisk doctor` checks only what your project uses.
 
 > **Windows?** Use WSL2 Ubuntu. See the [Windows & WSL2 guide](docs/wsl2.md) for the recommended setup.
+
+---
+
+### Simplest path: no Docker
+
+For an app made of services you can start with one command each (an API, a website, a worker), put a `service.json` next to each one:
+
+```json
+{ "schemaVersion": 1, "name": "api", "command": "node server.js", "port": 4000, "healthCheckPath": "/health" }
+```
+
+```json
+{ "schemaVersion": 1, "name": "web", "command": "node server.js", "port": 3000, "dependsOn": ["api"] }
+```
+
+Then start everything from the project folder:
+
+```bash
+flisk up
+```
+
+Flisk starts the API, waits until it answers, starts the website, prints both URLs, prefixes each line of output with the service name, and restarts a service that crashes. Ctrl+C or `flisk down` stops them. No Docker, no Tilt, no generated files. See [Run your app without Docker](docs/run-without-docker.md) for every field, and for when to switch to the Docker + Tilt path.
 
 ---
 

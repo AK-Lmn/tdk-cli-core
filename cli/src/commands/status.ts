@@ -9,6 +9,8 @@ import { formatCount, showDetail, showStep } from "../utils/formatting.js";
 import { getHostPortPlan } from "../utils/host-port-config.js";
 import type { HostPortPlan } from "../utils/host-port-plan.js";
 import { createMachineEnvelope, writeMachineError } from "../utils/machine-output.js";
+import { nativeServiceStates } from "../utils/native-runtime.js";
+import { isNativeProject } from "../utils/native-service.js";
 import { findProjectRoot } from "../utils/paths.js";
 import { deriveServiceStates, type ServiceRuntimeState } from "../utils/service-runtime-state.js";
 import { groupSharedPostgres, readProjectName } from "../utils/shared-infra.js";
@@ -33,23 +35,37 @@ export const statusCommand = new Command("status")
       const sharedInfraGroup = projectName
         ? groupSharedPostgres(projectName, discovery.stacks)
         : null;
+      // A project of `command` services runs as local processes: its state comes from the run on record, not from Tilt.
+      const nativeStates =
+        projectRoot && isNativeProject(discovery.resources)
+          ? nativeServiceStates(
+              projectRoot,
+              discovery.resources.map((resource) => resource.name),
+            )
+          : null;
       let tiltAvailable = false;
-      try {
-        tiltAvailable = await isTiltAvailable();
-      } catch {
-        // Tilt not available (spawn error)
-        tiltAvailable = false;
+      if (!nativeStates) {
+        try {
+          tiltAvailable = await isTiltAvailable();
+        } catch {
+          // Tilt not available (spawn error)
+          tiltAvailable = false;
+        }
       }
 
       if (!options.json) {
         showStep("Flisk Status\n");
-        console.log(
-          chalk.bold("Tilt:"),
-          tiltAvailable ? chalk.green("available") : chalk.red("not found"),
-        );
+        if (nativeStates) {
+          console.log(chalk.bold("Runtime:"), "local processes (no Docker, no Tilt)");
+        } else {
+          console.log(
+            chalk.bold("Tilt:"),
+            tiltAvailable ? chalk.green("available") : chalk.red("not found"),
+          );
 
-        if (!tiltAvailable) {
-          showDetail("Install Tilt: https://docs.tilt.dev/install.html");
+          if (!tiltAvailable) {
+            showDetail("Install Tilt: https://docs.tilt.dev/install.html");
+          }
         }
 
         console.log();
@@ -62,7 +78,7 @@ export const statusCommand = new Command("status")
       // Tilt answers or its output cannot be read.
       let readiness: ReturnType<typeof evaluateTiltReadiness>["result"] | null = null;
       // The same look at Tilt feeds readiness and each service's state, so `flisk status` and `flisk ui` cannot disagree.
-      let serviceStates: Record<string, ServiceRuntimeState> | null = null;
+      let serviceStates: Record<string, ServiceRuntimeState> | null = nativeStates;
       const tiltPort = getTiltPollingPort(process.env.TILT_PORT);
 
       // Port plan is best effort; service URLs are shown in both JSON and terminal output.
@@ -111,7 +127,23 @@ export const statusCommand = new Command("status")
 
       if (options.json) {
         const errors = queryError ? [{ code: "TILT_STATUS_UNAVAILABLE", message: queryError }] : [];
+        // A native run answers the readiness question agents poll (data.tilt.readiness.ready) from its own run state.
+        if (nativeStates) {
+          const states = Object.entries(nativeStates);
+          const isRunning = states.some(([, state]) => state.status !== "unknown");
+          readiness = isRunning
+            ? {
+                ready: states.every(([, state]) => state.status === "ready"),
+                failures: [],
+                pending: states.filter(([, state]) => state.status !== "ready").length,
+                timedOut: false,
+                enabled: states.map(([name]) => name),
+              }
+            : null;
+        }
         const data = {
+          // Only a project of local processes says so; a container project's report keeps its shape.
+          ...(nativeStates ? { runtime: "native" } : {}),
           tilt: {
             available: tiltAvailable,
             resourcesQueried: options.tilt && tiltAvailable,

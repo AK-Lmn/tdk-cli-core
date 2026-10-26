@@ -38,6 +38,15 @@ export function isValidSince(value: string): boolean {
   return total <= MAX_DURATION_NANOSECONDS;
 }
 
+/** A valid --since duration in milliseconds, for logs Flisk reads itself (local processes) rather than through Tilt. */
+export function sinceMilliseconds(value: string): number {
+  let total = 0;
+  for (const [, amount, unit] of value.matchAll(/(\d+(?:\.\d+)?)(ns|us|µs|ms|s|m|h)/g)) {
+    total += Number(amount) * (NANOSECONDS[unit as string] ?? 0);
+  }
+  return total / 1e6;
+}
+
 export function isValidPort(value: string): boolean {
   return /^[1-9]\d{0,4}$/.test(value) && Number(value) <= 65535;
 }

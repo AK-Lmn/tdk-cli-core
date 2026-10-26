@@ -10,6 +10,21 @@ https://flisk.sh/schema.service.json
 
 ## Minimal examples
 
+The smallest service is a local process: a name and the command that starts it. `flisk up` runs it without Docker or Tilt, and generates no files for it. See [Run your app without Docker](run-without-docker.md).
+
+```json
+{
+  "$schema": "https://flisk.sh/schema.service.json",
+  "schemaVersion": 1,
+  "name": "api",
+  "command": "node server.js",
+  "port": 4000,
+  "healthCheckPath": "/health"
+}
+```
+
+The examples below run in containers that Flisk builds and routes.
+
 A backend resource needs a backend port. The usual backend range is `4000`–`4999`.
 
 ```json
@@ -91,6 +106,18 @@ Run `flisk resource <name> --type backend`, `flisk resource <name> --type fronte
 | `appType` | enum; required when `type` is absent | all | Resource kind: `backend`, `frontend`, `library`, `sdk`, `worker`, `migrator`, `mcp`, or `bring-your-own`. Provide either `appType` or the legacy `type` field. |
 | `type` | enum; legacy alias for `appType` | existing manifests | Older manifests may use `type`; provide it when `appType` is absent. Use `appType` in new files. During config migration, Flisk copies the legacy value to `appType`. |
 | `stack` | string; **required** | all | Groups related resources and influences database names, routes, and generated dependency configuration. |
+
+A service that declares `command` needs only `schemaVersion` and a name (`name` or `appName`); `appType` and `stack` are optional for it.
+
+## Local process fields
+
+| Field | Type and default | Applies to | Description |
+| --- | --- | --- | --- |
+| `command` | shell command; optional | local processes | Runs the service as a local process instead of a container: `flisk up` starts it from the service directory with `PORT` set to `port`, waits for it, restarts it when it exits, and stops it on `flisk down`. Cannot be combined with `image` or `dockerfile`. All services that `flisk up` starts must declare it (or none). Not the same as `dev.command`, the dev command inside a generated container. |
+| `name` | string; optional | local processes | Same as `appName`. |
+| `env` | string map; optional | local processes | Environment variables for the command. Values may use `${VAR}` or `${VAR:-default}` from the project `.env` or the shell. |
+
+For a local process, `port`, `healthCheckPath`, `dependsOn` and `restart: "no"` keep their meaning, without the container port ranges.
 
 `appType` determines more than the label shown in the UI. It selects the generator and validation rules. A `worker` must declare the `nats` feature, while `bring-your-own` resources need a `Dockerfile` or `image` and do not receive an application scaffold.
 

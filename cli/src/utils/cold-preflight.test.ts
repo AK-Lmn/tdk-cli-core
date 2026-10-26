@@ -20,6 +20,7 @@ function result(items: PreflightItem[], inProject = false): PreflightResult {
   return {
     ok: items.length === 0,
     inProject,
+    scope: "runtime",
     items,
     header:
       items.length === 0
