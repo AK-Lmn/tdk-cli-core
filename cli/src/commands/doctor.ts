@@ -35,6 +35,7 @@ import {
   planDoctorFixes,
   projectTiltPids,
 } from "../utils/doctor-fix.js";
+import { formatFixFirst, rankDoctorFixes } from "../utils/doctor-fix-first.js";
 import { checkDiskSpace, dockerDesktopStuck } from "../utils/doctor-host.js";
 import {
   checkNativeCommands,
@@ -1493,6 +1494,13 @@ export function renderDoctorOutput(
   allResults?: CheckResult[],
 ): void {
   const results = allResults ?? [...machineResults, ...projectResults];
+  const printFixFirst = (): void => {
+    const lines = formatFixFirst(rankDoctorFixes(results));
+    if (lines.length === 0) return;
+    console.log(chalk.bold("Fix first"));
+    for (const line of lines) console.log(line);
+    console.log("");
+  };
   if (options.all) {
     console.log(chalk.bold("Machine"));
     printDoctorResults(machineResults);
@@ -1510,9 +1518,11 @@ export function renderDoctorOutput(
 
     console.log("");
     console.log(formatDoctorSummary(results));
+    printFixFirst();
   } else {
     printDoctorResults(results);
     console.log("");
+    printFixFirst();
 
     const allPassed = results.every((check) => check.didPass || check.isSkipped || check.isWarning);
     if (allPassed && !inProject) {

@@ -1,4 +1,5 @@
 import { CONTAINER_RUNTIME_CHECK } from "./constants.js";
+import { rankDoctorFixes } from "./doctor-fix-first.js";
 import { SCHEMA_VERSION } from "./machine-output.js";
 /** Wait for concurrent probes to finish even if one throws, so they can release resources. */
 export async function collectDoctorChecks(machineChecks, projectChecks) {
@@ -28,6 +29,7 @@ function containerRuntimeReachable(checks) {
 }
 /** Produce the same readiness decision for human and machine consumers. */
 export function createDoctorReport(checks, inProject, errors = [], portPlan, host) {
+    const fixFirst = rankDoctorFixes(checks);
     return {
         schemaVersion: SCHEMA_VERSION,
         data: {
@@ -35,6 +37,7 @@ export function createDoctorReport(checks, inProject, errors = [], portPlan, hos
                 checks.every((check) => check.didPass || check.isSkipped || check.isWarning),
             inProject,
             checks,
+            ...(fixFirst.length > 0 ? { fixFirst } : {}),
             ...(host
                 ? {
                     host: {

@@ -1,6 +1,7 @@
 import type { CheckResult } from "../types/index.js";
 import type { HostInfo } from "./agent-host.js";
 import type { DoctorAction } from "./doctor-fix.js";
+import { type RankedFix } from "./doctor-fix-first.js";
 import type { HostPortPlan } from "./host-port-plan.js";
 import { SCHEMA_VERSION } from "./machine-output.js";
 export interface DoctorError {
@@ -13,6 +14,8 @@ export interface DoctorReport {
         ready: boolean;
         inProject: boolean;
         checks: CheckResult[];
+        /** Present only when a failing check has a runnable command: most blocking first. */
+        fixFirst?: RankedFix[];
         /** Present only with `--fix`: every repair planned, applied, skipped or failed. */
         actions?: DoctorAction[];
         host?: HostInfo & {
