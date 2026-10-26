@@ -209,19 +209,13 @@ export function validateServiceManifest(
 
   const manifest = value as Record<string, unknown>;
   const errors: string[] = [];
-  // A `command` service needs only a name and schemaVersion: it runs as a local process, so it has no app type, stack or
-  // generated output to describe (the minimal contract in utils/native-service.ts). Every other service keeps the full set.
-  if (declaresCommand(manifest)) {
-    if (!("appName" in manifest) && typeof manifest.name !== "string") {
-      errors.push(`${displayPath}.name: required field is missing`);
-    }
-    if (!("schemaVersion" in manifest)) {
-      errors.push(`${displayPath}.schemaVersion: required field is missing`);
-    }
-  } else {
-    for (const field of ["appName", "appType", "stack", "schemaVersion"] as const) {
-      if (!(field in manifest)) errors.push(`${displayPath}.${field}: required field is missing`);
-    }
+  // A `command` service runs as a local process, so it has no stack to group generated output by (the minimal contract in
+  // utils/native-service.ts). Every other service keeps the full set.
+  const requiredFields = declaresCommand(manifest)
+    ? (["appName", "appType", "schemaVersion"] as const)
+    : (["appName", "appType", "stack", "schemaVersion"] as const);
+  for (const field of requiredFields) {
+    if (!(field in manifest)) errors.push(`${displayPath}.${field}: required field is missing`);
   }
   for (const field of ["appName", "appType", "stack"] as const) {
     if (field in manifest && typeof manifest[field] !== "string") {

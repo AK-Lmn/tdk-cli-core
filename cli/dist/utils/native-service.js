@@ -3,7 +3,7 @@
  * `command` runs as a local process started by `flisk up`, with no image, no Dockerfile and no generated files.
  *
  * ```json
- * { "name": "api", "command": "node server.js", "port": 4000, "env": { "GREETING": "hi" }, "dependsOn": [], "healthCheckPath": "/health" }
+ * { "appName": "api", "appType": "backend", "command": "node server.js", "port": 4000, "env": { "GREETING": "hi" }, "dependsOn": [] }
  * ```
  *
  * `dev.command` is a different field: it is the dev command inside a generated container (see the Python example) and does not
@@ -54,7 +54,7 @@ export function validateNativeServiceFields(manifest) {
     return errors;
 }
 function serviceLabel(manifest) {
-    const name = typeof manifest.appName === "string" ? manifest.appName : manifest.name;
+    const name = manifest.appName;
     return typeof name === "string" && name ? `"${name}"` : "(unnamed)";
 }
 /**

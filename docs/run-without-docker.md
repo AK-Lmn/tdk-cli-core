@@ -22,7 +22,8 @@ my-app/
 {
   "$schema": "https://flisk.sh/schema.service.json",
   "schemaVersion": 1,
-  "name": "api",
+  "appName": "api",
+  "appType": "backend",
   "command": "node server.js",
   "port": 4000,
   "healthCheckPath": "/health"
@@ -35,7 +36,8 @@ my-app/
 {
   "$schema": "https://flisk.sh/schema.service.json",
   "schemaVersion": 1,
-  "name": "web",
+  "appName": "web",
+  "appType": "frontend",
   "command": "node server.js",
   "port": 3000,
   "dependsOn": ["api"],
@@ -74,7 +76,8 @@ Logs: flisk logs --service <name>, or .flisk/native/logs/<service>.log
 
 | Field | Required | What it does |
 | --- | --- | --- |
-| `name` (or `appName`) | yes | The service name, used in `dependsOn`, logs and `--only`. |
+| `appName` | yes | The service name, used in `dependsOn`, logs and `--only`. |
+| `appType` | yes | What the service is: `backend`, `frontend`, `worker`, `mcp`, `agent` or `bring-your-own`. The Docker port ranges do not apply to a local process. |
 | `schemaVersion` | yes | `1`. `flisk up` still starts a service without it and tells you how to add it. |
 | `command` | yes | A shell command, run from the service directory. It is what makes the service a local process. |
 | `port` | no | The port the service listens on. Flisk passes it as `PORT`, waits for it to answer, and prints `http://localhost:<port>`. |
@@ -85,7 +88,7 @@ Logs: flisk logs --service <name>, or .flisk/native/logs/<service>.log
 
 A service has exactly one runtime source: a `command`, or a container (`image`, `dockerfile`, or a Dockerfile Flisk generates). A service that declares `command` together with `image` or `dockerfile` is refused, and the error names the service.
 
-`appType` and `stack` are optional. Set `stack` if you want to start a group with `flisk up <stack>`.
+`stack` is optional. Set it if you want to start a group with `flisk up <stack>`.
 
 `dev.command` is a different field: it is the development command inside a container Flisk generates for languages such as Python. It does not make a service run without Docker.
 

@@ -2,7 +2,7 @@
 name: flisk-build
 description: Turn a plain request such as "build me a small online shop", "a SaaS with login and billing", "an AI agent with MCP tools and a database" or "a blog with an admin API" into Flisk steps (`flisk project`, `flisk resource ... --type ... --stack ...`, `flisk up`), check that every URL is healthy, and tell the user where the app is. Use when the user asks you to build, scaffold or run a new app on their laptop with Flisk.
 license: MIT
-compatibility: Requires the flisk CLI, Docker and Tilt on the local machine. Does not deploy.
+compatibility: Requires the flisk CLI and the app's runtime (Node.js, Python, Go, Bun). Docker and Tilt only for the Docker + Tilt path (databases, one gateway URL, container parity). Does not deploy.
 metadata:
   author: flisk-sh
   version: "1.0"
@@ -11,6 +11,25 @@ metadata:
 # Build an app with Flisk
 
 The user describes an app. Map each part of it to a Flisk resource, let Flisk write the containers, routing and database wiring, write only the app code, and finish with the working URLs.
+
+## First: does this app need Docker?
+
+Pick the path before anything else.
+
+- **No Docker (prefer it for a simple app):** every part can be started with one command and none needs a database, one gateway URL, or the container it deploys. Examples: an API and a website, a static site and a webhook receiver, an agent that calls an external model API. Follow "Simple app without Docker" below and skip the Workflow.
+- **Docker + Tilt:** the app stores data in Postgres, needs Redis or another image, or the user asks for the same container they deploy. Follow the Workflow.
+
+Do not mix the two in one project: `flisk up` refuses with `MIXED_RUNTIME`.
+
+## Simple app without Docker
+
+1. Write each part as a folder with its own code and a `service.json` that names the command that starts it:
+   `{ "schemaVersion": 1, "appName": "api", "appType": "backend", "command": "node server.js", "port": 4000, "healthCheckPath": "/health" }`.
+   The command runs from that folder with `PORT` set. Add `"dependsOn": ["api"]` to a part that calls another, and pass URLs through `"env": { "API_URL": "http://localhost:4000" }`. Use the runtime's own watch mode for reload (`node --watch server.js`, `uvicorn main:app --reload --port $PORT`).
+2. Run `flisk doctor`. It checks only that each command's program is installed and the ports and `dependsOn` are valid.
+3. Run `flisk up --json` in the background (`&`) and wait for its one JSON line: `"ok":true`, `"runtime":"native"` and `urls` with each service's `http://localhost:<port>`. No `flisk project` or `flisk resource` step is needed; the first `flisk up` writes `.flisk/project.json`.
+4. Request every URL (`curl -fsS <url>`); each must answer. On a failure read `flisk logs --service <name> --tail 100`, fix the code, and run `flisk up --json` again (it restarts a crashed service on its own).
+5. Tell the user what was built, one line per part with its URL, and that `flisk down` stops it. Guide: docs/run-without-docker.md.
 
 ## Workflow
 

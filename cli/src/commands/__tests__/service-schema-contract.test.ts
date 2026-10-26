@@ -276,9 +276,14 @@ describe("bring-your-own health path", () => {
 });
 
 describe("command services (the minimal contract)", () => {
-  const minimal = { name: "api", command: "node server.js", schemaVersion: 1 };
+  const minimal = {
+    appName: "api",
+    appType: "backend",
+    command: "node server.js",
+    schemaVersion: 1,
+  };
 
-  it("accepts a service with only a name, a command and schemaVersion", () => {
+  it("accepts a service with appName, appType, command and schemaVersion, and no stack", () => {
     expect(validateService(minimal)).toBe(true);
     expect(
       validateService({ ...minimal, port: 8080, env: { API_URL: "http://localhost:4000" } }),
@@ -295,9 +300,16 @@ describe("command services (the minimal contract)", () => {
     expect(validateService({ ...minimal, dockerfile: "Dockerfile" })).toBe(false);
   });
 
-  it("still needs a name and schemaVersion", () => {
-    expect(validateService({ command: "node server.js", schemaVersion: 1 })).toBe(false);
-    expect(validateService({ name: "api", command: "node server.js" })).toBe(false);
+  it("still needs appName, appType and schemaVersion", () => {
+    for (const field of ["appName", "appType", "schemaVersion"]) {
+      const without: Record<string, unknown> = { ...minimal };
+      delete without[field];
+      expect(validateService(without), field).toBe(false);
+    }
+  });
+
+  it("has no `name` alias for appName", () => {
+    expect(schema.properties.name).toBeUndefined();
   });
 
   it("requires env values to be strings", () => {

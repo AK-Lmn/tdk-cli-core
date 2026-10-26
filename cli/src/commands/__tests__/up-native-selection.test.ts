@@ -19,7 +19,8 @@ const fail = (code: string, message: string): never => {
 };
 
 const native = (name: string, extra: Record<string, unknown> = {}) => ({
-  name,
+  appName: name,
+  appType: "backend",
   command: "node server.js",
   schemaVersion: 1,
   ...extra,

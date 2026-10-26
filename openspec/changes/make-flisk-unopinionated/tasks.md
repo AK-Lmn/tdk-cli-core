@@ -12,7 +12,7 @@ Tracked as epics and sub-tasks in flisk-sh/flisk: #2216 (audit), #2217 (minimal 
 
 ## 2. Define the minimal core
 
-- [ ] 2.1 Define a minimal service contract: name, command or image, ports, env, dependencies (see `specs/core-platform/spec.md`). Done for `command` services (name, command, port, env, dependsOn, healthCheckPath; a second runtime source is refused). An `image` service still needs `appType` and `stack`.
+- [ ] 2.1 Define a minimal service contract: name, command or image, ports, env, dependencies (see `specs/core-platform/spec.md`). Done for `command` services (appName, appType, command, port, env, dependsOn, healthCheckPath; no stack; a second runtime source is refused). An `image` service still needs `appType` and `stack`.
 - [ ] 2.2 Allow a service to run from an existing Dockerfile without generation
 - [x] 2.3 Allow a service to run from a direct local command without Docker (#2229): see `design.md`
 - [ ] 2.4 Make `flisk up` work with zero generated files when the user supplies their own runtime config. Done for `command` services (only `.flisk/project.json` and `.flisk/native/` are written); not yet for an own Dockerfile or Compose file.

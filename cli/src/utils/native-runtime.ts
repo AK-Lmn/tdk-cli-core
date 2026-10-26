@@ -534,6 +534,9 @@ export class NativeSupervisor {
   private spawn(service: RunningService): void {
     const { plan } = service;
     service.startedAt = Date.now();
+    // `command` is a shell command line the project owner wrote in their own service.json (`PORT=1 node s.js`, `$PORT`,
+    // `a && b`), run with the same trust as an npm script or a Procfile entry; nothing from outside the project reaches it.
+    // nosemgrep: javascript.lang.security.audit.spawn-shell-true.spawn-shell-true
     const child = spawn(plan.command, {
       cwd: plan.cwd,
       env: { ...(this.options.baseEnv ?? process.env), ...plan.env },

@@ -23,24 +23,26 @@ const readService = (dir: string) =>
 
 // `flisk up` on this fixture (with Docker and Tilt absent) is covered by commands/__tests__/up-native-e2e.test.ts.
 describe("unopinionated fixture", () => {
-  it("declares two services with the minimal contract: a name, a command, a port", () => {
+  it("declares two services with the minimal contract: appName, appType, a command, a port", () => {
     expect(readService("api")).toMatchObject({
-      name: "unopinionated-api",
+      appName: "unopinionated-api",
+      appType: "backend",
       command: "node server.js",
       port: 4000,
     });
     expect(readService("web")).toMatchObject({
-      name: "unopinionated-web",
+      appName: "unopinionated-web",
+      appType: "frontend",
       command: "node server.js",
       port: 3000,
       dependsOn: ["unopinionated-api"],
     });
   });
 
-  it("is valid without an app type, stack, image or Dockerfile", () => {
+  it("is valid without a stack, image or Dockerfile", () => {
     for (const dir of ["api", "web"]) {
       const service = readService(dir);
-      for (const field of ["appType", "stack", "image", "dockerfile"]) {
+      for (const field of ["stack", "image", "dockerfile", "name", "type"]) {
         expect(service).not.toHaveProperty(field);
       }
       expect(validateServiceManifest(service, `${dir}/service.json`)).toMatchObject({

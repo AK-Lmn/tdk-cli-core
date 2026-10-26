@@ -4,7 +4,7 @@ Covers tasks 1.5, 2.3 and 2.5, and the `command` half of 2.1 and 2.4 (issues #22
 
 ## Contract
 
-A `service.json` with a non-empty top-level `command` is a local process. It needs only a name (`name` or `appName`) and `schemaVersion`; `port`, `env`, `dependsOn`, `healthCheckPath` and `restart: "no"` are optional. `command` next to `image` or `dockerfile` is refused, naming the service. `appType` defaults to `bring-your-own`. `dev.command` keeps its meaning (the dev command inside a generated container) and does not make a service native.
+A `service.json` with a non-empty top-level `command` is a local process. It needs `appName`, `appType` and `schemaVersion`, but no `stack`; `port`, `env`, `dependsOn`, `healthCheckPath` and `restart: "no"` are optional. There is no `name` alias and no legacy `type` for it, and no default `appType`. `command` next to `image` or `dockerfile` is refused, naming the service. `dev.command` keeps its meaning (the dev command inside a generated container) and does not make a service native.
 
 ## Which runtime runs a selection
 

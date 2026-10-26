@@ -29,9 +29,15 @@ describe("preflight for a project of command services", () => {
   it("checks neither Docker, Compose, Tilt nor the gateway and database ports", async () => {
     const root = createTempProject({
       files: {
-        "api/service.json": JSON.stringify({ name: "api", command: "node s.js", port: 4100 }),
+        "api/service.json": JSON.stringify({
+          appName: "api",
+          appType: "backend",
+          command: "node s.js",
+          port: 4100,
+        }),
         "web/service.json": JSON.stringify({
-          name: "web",
+          appName: "web",
+          appType: "frontend",
           command: "node w.js",
           dependsOn: ["api"],
         }),
@@ -60,7 +66,13 @@ describe("preflight for a project of command services", () => {
       postgres: 5432,
     });
     const root = createTempProject({
-      files: { "web/service.json": JSON.stringify({ name: "web", command: "node w.js" }) },
+      files: {
+        "web/service.json": JSON.stringify({
+          appName: "web",
+          appType: "frontend",
+          command: "node w.js",
+        }),
+      },
       stacks: { shop: { api: { appType: "backend", schemaVersion: 1, port: 4400 } } },
     });
 

@@ -33,7 +33,7 @@ describe("minimal service contract: declaring a command", () => {
     ).toEqual([expect.stringMatching(/^service "api": declares both command and image/)]);
     expect(
       validateNativeServiceFields({
-        name: "web",
+        appName: "web",
         command: "npm start",
         image: "nginx",
         dockerfile: "Dockerfile",
@@ -51,33 +51,35 @@ describe("minimal service contract: declaring a command", () => {
   });
 
   it("requires env to map variable names to strings", () => {
-    expect(validateNativeServiceFields({ name: "a", command: "x", env: ["A=1"] })).toEqual([
+    expect(validateNativeServiceFields({ appName: "a", command: "x", env: ["A=1"] })).toEqual([
       'service "a": env must be an object of string values',
     ]);
     expect(
-      validateNativeServiceFields({ name: "a", command: "x", env: { PORT2: 1, "BAD-NAME": "x" } }),
+      validateNativeServiceFields({
+        appName: "a",
+        command: "x",
+        env: { PORT2: 1, "BAD-NAME": "x" },
+      }),
     ).toEqual([expect.stringContaining("env PORT2, BAD-NAME")]);
     expect(
       validateNativeServiceFields({
-        name: "a",
+        appName: "a",
         command: "x",
         env: { API_URL: "http://localhost:4000" },
       }),
     ).toEqual([]);
   });
 
-  it("asks a command service only for a name and schemaVersion", () => {
-    const minimal = { name: "api", command: "node server.js", schemaVersion: 1 };
+  it("asks a command service for appName, appType and schemaVersion, not for a stack", () => {
+    const minimal = { appName: "api", appType: "backend", command: "node s.js", schemaVersion: 1 };
     expect(validateServiceManifest(minimal, "api/service.json").errors).toEqual([]);
-    expect(validateServiceManifest({ command: "node server.js" }, "x/service.json").errors).toEqual(
-      [
-        "x/service.json.name: required field is missing",
-        "x/service.json.schemaVersion: required field is missing",
-      ],
-    );
+    expect(validateServiceManifest({ command: "node s.js" }, "x/service.json").errors).toEqual([
+      "x/service.json.appName: required field is missing",
+      "x/service.json.appType: required field is missing",
+      "x/service.json.schemaVersion: required field is missing",
+    ]);
     // A service without command keeps every required field.
-    expect(validateServiceManifest({ name: "api" }, "y/service.json").errors).toEqual([
-      "y/service.json.appName: required field is missing",
+    expect(validateServiceManifest({ appName: "api" }, "y/service.json").errors).toEqual([
       "y/service.json.appType: required field is missing",
       "y/service.json.stack: required field is missing",
       "y/service.json.schemaVersion: required field is missing",
@@ -86,7 +88,13 @@ describe("minimal service contract: declaring a command", () => {
 
   it("knows command and env, so flisk up does not warn about unknown fields", () => {
     const result = validateServiceManifest(
-      { name: "api", command: "node server.js", env: { A: "1" }, schemaVersion: 1 },
+      {
+        appName: "api",
+        appType: "backend",
+        command: "node s.js",
+        env: { A: "1" },
+        schemaVersion: 1,
+      },
       "service.json",
     );
     expect(result.warnings).toEqual([]);
@@ -94,10 +102,15 @@ describe("minimal service contract: declaring a command", () => {
 });
 
 describe("discovering command services", () => {
-  it("discovers a service.json with only name, command and port", () => {
+  it("discovers a service.json with appName, appType, command and port, and no stack", () => {
     const root = createTempProject({
       files: {
-        "api/service.json": JSON.stringify({ name: "api", command: "node s.js", port: 4100 }),
+        "api/service.json": JSON.stringify({
+          appName: "api",
+          appType: "backend",
+          command: "node s.js",
+          port: 4100,
+        }),
       },
     });
     const { resources, problems } = discoverResourcesWithProblems(root);
@@ -106,25 +119,32 @@ describe("discovering command services", () => {
     expect(resources[0]).toMatchObject({
       name: "api",
       port: 4100,
-      type: "bring-your-own",
-      config: { appName: "api", appType: "bring-your-own", command: "node s.js" },
+      type: "backend",
+      config: { appName: "api", appType: "backend", command: "node s.js" },
     });
   });
 
-  it("keeps a declared appType", () => {
+  it("refuses a command service without appType instead of guessing one", () => {
     const root = createTempProject({
-      files: {
-        "api/service.json": JSON.stringify({ name: "api", appType: "backend", command: "x" }),
-      },
+      files: { "api/service.json": JSON.stringify({ appName: "api", command: "node s.js" }) },
     });
-    expect(discoverResourcesWithProblems(root).resources[0]?.type).toBe("backend");
+    const { resources, problems } = discoverResourcesWithProblems(root);
+    expect(resources).toEqual([]);
+    expect(problems).toEqual([
+      expect.objectContaining({ reason: "missing required fields (appName and appType)" }),
+    ]);
   });
 
   it("refuses a service.json with two runtime sources, naming the service", () => {
     const root = createTempProject();
     writeFileSync(
       join(root, "service.json"),
-      JSON.stringify({ name: "api", command: "node s.js", dockerfile: "Dockerfile" }),
+      JSON.stringify({
+        appName: "api",
+        appType: "backend",
+        command: "node s.js",
+        dockerfile: "Dockerfile",
+      }),
     );
     const { resources, problems } = discoverResourcesWithProblems(root);
     expect(resources).toEqual([]);
