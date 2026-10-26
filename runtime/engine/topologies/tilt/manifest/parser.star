@@ -91,6 +91,7 @@ _GENERATED_STRING_RULES = [
     (['databaseName'], _ALPHANUM + '_-', ''),
     (['stack'], _ALPHANUM + '_-', ''),
     (['image'], _ALPHANUM + '._/:@-', ''),
+    (['basePath'], _PATH_CHARS, '/'),
 ]
 
 def generated_string_error(manifest, resource_path=""):
