@@ -34,7 +34,7 @@ import { enforceServiceConfigGate, warnSchemaVersions } from "../utils/service-c
 import { appendHealthPath, resolveServiceUrl, resolveSubdomainBases, } from "../utils/service-urls.js";
 import { discoverResourcesStrict, discoverResourcesWithProblems, discoverStacks, getResourcesForStack, stackExists, warnAboutSkippedFiles, } from "../utils/services.js";
 import { buildSmokePlans, formatSmokeFailure, runSmokePlans, safeSmokeDeps, } from "../utils/smoke.js";
-import { buildStartupReport, formatStartupReport, isStartupStalled, } from "../utils/startup-report.js";
+import { buildStartupReport, formatStartupReport, isStartupStalled, machineProblemFixes, } from "../utils/startup-report.js";
 import { buildTiltUpArgs, runTilt } from "../utils/tilt.js";
 import { classifyTiltPorts } from "../utils/tilt-port-owner.js";
 import { stopTiltOnPort } from "../utils/tilt-process.js";
@@ -42,7 +42,7 @@ import { parseTiltPort, resolveTiltPort, secondUpAction, stopTiltForUp, } from "
 import { upFailureHints } from "../utils/up-hints.js";
 import { findUnknownServices, resolveOnlySelection } from "../utils/up-only.js";
 import { createUpProgressReporter, fetchWithProgress, shouldRedrawUpProgress, } from "../utils/up-progress.js";
-import { tiltGetUiResources, waitForTiltResourcesReady } from "../utils/up-readiness.js";
+import { tiltGetUiResources, tiltResourceLogs, waitForTiltResourcesReady, } from "../utils/up-readiness.js";
 import { enableDiscoveredStacks, writeDefaultProjectConfig } from "./project.js";
 export function formatUpSuccess(port, options = {}) {
     const { appUrls = [], serviceHealth = [], showLogsHint = serviceHealth.length > 0 } = options;
@@ -721,12 +721,16 @@ export const upCommand = new Command("up")
             let startedDependencies = dependencyNames;
             if (uiReady && emit) {
                 const deferred = getDeferredResourceNames(discoveredResources);
+                const dependsOn = Object.fromEntries(discoveredResources.map((r) => [r.name, r.config?.dependsOn ?? []]));
                 const readiness = await waitForTiltResourcesReady(port, {
                     deferred,
                     // Only what the caller named must be enabled. Dependencies are the Tiltfile's call (it skips some on purpose).
                     expected: options.only
                         ? options.only.filter((name) => !deferred.has(name))
                         : undefined,
+                    // As for the human output: stop as soon as everything left is blocked by a failure (for example init-networks),
+                    // instead of waiting out the whole timeout.
+                    isStalled: (text) => isStartupStalled(text, dependsOn, deferred),
                 });
                 if (readiness.ready) {
                     jsonReady = true;
@@ -740,7 +744,13 @@ export const upCommand = new Command("up")
                 }
                 else {
                     startupFailed = true;
-                    const detail = readiness.failures.map((f) => `${f.name}: ${f.message}`).join("; ");
+                    const fixes = await machineProblemFixes(readiness.failures, (name) => tiltResourceLogs(port, name));
+                    const detail = readiness.failures
+                        .map((f) => {
+                        const fix = fixes.get(f.name);
+                        return `${f.name}: ${f.message}${fix ? `. ${fix}` : ""}`;
+                    })
+                        .join("; ");
                     emit({ ok: false, tiltUrl: `http://localhost:${port}`, failures: readiness.failures }, [
                         {
                             code: readiness.timedOut ? "UP_TIMEOUT" : "UP_RESOURCE_FAILED",
@@ -787,7 +797,8 @@ export const upCommand = new Command("up")
                             blocked: [],
                             starting: [],
                         };
-                    const reportLines = formatStartupReport(report, readiness.timedOut, (port) => findPortOccupant(port));
+                    const machineFixes = await machineProblemFixes(report.failed, (name) => tiltResourceLogs(port, name));
+                    const reportLines = formatStartupReport(report, readiness.timedOut, (port) => findPortOccupant(port), machineFixes);
                     if (reportLines.length > 0) {
                         showError(reportLines.join("\n"), undefined, upFailureHints({
                             kind: "services",

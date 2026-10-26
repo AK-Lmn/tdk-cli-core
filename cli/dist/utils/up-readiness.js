@@ -8,6 +8,11 @@ export function tiltGetUiResources(port) {
         execFile(findOnPath("tilt") ?? "tilt", ["get", "uiresources", "-o", "json", "--port", String(port)], { timeout: 15_000, maxBuffer: 16 * 1024 * 1024 }, (error, stdout) => resolve(error ? null : stdout));
     });
 }
+export function tiltResourceLogs(port, name) {
+    return new Promise((resolve) => {
+        execFile(findOnPath("tilt") ?? "tilt", ["logs", name, "--port", String(port)], { timeout: 15_000, maxBuffer: 16 * 1024 * 1024 }, (error, stdout) => resolve(error ? null : stdout));
+    });
+}
 /**
  * Tilt lists resources outside the current focus (the other release phases, or everything but a `--only` selection) with
  * `disableStatus.state: Disabled` and both statuses `none`, which would read as pending forever. A resource whose update

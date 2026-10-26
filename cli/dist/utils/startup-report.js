@@ -4,6 +4,35 @@ import { parseTiltResourceFailures, summarizeTiltBuildError } from "./doctor-run
 import { conflictPort, portConflictFix } from "./port-conflict-fix.js";
 import { effectiveRuntimeStatus, isTiltResourcePending } from "./tilt-resource-state.js";
 import { onlyEnabledResources } from "./up-readiness.js";
+/** The resources Tilt says this one is waiting for. */
+function waitingOn(item) {
+    return (item.status?.waiting?.on ?? [])
+        .filter((ref) => (ref.kind ?? "UIResource") === "UIResource" && ref.name)
+        .map((ref) => ref.name);
+}
+// Docker has no free subnet left for a new network (every project creates several and `flisk down` keeps them).
+const NETWORK_POOL_EXHAUSTED = /all predefined address pools have been fully subnetted/i;
+/**
+ * Tilt's error for a failed local command is only "exit status 1"; the reason (for example Docker's "all predefined
+ * address pools have been fully subnetted") is in the resource's log. Returns the fix for each failed resource whose
+ * message or log names a known machine problem.
+ */
+export async function machineProblemFixes(failures, fetchLogs) {
+    const fixes = new Map();
+    for (const { name, message } of failures.slice(0, 5)) {
+        const fix = machineProblemFix(message) ?? machineProblemFix((await fetchLogs(name)) ?? "");
+        if (fix)
+            fixes.set(name, fix);
+    }
+    return fixes;
+}
+/** A plain fix for a failure message that names a known machine problem, or null. */
+export function machineProblemFix(message) {
+    if (NETWORK_POOL_EXHAUSTED.test(message)) {
+        return "Fix: Docker has no free network ranges left. Run `flisk down --prune-networks` in Flisk projects you no longer use (or `docker network prune` to remove every unused network), then run flisk up again";
+    }
+    return null;
+}
 export function transitiveDependencies(name, dependsOn) {
     const seen = new Set();
     const visit = (current) => {
@@ -31,13 +60,24 @@ export function buildStartupReport(jsonText, dependsOn, deferred = new Set()) {
     }));
     const failedNames = new Set(failed.map((entry) => entry.name));
     const items = JSON.parse(enabledJson).items ?? [];
+    // service.json dependsOn, plus what Tilt reports as waited for (shared infrastructure such as init-networks, which no
+    // service.json names).
+    const deps = { ...dependsOn };
+    for (const item of items) {
+        const name = item.metadata?.name;
+        if (!name)
+            continue;
+        const waits = waitingOn(item);
+        if (waits.length > 0)
+            deps[name] = [...new Set([...(deps[name] ?? []), ...waits])];
+    }
     const blocked = [];
     const starting = [];
     for (const item of items) {
         const name = item.metadata?.name ?? "unknown";
         if (name === "(Tiltfile)" || failedNames.has(name) || deferred.has(name))
             continue;
-        const because = [...transitiveDependencies(name, dependsOn)]
+        const because = [...transitiveDependencies(name, deps)]
             .filter((dep) => failedNames.has(dep))
             .sort();
         if (because.length > 0)
@@ -52,12 +92,14 @@ export function isStartupStalled(jsonText, dependsOn, deferred = new Set()) {
     const report = buildStartupReport(jsonText, dependsOn, deferred);
     return report.failed.length > 0 && report.starting.length === 0;
 }
-export function formatStartupReport(report, timedOut, occupantOf) {
+export function formatStartupReport(report, timedOut, occupantOf, machineFixes = new Map()) {
     const lines = [];
     for (const { name, message } of report.failed) {
         lines.push(`✗ ${name} failed: ${message}`);
         const port = conflictPort(message);
-        const fix = portConflictFix(message, port !== null && occupantOf ? occupantOf(port) : null);
+        const fix = portConflictFix(message, port !== null && occupantOf ? occupantOf(port) : null) ??
+            machineFixes.get(name) ??
+            machineProblemFix(message);
         if (fix)
             lines.push(`  ${fix}`);
     }

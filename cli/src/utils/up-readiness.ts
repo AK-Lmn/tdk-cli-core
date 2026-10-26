@@ -24,6 +24,17 @@ export function tiltGetUiResources(port: number): Promise<string | null> {
   });
 }
 
+export function tiltResourceLogs(port: number, name: string): Promise<string | null> {
+  return new Promise((resolve) => {
+    execFile(
+      findOnPath("tilt") ?? "tilt",
+      ["logs", name, "--port", String(port)],
+      { timeout: 15_000, maxBuffer: 16 * 1024 * 1024 },
+      (error, stdout) => resolve(error ? null : stdout),
+    );
+  });
+}
+
 interface TiltItem {
   metadata?: { name?: string };
   status?: { disableStatus?: { state?: string }; updateStatus?: string; [key: string]: unknown };
