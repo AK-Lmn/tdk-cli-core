@@ -54,6 +54,18 @@ export function formatUpSuccess(port, options = {}) {
         if (serviceHealth.length > 10) {
             lines.push(`  … and ${serviceHealth.length - 10} more`);
         }
+        // Health check URLs for test infrastructure and monitoring
+        lines.push("Health checks:");
+        for (const svc of serviceHealth.slice(0, 10)) {
+            const icon = svc.status === "ready" ? "✓" : svc.status === "failed" ? "✗" : "⟳";
+            if (svc.url) {
+                const healthUrl = svc.url.endsWith("/health") ? svc.url : `${svc.url}/health`;
+                lines.push(`  ${icon} ${svc.name}: ${healthUrl}`);
+            }
+        }
+        if (serviceHealth.length > 10) {
+            lines.push(`  … and ${serviceHealth.length - 10} more`);
+        }
     }
     else if (appUrls.length > 0) {
         lines.push("App URLs:");

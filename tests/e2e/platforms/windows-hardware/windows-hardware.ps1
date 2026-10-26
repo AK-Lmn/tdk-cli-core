@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 # The published Windows binary on a real Windows host (#1765). The Windows CI suites (tests/e2e/platforms/windows and
 # tests/e2e/platforms/windows-binary) prove the contract on a GitHub-hosted runner: a source build and the release candidate.
-# This script proves it on the machine a developer actually uses: the published tdk-windows-amd64.exe, installed the way a
+# This script proves it on the machine a developer actually uses: the published flisk-windows-amd64.exe, installed the way a
 # user installs it, with the paths, PATH lookup and filesystem that a runner never has.
 #
 # Run it on Windows, from the repository root:
@@ -222,13 +222,13 @@ function Get-PeSignature {
 }
 
 function Get-ReleaseLayout {
-  # The published layout: tdk.exe with the flisk-cli engine directory beside it, the way install.ps1 leaves it.
+  # The published layout: flisk.exe with the flisk-cli engine directory beside it, the way install.ps1 leaves it.
   $tag = Get-ReleaseTag
-  $exeAsset = Get-ReleaseAsset $tag 'tdk-windows-amd64.exe'
-  $engineAsset = Get-ReleaseAsset $tag 'tdk-cli-engine.tar.gz'
+  $exeAsset = Get-ReleaseAsset $tag 'flisk-windows-amd64.exe'
+  $engineAsset = Get-ReleaseAsset $tag 'flisk-cli-engine.tar.gz'
   $checksums = Get-ReleaseAsset $tag 'checksums.txt'
   $dir = Join-Path $script:WorkDir 'release'
-  $exe = Join-Path $dir 'tdk.exe'
+  $exe = Join-Path $dir 'flisk.exe'
   Copy-Item -LiteralPath $exeAsset -Destination $exe -Force
   $engine = Join-Path $dir 'flisk-cli'
   if (-not (Test-Path -LiteralPath (Join-Path $engine 'shared-platform-engineering'))) {
@@ -349,18 +349,18 @@ function Invoke-Wh1 {
       Observations = @('the local exe is not a published release, so checksums.txt does not cover it')
     }
   }
-  $tag = Get-ReleaseTag
-  $checksums = Get-ReleaseAsset $tag 'checksums.txt'
-  $exeAsset = Get-ReleaseAsset $tag 'tdk-windows-amd64.exe'
-  $engineAsset = Get-ReleaseAsset $tag 'tdk-cli-engine.tar.gz'
-  $exeHash = (Get-FileHash -LiteralPath $exeAsset -Algorithm SHA256).Hash.ToLowerInvariant()
-  $engineHash = (Get-FileHash -LiteralPath $engineAsset -Algorithm SHA256).Hash.ToLowerInvariant()
-  $expectedExe = Get-ExpectedHash $checksums 'tdk-windows-amd64.exe'
-  $expectedEngine = Get-ExpectedHash $checksums 'tdk-cli-engine.tar.gz'
-  if ($exeHash -ne $expectedExe) { throw "SHA-256 mismatch for tdk-windows-amd64.exe: expected $expectedExe, got $exeHash" }
-  if ($engineHash -ne $expectedEngine) { throw "SHA-256 mismatch for tdk-cli-engine.tar.gz: expected $expectedEngine, got $engineHash" }
-  $header = Get-PeSignature $exeAsset
-  if ($header[0] -ne 0x4D -or $header[1] -ne 0x5A) { throw 'tdk-windows-amd64.exe is not a PE executable (missing MZ signature)' }
+$tag = Get-ReleaseTag
+$checksums = Get-ReleaseAsset $tag 'checksums.txt'
+$exeAsset = Get-ReleaseAsset $tag 'flisk-windows-amd64.exe'
+$engineAsset = Get-ReleaseAsset $tag 'flisk-cli-engine.tar.gz'
+$exeHash = (Get-FileHash -LiteralPath $exeAsset -Algorithm SHA256).Hash.ToLowerInvariant()
+$engineHash = (Get-FileHash -LiteralPath $engineAsset -Algorithm SHA256).Hash.ToLowerInvariant()
+$expectedExe = Get-ExpectedHash $checksums 'flisk-windows-amd64.exe'
+$expectedEngine = Get-ExpectedHash $checksums 'flisk-cli-engine.tar.gz'
+if ($exeHash -ne $expectedExe) { throw "SHA-256 mismatch for flisk-windows-amd64.exe: expected $expectedExe, got $exeHash" }
+if ($engineHash -ne $expectedEngine) { throw "SHA-256 mismatch for flisk-cli-engine.tar.gz: expected $expectedEngine, got $engineHash" }
+$header = Get-PeSignature $exeAsset
+if ($header[0] -ne 0x4D -or $header[1] -ne 0x5A) { throw 'flisk-windows-amd64.exe is not a PE executable (missing MZ signature)' }
   return @{
     Detail = "release $tag, exe sha256 $exeHash"
     Observations = @("engine archive sha256 $engineHash")
