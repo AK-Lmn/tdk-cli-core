@@ -116,7 +116,7 @@ describe("flisk up success output", () => {
       "App URLs:",
       "  run: flisk networks",
       "Stop: flisk down",
-      "Next: flish help  # or visit https://flisk.sh/docs",
+      "Next: flisk help  # or visit https://flisk.sh/docs",
     ]);
   });
 

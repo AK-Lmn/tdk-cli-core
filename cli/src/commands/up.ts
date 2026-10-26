@@ -142,7 +142,7 @@ export function formatUpSuccess(
   if (showLogsHint) {
     lines.push("Logs: flisk logs <service>");
   }
-  lines.push("Next: flish help  # or visit https://flisk.sh/docs");
+  lines.push("Next: flisk help  # or visit https://flisk.sh/docs");
 
   return lines;
 }
