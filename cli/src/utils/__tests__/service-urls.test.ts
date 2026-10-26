@@ -12,6 +12,7 @@ import {
   pingHealthTarget,
   pingHealthTargets,
   resolveServicePath,
+  resolveServiceUrl,
   resolveSubdomainBases,
 } from "../service-urls.js";
 
@@ -193,6 +194,38 @@ describe("resolveServicePath", () => {
 
   it("falls back to the service name for frontends", () => {
     expect(resolveServicePath(makeResource("floor-app", "frontend"))).toBe("/floor-app");
+  });
+});
+
+describe("resolveServiceUrl", () => {
+  const original = process.env.FLISK_SERVICE_BASE_URL;
+
+  beforeEach(() => {
+    process.env.FLISK_SERVICE_BASE_URL = "http://demo.localhost";
+  });
+
+  afterEach(() => {
+    if (original === undefined) {
+      delete process.env.FLISK_SERVICE_BASE_URL;
+    } else {
+      process.env.FLISK_SERVICE_BASE_URL = original;
+    }
+  });
+
+  it("points a frontend at the ingress, not the Tilt UI port", () => {
+    expect(
+      resolveServiceUrl(makeResource("storefront", "frontend", { basePath: "/storefront" }), 8080),
+    ).toBe("http://app.demo.localhost:8080/storefront");
+  });
+
+  it("points a backend at the api ingress route", () => {
+    expect(resolveServiceUrl(makeResource("orders-api", "backend"), 8080)).toBe(
+      "http://api.demo.localhost:8080/api/orders",
+    );
+  });
+
+  it("has no URL for a service without a Traefik route", () => {
+    expect(resolveServiceUrl(makeResource("mailer", "worker"), 8080)).toBeUndefined();
   });
 });
 
