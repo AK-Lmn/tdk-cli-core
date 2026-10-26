@@ -206,7 +206,10 @@ describe("config regenerate --dry-run", () => {
 
     expect(result.status).toBeUndefined();
     expect(result.stdout).toContain("Dry run - comparing current files");
-    expect(result.stdout.match(/Status: NEW/g)).toHaveLength(3);
+    // Now grouped by category; should show NEW for each group's files (actual master config files)
+    expect(result.stdout).toContain("📁 TILT_TECH_STACK.star");
+    expect(result.stdout).toContain("📁 TILT_RESOURCE_DEFAULTS.star");
+    expect(result.stdout).toContain("📁 spec.master");
     expect(result.stdout).toContain("Run without --dry-run to apply these changes.");
     expect(fs.existsSync(path.join(root, ".flisk", ".flisk-out"))).toBe(false);
   });
@@ -224,12 +227,13 @@ describe("config regenerate --dry-run", () => {
     const result = await runCommandInProcess(configCommand, ["regenerate", "--dry-run"], root);
 
     expect(result.status).toBeUndefined();
-    expect(result.stdout).toContain("Status: MODIFIED");
-    // The stale spec.master has fewer lines than the generated file, so the count goes up.
-    expect(result.stdout).toMatch(/Lines: 2 → \d+ \(\+\d+\)/);
-    // The stale tech stack has more lines, so the count goes down.
-    expect(result.stdout).toMatch(/Lines: 300 → \d+ \(-\d+\)/);
-    expect(result.stdout).toContain("First change around line 1:");
+    // New grouped output shows modifications for actual master config files
+    expect(result.stdout).toContain("📝 TILT_TECH_STACK.star");
+    expect(result.stdout).toContain("📝 spec.master");
+    // Line count changes
+    expect(result.stdout).toMatch(/Lines: \+\d+/);
+    expect(result.stdout).toMatch(/Lines: -\d+/);
+    // The diff output shows context around changes
     expect(result.stdout).toContain(`- ${"x".repeat(60)}...`);
     expect(result.stdout).toContain("Run without --dry-run to apply these changes.");
     // Dry run never touches the stale files.
@@ -245,7 +249,9 @@ describe("config regenerate --dry-run", () => {
     const result = await runCommandInProcess(configCommand, ["regenerate", "--dry-run"], root);
 
     expect(result.status).toBeUndefined();
-    expect(result.stdout.match(/Status: No changes/g)).toHaveLength(3);
+    // New grouped output shows "all up to date" for each group
+    expect(result.stdout).toContain("✅ 📋 Core orchestration — all up to date");
+    expect(result.stdout).toContain("✅ 📦 Project spec — all up to date");
     expect(result.stdout).toContain("All files are already up to date!");
   });
 

@@ -10,7 +10,7 @@ import { generateMasterConfigs, readProjectConfig, TemplateEngine, verifyMasterC
 import { isMasterConfigFileName } from "../types/index.js";
 import { assertValid, handleDryRun } from "../utils/command-helpers.js";
 import { explainConfigFile } from "../utils/config-explain.js";
-import { MASTER_CONFIG_FILES, PROJECT_JSON } from "../utils/constants.js";
+import { MASTER_CONFIG_FILES, PROJECT_JSON, RESOURCE_DEFAULTS_FILE, TECH_STACK_FILE, } from "../utils/constants.js";
 import { clearDiscoveryCache } from "../utils/discovery-context.js";
 import { checkPrismaConsistency } from "../utils/doctor-wiring.js";
 import { errorFactories, requireProjectRoot, runCommand, showError } from "../utils/errors.js";
@@ -43,71 +43,103 @@ export const configCommand = new Command("config")
             const newFiles = engine.generateAll(projectConfig);
             const outputDir = join(projectRoot, ".flisk", ".flisk-out");
             const filesToCheck = MASTER_CONFIG_FILES;
+            const fileGroups = [
+                {
+                    title: "📋 Core orchestration",
+                    files: [TECH_STACK_FILE, RESOURCE_DEFAULTS_FILE],
+                    description: "Tilt tech stack and resource defaults; drives all service generation",
+                },
+                {
+                    title: "📦 Project spec",
+                    files: ["spec.master"],
+                    description: "Compiled project specification; used by Tilt for service discovery",
+                },
+            ];
             let hasChanges = false;
-            for (const filename of filesToCheck) {
-                // Runtime validation with type guard eliminates type assertion
-                if (!isMasterConfigFileName(filename)) {
-                    continue; // Skip unknown files (shouldn't happen with const array)
-                }
-                const newContent = newFiles[filename];
-                const filePath = join(outputDir, filename);
-                if (!existsSync(filePath)) {
-                    console.log(chalk.yellow(`📁 ${filename}`));
-                    console.log(chalk.gray("   Status: NEW (file does not exist)\n"));
-                    hasChanges = true;
-                    continue;
-                }
-                const currentContent = readFileSync(filePath, "utf-8");
-                if (currentContent === newContent) {
-                    console.log(chalk.green(`✓ ${filename}`));
-                    console.log(chalk.gray("   Status: No changes\n"));
-                }
-                else {
-                    console.log(chalk.yellow(`📝 ${filename}`));
-                    console.log(chalk.gray("   Status: MODIFIED"));
-                    const currentLines = currentContent.split("\n").length;
-                    const newLines = newContent.split("\n").length;
-                    const lineDiff = newLines - currentLines;
-                    if (lineDiff > 0) {
-                        console.log(chalk.gray(`   Lines: ${currentLines} → ${newLines} (+${lineDiff})`));
+            for (const group of fileGroups) {
+                let groupHasChanges = false;
+                const groupChanges = [];
+                for (const filename of group.files) {
+                    if (!filesToCheck.includes(filename))
+                        continue;
+                    if (!isMasterConfigFileName(filename))
+                        continue;
+                    const newContent = newFiles[filename];
+                    const filePath = join(outputDir, filename);
+                    if (!existsSync(filePath)) {
+                        groupHasChanges = true;
+                        groupChanges.push({ filename, isNew: true, lineDiff: 0, diffLines: [] });
+                        continue;
                     }
-                    else if (lineDiff < 0) {
-                        console.log(chalk.gray(`   Lines: ${currentLines} → ${newLines} (${lineDiff})`));
-                    }
-                    else {
-                        console.log(chalk.gray(`   Lines: ${currentLines} (content changed)`));
-                    }
-                    const currentLinesArr = currentContent.split("\n");
-                    const newLinesArr = newContent.split("\n");
-                    let firstDiffLine = -1;
-                    for (let i = 0; i < Math.max(currentLinesArr.length, newLinesArr.length); i++) {
-                        if (currentLinesArr[i] !== newLinesArr[i]) {
-                            firstDiffLine = i;
-                            break;
+                    const currentContent = readFileSync(filePath, "utf-8");
+                    if (currentContent !== newContent) {
+                        groupHasChanges = true;
+                        const currentLines = currentContent.split("\n").length;
+                        const newLines = newContent.split("\n").length;
+                        const lineDiff = newLines - currentLines;
+                        const currentLinesArr = currentContent.split("\n");
+                        const newLinesArr = newContent.split("\n");
+                        let firstDiffLine = -1;
+                        for (let i = 0; i < Math.max(currentLinesArr.length, newLinesArr.length); i++) {
+                            if (currentLinesArr[i] !== newLinesArr[i]) {
+                                firstDiffLine = i;
+                                break;
+                            }
                         }
+                        const diffLines = [];
+                        if (firstDiffLine >= 0) {
+                            const contextStart = Math.max(0, firstDiffLine - 1);
+                            const contextEnd = Math.min(currentLinesArr.length, firstDiffLine + 2);
+                            for (let i = contextStart; i < contextEnd; i++) {
+                                const line = currentLinesArr[i];
+                                const newLine = newLinesArr[i];
+                                if (line !== newLine) {
+                                    if (line !== undefined) {
+                                        diffLines.push(chalk.red(`     - ${line.substring(0, 60)}${line.length > 60 ? "..." : ""}`));
+                                    }
+                                    if (newLine !== undefined) {
+                                        diffLines.push(chalk.green(`     + ${newLine.substring(0, 60)}${newLine.length > 60 ? "..." : ""}`));
+                                    }
+                                }
+                                else {
+                                    diffLines.push(chalk.gray(`       ${line.substring(0, 60)}${line.length > 60 ? "..." : ""}`));
+                                }
+                            }
+                        }
+                        groupChanges.push({ filename, isNew: false, lineDiff, diffLines });
                     }
-                    if (firstDiffLine >= 0) {
-                        console.log(chalk.gray(`   First change around line ${firstDiffLine + 1}:`));
-                        const contextStart = Math.max(0, firstDiffLine - 1);
-                        const contextEnd = Math.min(currentLinesArr.length, firstDiffLine + 2);
-                        for (let i = contextStart; i < contextEnd; i++) {
-                            const line = currentLinesArr[i];
-                            const newLine = newLinesArr[i];
-                            if (line !== newLine) {
-                                if (line !== undefined) {
-                                    console.log(chalk.red(`     - ${line.substring(0, 60)}${line.length > 60 ? "..." : ""}`));
-                                }
-                                if (newLine !== undefined) {
-                                    console.log(chalk.green(`     + ${newLine.substring(0, 60)}${newLine.length > 60 ? "..." : ""}`));
-                                }
+                }
+                if (groupHasChanges) {
+                    console.log(chalk.blue(`\n${group.title}`));
+                    console.log(chalk.gray(`   ${group.description}\n`));
+                    for (const change of groupChanges) {
+                        if (change.isNew) {
+                            console.log(chalk.yellow(`  📁 ${change.filename}`));
+                            console.log(chalk.gray("     Status: NEW (file does not exist)\n"));
+                        }
+                        else {
+                            console.log(chalk.yellow(`  📝 ${change.filename}`));
+                            console.log(chalk.gray("     Status: MODIFIED"));
+                            if (change.lineDiff > 0) {
+                                console.log(chalk.gray(`     Lines: +${change.lineDiff}`));
+                            }
+                            else if (change.lineDiff < 0) {
+                                console.log(chalk.gray(`     Lines: ${change.lineDiff}`));
                             }
                             else {
-                                console.log(chalk.gray(`       ${line.substring(0, 60)}${line.length > 60 ? "..." : ""}`));
+                                console.log(chalk.gray("     Lines: content changed"));
                             }
+                            for (const diffLine of change.diffLines) {
+                                console.log(diffLine);
+                            }
+                            console.log("");
                         }
                     }
-                    console.log("");
                     hasChanges = true;
+                }
+                else {
+                    console.log(chalk.green(`\n✅ ${group.title} — all up to date`));
+                    console.log(chalk.gray(`   ${group.description}\n`));
                 }
             }
             if (hasChanges) {
