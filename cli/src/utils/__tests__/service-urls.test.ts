@@ -267,6 +267,27 @@ describe("buildHealthTargets", () => {
 
     expect(targets.map((t) => t.name)).toEqual(["menu-api"]);
   });
+
+  it.each(["worker", "library", "sdk", "migrator"] as const)(
+    "returns no health URL for a %s resource",
+    (kind) => {
+      expect(buildHealthTargets([makeResource(`test-${kind}`, kind)])).toEqual([]);
+    },
+  );
+
+  it("returns a health URL for a frontend while skipping worker, library, sdk, and migrator", () => {
+    const targets = buildHealthTargets([
+      makeResource("kitchen-worker", "worker"),
+      makeResource("shared-lib", "library"),
+      makeResource("client-sdk", "sdk"),
+      makeResource("db-migrator", "migrator"),
+      makeResource("floor-app", "frontend"),
+    ]);
+
+    expect(targets).toEqual([
+      { name: "floor-app", appType: "frontend", url: "http://app.demo.localhost/floor-app/health" },
+    ]);
+  });
 });
 
 describe("buildAdvertisedTargets", () => {
@@ -297,7 +318,35 @@ describe("buildAdvertisedTargets", () => {
   });
 
   it("has no targets when nothing is routable", () => {
-    expect(buildAdvertisedTargets([makeResource("kitchen-worker", "worker")])).toEqual([]);
+    expect(
+      buildAdvertisedTargets([
+        makeResource("kitchen-worker", "worker"),
+        makeResource("shared-lib", "library"),
+        makeResource("client-sdk", "sdk"),
+        makeResource("db-migrator", "migrator"),
+      ]),
+    ).toEqual([]);
+  });
+
+  it.each(["worker", "library", "sdk", "migrator"] as const)(
+    "returns no advertised URL for a %s resource",
+    (kind) => {
+      expect(buildAdvertisedTargets([makeResource(`test-${kind}`, kind)])).toEqual([]);
+    },
+  );
+
+  it("returns an advertised URL for a frontend while skipping worker, library, sdk, and migrator", () => {
+    const targets = buildAdvertisedTargets([
+      makeResource("kitchen-worker", "worker"),
+      makeResource("shared-lib", "library"),
+      makeResource("client-sdk", "sdk"),
+      makeResource("db-migrator", "migrator"),
+      makeResource("floor-app", "frontend"),
+    ]);
+
+    expect(targets).toEqual([
+      { name: "floor-app", appType: "frontend", url: "http://app.demo.localhost/floor-app" },
+    ]);
   });
 });
 
