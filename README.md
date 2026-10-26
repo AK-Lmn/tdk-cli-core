@@ -333,23 +333,69 @@ If Flisk saves you time, a ⭐ on [this repo](https://github.com/flisk-sh/flisk)
 
 ## Quick start
 
-There are two ways to get started. Both end with `flisk up <stack>`.
+Get a running local stack in **3 commands**. Works on macOS, Linux, and Windows (via WSL2).
 
-| | Guided scaffolder | Core CLI (manual) |
-| --- | --- | --- |
-| Best for | A first run: pick your services and get a ready project | Full control, or adding Flisk to an existing folder |
-| Package | [`create-microservices`](https://github.com/flisk-sh/create-microservices#readme) | [`@flisk-sh/flisk`](https://www.npmjs.com/package/@flisk-sh/flisk) (this repo) |
+### Prerequisites (install once)
 
-### Option A: guided scaffolder (recommended for beginners)
+| Tool | Version | Install |
+|------|---------|---------|
+| **Docker** | Engine 25+, Compose 2.20+ | [docker.com](https://www.docker.com/products/docker-desktop/) |
+| **Tilt** | 0.25+ | `curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh \| bash` |
+| **Bun** | 1.2+ | `curl -fsSL https://bun.sh/install \| bash` |
 
-**Prerequisites.** Install these first. The scaffolder checks your machine while it creates the project and stops if something is missing:
+> **Windows?** Use WSL2 Ubuntu. See the [Windows & WSL2 guide](docs/wsl2.md) for the recommended setup.
 
-- Node.js 22.12 or newer, and npm
-- Docker, installed and running (Engine 25+, Compose 2.20.2+)
-- [Tilt](https://docs.tilt.dev/install.html)
-- [Bun](https://bun.sh/) 1.2+
+---
 
-Run these commands from the directory where you want the new project folder to be created. The target directory must be new or empty; existing files are never overwritten.
+### Fastest path: one-command demo (no manual steps)
+
+```bash
+# 1. Install Flisk
+npm install -g @flisk-sh/flisk
+
+# 2. Run the demo — scaffolds a project, installs deps, boots the stack, opens the frontend
+flisk demo
+```
+
+That's it. The demo clones the starter into `~/.flisk/flisk-demo`, installs dependencies, starts the stack, and opens the frontend in your browser. Press `Ctrl+C` to stop, then run `flisk down` to clean up.
+
+---
+
+### Full control: manual project setup
+
+If you want to build your own service structure:
+
+```bash
+# 1. Install Flisk (skip if already installed)
+npm install -g @flisk-sh/flisk
+
+# 2. Create a project with a backend API
+mkdir my-project && cd my-project
+flisk project --yes
+flisk resource api --type backend --stack main --yes
+
+# 3. Start the stack
+flisk up main
+```
+
+`flisk up` prints the URLs (e.g., `http://api.main.localhost/api/api/health`). Try it:
+
+```bash
+curl http://api.main.localhost/api/api/health
+```
+
+To add a frontend later:
+
+```bash
+flisk resource web --type frontend --stack main --yes
+flisk up main
+```
+
+---
+
+### Alternative: guided scaffolder
+
+Prefer interactive prompts? The `create-microservices` package asks for your service types and generates a ready project:
 
 ```bash
 npm install -g @flisk-sh/flisk
@@ -358,42 +404,60 @@ cd my-project
 flisk up main
 ```
 
-- `npm install -g @flisk-sh/flisk` installs the `flisk` command. Skip it if `flisk --version` already works.
-- `npm init create-microservices my-project` asks how many services to create, then each service's name and type (`backend`, `frontend`, `worker`, or `mcp`).
-- `flisk up main` starts the stack. `main` is the default stack name; if you pass `--stack <name>` to the scaffolder, use that name instead. The scaffolder prints the exact `flisk up` command when it finishes.
-
-The scaffolder creates the project configuration and a skeleton for each service you selected, using Flisk CLI Core. It does not start any containers; `flisk up` does that.
-
-To skip the prompts and get a default `api` (backend) and `web` (frontend):
+To skip prompts and get a default `api` + `web`:
 
 ```bash
 npm init create-microservices my-project -- --yes
 ```
 
-For service types, all options, and non-interactive usage, see the [`create-microservices` README](https://github.com/flisk-sh/create-microservices#readme).
+See the [`create-microservices` README](https://github.com/flisk-sh/create-microservices#readme) for all options.
 
-> [!NOTE]
-> Two similarly named packages exist. [`create-flisk`](https://github.com/flisk-sh/create-flisk) is a landing-page app and does not scaffold projects. [`create-microservices`](https://github.com/flisk-sh/create-microservices#readme) is the project scaffolder used above.
+---
 
-### Option B: core CLI (manual)
+### Verify it works
 
-Use this to create the project and each resource yourself with `flisk`. [Install the CLI](#installation) first. Preview what a stack will start before any container runs:
+After `flisk up`, you'll see output like:
 
-```bash
-flisk up shop --dry-run
+```
+Flisk is up.
+Tilt UI: http://localhost:10350
+Services:
+  ✓ api → http://api.main.localhost/api/api/health
+  ✓ web → http://web.main.localhost
+Stop: flisk down
+Logs: flisk logs <service>
+Next: flisk help  # or visit https://flisk.sh/docs
 ```
 
-Then try the full flow:
+- **Tilt UI**: Open to watch live updates, see logs, and debug
+- **Services**: Click the URLs or curl the health endpoints
+- **Stop**: `flisk down` stops everything; containers persist for inspection
 
-```bash
-mkdir shop && cd shop
-flisk project --yes
-flisk resource orders-api --type backend --stack shop --yes
-flisk up shop
-curl http://api.shop.localhost/api/orders/health
-```
+---
 
-`flisk up` prints the host ports it chose. It uses port 80 when it is free, so URLs carry no port. Otherwise it picks one from 8080-8180, and the URLs it prints include that port (on Linux and WSL2 a non-root user cannot check port 80, so the range is used there). Use the URL `flisk up` prints, or set `FLISK_HTTP_PORT`. A resource named `orders-api` is served at `/api/orders` (a trailing `-api` is dropped); `flisk up` prints the exact URLs.
+### Common next steps
+
+| Goal | Command |
+|------|---------|
+| See running services | `flisk ui` |
+| Check environment health | `flisk doctor` |
+| View service logs | `flisk logs api` |
+| Restart a service | `flisk restart api` |
+| Preview without starting | `flisk up main --dry-run` |
+| Catch config drift | `flisk config verify` |
+| Upgrade Flisk | `flisk upgrade` |
+
+### Troubleshooting
+
+| Issue | Fix |
+|-------|-----|
+| `flisk doctor` fails | Run the fix commands it prints, then retry |
+| Port 80/5432 in use | `flisk doctor` shows the owner; stop it or set `FLISK_HTTP_PORT` |
+| Docker not running | Start Docker Desktop / `systemctl start docker` |
+| Windows native | Use WSL2 Ubuntu; see [Windows guide](docs/wsl2.md) |
+| `flisk up` refuses | Run `flisk doctor` first; it explains what's missing |
+
+Full troubleshooting: [docs/troubleshooting.md](docs/troubleshooting.md)
 
 ### What Flisk writes for you
 
