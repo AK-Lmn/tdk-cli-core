@@ -51,6 +51,21 @@ describe("resolveOnlySelection vs the Tiltfile", () => {
     const withFrontendDep = [svc("api", ["admin-frontend"]), svc("admin-frontend")];
     expect(resolveOnlySelection(["api"], withFrontendDep).dependencies).toEqual(["admin-frontend"]);
   });
+
+  it("drops dependsOn entries for shared infrastructure, which is not a discovered resource", () => {
+    // Shared infrastructure (Postgres, Traefik, the golden images) is always enabled by the Tiltfile
+    // and is never discovered, so a dependsOn entry naming it must not reach OnlySelection.
+    const stackWithInfra = [
+      svc("catalog-api", ["postgres"]),
+      svc("storefront-web", ["catalog-api", "traefik"]),
+    ];
+    expect(stackWithInfra[1].config?.dependsOn).toContain("traefik");
+
+    const { selected, dependencies } = resolveOnlySelection(["storefront-web"], stackWithInfra);
+
+    expect(selected.map((r) => r.name)).toEqual(["catalog-api", "storefront-web"]);
+    expect(dependencies).toEqual(["catalog-api"]);
+  });
 });
 
 describe("findUnknownServices", () => {
