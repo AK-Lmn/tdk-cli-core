@@ -237,7 +237,9 @@ We use the **UMUX-Lite** two-item scale to track perceived ease of use. If you'r
 | "Flisk's capabilities meet my requirements" | |
 | "Flisk is easy to use" | |
 
-To submit: open a GitHub issue with the template "Usability feedback" or post in Discord. No telemetry or automated survey is collected — this is manual and optional.
+To submit, fill in the [Usability feedback form](https://github.com/flisk-sh/flisk/issues/new?template=usability-feedback.yml) (it takes under a minute) or post in Discord. No telemetry or automated survey is collected — this is manual and optional.
+
+Maintainers: `node scripts/umux-lite-score.mjs` reads the form's issues and prints the number of responses and the UMUX-Lite score, `(capabilities - 1 + ease - 1) / 12 × 100`, overall and by how people built. Quote a score only together with its `n`.
 
 ---
 
