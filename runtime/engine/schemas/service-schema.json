@@ -144,7 +144,7 @@
     },
     "databaseName": {
       "description": "Override auto-generated DB name.\nDefault: FLISK_{stack}",
-      "pattern": "^Flisk_[a-z_]+$",
+      "pattern": "^FLISK_[a-z_]+$",
       "type": "string"
     },
     "dependencies": {
