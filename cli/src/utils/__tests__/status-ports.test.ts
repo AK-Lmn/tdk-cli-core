@@ -172,4 +172,36 @@ describe("buildStackPorts", () => {
     const ports = buildStackPorts(null, 10355);
     expect(ports).toEqual([{ name: "tilt-ui", hostPort: 10355, purpose: "Tilt UI" }]);
   });
+
+  describe("Traefik ingress rows", () => {
+    it("includes both HTTP and HTTPS ingress rows with expected host ports", () => {
+      const customPlan: HostPortPlan = {
+        ingressHttp: 9080,
+        ingressHttps: 9443,
+        postgres: 15432,
+      } as HostPortPlan;
+      const ports = buildStackPorts(customPlan);
+
+      expect(ports).toContainEqual({
+        name: "ingress-http",
+        hostPort: 9080,
+        purpose: "Traefik HTTP ingress",
+      });
+      expect(ports).toContainEqual({
+        name: "ingress-https",
+        hostPort: 9443,
+        purpose: "Traefik HTTPS ingress",
+      });
+    });
+
+    it("does not include ingress rows for a project with no ingress plan", () => {
+      const ports = buildStackPorts(null);
+      const ingressRows = ports.filter(
+        (p) => p.name === "ingress-http" || p.name === "ingress-https",
+      );
+      expect(ingressRows).toHaveLength(0);
+      expect(ports.some((p) => p.name === "ingress-http")).toBe(false);
+      expect(ports.some((p) => p.name === "ingress-https")).toBe(false);
+    });
+  });
 });
