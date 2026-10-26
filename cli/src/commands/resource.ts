@@ -347,7 +347,9 @@ export function createPackageJson(
       // vitest 5 peers on vite ^6.4.0 || ^7 || ^8; vite 5 makes `vitest run` fail at startup with
       // ERR_PACKAGE_PATH_NOT_EXPORTED ('./module-runner'), in every resource once it is hoisted.
       ...(isFrontend && !framework?.scripts ? { vite: "^6.4.1" } : {}),
-      ...(drizzleEnabled ? { "drizzle-kit": DRIZZLE_KIT_RANGE, "@types/pg": "^8.11.0" } : {}),
+      ...(drizzleEnabled ? { "drizzle-kit": DRIZZLE_KIT_RANGE } : {}),
+      // Both import 'pg' (src/db.ts, the agent's checkpoint store); without the types the image's `tsc` fails with TS7016.
+      ...(drizzleEnabled || isPostgresAgent ? { "@types/pg": "^8.11.0" } : {}),
       ...(framework?.devDependencies ?? {}),
       ...(backendFramework?.devDependencies ?? {}),
     },

@@ -587,7 +587,13 @@ DATABASE_APP_TYPES = ['backend', 'bring-your-own']
 
 def resource_needs_database(manifest):
     """True when a resource of this manifest receives DATABASE_URL and needs its database provisioned."""
-    return (manifest or {}).get('appType') in DATABASE_APP_TYPES
+    manifest = manifest or {}
+    if manifest.get('appType') in DATABASE_APP_TYPES:
+        return True
+    # An agent with postgres durability keeps its session checkpoints in the stack database, so without provisioning
+    # its /ready never turns 200.
+    agent = manifest.get('agent')
+    return manifest.get('appType') == 'agent' and type(agent) == 'dict' and agent.get('durability') == 'postgres'
 
 
 def _has_backend_resource(resource_config, resource_manifests):

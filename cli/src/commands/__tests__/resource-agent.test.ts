@@ -167,6 +167,7 @@ describe("flisk resource --type agent", () => {
     // The custom runtime has no vendor dependency, so the package.json carries none.
     const pkg = json("support-agent", "package.json");
     expect(pkg.dependencies).toEqual({});
+    expect(pkg.devDependencies).not.toHaveProperty("@types/pg");
     expect(pkg.scripts).toMatchObject({
       dev: expect.any(String),
       build: "tsc",
@@ -196,6 +197,8 @@ describe("flisk resource --type agent", () => {
     expect(pkg.dependencies).toMatchObject({
       pg: "^8.13.0",
     });
+    // The checkpoint store imports 'pg'; without its types the image build fails with TS7016.
+    expect(pkg.devDependencies).toMatchObject({ "@types/pg": "^8.11.0" });
 
     const index = readFileSync(join(dir("pg-agent"), "src", "index.ts"), "utf-8");
     expect(index).toContain("from 'pg'");
