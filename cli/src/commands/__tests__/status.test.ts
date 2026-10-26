@@ -316,6 +316,62 @@ describe("flisk status", () => {
       expect(output).toContain("ready");
     });
 
+    it("groups services by stack with a healthy/total line per stack", async () => {
+      vi.mocked(tiltGetUiResources).mockResolvedValue(apiDown);
+      const output = await runStatus();
+      expect(output).toMatch(/^ {2}billing: 1\/1 healthy$/m);
+      expect(output).toMatch(/^ {2}shop: 0\/2 healthy$/m);
+      expect(output).toMatch(/^ {2}\(no stack\): 0\/1 healthy$/m);
+      expect(output.indexOf("shop: 0/2")).toBeLessThan(output.indexOf("✗ orders-api"));
+    });
+
+    it("adds healthyCount per stack and an unhealthy list to JSON without touching other fields", async () => {
+      vi.mocked(tiltGetUiResources).mockResolvedValue(apiDown);
+      const data = JSON.parse(await runStatus(["--json"])).data;
+      expect(data.stacks).toEqual([
+        { name: "billing", resourceCount: 1, resources: ["invoices"], healthyCount: 1 },
+        {
+          name: "shop",
+          resourceCount: 2,
+          resources: ["orders-api", "orders-web"],
+          healthyCount: 0,
+        },
+      ]);
+      expect(data.unhealthy).toEqual(["orders-api", "orders-web"]);
+      expect(data.resourceCount).toBe(4);
+    });
+
+    it("--unhealthy shows only failing services and their stacks", async () => {
+      vi.mocked(tiltGetUiResources).mockResolvedValue(apiDown);
+      const output = await runStatus(["--unhealthy"]);
+      expect(output).toContain("Unhealthy services:");
+      expect(output).toContain("✗ orders-api");
+      expect(output).toContain("✗ orders-web");
+      expect(output).not.toContain("invoices");
+      expect(output).not.toContain("billing");
+      expect(output).not.toContain("All services are healthy");
+    });
+
+    it("--unhealthy says so when every service is healthy", async () => {
+      vi.mocked(tiltGetUiResources).mockResolvedValue(
+        tilt(
+          ["orders-api", "ok", "ok"],
+          ["orders-web", "ok", "ok"],
+          ["invoices", "ok", "ok"],
+          ["report-job", "ok", "ok"],
+        ),
+      );
+      const output = await runStatus(["--unhealthy"]);
+      expect(output).toContain("All services are healthy.");
+      expect(output).not.toContain("✓");
+    });
+
+    it("--unhealthy does not claim health when no Tilt answers", async () => {
+      const output = await runStatus(["--unhealthy"]);
+      expect(output).toContain("nothing is confirmed running");
+      expect(output).not.toContain("All services are healthy");
+    });
+
     it("says service states are unknown in the human output when no Tilt answers", async () => {
       const output = await runStatus();
       expect(output).toContain("Services:");

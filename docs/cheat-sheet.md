@@ -302,6 +302,7 @@ flisk up --json &                # one JSON object when ready; Tilt keeps runnin
 | `--stacks` | Stack information (the default) |
 | `--resources` | All discovered resources |
 | `--tilt` | Tilt resource status |
+| `--unhealthy` | Only failing or pending services (says so when all are healthy) |
 | `-v`, `--verbose` | More detail |
 | `--json` | Versioned JSON report |
 
@@ -318,6 +319,7 @@ flisk logs --since 5m --json
 | Flag | Effect |
 | --- | --- |
 | `-s`, `--service <names...>` | Only these services (Tilt resource names) |
+| `--unhealthy` | Only services that are failing or still starting |
 | `--tail <n>` | Most recent lines (default 200) |
 | `--since <duration>` | Only logs newer than this, for example `30s`, `5m`, `1h` |
 | `--port <n>` | Tilt UI port (default `TILT_PORT` or 10350) |

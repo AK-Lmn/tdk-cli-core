@@ -14,6 +14,7 @@ import { isNativeProject } from "../utils/native-service.js";
 import { findProjectRoot } from "../utils/paths.js";
 import { deriveServiceStates, type ServiceRuntimeState } from "../utils/service-runtime-state.js";
 import { groupSharedPostgres, readProjectName } from "../utils/shared-infra.js";
+import { groupServicesByStack, unhealthyServiceNames } from "../utils/status-groups.js";
 import { buildServicePorts, buildStackPorts } from "../utils/status-ports.js";
 import { isTiltAvailable, runTilt } from "../utils/tilt.js";
 import { getTiltPollingPort } from "../utils/tilt-startup.js";
@@ -26,6 +27,7 @@ export const statusCommand = new Command("status")
   .option("--stacks", "Show stack information (default)", true)
   .option("--resources", "Show all discovered resources", false)
   .option("--tilt", "Show tilt resource status", false)
+  .option("--unhealthy", "Show only services that are failing or still starting", false)
   .action(async (options) => {
     const action = async (): Promise<void> => {
       // Discover first: outside a project this fails before any status line is printed.
@@ -170,9 +172,14 @@ export const statusCommand = new Command("status")
             name: stack.name,
             resourceCount: stack.resourceCount,
             resources: stack.resources.map((resource) => resource.name),
+            healthyCount: stack.resources.filter(
+              (resource) => serviceStates?.[resource.name]?.status === "ready",
+            ).length,
           })),
           unassignedResources: discovery.unassignedResources.map((resource) => resource.name),
           sharedInfra: sharedInfraGroup,
+          // Names of the failing or pending services, so a caller need not filter `resources` itself.
+          unhealthy: unhealthyServiceNames(discovery.resources, serviceStates),
         };
         console.log(JSON.stringify(createMachineEnvelope(data, errors)));
         if (errors.length > 0) {
@@ -185,35 +192,35 @@ export const statusCommand = new Command("status")
       console.log(chalk.bold("Resources:"), `${discovery.resources.length} discovered`);
       console.log(chalk.bold("Stacks:"), `${discovery.stacks.length} defined`);
 
-      if (discovery.stacks.length > 0) {
-        for (const stack of discovery.stacks) {
-          const resourcesInStack = stack.resources.length;
-          showDetail(`${stack.name}: ${formatCount(resourcesInStack, "resource")}`);
+      const hasStates = serviceStates !== null && Object.keys(serviceStates).length > 0;
+      const unhealthyOnly = Boolean(options.unhealthy);
 
+      // With service states the grouped "Services:" section below replaces the plain per-stack counts.
+      if (!hasStates && !unhealthyOnly) {
+        for (const stack of discovery.stacks) {
+          showDetail(`${stack.name}: ${formatCount(stack.resources.length, "resource")}`);
           if (options.verbose) {
             for (const resource of stack.resources) {
               showDetail(`${resource.name}`, 6);
             }
           }
         }
-      }
-
-      if (discovery.unassignedResources.length > 0) {
-        console.log();
-        console.log(
-          chalk.yellow(
-            `${formatCount(discovery.unassignedResources.length, "resource")} not in any stack:`,
-          ),
-        );
-
-        if (options.verbose) {
-          for (const resource of discovery.unassignedResources) {
-            showDetail(`${resource.name}`);
+        if (discovery.unassignedResources.length > 0) {
+          console.log();
+          console.log(
+            chalk.yellow(
+              `${formatCount(discovery.unassignedResources.length, "resource")} not in any stack:`,
+            ),
+          );
+          if (options.verbose) {
+            for (const resource of discovery.unassignedResources) {
+              showDetail(`${resource.name}`);
+            }
           }
         }
       }
 
-      if (sharedInfraGroup) {
+      if (sharedInfraGroup && !unhealthyOnly) {
         console.log();
         console.log(chalk.bold("Shared infrastructure:"));
         showDetail(
@@ -226,23 +233,43 @@ export const statusCommand = new Command("status")
         }
       }
 
-      if (serviceStates && Object.keys(serviceStates).length > 0) {
+      if (hasStates && serviceStates) {
+        const states = serviceStates;
         console.log();
-        console.log(chalk.bold("Services:"));
-        for (const resource of discovery.resources) {
-          const state = serviceStates[resource.name];
-          if (!state) continue;
-          const mark =
-            state.status === "ready"
-              ? chalk.green("✓")
-              : state.status === "error"
-                ? chalk.red("✗")
-                : chalk.yellow("…");
-          const ports = buildServicePorts(resource, portPlan?.ingressHttp);
-          const urlPart = ports.url ? ` → ${ports.url}` : "";
-          showDetail(
-            `${mark} ${resource.name}${urlPart}  ${state.status}${state.reason ? ` (${state.reason})` : ""}`,
+        console.log(chalk.bold(unhealthyOnly ? "Unhealthy services:" : "Services:"));
+        const unhealthy = new Set(unhealthyServiceNames(discovery.resources, states));
+        if (unhealthyOnly && unhealthy.size === 0) {
+          showDetail(chalk.green("All services are healthy."));
+        }
+        for (const group of groupServicesByStack(
+          discovery.stacks,
+          discovery.unassignedResources,
+          states,
+        )) {
+          const shown = group.resources.filter(
+            (resource) => states[resource.name] && (!unhealthyOnly || unhealthy.has(resource.name)),
           );
+          if (unhealthyOnly && shown.length === 0) continue;
+          const summary = `${group.healthy}/${group.total} healthy`;
+          showDetail(
+            `${chalk.bold(group.name)}: ${group.healthy === group.total ? chalk.green(summary) : chalk.yellow(summary)}`,
+          );
+          for (const resource of shown) {
+            const state = states[resource.name];
+            if (!state) continue;
+            const mark =
+              state.status === "ready"
+                ? chalk.green("✓")
+                : state.status === "error"
+                  ? chalk.red("✗")
+                  : chalk.yellow("…");
+            const ports = buildServicePorts(resource, portPlan?.ingressHttp);
+            const urlPart = ports.url ? ` → ${ports.url}` : "";
+            showDetail(
+              `${mark} ${resource.name}${urlPart}  ${state.status}${state.reason ? ` (${state.reason})` : ""}`,
+              6,
+            );
+          }
         }
       } else if (discovery.resources.length > 0) {
         // Without a running Tilt, no service state can be read. Say so instead of printing nothing.

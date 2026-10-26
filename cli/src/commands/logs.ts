@@ -3,9 +3,10 @@
 import { Command } from "commander";
 import type { DiscoveredResource } from "../types/index.js";
 import { STANDARD_PORTS } from "../utils/constants.js";
+import { getDeferredResourceNames } from "../utils/doctor-runtime.js";
 import { errorFactories, FliskError, runCommand, showErrorAndExit } from "../utils/errors.js";
 import { createMachineEnvelope } from "../utils/machine-output.js";
-import { readNativeLogLines } from "../utils/native-runtime.js";
+import { nativeServiceStates, readNativeLogLines } from "../utils/native-runtime.js";
 import { isNativeProject } from "../utils/native-service.js";
 import { findProjectRoot } from "../utils/paths.js";
 import {
@@ -14,7 +15,9 @@ import {
   redactSecrets,
   redactValue,
 } from "../utils/secret-redaction.js";
+import { deriveServiceStates } from "../utils/service-runtime-state.js";
 import { discoverResourcesFromRoot } from "../utils/services.js";
+import { unhealthyServiceNames } from "../utils/status-groups.js";
 import { isTiltAvailable, runTilt } from "../utils/tilt.js";
 import {
   DEFAULT_LOG_TAIL,
@@ -43,6 +46,43 @@ async function tiltResourceNames(port: string): Promise<string[] | null> {
   }
 }
 
+/** Raw `tilt get uiresources` JSON, or null when Tilt cannot be read. */
+async function tiltResourcesJson(port: string): Promise<string | null> {
+  try {
+    const result = await runTilt("get", ["uiresources", "-o", "json", "--port", port], {
+      inheritStdio: false,
+    });
+    return result.exitCode === 0 ? result.stdout : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Failing or pending services among the project's, from the running Tilt; null when Tilt cannot be read. */
+async function tiltUnhealthyNames(projectRoot: string, port: string): Promise<string[] | null> {
+  const text = await tiltResourcesJson(port);
+  if (!text) return null;
+  let resources: DiscoveredResource[] = [];
+  try {
+    resources = discoverResourcesFromRoot(projectRoot);
+  } catch {
+    // Without discovery there are no dependsOn edges; Tilt's own states still decide.
+  }
+  try {
+    const states = deriveServiceStates(
+      text,
+      Object.fromEntries(resources.map((r) => [r.name, r.config?.dependsOn ?? []])),
+      getDeferredResourceNames(resources),
+    );
+    return unhealthyServiceNames(
+      Object.keys(states).map((name) => ({ name })),
+      states,
+    );
+  } catch {
+    return null;
+  }
+}
+
 /** The project's services when every one declares `command` (they run as local processes), else null. */
 function nativeResources(projectRoot: string): DiscoveredResource[] | null {
   try {
@@ -60,6 +100,7 @@ export const logsCommand = new Command("logs")
   .option("-s, --service <names...>", "Only these services (Tilt resource names)")
   .option("--tail <n>", "Number of most recent lines to return", String(DEFAULT_LOG_TAIL))
   .option("--since <duration>", "Only logs newer than this duration, for example 30s, 5m, 1h")
+  .option("--unhealthy", "Only services that are failing or still starting", false)
   .option("--port <n>", "Tilt UI port (default: TILT_PORT or 10350)")
   .option("--json", "Output one JSON object and exit", false)
   .action(async (options) => {
@@ -103,6 +144,24 @@ export const logsCommand = new Command("logs")
     const tail = Number(options.tail);
     const services: string[] = options.service ?? [];
 
+    const reportAllHealthy = (): void => {
+      if (options.json) {
+        console.log(
+          JSON.stringify(
+            createMachineEnvelope({
+              services,
+              tail,
+              since: options.since ?? null,
+              lines: [],
+              unhealthy: [],
+            }),
+          ),
+        );
+        return;
+      }
+      console.log("All services are healthy; nothing to show with --unhealthy.");
+    };
+
     const action = async (): Promise<void> => {
       const projectRoot = findProjectRoot();
       if (!projectRoot) {
@@ -129,7 +188,14 @@ export const logsCommand = new Command("logs")
           const error = errorFactories.unknownServices(unknown, known);
           fail("UNKNOWN_SERVICE", error.message, error.exitCode, error.suggestions);
         }
-        const lines = readNativeLogLines(projectRoot, services.length > 0 ? services : known, {
+        let selected = services.length > 0 ? services : known;
+        if (options.unhealthy) {
+          const states = nativeServiceStates(projectRoot, known);
+          const bad = new Set(unhealthyServiceNames(resources, states));
+          selected = selected.filter((name) => bad.has(name));
+          if (selected.length === 0) return reportAllHealthy();
+        }
+        const lines = readNativeLogLines(projectRoot, selected, {
           tail,
           sinceMs: options.since === undefined ? undefined : sinceMilliseconds(options.since),
         });
@@ -163,11 +229,19 @@ export const logsCommand = new Command("logs")
           fail("UNKNOWN_SERVICE", error.message, error.exitCode, suggestions);
         }
       }
+      let selectedServices = services;
+      if (options.unhealthy) {
+        const bad = await tiltUnhealthyNames(projectRoot, portText);
+        if (bad === null) fail("TILT_NOT_RUNNING", tiltUnreachableMessage(portText));
+        selectedServices =
+          services.length > 0 ? services.filter((n) => bad?.includes(n)) : (bad ?? []);
+        if (selectedServices.length === 0) return reportAllHealthy();
+      }
       const args = ["--port", portText, "--tail", String(tail)];
       if (options.since !== undefined) args.push("--since", options.since);
       if (options.json) args.push("--json");
       // `--` so a service name that starts with "-" is never read as a Tilt flag.
-      if (services.length > 0) args.push("--", ...services);
+      if (selectedServices.length > 0) args.push("--", ...selectedServices);
 
       const result = await runTilt("logs", args, { inheritStdio: false });
       if (result.exitCode !== 0) {
