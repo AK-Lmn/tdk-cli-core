@@ -105,6 +105,9 @@ A4() { # a checkpoint through Traefik, read back with flisk agent sessions
   assert check "$OUT/a4-sessions.out" "j.data.agent === '$AGENT' && Number.isInteger(j.data.port)" "data.agent and data.port are set by the CLI"
   assert check "$OUT/a4-sessions.out" "j.data.session && j.data.session.sessionId === 's1' && j.data.session.messages.length === 2" "the checkpoint is nested under data.session"
   assert check "$OUT/a4-sessions.out" "!('messages' in j.data) && !('sessionId' in j.data)" "checkpoint fields are not spread into data"
+  run a4-list agent sessions "$AGENT" --json
+  [ "$RC" -eq 0 ] || die "flisk agent sessions (list) exited $RC"
+  assert check "$OUT/a4-list.out" "j.data.agent === '$AGENT' && j.data.total >= 1 && j.data.sessions.some(s => s.sessionId === 's1' && s.checkpointBytes > 0)" "without --session-id the sessions are listed under data.sessions"
 }
 
 A5() { # sticky routing: same session id -> same instance
@@ -312,7 +315,7 @@ C1() {
   log "C1 flisk mcp: initialize and tools/list"
   mcp_session c1 '[]'
   assert check "$OUT/c1.out" "['list_agents','get_agent_sessions','restart_resource'].every(n => j.tools.some(t => t.name === n))" "tools/list includes list_agents, get_agent_sessions, restart_resource"
-  assert check "$OUT/c1.out" "j.tools.find(t => t.name === 'get_agent_sessions').inputSchema.required.includes('sessionId')" "get_agent_sessions requires sessionId"
+  assert check "$OUT/c1.out" "j.tools.find(t => t.name === 'get_agent_sessions').inputSchema.required.join() === 'resource'" "get_agent_sessions requires only resource; sessionId is optional"
 }
 
 C2() { # each tool's payload equals the CLI --json envelope
@@ -345,7 +348,8 @@ C3() { # projectPath from another cwd; an unknown resource is a structured tool 
   mcp_structured c3b 0; mcp_structured c3b 2
   assert check "$OUT/c3b.0.json" "j.errors[0].code === 'UNKNOWN_RESOURCE'" "unknown resource: structured error envelope"
   assert check "$OUT/c3b.out" "j.calls[0].result.isError === true" "unknown resource: isError is true"
-  assert check "$OUT/c3b.out" "j.calls[1].result.isError === true && j.calls[1].result.content[0].text.includes('sessionId is required')" "missing sessionId is a tool error naming the field"
+  mcp_structured c3b 1
+  assert check "$OUT/c3b.1.json" "j.errors.length === 0 && Array.isArray(j.data.sessions) && j.data.sessions.some(s => s.sessionId === 's1')" "no sessionId lists the agent's sessions"
   assert check "$OUT/c3b.2.json" "j.errors[0].code === 'TILT_TRIGGER_FAILED'" "restart_resource on an unknown resource: structured error"
   assert check "$OUT/c3b.out" "j.calls[3].result.isError === false" "the server still answers after the failed calls"
   rm -rf "$elsewhere"
