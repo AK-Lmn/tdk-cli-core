@@ -600,7 +600,7 @@ Runnable examples show Flisk on real stacks. Start with the smallest one:
 
 ## Use Flisk with your AI agent
 
-The repository ships five agent skills for common Flisk work under [`.agents/skills`](.agents/skills): `flisk-doctor` (environment checks), `flisk-up` (preview and start a stack), `flisk-resource` (create a service), `flisk-status` (health and URLs), and `flisk-troubleshoot` (fixing `flisk` and Tilt errors). Agents working in this repo also follow [AGENTS.md](AGENTS.md). Use these skills to let your agent check your setup and explain failures instead of guessing at Docker or Tilt configuration.
+The repository ships agent skills for common Flisk work under [`.agents/skills`](.agents/skills): `flisk-build` (turn "build me a shop" into Flisk steps, check every URL, and report them), `flisk-recipe-starters` (start from a working restaurant, SaaS, store, AI agent or user-management app), recipes for a shop, a SaaS with login and billing, an AI agent with MCP tools and a database, and a blog (`flisk-recipe-shop`, `flisk-recipe-saas`, `flisk-recipe-ai-agent`, `flisk-recipe-blog`), `flisk-doctor` (environment checks), `flisk-up` (preview and start a stack), `flisk-resource` (create a service), `flisk-status` (health and URLs), and `flisk-troubleshoot` (fixing `flisk` and Tilt errors). More prompts to copy, by category (spreadsheets, recruiting, product management, shops, AI agents), are in the [prompt gallery](docs/recipes/build-with-your-agent.md). Agents working in this repo also follow [AGENTS.md](AGENTS.md). Use these skills to let your agent check your setup and explain failures instead of guessing at Docker or Tilt configuration.
 
 ## Installation
 
