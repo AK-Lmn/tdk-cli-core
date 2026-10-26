@@ -436,6 +436,35 @@ jobs:
           gh pr merge "$branch" --repo "$GITHUB_REPOSITORY" --squash --auto --delete-branch || \
             echo "::warning::Released ${VERSION}, but could not enable auto-merge for the version bump PR ${branch}."
 
+      # With no bump there is no bump PR, so tag-bumped-release never runs and the checksums release stays a draft
+      # with no tag (1.3.206 and 1.4.5 were finished by hand). package.json on this commit already carries the
+      # version, so tag it and publish the draft here. The signing steps are continue-on-error, so publish only a
+      # draft that carries the checksums and their signature; otherwise leave it a draft and fail the step, so the
+      # run shows red and the gap is closed with sign-release.yml (an unsigned public release is what 1.3.207 shipped).
+      - name: Tag the released commit and publish the GitHub release
+        if: needs.build.outputs.bumped == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PAT || github.token }}
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          set -euo pipefail
+          if gh api "repos/${GITHUB_REPOSITORY}/git/refs/tags/v${VERSION}" >/dev/null 2>&1; then
+            echo "Tag v${VERSION} already exists, leaving it alone."
+          else
+            gh api "repos/${GITHUB_REPOSITORY}/git/refs" -f ref="refs/tags/v${VERSION}" -f sha="$GITHUB_SHA" >/dev/null
+          fi
+          if ! assets=$(gh release view "v${VERSION}" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' 2>/dev/null); then
+            echo "::error::No v${VERSION} release on ${GITHUB_REPOSITORY}: the signing step did not create it. Create an empty draft, run sign-release.yml, then publish it (docs/releasing.md#repair-a-half-finished-release)."
+            exit 1
+          fi
+          for required in checksums.txt checksums.txt.sigstore.json; do
+            if ! grep -qx "$required" <<<"$assets"; then
+              echo "::error::v${VERSION} on ${GITHUB_REPOSITORY} has no ${required}; left as a draft. Run sign-release.yml -f version=${VERSION}, then publish it."
+              exit 1
+            fi
+          done
+          gh release edit "v${VERSION}" --repo "$GITHUB_REPOSITORY" --tag "v${VERSION}" --draft=false --latest=false
+
   publish-github-packages:
     name: Publish npm package to GitHub Packages
     needs: [build, publish]
@@ -493,6 +522,14 @@ jobs:
       contents: read
       id-token: write # npm trusted publishing (OIDC)
     steps:
+      # Check out before downloading: checkout empties the workspace, so a package/ folder downloaded
+      # earlier is gone by the time the archive step looks for it (1.4.5: "find: 'package': No such file or directory").
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            .github/npm-cli
+
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: flisk-cli-package-${{ needs.build.outputs.version }}
@@ -504,11 +541,6 @@ jobs:
           registry-url: "https://registry.npmjs.org"
           package-manager-cache: false
 
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-          sparse-checkout: |
-            .github/npm-cli
       # Trusted publishing needs an npm CLI that speaks OIDC. The npm version is pinned by the lockfile
       # in .github/npm-cli (npm ci verifies its hashes); the installed copy is put first on PATH.
       - name: Update npm for trusted publishing

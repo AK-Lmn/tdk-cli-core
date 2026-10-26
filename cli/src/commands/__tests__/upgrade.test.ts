@@ -193,7 +193,10 @@ describe("upgradeViaBinary", () => {
       "the engine tarball does not match",
       () => checksums.replace(sha256(ENGINE_BYTES), sha256("x")),
     ],
-    ["checksums.txt has no entry for the binary", () => checksums.replace("flisk-darwin-arm64", "x")],
+    [
+      "checksums.txt has no entry for the binary",
+      () => checksums.replace("flisk-darwin-arm64", "x"),
+    ],
   ])("refuses to install when %s", async (_case, makeChecksums) => {
     checksums = makeChecksums();
     const ok = await upgradeViaBinary(fliskPath, release);
@@ -498,7 +501,8 @@ describe("getLatestBinaryRelease", () => {
     expect(release).toEqual({
       tag: "v1.4.0",
       assetName: "flisk-darwin-arm64",
-      downloadUrl: "https://github.com/flisk-sh/releases/releases/download/v1.4.0/flisk-darwin-arm64",
+      downloadUrl:
+        "https://github.com/flisk-sh/releases/releases/download/v1.4.0/flisk-darwin-arm64",
       engineDownloadUrl:
         "https://github.com/flisk-sh/releases/releases/download/v1.4.0/flisk-cli-engine.tar.gz",
       checksumsUrl: "https://github.com/flisk-sh/releases/releases/download/v1.4.0/checksums.txt",
