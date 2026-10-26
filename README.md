@@ -337,11 +337,14 @@ Get a running local stack in **3 commands**. Works on macOS, Linux, and Windows 
 
 ### Prerequisites (install once)
 
-| Tool | Version | Install |
-|------|---------|---------|
-| **Docker** | Engine 25+, Compose 2.20+ | [docker.com](https://www.docker.com/products/docker-desktop/) |
-| **Tilt** | 0.25+ | `curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh \| bash` |
-| **Bun** | 1.2+ | `curl -fsSL https://bun.sh/install \| bash` |
+| Tool | Version | Install | Install path |
+|------|---------|---------|--------------|
+| **Docker** | Engine 25+, Compose 2.20.2+ | [docker.com](https://www.docker.com/products/docker-desktop/) | All paths |
+| **Tilt** | 0.25+ | `curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh \| bash` | All paths |
+| **Node.js** | 22.12+ | [nodejs.org](https://nodejs.org/) | npm path (`npm install -g @flisk-sh/flisk`) |
+| **Bun** | 1.2+ | `curl -fsSL https://bun.sh/install \| bash` | Bun path (`bun add -g @flisk-sh/flisk`) |
+
+> **Conditional prerequisites**: Node.js is only required when you install Flisk via npm (`npm install -g @flisk-sh/flisk`). Bun is only required when you install via Bun or your project has generated JavaScript services. Docker and Tilt are required for every path.
 
 > **Windows?** Use WSL2 Ubuntu. See the [Windows & WSL2 guide](docs/wsl2.md) for the recommended setup.
 
