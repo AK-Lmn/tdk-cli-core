@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { captureExit, createTempProject } from "../../test-support/index.js";
 import { clearDiscoveryCache } from "../../utils/discovery-context.js";
-import { agentCommand, agentSessionRequest } from "../agent.js";
+import { agentCommand, agentSessionRequest, formatAge, formatSessionTable } from "../agent.js";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
 const cliPath = path.join(repoRoot, "cli", "bin", "flisk.js");
@@ -168,28 +168,161 @@ describe("flisk agent sessions", () => {
     }
   });
 
-  it("requires --session-id and sends no request when it is missing", async () => {
-    let requests = 0;
-    const server = http.createServer((_req, res) => {
-      requests += 1;
-      res.end("{}");
+  /** Starts a loopback server that answers every request with `body` (JSON-encoded unless a string) and `status`. */
+  async function agentServer(status: number, body: unknown, seen: string[] = []) {
+    const server = http.createServer((req, res) => {
+      seen.push(String(req.url));
+      res.statusCode = status;
+      if (typeof body !== "string") res.setHeader("content-type", "application/json");
+      res.end(typeof body === "string" ? body : JSON.stringify(body));
     });
     await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
-    const port = (server.address() as AddressInfo).port;
-    const tmp = agentProject(port);
+    return { server, port: (server.address() as AddressInfo).port };
+  }
+
+  const LISTED = {
+    sessions: [
+      {
+        sessionId: "s1",
+        lastActivity: "2026-10-26T10:00:00.000Z",
+        status: "idle",
+        checkpointBytes: 2048,
+      },
+    ],
+    total: 1,
+  };
+
+  it("lists sessions from GET /sessions when --session-id is omitted", async () => {
+    const seen: string[] = [];
+    const { server, port } = await agentServer(200, LISTED, seen);
+    const tmp = agentProject(4999);
     try {
-      const { status, envelope } = await runEnvelopeCase(tmp, ["bot"]);
-      expect(status).toBe(1);
-      expect(envelope.data).toBeNull();
-      expect(envelope.errors).toHaveLength(1);
-      expect(envelope.errors[0].code).toBe("SESSION_ID_REQUIRED");
-      expect(requests).toBe(0);
+      const res = await runFliskAsync(
+        ["agent", "sessions", "bot", "--json"],
+        tmp,
+        `http://127.0.0.1:${port}`,
+      );
+      expect(res.status).toBe(0);
+      expect(seen).toEqual(["/api/bot/sessions"]);
+      const envelope = JSON.parse(res.stdout);
+      expect(envelope.errors).toEqual([]);
+      expect(envelope.data).toEqual({ agent: "bot", port: 4999, ...LISTED });
     } finally {
       server.close();
+      fs.rmSync(tmp, { recursive: true, force: true });
     }
   });
 
-  it("keeps UNKNOWN_RESOURCE ahead of SESSION_ID_REQUIRED", async () => {
+  it("prints the session list as a table", async () => {
+    const { server, port } = await agentServer(200, LISTED);
+    const tmp = agentProject(4999);
+    try {
+      const res = await runFliskAsync(
+        ["agent", "sessions", "bot"],
+        tmp,
+        `http://127.0.0.1:${port}`,
+      );
+      expect(res.status).toBe(0);
+      expect(res.stdout).toContain("Sessions for bot:");
+      expect(res.stdout).toMatch(/SESSION\s+LAST ACTIVITY\s+STATUS\s+CHECKPOINT/);
+      expect(res.stdout).toMatch(/s1\s+\S+ ago\s+idle\s+2\.0 KB/);
+    } finally {
+      server.close();
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  for (const [label, status, body] of [
+    ["answers GET /sessions with its JSON 404", 404, { error: "not_found" }],
+    ["answers GET /sessions with something other than a list", 200, { sessionId: "", turns: 0 }],
+  ] as const) {
+    it(`reports SESSION_LIST_UNSUPPORTED when an older agent ${label}`, async () => {
+      const { server, port } = await agentServer(status, body);
+      const tmp = agentProject(4999);
+      try {
+        const res = await runFliskAsync(
+          ["agent", "sessions", "bot", "--json"],
+          tmp,
+          `http://127.0.0.1:${port}`,
+        );
+        expect(res.status).toBe(1);
+        const envelope = JSON.parse(res.stdout);
+        expect(envelope.data).toBeNull();
+        expect(envelope.errors).toEqual([
+          expect.objectContaining({
+            code: "SESSION_LIST_UNSUPPORTED",
+            message: expect.stringContaining("does not serve GET /sessions"),
+          }),
+        ]);
+      } finally {
+        server.close();
+        fs.rmSync(tmp, { recursive: true, force: true });
+      }
+    });
+  }
+
+  it("tells a human how to read one session when the agent cannot list them", async () => {
+    const { server, port } = await agentServer(404, { error: "not_found" });
+    const tmp = agentProject(4999);
+    try {
+      const res = await new Promise<{ status: number | null; output: string }>((resolve) => {
+        const child = spawn(process.execPath, [cliPath, "agent", "sessions", "bot"], {
+          cwd: tmp,
+          env: { ...process.env, FLISK_SERVICE_BASE_URL: `http://127.0.0.1:${port}` },
+        });
+        let output = "";
+        child.stdout.on("data", (chunk) => {
+          output += chunk;
+        });
+        child.stderr.on("data", (chunk) => {
+          output += chunk;
+        });
+        child.on("close", (status) => resolve({ status, output }));
+      });
+      expect(res.status).toBe(1);
+      expect(res.output).toContain("does not serve GET /sessions");
+      expect(res.output).toContain("flisk agent sessions bot --session-id <id>");
+      expect(res.output).not.toContain("404");
+    } finally {
+      server.close();
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it("refuses --watch with --json before reading the project", async () => {
+    const { status, envelope } = await runEnvelopeCase(envelopeProject, ["nonexistent", "--watch"]);
+    expect(status).toBe(1);
+    expect(envelope.errors[0].code).toBe("USAGE");
+  });
+
+  it("redraws the list with --watch until interrupted", async () => {
+    const seen: string[] = [];
+    const { server, port } = await agentServer(200, LISTED, seen);
+    const tmp = agentProject(4999);
+    const child = spawn(process.execPath, [cliPath, "agent", "sessions", "bot", "--watch"], {
+      cwd: tmp,
+      env: { ...process.env, FLISK_SERVICE_BASE_URL: `http://127.0.0.1:${port}` },
+    });
+    try {
+      let output = "";
+      child.stdout.on("data", (chunk) => {
+        output += chunk;
+      });
+      // Two refreshes are 2 seconds apart; wait for the second one, then stop the loop like Ctrl+C would.
+      for (let i = 0; i < 100 && seen.length < 2; i++) {
+        await new Promise((r) => setTimeout(r, 100));
+      }
+      expect(seen.length).toBeGreaterThanOrEqual(2);
+      expect(output).toContain("Refreshing every 2s. Ctrl+C to stop.");
+      expect(output.match(/Sessions for bot:/g)?.length).toBeGreaterThanOrEqual(1);
+    } finally {
+      child.kill("SIGINT");
+      server.close();
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  }, 20_000);
+
+  it("keeps UNKNOWN_RESOURCE ahead of any request when --session-id is omitted", async () => {
     const { envelope } = await runEnvelopeCase(envelopeProject, ["nonexistent"]);
     expect(envelope.errors[0].code).toBe("UNKNOWN_RESOURCE");
   });
@@ -300,5 +433,37 @@ describe("flisk agent sessions", () => {
       server.close();
       fs.rmSync(tmp, { recursive: true, force: true });
     }
+  });
+
+  it("formats ages and the session table", () => {
+    const now = Date.parse("2026-10-26T10:00:00.000Z");
+    expect(formatAge("2026-10-26T09:59:48.000Z", now)).toBe("12s ago");
+    expect(formatAge("2026-10-26T09:55:00.000Z", now)).toBe("5m ago");
+    expect(formatAge("2026-10-26T07:00:00.000Z", now)).toBe("3h ago");
+    expect(formatAge("2026-10-24T10:00:00.000Z", now)).toBe("2d ago");
+    expect(formatAge(null, now)).toBe("-");
+    expect(formatSessionTable({ sessions: [], total: 0 }, now)).toEqual(["No sessions yet."]);
+    expect(
+      formatSessionTable(
+        {
+          sessions: [
+            { sessionId: "a", lastActivity: null, status: "active", checkpointBytes: null },
+            {
+              sessionId: "longer-id",
+              lastActivity: "2026-10-26T09:59:48.000Z",
+              status: "idle",
+              checkpointBytes: 10,
+            },
+          ],
+          total: 5,
+        },
+        now,
+      ),
+    ).toEqual([
+      "SESSION    LAST ACTIVITY  STATUS  CHECKPOINT",
+      "a          -              active  -",
+      "longer-id  12s ago        idle    10 B",
+      "... 3 more not shown",
+    ]);
   });
 });

@@ -380,6 +380,7 @@ describe("tool list", () => {
     await tools
       .find((t) => t.name === "get_agent_sessions")
       ?.handler({ resource: "bot", sessionId: "sess-1" });
+    await tools.find((t) => t.name === "get_agent_sessions")?.handler({ resource: "bot" });
     expect(seen).toEqual([
       { args: ["doctor", "--json"], cwd: "/work/erp" },
       { args: ["resources", "--json", "--stack=store"], cwd: undefined },
@@ -388,6 +389,7 @@ describe("tool list", () => {
       { args: ["restart", "api", "--json"], cwd: undefined },
       { args: ["resources", "--type=agent", "--json", "--stack=shop"], cwd: undefined },
       { args: ["agent", "sessions", "bot", "--session-id=sess-1", "--json"], cwd: undefined },
+      { args: ["agent", "sessions", "bot", "--json"], cwd: undefined },
     ]);
     await expect(
       tools.find((t) => t.name === "doctor")?.handler({ projectPath: "relative" }),
@@ -398,11 +400,8 @@ describe("tool list", () => {
     await expect(tools.find((t) => t.name === "get_agent_sessions")?.handler({})).rejects.toThrow(
       "resource is required",
     );
-    await expect(
-      tools.find((t) => t.name === "get_agent_sessions")?.handler({ resource: "bot" }),
-    ).rejects.toThrow("sessionId is required");
     expect(tools.find((t) => t.name === "get_agent_sessions")?.inputSchema).toMatchObject({
-      required: ["resource", "sessionId"],
+      required: ["resource"],
     });
   });
   it("rejects invalid tool arguments before running the CLI", async () => {

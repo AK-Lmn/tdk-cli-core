@@ -83,6 +83,20 @@ describe.each(["files", "postgres"] as const)("%s durability template", (durabil
     expect(index).toContain("process.on('SIGINT', () => shutdown('SIGINT'));");
   });
 
+  it("lists stored sessions newest first with an active or idle status", () => {
+    expect(index).toContain("url.pathname === '/sessions' && req.method === 'GET'");
+    expect(index).toContain("b.lastActivity.localeCompare(a.lastActivity)");
+    expect(index).toContain("status: activeTurns.has(s.sessionId) ? 'active' : 'idle'");
+    expect(index).toContain("return sendJson(res, 200, { sessions, total: all.length });");
+  });
+
+  it("marks a session active only while a turn for it is in flight", () => {
+    expect(index).toContain("activeTurns.set(sessionId, (activeTurns.get(sessionId) ?? 0) + 1);");
+    expect(index).toMatch(
+      /\} finally \{\s*const left = \(activeTurns\.get\(sessionId\) \?\? 1\) - 1;/,
+    );
+  });
+
   it("answers unknown paths with 404 and failed requests with 500", () => {
     expect(index).toContain("return sendJson(res, 404, { error: 'not_found' });");
     expect(index).toContain("return sendJson(res, 500, { error: 'internal_error' });");
@@ -105,6 +119,11 @@ describe("files durability template", () => {
     expect(index).toContain(
       "existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : { sessionId, messages: [] }",
     );
+  });
+
+  it("lists sessions from the checkpoint files, skipping in-progress writes", () => {
+    expect(index).toContain(".filter((file) => file.endsWith('.json'))");
+    expect(index).toContain("lastActivity: stat.mtime.toISOString(), checkpointBytes: stat.size");
   });
 
   it("has no postgres dependency", () => {
@@ -140,6 +159,12 @@ describe("postgres durability template", () => {
   it("serves an empty checkpoint when a session load fails", () => {
     expect(index).toMatch(
       /catch \(err\) \{\s*console\.error\('\[agent\] load checkpoint failed:', err\);\s*return \{ sessionId, messages: \[\] \};\s*\}/,
+    );
+  });
+
+  it("lists sessions from the table without reading the messages", () => {
+    expect(index).toContain(
+      "SELECT session_id, updated_at, octet_length(messages::text) AS bytes FROM flisk_agent_sessions",
     );
   });
 

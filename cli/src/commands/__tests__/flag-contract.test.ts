@@ -1,6 +1,8 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
 import * as fs from "node:fs";
+import { createServer } from "node:http";
+import type { AddressInfo } from "node:net";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Command } from "commander";
@@ -309,15 +311,23 @@ describe("flag contract: --json for doctor", () => {
 });
 
 describe("flag contract: --json error envelope for agent sessions", () => {
-  it(`${AGENT_SESSIONS_JSON.site} without --session-id fails with a null-data envelope`, () => {
+  // Without --session-id the command lists sessions; nothing listens behind the route here, so it fails.
+  it(`${AGENT_SESSIONS_JSON.site} fails with a null-data envelope when the agent is not running`, async () => {
     const root = createTempProject(AGENT_SESSIONS_JSON.project);
-    const result = runFlisk([...AGENT_SESSIONS_JSON.command, "--json"], { cwd: root });
+    const closed = createServer();
+    await new Promise<void>((resolve) => closed.listen(0, "127.0.0.1", () => resolve()));
+    const { port } = closed.address() as AddressInfo;
+    await new Promise<void>((resolve) => closed.close(() => resolve()));
+    const result = runFlisk([...AGENT_SESSIONS_JSON.command, "--json"], {
+      cwd: root,
+      env: { FLISK_SERVICE_BASE_URL: `http://127.0.0.1:${port}` },
+    });
     expect(result.status).toBe(1);
     expect(result.stderr).not.toMatch(/^\{/m);
     const envelope = parseOneEnvelope(result.stdout);
     expect(envelope.schemaVersion).toBe(1);
     expect(envelope.data).toBeNull();
-    expect(envelope.errors).toEqual([expect.objectContaining({ code: "SESSION_ID_REQUIRED" })]);
+    expect(envelope.errors).toEqual([expect.objectContaining({ code: "AGENT_NOT_RUNNING" })]);
   });
 });
 

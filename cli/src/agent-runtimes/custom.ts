@@ -31,6 +31,13 @@ interface Checkpoint {
   messages: Array<{ role: 'user' | 'agent'; content: string; at: string }>;
 }
 
+// One row of GET /sessions: what is stored, not what is in it, so listing never reads a whole conversation.
+interface SessionSummary {
+  sessionId: string;
+  lastActivity: string;
+  checkpointBytes: number;
+}
+
 let client: Client | null = null;
 let initialized = false;
 
@@ -76,6 +83,17 @@ const store = {
       return { sessionId, messages: [] };
     }
   },
+  async list(): Promise<SessionSummary[]> {
+    const c = await getClient();
+    const res = await c.query(
+      'SELECT session_id, updated_at, octet_length(messages::text) AS bytes FROM flisk_agent_sessions',
+    );
+    return res.rows.map((row: { session_id: string; updated_at: Date; bytes: number }) => ({
+      sessionId: row.session_id,
+      lastActivity: new Date(row.updated_at).toISOString(),
+      checkpointBytes: Number(row.bytes),
+    }));
+  },
   async save(checkpoint: Checkpoint): Promise<void> {
     const c = await getClient();
     await c.query(
@@ -107,6 +125,9 @@ async function runTurn(checkpoint: Checkpoint, input: string): Promise<string> {
 
 let draining = false;
 let inFlight = 0;
+// Turns in flight per session, so GET /sessions can tell an active session from an idle one.
+const activeTurns = new Map<string, number>();
+const SESSION_LIST_LIMIT = 500;
 
 function sendJson(res: ServerResponse, status: number, body: unknown) {
   res.statusCode = status;
@@ -146,12 +167,19 @@ const server = createServer(async (req, res) => {
       }
       const body = await readJson(req);
       const input = String(body.input ?? '');
-      const checkpoint = await store.load(sessionId);
-      checkpoint.messages.push({ role: 'user', content: input, at: new Date().toISOString() });
-      const reply = await runTurn(checkpoint, input);
-      checkpoint.messages.push({ role: 'agent', content: reply, at: new Date().toISOString() });
-      await store.save(checkpoint);
-      return sendJson(res, 200, { sessionId, reply, turns: checkpoint.messages.length / 2 });
+      activeTurns.set(sessionId, (activeTurns.get(sessionId) ?? 0) + 1);
+      try {
+        const checkpoint = await store.load(sessionId);
+        checkpoint.messages.push({ role: 'user', content: input, at: new Date().toISOString() });
+        const reply = await runTurn(checkpoint, input);
+        checkpoint.messages.push({ role: 'agent', content: reply, at: new Date().toISOString() });
+        await store.save(checkpoint);
+        return sendJson(res, 200, { sessionId, reply, turns: checkpoint.messages.length / 2 });
+      } finally {
+        const left = (activeTurns.get(sessionId) ?? 1) - 1;
+        if (left > 0) activeTurns.set(sessionId, left);
+        else activeTurns.delete(sessionId);
+      }
     }
 
     if (url.pathname === '/session' && req.method === 'GET') {
@@ -159,6 +187,17 @@ const server = createServer(async (req, res) => {
       if (!/^[A-Za-z0-9_-]{1,128}$/.test(sessionId)) return sendJson(res, 400, { error: 'x-session-id header is required' });
       const checkpoint = await store.load(sessionId);
       return sendJson(res, 200, { sessionId, turns: checkpoint.messages.length / 2, messages: checkpoint.messages });
+    }
+
+    // Read-only list of the stored sessions, most recent first. status is 'active' while this instance runs a turn
+    // for the session, otherwise 'idle'. total counts every stored session, also those past the limit.
+    if (url.pathname === '/sessions' && req.method === 'GET') {
+      const all = (await store.list()).sort((a, b) => b.lastActivity.localeCompare(a.lastActivity));
+      const sessions = all.slice(0, SESSION_LIST_LIMIT).map((s) => ({
+        ...s,
+        status: activeTurns.has(s.sessionId) ? 'active' : 'idle',
+      }));
+      return sendJson(res, 200, { sessions, total: all.length });
     }
 
     return sendJson(res, 404, { error: 'not_found' });
@@ -197,7 +236,7 @@ process.on('SIGINT', () => shutdown('SIGINT'));
   }
 
   return `import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
-import { mkdirSync, readFileSync, renameSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 // Contract with Flisk (see docs/agents/ai-agents.md):
@@ -216,6 +255,13 @@ interface Checkpoint {
   messages: Array<{ role: 'user' | 'agent'; content: string; at: string }>;
 }
 
+// One row of GET /sessions: what is stored, not what is in it, so listing never reads a whole conversation.
+interface SessionSummary {
+  sessionId: string;
+  lastActivity: string;
+  checkpointBytes: number;
+}
+
 // Session store. files: one JSON checkpoint per session, written atomically (temp file, then rename), so a kill
 // mid-write leaves the previous checkpoint intact.
 const store = {
@@ -230,6 +276,20 @@ const store = {
   load(sessionId: string): Checkpoint {
     const file = join(STATE_DIR, sessionId + '.json');
     return existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : { sessionId, messages: [] };
+  },
+  list(): SessionSummary[] {
+    if (!existsSync(STATE_DIR)) return [];
+    // Only finished checkpoints: an in-progress write is still a .tmp file.
+    return readdirSync(STATE_DIR)
+      .filter((file) => file.endsWith('.json'))
+      .flatMap((file) => {
+        try {
+          const stat = statSync(join(STATE_DIR, file));
+          return [{ sessionId: file.slice(0, -'.json'.length), lastActivity: stat.mtime.toISOString(), checkpointBytes: stat.size }];
+        } catch {
+          return []; // removed between the directory read and the stat
+        }
+      });
   },
   save(checkpoint: Checkpoint): void {
     mkdirSync(STATE_DIR, { recursive: true });
@@ -249,6 +309,9 @@ async function runTurn(checkpoint: Checkpoint, input: string): Promise<string> {
 
 let draining = false;
 let inFlight = 0;
+// Turns in flight per session, so GET /sessions can tell an active session from an idle one.
+const activeTurns = new Map<string, number>();
+const SESSION_LIST_LIMIT = 500;
 
 function sendJson(res: ServerResponse, status: number, body: unknown) {
   res.statusCode = status;
@@ -288,12 +351,19 @@ const server = createServer(async (req, res) => {
       }
       const body = await readJson(req);
       const input = String(body.input ?? '');
-      const checkpoint = await store.load(sessionId);
-      checkpoint.messages.push({ role: 'user', content: input, at: new Date().toISOString() });
-      const reply = await runTurn(checkpoint, input);
-      checkpoint.messages.push({ role: 'agent', content: reply, at: new Date().toISOString() });
-      await store.save(checkpoint);
-      return sendJson(res, 200, { sessionId, reply, turns: checkpoint.messages.length / 2 });
+      activeTurns.set(sessionId, (activeTurns.get(sessionId) ?? 0) + 1);
+      try {
+        const checkpoint = await store.load(sessionId);
+        checkpoint.messages.push({ role: 'user', content: input, at: new Date().toISOString() });
+        const reply = await runTurn(checkpoint, input);
+        checkpoint.messages.push({ role: 'agent', content: reply, at: new Date().toISOString() });
+        await store.save(checkpoint);
+        return sendJson(res, 200, { sessionId, reply, turns: checkpoint.messages.length / 2 });
+      } finally {
+        const left = (activeTurns.get(sessionId) ?? 1) - 1;
+        if (left > 0) activeTurns.set(sessionId, left);
+        else activeTurns.delete(sessionId);
+      }
     }
 
     if (url.pathname === '/session' && req.method === 'GET') {
@@ -301,6 +371,17 @@ const server = createServer(async (req, res) => {
       if (!/^[A-Za-z0-9_-]{1,128}$/.test(sessionId)) return sendJson(res, 400, { error: 'x-session-id header is required' });
       const checkpoint = await store.load(sessionId);
       return sendJson(res, 200, { sessionId, turns: checkpoint.messages.length / 2, messages: checkpoint.messages });
+    }
+
+    // Read-only list of the stored sessions, most recent first. status is 'active' while this instance runs a turn
+    // for the session, otherwise 'idle'. total counts every stored session, also those past the limit.
+    if (url.pathname === '/sessions' && req.method === 'GET') {
+      const all = (await store.list()).sort((a, b) => b.lastActivity.localeCompare(a.lastActivity));
+      const sessions = all.slice(0, SESSION_LIST_LIMIT).map((s) => ({
+        ...s,
+        status: activeTurns.has(s.sessionId) ? 'active' : 'idle',
+      }));
+      return sendJson(res, 200, { sessions, total: all.length });
     }
 
     return sendJson(res, 404, { error: 'not_found' });

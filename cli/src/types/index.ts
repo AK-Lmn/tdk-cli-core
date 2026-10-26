@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
+import type { AgentOverview } from "../utils/agent-sessions.js";
 import { RESOURCE_DEFAULTS_FILE, TECH_STACK_FILE } from "../utils/constants.js";
 
 export interface DiscoveredResource {
@@ -269,6 +270,8 @@ export interface DetailPanelProps {
   stack: DiscoveredStack | null;
   service: DiscoveredResource | null;
   stackMetadata?: StackMetadata | null;
+  /** Live readiness and sessions of the selected service when it is an agent; undefined for other services. */
+  agent?: AgentOverview | null;
   visible: boolean;
 }
 

@@ -30,6 +30,7 @@ import type {
   SelectItem,
   TabId,
 } from "../types/index.js";
+import { type AgentOverview, fetchAgentOverview } from "../utils/agent-sessions.js";
 import { errorFactories, requireProjectRoot } from "../utils/errors.js";
 import { readSavedHostPortPlan } from "../utils/host-port-config.js";
 import { findProjectRoot, getPackageVersion } from "../utils/paths.js";
@@ -45,6 +46,7 @@ import {
 } from "../utils/services.js";
 import { singleFlight } from "../utils/single-flight.js";
 import { createStatusMessageController } from "../utils/status-message.js";
+import { buildServicePorts } from "../utils/status-ports.js";
 import { getListRowFromMouseY, getTerminalRuleWidth } from "../utils/terminal-layout.js";
 import { isTiltAvailable } from "../utils/tilt.js";
 import type {
@@ -283,12 +285,47 @@ export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) =>
     });
     const poll = (): Promise<void> => run(() => fetchServiceStates(services, tiltPort));
     void poll();
-    const timer = setInterval(() => void poll(), 5000);
+    // The agent panel rides on this same timer: the selected agent is read once per tick, never one loop per agent.
+    const timer = setInterval(() => {
+      void poll();
+      void agentPollRef.current();
+    }, 5000);
     return () => {
       cancelled = true;
       clearInterval(timer);
     };
   }, [services]);
+
+  // Readiness and sessions of the selected agent resource, read from the agent itself through its ingress route.
+  const [agentOverview, setAgentOverview] = useState<{
+    name: string;
+    overview: AgentOverview;
+  } | null>(null);
+  const agentRoute = useMemo(() => {
+    const resource = services.find((s: DiscoveredResource) => s.name === selectedService);
+    if (!resource || (resource.config?.appType ?? resource.type) !== "agent") return null;
+    const url = buildServicePorts(resource, ingressPort).url;
+    return url ? { name: resource.name, url } : null;
+  }, [services, selectedService, ingressPort]);
+  const agentPollRef = useRef<() => Promise<void>>(async () => {});
+  useEffect(() => {
+    if (!agentRoute) {
+      agentPollRef.current = async () => {};
+      setAgentOverview(null);
+      return;
+    }
+    let cancelled = false;
+    const run = singleFlight<AgentOverview>((overview) => {
+      if (!cancelled) setAgentOverview({ name: agentRoute.name, overview });
+    });
+    agentPollRef.current = () => run(() => fetchAgentOverview(agentRoute.url));
+    setAgentOverview(null);
+    void agentPollRef.current();
+    return () => {
+      cancelled = true;
+      agentPollRef.current = async () => {};
+    };
+  }, [agentRoute]);
 
   // Re-read service.json files from disk. An empty project is not an error:
   // it renders EmptyState. Only a failed discovery shows ErrorScreen.
@@ -1148,6 +1185,13 @@ export const TUIApp: React.FC<{ animated?: boolean }> = ({ animated = true }) =>
                   stack={selectedStackData?.stack || null}
                   service={selectedServiceData?.service || null}
                   stackMetadata={selectedStackData?.metadata || null}
+                  agent={
+                    agentRoute && selectedServiceData
+                      ? agentOverview?.name === agentRoute.name
+                        ? agentOverview.overview
+                        : null
+                      : undefined
+                  }
                   visible={!!selectedStack || !!selectedService}
                 />
               </Box>

@@ -171,11 +171,11 @@ The server exposes nine tools. Six cover the stack lifecycle: `doctor`, `up`, `d
 | `down` | Stops the running stack. | When you are finished. | `projectPath`, `dryRun` |
 | `restart_resource` | Restarts a running resource, or triggers its rebuild. | When one service needs a fresh start. | `projectPath`, `resource` |
 | `list_agents` | Lists the project's agent resources with their stack, runtime, durability, and port. | To work with agent resources. | `projectPath`, `stack` |
-| `get_agent_sessions` | Reads session checkpoints from a running agent resource. | To inspect an agent's session state. | `projectPath`, `resource`, `sessionId` |
+| `get_agent_sessions` | Lists the sessions of a running agent resource, or reads one checkpoint. | To inspect an agent's session state. | `projectPath`, `resource`, `sessionId` (optional) |
 
 `projectPath` is an absolute path to a Flisk project root. Every tool accepts it, so a client that does not launch the server from the project directory can still target the right project. Without it, the tools use the server's own working directory and fail with `Could not find project root` when that directory is not a Flisk project.
 
-`get_agent_sessions` needs both a `resource` and a `sessionId`; the other tools need one argument at most.
+`get_agent_sessions` needs a `resource`; without a `sessionId` it lists the agent's sessions; the other tools need one argument at most.
 
 To start part of a stack, name the services in `only`. Flisk starts their dependencies and the shared infrastructure with them.
 

@@ -56,10 +56,10 @@ Run `make help` to inspect all available targets:
   - Create services: `flisk resource <name> --type agent|backend|worker|mcp`
   - Start the stack: `flisk up [stack]` or call the `up` MCP tool
   - Inspect status: `flisk status --json` or call the `status` MCP tool
-  - Inspect agent sessions: `flisk agent sessions <resource> --session-id <id>` or call `get_agent_sessions` (`sessionId` is required)
+  - Inspect agent sessions: `flisk agent sessions <resource>` lists them (add `--watch` to refresh); `--session-id <id>` reads one checkpoint. The MCP tool `get_agent_sessions` takes an optional `sessionId` the same way
   - Restart services: `flisk restart <resource>` or call `restart_resource`
   - Check diagnostics: `flisk doctor --json`
-- Agent resource contracts: The `agent` resource type manages its own process contract (`/health` for liveness, `/ready` for checkpoint store reachable, session routing via `x-session-id`, checkpoints survive restarts).
+- Agent resource contracts: The `agent` resource type manages its own process contract (`/health` for liveness, `/ready` for checkpoint store reachable, `GET /sessions` lists stored sessions, session routing via `x-session-id`, checkpoints survive restarts).
 - MCP integration: Use `flisk mcp` over stdio (`{ "command": "flisk", "args": ["mcp"] }`) for full MCP stack integration.
 - Starter templates: Use `flisk project agent-stack` to scaffold a complete multi-agent system with tools, database, and messaging.
 - Local-only by default: Do not add Deployment or cluster manifest generators without an agreed export scope. Keep cluster deployment policy with the user's Kubernetes workflow.

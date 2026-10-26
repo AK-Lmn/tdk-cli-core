@@ -1,5 +1,3 @@
-// Copyright (c) 2026 Flisk Landscape contributors
-// SPDX-License-Identifier: MIT
 import { RESOURCE_DEFAULTS_FILE, TECH_STACK_FILE } from "../utils/constants.js";
 export const RESOURCE_CONFIG_APP_TYPES = [
     "backend",

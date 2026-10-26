@@ -21,7 +21,7 @@ See also the product site [llms.txt](https://flisk.sh/llms.txt).
     - `resource_list`: List the project's services with their stack, type, and port.
     - `restart_resource`: Restart a running resource in the stack (or trigger its rebuild).
     - `list_agents`: List AI agent resources (`appType: "agent"`) with their stack, runtime, durability, and port.
-    - `get_agent_sessions`: Inspect session checkpoints from a running AI agent resource.
+    - `get_agent_sessions`: List sessions of a running AI agent resource, or inspect one session checkpoint (`sessionId` optional).
 - **Zero-Config Port Management**: Automatically assigns conflict-free ports and exposes services via Traefik at `*.localhost` (port 80 or 8080-8180).
 
 ## Essential CLI Commands

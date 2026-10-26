@@ -377,21 +377,25 @@ export function createFliskTools(
     {
       name: "get_agent_sessions",
       description:
-        "Inspect session checkpoints from a running AI agent resource. Set projectPath when the MCP server is not running from the project root.",
+        "List the sessions of a running AI agent resource (id, last activity, status, checkpoint size), or read one session's checkpoint when sessionId is set. Set projectPath when the MCP server is not running from the project root.",
       inputSchema: {
         ...OBJECT({
           projectPath: PROJECT_PATH,
           resource: { type: "string", description: "Name of the agent resource" },
-          sessionId: { type: "string", description: "Session ID to fetch (required)" },
+          sessionId: {
+            type: "string",
+            description: "Session ID to read; omit it to list all sessions",
+          },
         }),
-        required: ["resource", "sessionId"],
+        required: ["resource"],
       },
       handler: viaCli((args) => {
         const resource = optionalName(args.resource, "resource");
         if (!resource) throw new Error("resource is required");
         const sessionId = optionalName(args.sessionId, "sessionId");
-        if (!sessionId) throw new Error("sessionId is required");
-        return ["agent", "sessions", resource, `--session-id=${sessionId}`, "--json"];
+        return sessionId
+          ? ["agent", "sessions", resource, `--session-id=${sessionId}`, "--json"]
+          : ["agent", "sessions", resource, "--json"];
       }),
     },
   ];

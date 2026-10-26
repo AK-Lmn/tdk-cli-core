@@ -63,7 +63,7 @@ flisk resource <name> --type mcp --stack <stack>
   - `resource_list`: List the project's services with their stack, type, and port.
   - `restart_resource`: Restart a running resource in the stack (or trigger its rebuild).
   - `list_agents`: List AI agent resources (`appType: "agent"`) with their stack, runtime, durability, and port.
-  - `get_agent_sessions`: Inspect session checkpoints from a running AI agent resource.
+  - `get_agent_sessions`: List sessions of a running AI agent resource, or inspect one session checkpoint (`sessionId` optional).
 - Emits structured, versioned `--json` payloads.
 
 ---
