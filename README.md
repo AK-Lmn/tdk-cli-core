@@ -78,26 +78,201 @@ Stop my Flisk stack with flisk down and confirm nothing is left running.
 
 </details>
 
-<details>
-<summary>Connect your agent to Flisk as an MCP server</summary>
+#### Pick your agent
 
-Install the CLI, then add the Flisk MCP server to your agent's settings:
+Flisk works the same way in every agent: install it, paste the prompt, and the agent runs the Flisk commands. `flisk project` also adds the Flisk skills and an `AGENTS.md` to your project, so the agent knows how to use Flisk. Pick yours for the exact setup:
+
+<p align="center">
+<a href="#agent-claude-code"><img src="docs/assets/agents/tab-claude-code.svg" alt="Claude Code" height="36"></a>
+<a href="#agent-codex"><img src="docs/assets/agents/tab-codex.svg" alt="Codex" height="36"></a>
+<a href="#agent-cursor"><img src="docs/assets/agents/tab-cursor.svg" alt="Cursor" height="36"></a>
+<a href="#agent-copilot"><img src="docs/assets/agents/tab-copilot.svg" alt="GitHub Copilot" height="36"></a>
+<a href="#agent-gemini-cli"><img src="docs/assets/agents/tab-gemini-cli.svg" alt="Gemini CLI" height="36"></a>
+</p>
+
+<a id="agent-claude-code"></a>
+<details>
+<summary><strong>Claude Code</strong></summary>
+
+**1. Install Claude Code and Flisk**
+
+```bash
+curl -fsSL https://claude.ai/install.sh | bash
+npm install -g @flisk-sh/flisk
+```
+
+Windows: `irm https://claude.ai/install.ps1 | iex`. Also available with `brew install --cask claude-code` or `npm install -g @anthropic-ai/claude-code`.
+
+**2. Paste the prompt**
+
+```text
+Build me a small online shop with a storefront and an orders API, and run it on my laptop with Flisk.
+```
+
+**3. Skills and instructions.** `flisk project` writes the Flisk skills to `.claude/skills/`, which Claude Code loads. It also writes an `AGENTS.md`. Claude Code reads that only when the project has no `CLAUDE.md`, so if you have one, add the line `@AGENTS.md` to it.
+
+**4. Optional: connect Flisk as an MCP server**, so the agent can start the stack, check status and restart services through Flisk tools instead of shell commands.
+
+```bash
+claude mcp add --scope project flisk -- flisk mcp
+```
+
+This writes `.mcp.json` in the project. Claude Code asks you to approve project servers before it uses them:
+
+```json
+{ "mcpServers": { "flisk": { "command": "flisk", "args": ["mcp"] } } }
+```
+
+Docs: [setup](https://code.claude.com/docs/en/setup) · [MCP](https://code.claude.com/docs/en/mcp) · [memory](https://code.claude.com/docs/en/memory) · [skills](https://code.claude.com/docs/en/skills)
+
+</details>
+
+<a id="agent-codex"></a>
+<details>
+<summary><strong>Codex</strong></summary>
+
+**1. Install Codex and Flisk**
+
+```bash
+npm install -g @openai/codex
+npm install -g @flisk-sh/flisk
+```
+
+Also available with `curl -fsSL https://chatgpt.com/codex/install.sh | sh` or `brew install --cask codex`.
+
+**2. Paste the prompt**
+
+```text
+Build me a small online shop with a storefront and an orders API, and run it on my laptop with Flisk.
+```
+
+**3. Skills and instructions.** Codex reads the `AGENTS.md` and the skills in `.agents/skills/` that `flisk project` writes.
+
+**4. Optional: connect Flisk as an MCP server**, so the agent can start the stack, check status and restart services through Flisk tools instead of shell commands.
+
+```bash
+codex mcp add flisk -- flisk mcp
+```
+
+Or add it by hand to `~/.codex/config.toml`. A project `.codex/config.toml` works for trusted projects:
+
+```toml
+[mcp_servers.flisk]
+command = "flisk"
+args = ["mcp"]
+```
+
+Docs: [CLI](https://learn.chatgpt.com/docs/codex/cli.md) · [MCP](https://learn.chatgpt.com/docs/extend/mcp?surface=cli) · [AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md.md) · [skills](https://learn.chatgpt.com/docs/build-skills.md)
+
+</details>
+
+<a id="agent-cursor"></a>
+<details>
+<summary><strong>Cursor</strong></summary>
+
+**1. Install Cursor and Flisk**
+
+Install the [Cursor editor](https://cursor.com), or the Cursor CLI:
+
+```bash
+curl https://cursor.com/install -fsS | bash
+npm install -g @flisk-sh/flisk
+```
+
+**2. Paste the prompt**
+
+```text
+Build me a small online shop with a storefront and an orders API, and run it on my laptop with Flisk.
+```
+
+**3. Skills and instructions.** Cursor reads the `AGENTS.md` and the skills in `.agents/skills/` (and `.claude/skills/`) that `flisk project` writes.
+
+**4. Optional: connect Flisk as an MCP server**, so the agent can start the stack, check status and restart services through Flisk tools instead of shell commands.
+
+Cursor has no command to add a server, so create `.cursor/mcp.json` in the project (or `~/.cursor/mcp.json` for every project):
+
+```json
+{ "mcpServers": { "flisk": { "type": "stdio", "command": "flisk", "args": ["mcp"] } } }
+```
+
+Docs: [CLI install](https://cursor.com/docs/cli/installation) · [MCP](https://cursor.com/docs/context/mcp) · [rules](https://cursor.com/docs/context/rules) · [skills](https://cursor.com/docs/context/skills)
+
+</details>
+
+<a id="agent-copilot"></a>
+<details>
+<summary><strong>GitHub Copilot</strong></summary>
+
+**1. Install GitHub Copilot and Flisk**
+
+Install [VS Code](https://code.visualstudio.com) and sign in to Copilot (the Copilot icon in the status bar, then **Use AI Features**). Use Copilot Chat in agent mode. Then install Flisk:
 
 ```bash
 npm install -g @flisk-sh/flisk
 ```
 
-```json
-{
-  "mcpServers": {
-    "flisk": { "command": "flisk", "args": ["mcp"] }
-  }
-}
+**2. Paste the prompt**
+
+```text
+Build me a small online shop with a storefront and an orders API, and run it on my laptop with Flisk.
 ```
 
-The agent can then start the stack, check status, restart a service, and read agent sessions through Flisk tools instead of shell commands. See [use Flisk with your AI agent](#use-flisk-with-your-ai-agent).
+**3. Skills and instructions.** Copilot reads the root `AGENTS.md` and the skills in `.agents/skills/` and `.claude/skills/` that `flisk project` writes.
+
+**4. Optional: connect Flisk as an MCP server**, so the agent can start the stack, check status and restart services through Flisk tools instead of shell commands.
+
+```bash
+code --add-mcp '{"name":"flisk","type":"stdio","command":"flisk","args":["mcp"]}'
+```
+
+That adds it to your VS Code profile. For one project only, create `.vscode/mcp.json`. Note that the top-level key is `servers`:
+
+```json
+{ "servers": { "flisk": { "type": "stdio", "command": "flisk", "args": ["mcp"] } } }
+```
+
+Docs: [setup](https://code.visualstudio.com/docs/copilot/setup) · [MCP servers](https://code.visualstudio.com/docs/copilot/customization/mcp-servers) · [MCP reference](https://code.visualstudio.com/docs/agents/reference/mcp-configuration) · [instructions](https://code.visualstudio.com/docs/copilot/customization/custom-instructions) · [skills](https://code.visualstudio.com/docs/copilot/customization/agent-skills)
 
 </details>
+
+<a id="agent-gemini-cli"></a>
+<details>
+<summary><strong>Gemini CLI</strong></summary>
+
+**1. Install Gemini CLI and Flisk**
+
+```bash
+npm install -g @google/gemini-cli
+npm install -g @flisk-sh/flisk
+```
+
+Also available with `brew install gemini-cli`. Google has replaced Gemini CLI with [Antigravity CLI](https://developers.googleblog.com/an-important-update-transitioning-gemini-cli-to-antigravity-cli) for unpaid and Google One users.
+
+**2. Paste the prompt**
+
+```text
+Build me a small online shop with a storefront and an orders API, and run it on my laptop with Flisk.
+```
+
+**3. Skills and instructions.** Gemini CLI loads the skills in `.agents/skills/` that `flisk project` writes. It reads `GEMINI.md` rather than `AGENTS.md` by default, so add `"context": { "fileName": ["AGENTS.md", "GEMINI.md"] }` to `.gemini/settings.json`.
+
+**4. Optional: connect Flisk as an MCP server**, so the agent can start the stack, check status and restart services through Flisk tools instead of shell commands.
+
+```bash
+gemini mcp add flisk flisk mcp
+```
+
+This writes `.gemini/settings.json` in the project. Add `-s user` to use it everywhere:
+
+```json
+{ "mcpServers": { "flisk": { "command": "flisk", "args": ["mcp"] } } }
+```
+
+Docs: [install](https://geminicli.com/docs/get-started/installation/) · [MCP](https://geminicli.com/docs/tools/mcp-server/) · [GEMINI.md](https://geminicli.com/docs/cli/gemini-md/) · [skills](https://geminicli.com/docs/cli/skills/)
+
+</details>
+
+Any other agent that can run terminal commands works too. Point it at `AGENTS.md`, or connect it to `flisk mcp`, which runs an MCP server over stdio.
 
 ### In your terminal
 
