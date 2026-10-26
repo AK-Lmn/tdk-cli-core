@@ -220,4 +220,4 @@ scripts/release-binaries.sh --publish          # build, create a draft release, 
 scripts/release-binaries.sh --publish-only     # reuse an existing release-dist-<version>/
 ```
 
-Output: `tdk-linux-{amd64,arm64}`, `tdk-darwin-{amd64,arm64}`, `tdk-windows-amd64.exe`, `tdk-cli-engine.tar.gz`, `checksums.txt` (SHA-256). The installer verifies each binary against `checksums.txt`.
+Output: `flisk-linux-{amd64,arm64}`, `flisk-darwin-{amd64,arm64}`, `flisk-windows-amd64.exe`, `flisk-cli-engine.tar.gz`, `checksums.txt` (SHA-256). The installer verifies each binary against `checksums.txt`.

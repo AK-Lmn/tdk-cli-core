@@ -83,6 +83,8 @@ if (templateArg) {
   }
   const destination = isAbsolute(targetName) ? targetName : resolve(cwd(), targetName);
 
+  console.log(chalk.gray(`📁 Demo folder: ${destination}`));
+
   // Reusing an existing checkout is what keeps a second take free: the clone and the
   // dependency install are skipped, so the recording starts on the interesting part.
   let reused = false;

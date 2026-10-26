@@ -23,7 +23,7 @@ The table below documents verified capabilities across supported Unix platforms,
 
 | Capability | macOS (Darwin) | Linux (x64 / arm64) | WSL2 (Ubuntu) | Native Windows (AMD64) |
 | :--- | :--- | :--- | :--- | :--- |
-| **CLI binaries & packaging** | Standalone binary & npm | Standalone binary & npm | Standalone binary & npm | `tdk-windows-amd64.exe` & npm |
+| **CLI binaries & packaging** | Standalone binary & npm | Standalone binary & npm | Standalone binary & npm | `flisk-windows-amd64.exe` & npm |
 | **Inspection (`--version`, `help`)** | Supported | Supported | Supported | Supported |
 | **System diagnostics (`doctor`)** | Supported | Supported | Supported | Supported (Windows-specific checks run via [#1875](https://github.com/flisk-sh/flisk/pull/1875)) |
 | **Project scaffolding (`project`)** | Supported | Supported | Supported | Supported (with Bun installed) |
