@@ -57,7 +57,8 @@ describe("doctor environment contract", () => {
     const old = await checkTilt(async () => "v0.24.9");
     const current = await checkTilt(async () => "v0.25.0");
     expect(old.didPass).toBe(false);
-    expect(old.fix).toContain("Tilt v0.25.0 or newer");
+    expect(old.fix).toContain("Upgrade Tilt to v0.25.0 or newer");
+    expect(old.fix).toContain("https://docs.tilt.dev/install.html");
     expect(current.didPass).toBe(true);
   });
 
