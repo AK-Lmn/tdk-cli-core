@@ -43,7 +43,6 @@ export function measure({ mutation }) {
 		.map((f) => `${f.file} ${round1(f.score)}% (${f.detected}/${f.total})`);
 	return {
 		value: score,
-		max: 100,
 		summary: `${detected} of ${total} mutants detected`,
 		findings: [...perFile, ...survivors],
 	};

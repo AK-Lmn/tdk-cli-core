@@ -1,8 +1,23 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
 import assert from "node:assert/strict";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { test } from "node:test";
 import { GOOD_FIRST_ISSUE, measure } from "./contributor-funnel.mjs";
+
+// A checkout whose docs/project/MAINTAINERS.md lists `hidden`, a maintainer the token reports as CONTRIBUTOR.
+function withMaintainersFile(fn) {
+	const root = mkdtempSync(path.join(tmpdir(), "scores-maintainers-"));
+	mkdirSync(path.join(root, "docs/project"), { recursive: true });
+	writeFileSync(path.join(root, "docs/project/MAINTAINERS.md"), "| Name | GitHub id | Company |\n| --- | --- | --- |\n| Hidden Maintainer | @Hidden | Example |\n");
+	try {
+		return fn(root);
+	} finally {
+		rmSync(root, { recursive: true });
+	}
+}
 
 const NOW = new Date("2026-10-28T12:00:00Z");
 const daysAgo = (d) => new Date(NOW - d * 24 * 3600 * 1000).toISOString().replace(".000", "");
@@ -82,3 +97,10 @@ test("measure says so when no one first merged 90-180 days ago", () => {
 	assert.equal(r.value, 1);
 	assert.equal(r.summary, `1 new; returning: no one first merged 90-180 days ago yet; 0 open "${GOOD_FIRST_ISSUE}" issues`);
 });
+
+test("a maintainer listed in docs/project/MAINTAINERS.md is not a newcomer even when the token reports CONTRIBUTOR", () =>
+	withMaintainersFile((root) => {
+		const prs = [merged("hidden", 10, "CONTRIBUTOR"), merged("alice", 10)];
+		const r = measure({ root, repo: "flisk-sh/flisk", now: NOW, gh: fakeGh(prs, []) });
+		assert.equal(r.value, 1);
+	}));

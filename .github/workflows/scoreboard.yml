@@ -76,9 +76,10 @@ jobs:
       - run: bun install --frozen-lockfile
       # Stryker is added for this job only: --no-save leaves package.json and the lockfiles alone.
       - run: bun add --no-save @stryker-mutator/core@10.0.0 @stryker-mutator/vitest-runner@10.0.0
+      # Run the installed binary: `npx --no-install` checks package.json, which --no-save leaves without Stryker.
       - name: Stryker on the generators
         run: >-
-          npx --no-install stryker run
+          ./node_modules/.bin/stryker run
           --testRunner vitest
           --coverageAnalysis perTest
           --mutate src/generator/template-engine.ts,src/generator/resource-templates.ts

@@ -59,6 +59,10 @@ test("flags paths outside the allowlist", () => {
   assert.deepEqual(findUnexpectedPaths(paths), paths.slice(0, 3));
 });
 
+test("allows the changelog at the root (published before #2554) and in docs/, and nothing else in docs/", () => {
+  assert.deepEqual(findUnexpectedPaths(["CHANGELOG.md", "docs/CHANGELOG.md", "docs/security.md"]), ["docs/security.md"]);
+});
+
 test("flags missing required paths", () => {
   assert.deepEqual(findMissingPaths(REQUIRED_PATHS), []);
   const withoutSpecs = REQUIRED_PATHS.filter((p) => p !== "runtime/specs/specs/TILT_TECH_STACK.star");

@@ -2,8 +2,10 @@
 // SPDX-License-Identifier: MIT
 // Unit tests for the scoreboard runner and the declarations of every scorer. Run by `make test-shell`.
 import assert from "node:assert/strict";
+import path from "node:path";
 import test from "node:test";
-import { codeBlocks, median, percentile } from "./lib.mjs";
+import { fileURLToPath } from "node:url";
+import { codeBlocks, maintainerLogins, median, percentile } from "./lib.mjs";
 import {
 	loadScorers,
 	metaProblems,
@@ -90,4 +92,11 @@ test("lib helpers: median, nearest-rank percentile and fenced code blocks", () =
 		{ lang: "bash", line: 3, body: "flisk up" },
 		{ lang: "", line: 6, body: "x" },
 	]);
+});
+
+test("maintainerLogins reads the GitHub id column of this repo's MAINTAINERS.md, lower case and without @", () => {
+	const logins = maintainerLogins(path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../.."));
+	assert.ok(logins.size > 0);
+	for (const login of logins) assert.match(login, /^[a-z0-9-]+$/);
+	assert.equal(maintainerLogins("/nonexistent").size, 0);
 });

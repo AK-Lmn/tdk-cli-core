@@ -98,6 +98,14 @@ test("a badge is not the picture and another tool's curl installer is not the in
 	assert.match(r.summary, /install command: line 8/);
 });
 
+test("a flisk curl installer counts whichever shell it pipes into", () => {
+	for (const shell of ["sh", "bash", "zsh"]) {
+		const r = run(`# Flisk\n\n\`\`\`bash\ncurl -fsSL https://flisk.sh/install.sh | ${shell}\n\`\`\`\n`);
+		assert.match(r.summary, /install command: line 4;/, shell);
+	}
+	assert.match(run("# Flisk\n\ncurl -fsSL https://flisk.sh/install.sh | shellcheck\n").summary, /install command: none/);
+});
+
 test("a # comment inside a code block is not the H1", () => {
 	const r = run("```bash\n# install\nnpm install -g @flisk-sh/flisk\n```\n\n# Flisk\n![demo](demo.svg)\n");
 	assert.match(r.summary, /H1 near the top: non-empty line 5;/);

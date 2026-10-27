@@ -27,6 +27,9 @@ export const ALLOWED_PATHS = [
   "runtime/",
   "examples/flisk-example/",
   "docs/CHANGELOG.md",
+  // Versions published before the changelog moved into docs/ (#2554) ship it at the root, and the published-package
+  // audit in ci.yml checks the pinned published version. Drop this entry once that pin is a version with docs/CHANGELOG.md.
+  "CHANGELOG.md",
   "LICENSE",
   "README.md",
   "package.json",

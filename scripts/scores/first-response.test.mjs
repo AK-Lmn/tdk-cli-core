@@ -1,8 +1,23 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
 import assert from "node:assert/strict";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { test } from "node:test";
 import { firstReply, measure } from "./first-response.mjs";
+
+// A checkout whose docs/project/MAINTAINERS.md lists `hidden`, a maintainer the token reports as CONTRIBUTOR.
+function withMaintainersFile(fn) {
+	const root = mkdtempSync(path.join(tmpdir(), "scores-maintainers-"));
+	mkdirSync(path.join(root, "docs/project"), { recursive: true });
+	writeFileSync(path.join(root, "docs/project/MAINTAINERS.md"), "| Name | GitHub id | Company |\n| --- | --- | --- |\n| Hidden Maintainer | @Hidden | Example |\n");
+	try {
+		return fn(root);
+	} finally {
+		rmSync(root, { recursive: true });
+	}
+}
 
 const NOW = new Date("2026-10-28T12:00:00Z");
 const OPENED = "2026-10-20T00:00:00Z";
@@ -132,3 +147,18 @@ test("measure leaves out maintainers and bots the search still returns, and has 
 	assert.equal(r.value, null);
 	assert.equal(r.summary, "no issue or pull request from outside in 30 days");
 });
+
+test("a maintainer listed in docs/project/MAINTAINERS.md counts even when the token reports CONTRIBUTOR", () =>
+	withMaintainersFile((root) => {
+		const hidden = user("hidden", "CONTRIBUTOR");
+		const nodes = [issue(20, outsider, { comments: [comment(4, hidden)] }), issue(21, hidden)];
+		const queries = [];
+		const gh = (args) => {
+			queries.push(args[3]);
+			return { data: { search: { issueCount: 2, pageInfo: { hasNextPage: false, endCursor: null }, nodes } } };
+		};
+		const r = measure({ root, repo: "flisk-sh/flisk", now: NOW, gh });
+		assert.equal(r.value, 4);
+		assert.equal(r.summary, "n=1, median 4 h, p90 4 h; 0 open with no maintainer reply, of 1");
+		assert.match(queries[0], /sort:created-desc -author:hidden/);
+	}));

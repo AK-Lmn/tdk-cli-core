@@ -22,7 +22,7 @@ export const MAX_PROSE_WORDS_BEFORE_CODE = 250;
 
 // `npm install -g @flisk-sh/flisk`, or a curl installer for Flisk piped to a shell (another tool's installer does not
 // count).
-const INSTALL = /npm\s+(?:install|i)\s+(?:-g|--global)\s+@flisk-sh\/flisk\b|curl\s[^\n]*flisk[^\n]*\|\s*(?:ba|z)?sh\b/i;
+const INSTALL = /npm\s+(?:install|i)\s+(?:-g|--global)\s+@flisk-sh\/flisk\b|curl\s[^\n]*flisk[^\n]*\|\s*(?:bash|zsh|sh)\b/i;
 const IMAGE = /!\[[^\]]*\]\(\s*<?([^)\s>]+)[^)]*\)|<img\b[^>]*?\bsrc\s*=\s*["']([^"']+)["']/gi;
 // shields.io and the services that copy its style: badgen, badge.fury.io, GitHub's workflow badge.svg, any /badge path.
 const BADGE = /shields\.io|badgen\.net|badge\.fury\.io|[/.]badges?(?=[/.?#]|$)/i;

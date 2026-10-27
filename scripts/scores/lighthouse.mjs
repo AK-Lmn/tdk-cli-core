@@ -37,7 +37,6 @@ export function measure({ lighthouse }) {
 	const { mean, categories, failing } = lighthouseScores(lhr);
 	return {
 		value: mean,
-		max: 100,
 		summary: `${lhr.finalDisplayedUrl ?? lhr.finalUrl ?? ""} ${categories.map(([id, s]) => `${id} ${s}`).join(", ")}`.trim(),
 		findings: failing.map((a) => `${a.id}: ${a.title}`),
 	};

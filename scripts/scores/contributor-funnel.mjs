@@ -1,10 +1,11 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
 // Whether people who show up keep contributing. The value is the number of new contributors: authors whose first
-// merged pull request is from the last 90 days, leaving out maintainers (OWNER, MEMBER, COLLABORATOR) and bots, who
+// merged pull request is from the last 90 days, leaving out maintainers (OWNER, MEMBER, COLLABORATOR, or listed in
+// docs/project/MAINTAINERS.md, since the Actions token cannot see a private org membership) and bots, who
 // are not arriving. The summary adds the returning rate (of the people whose first merge was 90 to 180 days ago, the
 // share who merged again in the last 90 days) and how many open "good first issue" issues wait for the next newcomer.
-import { round1 } from "./lib.mjs";
+import { maintainerLogins, round1 } from "./lib.mjs";
 
 export const meta = {
 	id: "contributor-funnel",
@@ -41,10 +42,12 @@ export function mergedPulls(gh, repo) {
 }
 
 export function measure(ctx) {
+	const logins = maintainerLogins(ctx.root);
 	const merges = new Map();
 	for (const pr of mergedPulls(ctx.gh, ctx.repo)) {
 		// A deleted account has no author; it cannot come back either.
 		if (!pr.author || isBot(pr.author) || MAINTAINERS.includes(pr.authorAssociation)) continue;
+		if (logins.has(pr.author.login.toLowerCase())) continue;
 		if (!pr.mergedAt || new Date(pr.mergedAt) > ctx.now) continue;
 		merges.set(pr.author.login, [...(merges.get(pr.author.login) ?? []), new Date(pr.mergedAt)]);
 	}

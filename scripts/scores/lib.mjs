@@ -60,7 +60,30 @@ export function localSkillDocs(root) {
 	return names.flatMap((name) => walk(root, `.claude/skills/${name}`, (rel) => rel.endsWith(".md")));
 }
 
-export const isTestFile =(rel) => /(^|\/)__tests__\//.test(rel) || /\.(test|spec)\.[cm]?[jt]sx?$/.test(rel);
+// Lower-case GitHub logins from the "GitHub id" column of docs/project/MAINTAINERS.md. The GitHub-data scorers count
+// these people as maintainers besides authorAssociation, which the Actions token reports as CONTRIBUTOR for a private
+// org member (the first Scoreboard run counted the maintainers' own replies as outside ones).
+export function maintainerLogins(root) {
+	const cells = (line) =>
+		line
+			.trim()
+			.replace(/^\||\|$/g, "")
+			.split("|")
+			.map((c) => c.trim());
+	const rows = read(root, "docs/project/MAINTAINERS.md")
+		.split("\n")
+		.filter((l) => l.trim().startsWith("|") && !/^[\s|:-]+$/.test(l));
+	const col = rows.length ? cells(rows[0]).findIndex((c) => /^github id$/i.test(c)) : -1;
+	if (col < 0) return new Set();
+	return new Set(
+		rows
+			.slice(1)
+			.map((l) => cells(l)[col]?.replace(/^@/, "").toLowerCase())
+			.filter(Boolean),
+	);
+}
+
+export const isTestFile = (rel) => /(^|\/)__tests__\//.test(rel) || /\.(test|spec)\.[cm]?[jt]sx?$/.test(rel);
 
 export function median(values) {
 	const v = [...values].sort((a, b) => a - b);
