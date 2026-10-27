@@ -1,6 +1,8 @@
 <div align="center">
 
-👋 **Welcome** · [欢迎](docs/README-zh_cn.md "简体中文") · [歡迎](docs/README-zh_tw.md "繁體中文") · [ようこそ](docs/README-ja.md "日本語") · [환영합니다](docs/README-ko.md "한국어") · [Bienvenue](docs/README-fr.md "Français") · [Bienvenido](docs/README-es.md "Español") · [Bem-vindos](docs/README-pt-BR.md "Português (Brasil)") · [Willkommen](docs/README-de.md "Deutsch") · [Benvenuti](docs/README-it.md "Italiano") · [أهلًا](docs/README-ar.md "العربية") · [Hoş geldiniz](docs/README-tr.md "Türkçe") · [Ласкаво просимо](docs/README-uk.md "Українська") · [Witamy](docs/README-pl.md "Polski") · [خوش آمدید](docs/README-fa.md "فارسی") · [Selamat datang](docs/README-id.md "Bahasa Indonesia") · [Chào mừng](docs/README-vi.md "Tiếng Việt") · [ยินดีต้อนรับ](docs/README-th.md "ไทย") · [Καλώς ήρθατε](docs/README-el.md "Ελληνικά") · [സ്വാഗതം](docs/README-ml.md "മലയാളം")
+<a id="readme-languages"></a>
+
+👋 **Welcome** · [欢迎](docs/README-zh_cn.md "简体中文") · [歡迎](docs/README-zh_tw.md "繁體中文") · [ようこそ](docs/README-ja.md "日本語") · [환영합니다](docs/README-ko.md "한국어") · [Bienvenue](docs/README-fr.md "Français") · [Bienvenido](docs/README-es.md "Español") · [Bem-vindos](docs/README-pt-BR.md "Português (Brasil)") · [Willkommen](docs/README-de.md "Deutsch") · [Benvenuti](docs/README-it.md "Italiano") · [Bun venit](docs/README-ro.md "Română") · [أهلًا](docs/README-ar.md "العربية") · [Hoş geldiniz](docs/README-tr.md "Türkçe") · [Ласкаво просимо](docs/README-uk.md "Українська") · [Witamy](docs/README-pl.md "Polski") · [خوش آمدید](docs/README-fa.md "فارسی") · [Selamat datang](docs/README-id.md "Bahasa Indonesia") · [Chào mừng](docs/README-vi.md "Tiếng Việt") · [ยินดีต้อนรับ](docs/README-th.md "ไทย") · [Καλώς ήρθατε](docs/README-el.md "Ελληνικά") · [സ്വാഗതം](docs/README-ml.md "മലയാളം")
 
 # Flisk: your whole app, running on your computer with one command
 
@@ -16,14 +18,6 @@ Describe an app to your AI helper, or type four commands yourself.<br />Flisk ru
 <p><strong><a href="#quick-start">Quick start</a> · <a href="#why-flisk-cli">Why Flisk</a> · <a href="#examples">Examples</a> · <a href="#installation">Installation</a> · <a href="#faq">FAQ</a> · <a href="#docs">Documentation</a></strong></p>
 
 [Website](https://flisk.sh/) · [Quickstart](https://flisk.sh/docs/quickstart/) · [Examples](https://flisk.sh/docs/examples/) · [Awesome Flisk](https://github.com/flisk-sh/awesome-flisk-framework) · [Demo](https://flisk-sh.github.io/flisk-demo-animation/) · [Report a bug](https://github.com/flisk-sh/flisk/issues)
-
-<a id="readme-languages"></a>
-
-<p align="center">
-
-English | [简体中文](docs/README-zh_cn.md) | [繁體中文](docs/README-zh_tw.md) | [日本語](docs/README-ja.md) | [한국어](docs/README-ko.md) | [Türkçe](docs/README-tr.md) | [Tiếng Việt](docs/README-vi.md) | [ไทย](docs/README-th.md) | [Deutsch](docs/README-de.md) | [Español](docs/README-es.md) | [Français](docs/README-fr.md) | [Українська](docs/README-uk.md) | [Polski](docs/README-pl.md) | [Português (Brasil)](docs/README-pt-BR.md) | [العربية](docs/README-ar.md) | [فارسی](docs/README-fa.md) | [Bahasa Indonesia](docs/README-id.md) | [Italiano](docs/README-it.md) | [Ελληνικά](docs/README-el.md) | [മലയാളം](docs/README-ml.md)
-
-</p>
 
 <a href="https://trendshift.io/repositories/266432?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-266432" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/266432/weekly?language=Starlark" alt="flisk-sh%2Fflisk | Trendshift" width="250" height="55"/></a>
 
