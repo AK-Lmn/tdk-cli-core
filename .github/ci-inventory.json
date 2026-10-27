@@ -202,6 +202,14 @@
 			"owner": "maintainers"
 		},
 		{
+			"workflow": "competitor-gap-issues.yml",
+			"job": "sync",
+			"tier": "bot",
+			"required": false,
+			"reason": "Dry run by default: prints the competitor feature gaps that clear the ICE quick-win bar and, only when applied, opens at most 5 issues and closes the fixed ones",
+			"owner": "maintainers"
+		},
+		{
 			"workflow": "security-alert-issues.yml",
 			"job": "sync",
 			"tier": "bot",
