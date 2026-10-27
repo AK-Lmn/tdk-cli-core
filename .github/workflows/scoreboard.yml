@@ -25,6 +25,9 @@ jobs:
       contents: read
       issues: read # issue-form answers (UMUX-Lite, PMF, SEQ, first boot time, what broke)
       pull-requests: read # first response time and the contributor funnel
+      actions: read # workflow run pass rates (example boot, agent and mcp resources, WSL2)
+      security-events: read # open code-scanning alerts
+      vulnerability-alerts: read # open Dependabot alerts
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
