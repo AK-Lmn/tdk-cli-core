@@ -44,7 +44,8 @@ Hard-won, repo-specific facts for anyone (human or agent) working here. Keep ent
 
 - 2026-10-08 (#873): A build tool used by a `prepack`/`build` script must be a declared devDependency of the package that runs it (`cli/`). A stray copy in `node_modules` from an earlier `bun add` hides the omission locally; CI's clean `bun install --frozen-lockfile` fails with `ERR_MODULE_NOT_FOUND`. Verify with `rm -rf node_modules cli/node_modules` and a frozen install before pushing.
 
-- 2026-10-18 (#1396): `flisk runtime --check-assets --json` reports `ok: false` in a source checkout (its assets exist only in the packaged install), and `flisk doctor --json` exits by host state, so its flag-contract row checks the envelope only, not the exit status.
+- 2026-10-27: `flisk runtime --check-assets --json` reported `ok: false` on the npm install (1.4.8) and in a source checkout: `findCliAssetRoot` stops at `cli/` (it ships `cli/shared-platform-engineering/docker-templates`) while the Tiltfile and extension dirs sit under the parent's `runtime/`; `runtime.ts` now checks from the parent. Under Bun, `process.exitCode = undefined` does not reset the exit code, so `runtime.test.ts` cases that expect `undefined` fail after a case that set it (Node passes); run one case with `-t` to check it locally.
+- 2026-10-18 (#1396): `flisk doctor --json` exits by host state, so its flag-contract row checks the envelope only, not the exit status.
 
 - 2026-10-17 (#1396): `flisk upgrade --yes` updates the git-installed CLI checkout and rebuilds it; never run it from a test or a probe. Its flag-contract row stays exempt for that reason.
 
