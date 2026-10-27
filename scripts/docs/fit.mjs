@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
-// "Does Flisk fit your stack?" in Markdown: the flisk.sh/fit calculator as tabs. GitHub keeps no state, so every answer is a
+// "Is Flisk right for your team?" in Markdown: the flisk.sh/fit calculator as tabs. GitHub keeps no state, so every answer is a
 // page: three tab bars (runtime, today's setup, number of services), and each tab links to the page with that one answer
 // changed. 6 x 9 x 3 = 162 pages under docs/fit/, all generated. Each shows an animated score gauge, the verdict and the
 // reasons. The README shows the default page between <!-- fit --> and <!-- /fit -->.
@@ -26,51 +26,51 @@ const GENERATOR = "scripts/docs/fit.mjs";
 // Weights follow what the CLI ships (docs/backend-language-providers.md): Node, TypeScript and Bun are the default generators
 // and golden images; Python and Go have backend scaffolds (`--language`); the rest run from your own Dockerfile or a `command`.
 export const RUNTIMES = [
-  { slug: "node", label: "Node / TS / Bun", name: "Node.js / TypeScript / Bun", value: 10,
-    mark: "yes", reason: "Built for it: the default generators and golden images are TypeScript and Bun (Hono, Express, NestJS and more; Vite frontends)." },
+  { slug: "node", label: "JavaScript / TypeScript", name: "JavaScript or TypeScript (Node.js, Bun)", value: 10,
+    mark: "yes", reason: "Flisk is made for JavaScript and TypeScript apps first." },
   { slug: "python", label: "Python", name: "Python", value: 9,
-    mark: "yes", reason: "`flisk resource api --type backend --language python` scaffolds a Python backend; see the [one-backend-python example](../../examples/one-backend-python/README.md)." },
+    mark: "yes", reason: "Flisk can create Python parts for you (`flisk resource … --language python`), and there is a [ready example](../../examples/one-backend-python/README.md)." },
   { slug: "go", label: "Go", name: "Go", value: 9,
-    mark: "yes", reason: "`flisk resource api --type backend --language go` scaffolds a Go backend." },
-  { slug: "jvm", label: "Java / JVM", name: "Java / JVM", value: 6,
-    mark: "partly", reason: "No Java scaffold yet: bring your own Dockerfile, or give each service a `command` and run it without Docker." },
-  { slug: "ruby-php", label: "Ruby / PHP", name: "Ruby / PHP", value: 6,
-    mark: "partly", reason: "No Ruby or PHP scaffold yet: bring your own Dockerfile, or give each service a `command` and run it without Docker." },
-  { slug: "other", label: "Other", name: "Other", value: 5,
-    mark: "partly", reason: "Scaffolds exist for Node, Python, Go and Rust; anything else runs from your own Dockerfile or a `command`." },
+    mark: "yes", reason: "Flisk can create Go parts for you (`flisk resource … --language go`)." },
+  { slug: "jvm", label: "Java / Kotlin", name: "Java or Kotlin", value: 6,
+    mark: "partly", reason: "Flisk runs Java apps, but cannot create new Java parts for you yet. Developers keep their own setup file." },
+  { slug: "ruby-php", label: "Ruby / PHP", name: "Ruby or PHP", value: 6,
+    mark: "partly", reason: "Flisk runs Ruby and PHP apps, but cannot create new parts in them for you yet. Developers keep their own setup file." },
+  { slug: "other", label: "Other / not sure", name: "Something else, or not sure", value: 5,
+    mark: "partly", reason: "Flisk runs apps in any language. It can create new parts in JavaScript, TypeScript, Python, Go and Rust." },
 ];
 
 export const SETUPS = [
-  { slug: "kubernetes", label: "Kubernetes", name: "Kubernetes (kind / minikube / k3d)", value: 10,
-    mark: "yes", reason: "You run a cluster just to develop. Flisk runs the same services on your laptop without one." },
-  { slug: "mixed", label: "Scripts & manual steps", name: "A mix of scripts, containers and manual steps", value: 9,
-    mark: "yes", reason: "A different setup on every machine is the drift one `service.json` per service removes." },
+  { slug: "kubernetes", label: "Kubernetes", name: "Kubernetes on each laptop", value: 10,
+    mark: "yes", reason: "Each laptop runs a mini cloud just to work on the app. Flisk runs the same app without it: lighter and simpler." },
+  { slug: "mixed", label: "Scripts + a wiki", name: "Scripts, a wiki and manual steps", value: 9,
+    mark: "yes", reason: "Every laptop is set up a little differently. Flisk gives everyone the same setup, from one small file per part." },
   { slug: "compose", label: "Docker Compose", name: "Docker Compose", value: 8,
-    mark: "yes", reason: "You already think in containers: Flisk writes the Compose file and the Tiltfile for you." },
-  { slug: "orchestrator", label: "Tilt / Skaffold", name: "Tilt / Skaffold / Garden / DevSpace", value: 8,
-    mark: "yes", reason: "You already use local orchestration: Flisk adds generated service definitions, docs and diagnostics around it." },
-  { slug: "container-ui", label: "OrbStack / Rancher", name: "Portainer / Rancher Desktop / OrbStack", value: 7,
-    mark: "partly", reason: "A container dashboard shows what runs; Flisk adds repeatable multi-service generation and start-up." },
-  { slug: "dev-containers", label: "Dev Containers", name: "Dev Containers (VS Code Remote)", value: 6,
-    mark: "partly", reason: "Dev Containers give each developer the same tools; Flisk adds running all the services together." },
-  { slug: "cloud-ide", label: "Cloud IDE", name: "Cloud IDE (Gitpod / Codespaces / Coder)", value: 5,
-    mark: "partly", reason: "Cloud IDEs solve a different problem; Flisk runs the same stack on your own machine, with no per-seat bill." },
-  { slug: "native", label: "Native processes", name: "No containers: native processes", value: 8,
-    mark: "yes", reason: "Keep your processes: give each service a `command` and Flisk runs them without Docker. Containers come when you need a database or one gateway URL." },
-  { slug: "other", label: "Other", name: "Other or custom setup", value: 5,
-    mark: "partly", reason: "A custom setup may fit: compare its orchestration, generated files and diagnostics with Flisk's." },
+    mark: "yes", reason: "Your team already uses containers. Flisk writes those setup files for them and keeps them in sync." },
+  { slug: "orchestrator", label: "Tilt or Skaffold", name: "Tilt, Skaffold, Garden or DevSpace", value: 8,
+    mark: "yes", reason: "Your team already uses a tool like this. Flisk writes its settings and adds checks that explain what is wrong." },
+  { slug: "container-ui", label: "A Docker app", name: "A Docker desktop app (OrbStack, Rancher Desktop, Portainer)", value: 7,
+    mark: "partly", reason: "A Docker app shows what is running. Flisk also starts every part together, the same way every time." },
+  { slug: "dev-containers", label: "Dev Containers", name: "Dev Containers in VS Code", value: 6,
+    mark: "partly", reason: "Dev Containers give everyone the same tools. Flisk adds starting all the parts of the app together." },
+  { slug: "cloud-ide", label: "In the browser", name: "A cloud workspace in the browser (Codespaces, Gitpod, Coder)", value: 5,
+    mark: "partly", reason: "Cloud workspaces run in the browser and are paid per person. Flisk runs the same app on each laptop, and the Flisk CLI is free." },
+  { slug: "native", label: "Just run the code", name: "They just run the code, no Docker", value: 8,
+    mark: "yes", reason: "No Docker needed: Flisk starts each part with the command your team already uses." },
+  { slug: "other", label: "Other / not sure", name: "Something else, or not sure", value: 5,
+    mark: "partly", reason: "It may fit. Compare how your team starts the app today with how Flisk does it." },
 ];
 
 export const SIZES = [
-  { slug: "1", label: "1 service", count: 1 },
-  { slug: "2-4", label: "2–4 services", count: 3 },
-  { slug: "5-plus", label: "5+ services", count: 8 },
+  { slug: "1", label: "Just one", name: "1 part", count: 1 },
+  { slug: "2-4", label: "2–4 parts", name: "2–4 parts", count: 3 },
+  { slug: "5-plus", label: "5 or more", name: "5 or more parts", count: 8 },
 ];
 
 // The website's defaults for the inputs that have no tabs here.
 const PAINS = [
-  "`flisk doctor` and `flisk up` are designed to replace a setup wiki. Onboarding time has not been measured on a hiring cohort.",
-  "Golden Docker L1–L4 image layers give every developer the same base images.",
+  "New developers start with two commands (`flisk doctor`, `flisk up`) instead of a long setup guide. Not yet timed with real new hires.",
+  "Every laptop gets the same base setup, so \"it works on my machine\" happens less.",
 ];
 const PAIN_POINTS = 6;
 const TEAM = 10;
@@ -90,19 +90,19 @@ export function teamScore(n) {
 
 // The verdict must not contradict the reasons, so some answers cap the score.
 export function cap(size) {
-  if (size.count <= 1) return { limit: 40, why: "1 service: Flisk is a multi-service tool, so the score stops at 40%." };
-  if (size.count < 5) return { limit: 74, why: "Fewer than 5 services: the score stops at 74%, below a strong fit." };
+  if (size.count <= 1) return { limit: 40, why: "Only one part: Flisk is for apps with several parts, so the score stops at 40%." };
+  if (size.count < 5) return { limit: 74, why: "Fewer than 5 parts: the score stops at 74%." };
   return null;
 }
 
 // The score with its parts, so every page can show how it adds up.
 export function score(runtime, setup, size) {
   const parts = [
-    { name: "Runtime", answer: runtime.name, points: runtime.value * 2, max: 20 },
-    { name: "Today's setup", answer: setup.name, points: setup.value * 2, max: 20 },
-    { name: "Pains (assumed)", answer: "Onboarding, environment drift", points: PAINS.length * PAIN_POINTS, max: 24 },
-    { name: "Services", answer: size.label, points: serviceScore(size.count), max: 20 },
-    { name: "Team (assumed)", answer: `${TEAM} developers`, points: teamScore(TEAM), max: 16 },
+    { name: "Language", answer: runtime.name, points: runtime.value * 2, max: 20 },
+    { name: "How you start it today", answer: setup.name, points: setup.value * 2, max: 20 },
+    { name: "Pains (we assumed)", answer: "Slow onboarding, laptops that differ", points: PAINS.length * PAIN_POINTS, max: 24 },
+    { name: "Parts", answer: size.name, points: serviceScore(size.count), max: 20 },
+    { name: "Team size (we assumed)", answer: `${TEAM} developers`, points: teamScore(TEAM), max: 16 },
   ];
   const raw = parts.reduce((sum, part) => sum + part.points, 0);
   const limit = cap(size);
@@ -111,9 +111,9 @@ export function score(runtime, setup, size) {
 }
 
 export function verdict(total) {
-  if (total >= 75) return { name: "Strong fit", line: "Flisk was built for exactly this setup.", tone: "good" };
-  if (total >= 45) return { name: "Partial fit", line: "Flisk will help; read the caveats below first.", tone: "warn" };
-  return { name: "Not a fit yet", line: "Your setup does not have the pain Flisk solves, yet.", tone: "bad" };
+  if (total >= 75) return { name: "Great fit", line: "Flisk was made for teams like yours.", tone: "good" };
+  if (total >= 45) return { name: "Could fit", line: "Flisk will help; read the notes below first.", tone: "warn" };
+  return { name: "Not a fit yet", line: "Your team does not have the problem Flisk solves, yet.", tone: "bad" };
 }
 
 const MARK = { yes: "✅", partly: "🟡", no: "❌" };
@@ -123,10 +123,10 @@ export function reasons(runtime, setup, size) {
   out.push([runtime.mark, runtime.reason]);
   out.push([setup.mark, setup.reason]);
   for (const pain of PAINS) out.push(["yes", pain]);
-  if (size.count <= 1) out.push(["no", "One service does not need a multi-service orchestrator. Flisk pays off from about 5."]);
-  else if (size.count < 5) out.push(["partly", "A few services already benefit, but the sweet spot is 5 or more."]);
-  else out.push(["yes", "5 or more services is Flisk's range. CI boots 100 generated `/health` services through one gateway (a fixture, not an app)."]);
-  out.push(["yes", `The score assumes ${TEAM} developers. It is arithmetic on your answers, not measured savings.`]);
+  if (size.count <= 1) out.push(["no", "One part does not need Flisk. It pays off from about 5 parts."]);
+  else if (size.count < 5) out.push(["partly", "A few parts already benefit; Flisk shines from about 5."]);
+  else out.push(["yes", "5 or more parts is what Flisk is for. Our tests start 100 small test parts at once (test stubs, not a real app)."]);
+  out.push(["yes", `The score assumes a team of ${TEAM} developers. It is simple math on your answers, not measured savings.`]);
   return out;
 }
 
@@ -208,9 +208,9 @@ export function plan() {
     };
     return [
       "<table>",
-      bar("runtime", RUNTIMES, "1. Primary runtime"),
-      bar("setup", SETUPS, "2. How do you run things locally today?"),
-      bar("size", SIZES, "3. Services running at once"),
+      bar("runtime", RUNTIMES, "1. What is the app written in?"),
+      bar("setup", SETUPS, "2. How do developers start the app on their laptop today?"),
+      bar("size", SIZES, "3. How many parts does the app have? (website, API, background jobs, …)"),
       "</table>",
     ].join("\n");
   };
@@ -244,11 +244,11 @@ export function plan() {
         const r = result(PAGES, at);
         pages.set(`${PAGES}/${pageName(runtime, setup, size)}`, [
           `<!-- Generated by ${GENERATOR}; edit the generator, not this page. -->`,
-          "# Does Flisk fit your stack?",
+          "# Is Flisk right for your team?",
           "",
-          "[← Back to the README](../../README.md#does-flisk-fit-your-stack)",
+          "[← Back to the README](../../README.md#is-flisk-right-for-your-team)",
           "",
-          `**Your answers:** ${runtime.name} · ${setup.name} · ${size.label}. Click a tab to change one; the score follows.`,
+          `**Your answers:** ${runtime.name} · ${setup.name} · ${size.name}. Click a tab to change one; the score updates.`,
           "",
           bars(PAGES, at),
           "",
@@ -260,7 +260,7 @@ export function plan() {
           "",
           r.breakdown,
           "",
-          "Same formula as [flisk.sh/fit](https://flisk.sh/fit/). Pains and team size have no tabs here, so they stay at the website's defaults (marked assumed); change them on the website. The caps keep the verdict in line with the reasons.",
+          "Same math as [flisk.sh/fit](https://flisk.sh/fit/). Two things have no tabs here, so we assumed them (marked \"we assumed\"); change them on the website. The score never says \"great fit\" when a reason above says otherwise.",
           "",
           r.total >= 45 ? "**Next:** [install Flisk](../install/npm.md) and [pick how to start](../../README.md#quick-start)." : "**Next:** [see what Flisk generates](../generated-files.md), or [run your services without Docker](../run-without-docker.md).",
           "",
@@ -272,7 +272,7 @@ export function plan() {
   const home = result(".", DEFAULT);
   const section = [
     "<!-- fit · generated by scripts/docs/fit.mjs; edit the generator, not this section -->",
-    "Answer three questions by clicking the tabs. Each answer opens a page with your score and the reasons.",
+    "Three quick questions; click the answer closest to your team. Not technical? Pick \"not sure\" where you need to. You get a score and a plain-English why.",
     "",
     bars(".", DEFAULT),
     "",

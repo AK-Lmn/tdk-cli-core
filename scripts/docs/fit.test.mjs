@@ -16,18 +16,18 @@ const total = ({ runtime, setup, size }) => score(runtime, setup, size).total;
 test("the default answers score 82%, as on flisk.sh/fit (Node/TS/Bun, Compose, 8 services, 2 pains, 10 developers)", () => {
   assert.equal(total(DEFAULT), 82);
   assert.equal(score(DEFAULT.runtime, DEFAULT.setup, DEFAULT.size).cap, null);
-  assert.equal(verdict(82).name, "Strong fit");
+  assert.equal(verdict(82).name, "Great fit");
 });
 
 test("the services and team curves are the website's", () => {
   assert.deepEqual([1, 2, 3, 4, 5, 60].map(serviceScore), [4, 8, 12, 16, 20, 20]);
   assert.deepEqual([1, 4, 5, 9, 10, 29, 30].map(teamScore), [6, 6, 10, 10, 14, 14, 16]);
-  assert.deepEqual([75, 74, 45, 44].map((n) => verdict(n).name), ["Strong fit", "Partial fit", "Partial fit", "Not a fit yet"]);
+  assert.deepEqual([75, 74, 45, 44].map((n) => verdict(n).name), ["Great fit", "Could fit", "Could fit", "Not a fit yet"]);
 });
 
-test("one service is called out as not a fit, and every page lists the same assumptions", () => {
+test("one part is called out as not a fit, and every page lists the same assumptions", () => {
   const one = reasons(RUNTIMES[0], SETUPS[0], SIZES[0]);
-  assert.ok(one.some(([mark, text]) => mark === "no" && /One service/.test(text)));
+  assert.ok(one.some(([mark, text]) => mark === "no" && /One part/.test(text)));
   assert.ok(one.some(([, text]) => /not measured savings/.test(text)));
 });
 
@@ -52,15 +52,15 @@ test("the gauge fills to the score, honors reduced motion and rests filled witho
   const rest = Number(/stroke-dashoffset:([\d.]+);animation/.exec(svg)[1]);
   assert.ok(Math.abs(rest - c * 0.18) < 0.05);
   assert.match(svg, /prefers-reduced-motion:reduce/);
-  assert.match(svg, /aria-label="82% fit score: Strong fit"/);
+  assert.match(svg, /aria-label="82% fit score: Great fit"/);
 });
 
-test("the verdict never contradicts the reasons: 1 service is never a fit, 2-4 services never a strong fit", () => {
+test("the verdict never contradicts the reasons: 1 part is never a fit, 2-4 parts never a great fit", () => {
   for (const runtime of RUNTIMES) {
     for (const setup of SETUPS) {
       assert.ok(total({ runtime, setup, size: SIZES[0] }) <= 40, `${runtime.slug}/${setup.slug}/1`);
       assert.equal(verdict(total({ runtime, setup, size: SIZES[0] })).name, "Not a fit yet");
-      assert.notEqual(verdict(total({ runtime, setup, size: SIZES[1] })).name, "Strong fit");
+      assert.notEqual(verdict(total({ runtime, setup, size: SIZES[1] })).name, "Great fit");
     }
   }
   const capped = score(...Object.values(pick("node", "kubernetes", "1")));
@@ -78,7 +78,7 @@ test("every page shows how its score adds up, with the assumed rows marked", () 
   const { pages } = plan();
   for (const [file, text] of pages) {
     assert.match(text, /\*\*How the score adds up\*\*/, file);
-    assert.match(text, /\| Pains \(assumed\) \|/, file);
+    assert.match(text, /\| Pains \(we assumed\) \|/, file);
     const shown = Number(/\| \*\*Score\*\* \| \| \*\*(\d+)%\*\* \|/.exec(text)[1]);
     assert.match(text, new RegExp(`score-${shown}\\.`), `${file}: gauge shows the table's score`);
   }
