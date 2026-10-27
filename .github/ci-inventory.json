@@ -755,6 +755,30 @@
 			"required": false,
 			"reason": "The WSL2 suite on a Windows runner, dispatched by hand; suite tests/e2e/platforms/wsl2 (#107, #1765)",
 			"owner": "maintainers"
+		},
+		{
+			"workflow": "scoreboard.yml",
+			"job": "report",
+			"tier": "report",
+			"required": false,
+			"reason": "Weekly scoreboard of the files and GitHub-data scorers in scripts/scores/",
+			"owner": "maintainers"
+		},
+		{
+			"workflow": "scoreboard.yml",
+			"job": "lighthouse",
+			"tier": "report",
+			"required": false,
+			"reason": "Weekly Lighthouse audit of flisk.sh, scored by scripts/scores/lighthouse.mjs",
+			"owner": "maintainers"
+		},
+		{
+			"workflow": "scoreboard.yml",
+			"job": "mutation",
+			"tier": "report",
+			"required": false,
+			"reason": "Weekly Stryker mutation run on the generators, scored by scripts/scores/mutation-score.mjs",
+			"owner": "maintainers"
 		}
 	]
 }

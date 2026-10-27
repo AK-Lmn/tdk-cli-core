@@ -28,6 +28,19 @@ body:
         - I did not finish
     validations:
       required: true
+  - type: dropdown
+    id: seq
+    attributes:
+      label: Overall, how easy or difficult was this task?
+      description: Your rating, 1 (very difficult) to 7 (very easy)
+      options:
+        - "1 - Very difficult"
+        - "2"
+        - "3"
+        - "4"
+        - "5"
+        - "6"
+        - "7 - Very easy"
   - type: textarea
     id: saw
     attributes:

@@ -1,7 +1,7 @@
 # Makefile
 # Common development tasks
 
-.PHONY: help test test-ts test-python test-shell test-e2e test-tilt-engine test-coverage lint video video-build video-test video-validate video-generate
+.PHONY: help test test-ts test-python test-shell ade-score scores test-e2e test-tilt-engine test-coverage lint video video-build video-test video-validate video-generate
 
 help: ## Show this help message
 	@echo "Available targets:"
@@ -37,6 +37,9 @@ test-shell: ## Check shell script syntax, e2e suite definitions, the CI inventor
 	node --test scripts/check-test-helper-allowlist.test.mjs
 	node --test scripts/pilot-scorecard.test.mjs
 	node --test scripts/umux-lite-score.test.mjs
+	node --test scripts/ade-score.test.mjs
+	node --test 'scripts/scores/*.test.mjs'
+	node scripts/scores/run.mjs --check
 	node --test scripts/autoresearch/layer-eval.test.mjs
 	node --test scripts/e2e-gate-expectations.test.mjs
 	node --test scripts/wait-for-e2e-gates.test.mjs
@@ -49,6 +52,12 @@ test-shell: ## Check shell script syntax, e2e suite definitions, the CI inventor
 	node --test scripts/ci-report.test.mjs
 	node --test scripts/test-summary.test.mjs
 	node --test 'tests/e2e/lib/__tests__/*.test.mjs'
+
+ade-score: ## Print the deterministic ADE score (no AI, files only); add ARGS="--markdown" or ARGS="--json"
+	node scripts/ade-score.mjs $(ARGS)
+
+scores: ## Print the scoreboard of scripts/scores/ (files scorers); ARGS="--source all" adds GitHub data, "--markdown"/"--json" change the format
+	node scripts/scores/run.mjs $(ARGS)
 
 test-e2e: ## Run a live-stack e2e suite: make test-e2e GROUP=resource-types SUITE=agent [CASES="A1 A2"] (needs Docker, Tilt, flisk)
 	@test -n "$(GROUP)" -a -n "$(SUITE)" || { echo "usage: make test-e2e GROUP=<group> SUITE=<suite> [CASES=\"<case> ...\"]"; ls tests/e2e/*/*/suite.json | sed 's#tests/e2e/##; s#/suite.json##'; exit 2; }

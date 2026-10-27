@@ -46,6 +46,7 @@ Run `make help` to inspect all available targets:
 - `make test-python`: Run Python test suite with pytest.
 - `make test-shell`: Run Bash syntax checks on scripts and e2e suite definitions.
 - `make test-e2e GROUP=<group> SUITE=<suite>`: Run a live-stack e2e test suite (requires Docker, Tilt, and built flisk).
+- `make scores`: Print the deterministic scoreboard (`scripts/scores/README.md`). `make test-shell` fails when a gate or ratchet on it drops.
 
 ## Ground Rules
 

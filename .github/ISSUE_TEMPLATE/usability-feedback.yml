@@ -1,5 +1,5 @@
 name: Usability feedback
-description: Rate Flisk's perceived ease of use with the UMUX-Lite two-item scale.
+description: Rate Flisk's perceived ease of use with the UMUX-Lite two-item scale, and say how much you would miss it.
 title: "usability: "
 labels: ["ux-feedback"]
 body:
@@ -35,6 +35,17 @@ body:
         - "5"
         - "6"
         - "7 - Strongly agree"
+    validations:
+      required: true
+  - type: dropdown
+    id: pmf
+    attributes:
+      label: How would you feel if you could no longer use Flisk?
+      options:
+        - Very disappointed
+        - Somewhat disappointed
+        - Not disappointed
+        - I no longer use Flisk
     validations:
       required: true
   - type: dropdown

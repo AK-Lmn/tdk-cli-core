@@ -10,3 +10,11 @@ Public numbers and measured outcomes must link to this registry. Keep the source
 | ROI calculator | “Inputs are user-set. Output is arithmetic, not savings.” | Default 5 hours/week presented as typical. |
 
 The only permitted performance wording for the 14-service number includes the existing-images and warm-start caveat. Avoid derived phrases such as “under 5 seconds.”
+
+<!-- CI checks public docs against the claims-guard block below (scripts/scores/claims-guard.mjs): change it with the table. “day one” and the ROI default are not machine-checked. “from zero” and “cold boot” are wrong only for the 14-service number, so the 4.6s caveat checks them; the cold-boot benchmarks use the words for what they measured. -->
+<!-- claims-guard
+forbid: weeks of integration | ERP system | weeks of salary | under 5 seconds
+caveat: 4.6s => after images existed | warm start | not a cold boot
+caveat: 472s => stub | fixture | not an ERP
+caveat: 100 services still readable => fixture
+-->

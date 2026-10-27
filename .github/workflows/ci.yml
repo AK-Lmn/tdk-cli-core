@@ -391,6 +391,12 @@ jobs:
         run: |
           node scripts/check-npm-package.mjs --tarball "$(compgen -G "$RUNNER_TEMP/cli-tarball/*.tgz" | head -1)"
 
+      # Fails when the packed tarball is more than 10% heavier than the install-weight baseline in
+      # scripts/scores/baseline.json. Raise the baseline in the same PR when the growth is intended.
+      - name: Check the npm package weight
+        run: |
+          node scripts/scores/run.mjs --only install-weight --check --tarball "$(compgen -G "$RUNNER_TEMP/cli-tarball/*.tgz" | head -1)"
+
       - name: Upload the CLI tarball
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
