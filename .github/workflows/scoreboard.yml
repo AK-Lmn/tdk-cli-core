@@ -78,17 +78,14 @@ jobs:
       # Stryker is added for this job only: --no-save leaves package.json and the lockfiles alone.
       - run: bun add --no-save @stryker-mutator/core@10.0.0 @stryker-mutator/vitest-runner@10.0.0
       # Run the installed binary: `npx --no-install` checks package.json, which --no-save leaves without Stryker.
-      # --inPlace mutates this throwaway checkout instead of a sandbox copy. A sandbox makes Stryker rewrite
-      # tsconfig.json with the TypeScript compiler API, which TypeScript 7 in cli/ does not have
-      # (ts.parseConfigFileTextToJson is not a function); cli/tsconfig.json has no extends or references to rewrite.
+      # Options live in cli/stryker.config.json: Stryker's CLI rejects plugin options such as vitest.configFile.
+      # - inPlace: a sandbox makes Stryker rewrite tsconfig.json with the TypeScript compiler API, which TypeScript 7 in cli/
+      #   does not have (ts.parseConfigFileTextToJson is not a function); cli/tsconfig.json has nothing to rewrite anyway.
+      # - plugins: the default "@stryker-mutator/*" glob only looks beside Stryker's own package, which bun's isolated
+      #   node_modules/.bun layout keeps apart from the vitest runner.
+      # - vitest.configFile: only the pure unit tests of the mutated files (see cli/vitest.stryker.config.ts).
       - name: Stryker on the generators
-        run: >-
-          ./node_modules/.bin/stryker run
-          --inPlace
-          --testRunner vitest
-          --coverageAnalysis perTest
-          --mutate src/generator/template-engine.ts,src/generator/resource-templates.ts
-          --reporters json,clear-text
+        run: ./node_modules/.bin/stryker run
       - name: Score
         if: ${{ !cancelled() }}
         run: node ../scripts/scores/run.mjs --only mutation-score --mutation reports/mutation/mutation.json --markdown >> "$GITHUB_STEP_SUMMARY"
