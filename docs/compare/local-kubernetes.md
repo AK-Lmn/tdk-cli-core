@@ -8,7 +8,7 @@
 </table>
 <!-- /tabs:compare -->
 
-kind and minikube run a real Kubernetes cluster on your laptop. Flisk runs your services directly on Docker, or as local processes, without a cluster.
+kind and minikube run a real Kubernetes cluster on your laptop. Kubernetes is a system for running apps on a group of servers (a cluster); these tools fit one onto a single computer. Flisk runs your services, the parts of your app, directly on [Docker](../start/words.md#docker), or as local processes (ordinary programs), without a cluster.
 
 | | kind | minikube | Flisk |
 | --- | --- | --- | --- |
@@ -21,9 +21,9 @@ kind and minikube run a real Kubernetes cluster on your laptop. Flisk runs your 
 
 **Where they are stronger**
 
-- Use them to test Kubernetes itself: operators, CRDs, network policies and Helm charts.
+- Use them to test Kubernetes itself: operators, CRDs, network policies and Helm charts (add-ons and settings that exist only in Kubernetes).
 
-**Use them together.** Many teams develop on Flisk and run a kind cluster in CI for the manifests.
+**Use them together.** Many teams develop on Flisk and run a kind cluster in CI (the automatic checks that run on every change) for the manifests (the Kubernetes settings files).
 
 More: [comparison.md](../comparison.md#flisk-vs-kind-and-minikube)
 

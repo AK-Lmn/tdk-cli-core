@@ -1,4 +1,4 @@
-# Guided setup: answer a few questions
+# Guided setup: answer a few questions, get a ready project
 
 [← Back to the README](../../README.md#quick-start)
 
@@ -7,7 +7,11 @@
 <tr><td><a href="simplest.md"><img src="../assets/tabs/start/simplest.97ab17b9.svg" alt="Simplest" width="115" height="48" align="top"></a><a href="demo.md"><img src="../assets/tabs/start/demo.5d2e5945.svg" alt="One-command demo" width="196" height="48" align="top"></a><a href="manual.md"><img src="../assets/tabs/start/manual.31a9b318.svg" alt="Full control" width="133" height="48" align="top"></a><a href="guided.md"><img src="../assets/tabs/start/guided-selected.d007a779.svg" alt="Guided setup (selected)" width="146" height="48" align="top"></a><a href="guided.md"><img src="../assets/tabs/start/count.e67cc7bd.svg" alt="4 ways to start" width="116" height="48" align="top"></a></td></tr>
 <tr><td>
 
-Prefer prompts to commands? The `create-microservices` package asks which services you want and generates a ready project. Best for teams who want to choose service types from a list.
+Answer a few questions and get a ready project. Prefer questions to commands? The `create-microservices` package (a small setup tool) asks which [parts](words.md#app-parts) (services) you want and builds the project for you. Best for teams who want to choose service types from a list.
+
+**Before you start:** the project it makes runs each part in its own [container](words.md#container), so your computer needs [Docker](words.md#docker) and [Tilt](words.md#tilt) ([set up your machine](../setup/macos.md)).
+
+Type these [commands](words.md#command) into your [terminal](words.md#terminal), one at a time, and press Enter after each. The first installs Flisk. The second asks its questions and makes a folder called `my-project`. The third moves into that folder. The last starts your app.
 
 ```bash
 npm install -g @flisk-sh/flisk
@@ -22,7 +26,7 @@ To skip the questions and get a default `api` (backend) and `web` (frontend):
 npm init create-microservices my-project -- --yes
 ```
 
-The generated project runs in containers, so it needs Docker and Tilt ([set up your machine](../setup/macos.md)). See the [`create-microservices` README](https://github.com/flisk-sh/create-microservices#readme) for every option.
+See the [`create-microservices` README](https://github.com/flisk-sh/create-microservices#readme) for every option.
 
 </td></tr>
 </table>
@@ -30,4 +34,4 @@ The generated project runs in containers, so it needs Docker and Tilt ([set up y
 
 ---
 
-Want to see a finished app first? Pick the one-command demo above.
+Want to see a finished app first? Pick the one-command demo above. Never written code? [Start here](first-time.md).

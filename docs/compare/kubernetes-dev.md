@@ -8,7 +8,7 @@
 </table>
 <!-- /tabs:compare -->
 
-Skaffold and DevSpace build, deploy and sync your code into a Kubernetes cluster. Flisk runs a local stack on Docker, or as plain processes, with no cluster.
+Skaffold and DevSpace are for teams whose app runs on Kubernetes, a system for running apps on a group of servers (a cluster). They build, deploy and sync your code into a Kubernetes cluster. Flisk runs a local stack, your app on your own computer, on [Docker](../start/words.md#docker), or as plain processes (ordinary programs), with no cluster.
 
 | | Skaffold | DevSpace | Flisk |
 | --- | --- | --- | --- |
@@ -21,10 +21,10 @@ Skaffold and DevSpace build, deploy and sync your code into a Kubernetes cluster
 
 **Where they are stronger**
 
-- Both are the right tool when your local loop must match the cluster you deploy to, down to the manifests.
-- Both deploy. Flisk never does: production stays on Helm, Argo CD or Kustomize.
+- Both are the right tool when your local loop (what you run and try on your computer) must match the cluster you deploy to, down to the manifests (the cluster's settings files).
+- Both deploy, which means they put your app on the servers. Flisk never does: production (the live app your users see) stays on Helm, Argo CD or Kustomize.
 
-**Use them together.** Keep Skaffold or DevSpace for cluster work and use Flisk for the fast laptop loop before it.
+**Use them together.** Keep Skaffold or DevSpace for cluster work, and use Flisk before it for the fast laptop loop: change something, see it running, repeat.
 
 More: [comparison.md](../comparison.md#flisk-vs-skaffold)
 

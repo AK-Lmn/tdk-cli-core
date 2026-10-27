@@ -1,4 +1,4 @@
-# Full control: set up a project by hand
+# Full control: build your app step by step
 
 [← Back to the README](../../README.md#quick-start)
 
@@ -7,7 +7,11 @@
 <tr><td><a href="simplest.md"><img src="../assets/tabs/start/simplest.97ab17b9.svg" alt="Simplest" width="115" height="48" align="top"></a><a href="demo.md"><img src="../assets/tabs/start/demo.5d2e5945.svg" alt="One-command demo" width="196" height="48" align="top"></a><a href="manual.md"><img src="../assets/tabs/start/manual-selected.d9510233.svg" alt="Full control (selected)" width="133" height="48" align="top"></a><a href="guided.md"><img src="../assets/tabs/start/guided.9c2c6f9a.svg" alt="Guided setup" width="146" height="48" align="top"></a><a href="manual.md"><img src="../assets/tabs/start/count.e67cc7bd.svg" alt="4 ways to start" width="116" height="48" align="top"></a></td></tr>
 <tr><td>
 
-Best for building your own service structure, or adding Flisk to a folder you already have. This path runs your services in containers with a database and one gateway URL, so it needs Docker and Tilt ([set up your machine](../setup/macos.md)).
+Build your own app step by step and choose every part (every service) yourself. You can also add Flisk to a folder you already have.
+
+**Before you start:** this path runs each part of your app in its own [container](words.md#container), with a [database](words.md#database) and one gateway URL (one web address for every part). So your computer needs [Docker](words.md#docker) and [Tilt](words.md#tilt) ([set up your machine](../setup/macos.md)).
+
+Type each command below into your [terminal](words.md#terminal) and press Enter. Lines that start with `#` are notes for you; the computer skips them.
 
 **1. Install Flisk**
 
@@ -16,18 +20,22 @@ npm install -g @flisk-sh/flisk
 # or: bun add -g @flisk-sh/flisk
 ```
 
-Check it with `flisk --version`.
+Check it with `flisk --version`. It prints the version number of Flisk.
 
 **2. Create a project**
+
+The first line makes a new folder called `my-project` and moves into it. The second turns it into a Flisk project.
 
 ```bash
 mkdir my-project && cd my-project
 flisk project --yes
 ```
 
-This creates `.flisk/project.json` (the project config: features, stacks and so on) and `.env` with a generated `DB_PASSWORD` and `JWT_SECRET` (added to `.gitignore`).
+This creates two files. `.flisk/project.json` holds the project's settings (the project config: features, stacks and so on). `.env` holds two secrets Flisk makes up for you, `DB_PASSWORD` (the database password) and `JWT_SECRET` (a key for signing logins). Flisk adds `.env` to `.gitignore`, so git does not save your secrets with your code.
 
 **3. Add services**
+
+Each command adds one [part](words.md#app-parts) of your app. The back end (API) does the work. The website (frontend) and the worker (a part that runs jobs in the background) are optional. `--stack main` puts them all in one group called `main`.
 
 ```bash
 # Add a backend API
@@ -40,15 +48,17 @@ flisk resource web --type frontend --stack main --yes
 flisk resource worker --type worker --stack main --yes
 ```
 
-Each one creates `services/<stack>/<name>/service.json`, the single source of truth for that service.
+Each one creates a settings file, `services/<stack>/<name>/service.json` (for example `services/main/api/service.json`). That file is the single source of truth for that service.
 
 **4. Start the stack**
+
+This starts every part in the `main` group:
 
 ```bash
 flisk up main
 ```
 
-`flisk up` prints the URLs:
+When everything is ready, `flisk up` prints the URLs (the web addresses to open):
 
 ```text
 Flisk is up.
@@ -61,7 +71,11 @@ Logs: flisk logs <service>
 Next: flisk help  # or visit https://flisk.sh/docs
 ```
 
+Each `✓` line is one part of your app and its address. `Tilt UI` is a page in your browser that shows every part and what it is doing. These are [localhost](words.md#localhost) addresses: they run on your computer, and only you can see them.
+
 **5. Check that it works**
+
+The first command asks the back end if it is healthy (`curl` fetches a web address in the terminal). The second opens the website in your browser.
 
 ```bash
 # Health check the backend
@@ -73,7 +87,7 @@ open http://web.main.localhost
 
 **6. Stop and clean up**
 
-Press `Ctrl+C`, then:
+Press `Ctrl+C` (hold Control and press C), then:
 
 ```bash
 # Stop the stack (containers stay for inspection)
@@ -89,4 +103,4 @@ flisk down --prune-networks
 
 ---
 
-Want less typing? Pick the one-command demo or the guided setup above.
+Want less typing? Pick the one-command demo or the guided setup above. Never written code? [Start here](first-time.md).

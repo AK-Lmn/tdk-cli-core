@@ -1,4 +1,4 @@
-# Simplest path: run your services as local processes
+# Simplest path: run your app on your computer, no Docker needed
 
 [← Back to the README](../../README.md#quick-start)
 
@@ -7,13 +7,17 @@
 <tr><td><a href="simplest.md"><img src="../assets/tabs/start/simplest-selected.17acf993.svg" alt="Simplest (selected)" width="115" height="48" align="top"></a><a href="demo.md"><img src="../assets/tabs/start/demo.5d2e5945.svg" alt="One-command demo" width="196" height="48" align="top"></a><a href="manual.md"><img src="../assets/tabs/start/manual.31a9b318.svg" alt="Full control" width="133" height="48" align="top"></a><a href="guided.md"><img src="../assets/tabs/start/guided.9c2c6f9a.svg" alt="Guided setup" width="146" height="48" align="top"></a><a href="simplest.md"><img src="../assets/tabs/start/count.e67cc7bd.svg" alt="4 ways to start" width="116" height="48" align="top"></a></td></tr>
 <tr><td>
 
-For an app made of services you can start with one command each (an API, a website, a worker). You need only Flisk and your app's runtime.
+Run your app on your own computer with one command, without Docker. This path fits an app made of a few [parts](words.md#app-parts) that each start with one [command](words.md#command), for example a back end (an API), a website and a worker. You need only Flisk and the program that runs your code, such as [Node.js](words.md#nodejs).
+
+**For developers:** each service runs as a local process. You need only Flisk and your app's runtime.
+
+**1. Install Flisk.** Paste this into your [terminal](words.md#terminal) and press Enter:
 
 ```bash
 npm install -g @flisk-sh/flisk
 ```
 
-Put a `service.json` next to each service:
+**2. Describe each part.** Put a small settings file called `service.json` in each part's folder (next to each service). It tells Flisk the part's name, the command that starts it and the [port](words.md#port) it listens on. This one is for the back end:
 
 ```json
 {
@@ -26,6 +30,8 @@ Put a `service.json` next to each service:
 }
 ```
 
+This one is for the website. `"dependsOn": ["api"]` means "start the back end first":
+
 ```json
 {
   "schemaVersion": 1,
@@ -37,13 +43,15 @@ Put a `service.json` next to each service:
 }
 ```
 
-Then start everything from the project folder:
+**3. Start everything.** In the terminal, go to your project folder and run:
 
 ```bash
 flisk up
 ```
 
-Flisk starts the API, waits until it answers, starts the website, prints both URLs, prefixes each line of output with the service name, and restarts a service that crashes. Ctrl+C or `flisk down` stops them. No Docker, no Tilt, no generated files. See [Run your app without Docker](../run-without-docker.md) for every field, and for when to switch to the full stack with a database and one gateway URL.
+What you will see: Flisk starts the API, waits until it answers, then starts the website. It prints both URLs (the web addresses to open in your browser; they are [localhost](words.md#localhost) links, so only you can see them). Each line of output starts with the name of the part that wrote it. If a part crashes, Flisk starts it again.
+
+To stop, press Ctrl+C (hold Control and press C), or run `flisk down`. No Docker, no Tilt, no generated files. See [Run your app without Docker](../run-without-docker.md) for every field, and for when to switch to the full stack with a [database](words.md#database) and one gateway URL (one web address for every part).
 
 </td></tr>
 </table>
@@ -51,4 +59,4 @@ Flisk starts the API, waits until it answers, starts the website, prints both UR
 
 ---
 
-Want a database and a full stack in one command, or a project set up step by step? Pick its tab above.
+Want to see a whole app with a database start from one command, or set up a project step by step? Pick its tab above. Never written code? [Start here](first-time.md).

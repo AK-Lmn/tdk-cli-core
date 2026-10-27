@@ -8,7 +8,7 @@
 </table>
 <!-- /tabs:compare -->
 
-process-compose and Overmind start several local processes from one file. Flisk does the same when every `service.json` has a `command`, with no Docker, and can move to containers later.
+process-compose and Overmind start several local processes, ordinary programs such as the parts of your app, on your computer from one file. Flisk does the same when every `service.json` has a `command`, with no [Docker](../start/words.md#docker), and can move to [containers](../start/words.md#container) later.
 
 | | process-compose | Overmind | Flisk |
 | --- | --- | --- | --- |
@@ -21,8 +21,8 @@ process-compose and Overmind start several local processes from one file. Flisk 
 
 **Where they are stronger**
 
-- **process-compose** has a richer TUI and more process options today.
-- **Overmind** is tiny and works with any existing Procfile.
+- **process-compose** has a richer TUI (a screen you can use inside the terminal) and more process options today.
+- **Overmind** is tiny and works with any existing Procfile (a simple file that lists the command that starts each part).
 
 More: [run-without-docker.md](../run-without-docker.md)
 

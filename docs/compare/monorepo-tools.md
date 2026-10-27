@@ -8,7 +8,7 @@
 </table>
 <!-- /tabs:compare -->
 
-Nx and Turborepo run tasks across a monorepo, fast, with caching. Flisk runs the services those tasks build, with a database and a gateway.
+Nx and Turborepo help teams that keep many projects in one big code folder (a monorepo). They run tasks such as builds and tests across a monorepo, fast, with caching: they remember earlier results and skip work that has not changed. Flisk runs the services those tasks build, the parts of your app, with a [database](../start/words.md#database) and a gateway (one address that leads to every part).
 
 | | Nx | Turborepo | Flisk |
 | --- | --- | --- | --- |
@@ -21,9 +21,9 @@ Nx and Turborepo run tasks across a monorepo, fast, with caching. Flisk runs the
 
 **Where they are stronger**
 
-- For build speed and CI caching, both are far ahead; Flisk does not cache anything.
+- For build speed and CI caching (reusing earlier results in the automatic checks that run on every change), both are far ahead; Flisk does not cache anything.
 
-**Use them together.** Keep Nx or Turborepo for builds and tests and point each `service.json` `command` at their dev task.
+**Use them together.** Keep Nx or Turborepo for builds and tests, and point each `service.json` `command` (the line that tells Flisk how to start that part) at their dev task.
 
 More: [layout.md](../layout.md)
 

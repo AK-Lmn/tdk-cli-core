@@ -7,6 +7,8 @@
 <tr><td><a href="npm.md"><img src="../assets/tabs/install/npm-selected.7e6ed338.svg" alt="npm (selected)" width="86" height="48" align="top"></a><a href="bun.md"><img src="../assets/tabs/install/bun.ade4a64c.svg" alt="Bun" width="84" height="48" align="top"></a><a href="binary.md"><img src="../assets/tabs/install/binary.d45225e1.svg" alt="Prebuilt binary" width="155" height="48" align="top"></a><a href="npm.md"><img src="../assets/tabs/install/count.dd332b8b.svg" alt="3 ways to install" width="125" height="48" align="top"></a></td></tr>
 <tr><td>
 
+Install Flisk with [npm](../start/words.md#npm), the app store for JavaScript tools that comes with Node.js. Open your [terminal](../start/words.md#terminal) (on a Mac, press Cmd+Space, type `Terminal` and press Enter; on Windows, use the Ubuntu app from the [Windows setup](../setup/windows.md)), paste the grey box and press Enter.
+
 **Needs:** Node.js 22.12 or newer ([nodejs.org](https://nodejs.org/)).
 
 ```bash
@@ -14,19 +16,21 @@ npm install -g @flisk-sh/flisk
 flisk --version
 ```
 
-Then check your machine with `flisk doctor`. It checks only what your project uses and prints a fix for anything missing.
+The first line downloads Flisk and makes the `flisk` command available everywhere. The second prints a version number: if you see one, Flisk is installed.
 
-**Update:** `flisk upgrade` (alias `flisk update`), or `npm install -g @flisk-sh/flisk@latest`.
+Then check your computer with [`flisk doctor`](../start/words.md#flisk-doctor). It checks only what your project uses and prints a fix for anything missing.
 
-**Pin a version:** `npm install -g @flisk-sh/flisk@1.3.80`. To make a whole team use at least one version, see [upgrading and version pinning](../upgrading.md).
+**Update** to the newest version: `flisk upgrade` (alias `flisk update`), or `npm install -g @flisk-sh/flisk@latest`.
 
-**Uninstall:**
+**Pin a version** (stay on one exact version): `npm install -g @flisk-sh/flisk@1.3.80`. To make a whole team use at least one version, see [upgrading and version pinning](../upgrading.md).
+
+**Uninstall** (remove Flisk from your computer):
 
 ```bash
 npm uninstall -g @flisk-sh/flisk
 ```
 
-Public npm is the recommended registry. To install through GitHub Packages instead, see [GitHub Packages installation](../github-packages.md).
+**For developers:** public npm is the recommended registry. To install through GitHub Packages instead, see [GitHub Packages installation](../github-packages.md).
 
 </td></tr>
 </table>

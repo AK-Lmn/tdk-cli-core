@@ -7,20 +7,24 @@
 <tr><td><a href="npm.md"><img src="../assets/tabs/install/npm.b1895033.svg" alt="npm" width="86" height="48" align="top"></a><a href="bun.md"><img src="../assets/tabs/install/bun.ade4a64c.svg" alt="Bun" width="84" height="48" align="top"></a><a href="binary.md"><img src="../assets/tabs/install/binary-selected.df33be7f.svg" alt="Prebuilt binary (selected)" width="155" height="48" align="top"></a><a href="binary.md"><img src="../assets/tabs/install/count.dd332b8b.svg" alt="3 ways to install" width="125" height="48" align="top"></a></td></tr>
 <tr><td>
 
-**Needs:** nothing else: no Node.js and no Bun. Runs on macOS and Linux, on x64 and arm64. On Windows, run it inside Ubuntu on WSL2.
+One command, with nothing to install first. The prebuilt binary is Flisk as a single ready-to-run program. Open your [terminal](../start/words.md#terminal) (on a Mac, press Cmd+Space, type `Terminal` and press Enter), paste the grey box and press Enter.
+
+**Needs:** nothing else: no Node.js and no Bun. Runs on macOS and Linux, on x64 (most Intel and AMD computers) and arm64 (Apple silicon Macs and other ARM computers). On Windows, run it inside Ubuntu on WSL2 (see the [Windows setup](../setup/windows.md)).
 
 ```bash
 curl -fsSL https://flisk.sh/install.sh | sh
 flisk --version
 ```
 
-The script downloads the latest release from [flisk-sh/releases](https://github.com/flisk-sh/releases/releases) with its bundled engine, and checks both against the release's SHA-256 checksums. It never runs `sudo`. It installs to `/usr/local/bin` when that folder is writable, and to `~/.local/bin` otherwise; set `FLISK_INSTALL_DIR` to choose. If that folder is not on your `PATH`, the script prints the line to add to your shell profile.
+The first line downloads and installs Flisk. The second prints a version number: if you see one, Flisk is installed.
 
-Then check your machine with `flisk doctor`.
+**What the install script does:** it downloads the latest release from [flisk-sh/releases](https://github.com/flisk-sh/releases/releases) with its bundled engine, and checks both against the release's SHA-256 checksums (a fingerprint check, so you get exactly the files Flisk published). It never runs `sudo`, so it never asks for your administrator password. It installs to `/usr/local/bin` when that folder is writable, and to `~/.local/bin` otherwise; set `FLISK_INSTALL_DIR` to choose. `PATH` is the list of folders your terminal looks in for commands: if that folder is not on your `PATH`, the script prints the line to add to your shell profile.
 
-**Update:** `flisk upgrade` (alias `flisk update`). It replaces the binary and its engine folder in place.
+Then check your computer with [`flisk doctor`](../start/words.md#flisk-doctor).
 
-**Uninstall:** the install is the `flisk` file and the `flisk-cli` folder next to it.
+**Update** to the newest version: `flisk upgrade` (alias `flisk update`). It replaces the binary and its engine folder in place.
+
+**Uninstall:** the install is the `flisk` file and the `flisk-cli` folder next to it. This removes both:
 
 ```bash
 dir="$(dirname "$(command -v flisk)")"

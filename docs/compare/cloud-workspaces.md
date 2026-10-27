@@ -8,7 +8,7 @@
 </table>
 <!-- /tabs:compare -->
 
-Codespaces and Coder give each developer a workspace on a remote machine. Flisk runs your stack wherever you start it, on a laptop or inside such a workspace.
+GitHub Codespaces and Coder give each developer a workspace on a remote machine: a computer somewhere else that they use over the internet, instead of their own laptop. Flisk runs your stack (all the parts of your app) wherever you start it, on a laptop or inside such a workspace.
 
 | | GitHub Codespaces | Coder | Flisk |
 | --- | --- | --- | --- |
@@ -21,9 +21,9 @@ Codespaces and Coder give each developer a workspace on a remote machine. Flisk 
 
 **Where they are stronger**
 
-- Both give a new hire a ready workspace in minutes and keep source code off laptops.
+- Both give a new team member a ready-to-use workspace in minutes, and keep the app's code (source code) off people's laptops.
 
-**Use them together.** Run `flisk up` inside the workspace; `flisk doctor` detects Codespaces.
+**Use them together.** Run `flisk up` inside the workspace, as you would on a laptop; `flisk doctor` detects Codespaces.
 
 More: [agent-hosts.md](../agent-hosts.md)
 

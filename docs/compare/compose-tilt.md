@@ -8,7 +8,7 @@
 </table>
 <!-- /tabs:compare -->
 
-Compose runs containers from a YAML file you write. Tilt watches files and live-updates them from a Tiltfile you write. Flisk writes both files for you from one `service.json` per service, then runs Tilt.
+Docker Compose and Tilt are tools developers use to start the parts of an app on their computer. Compose runs [containers](../start/words.md#container) from a YAML settings file you write. [Tilt](../start/words.md#tilt) watches your files and live-updates the running app as you save them, from a Tiltfile you write. Flisk writes both files for you from one small `service.json` per service (per part of your app), then runs Tilt.
 
 | | Docker Compose | Tilt | Flisk |
 | --- | --- | --- | --- |
@@ -21,10 +21,10 @@ Compose runs containers from a YAML file you write. Tilt watches files and live-
 
 **Where they are stronger**
 
-- **Compose** is the simpler choice for two or three services you already containerized, and it needs no Tilt.
-- **Tilt** gives full control when you are happy to write and maintain a Tiltfile, and it also targets Kubernetes.
+- **Compose** is the simpler choice for two or three services you already containerized (parts that already run in containers), and it needs no Tilt.
+- **Tilt** gives full control when you are happy to write and look after a Tiltfile yourself, and it also targets Kubernetes (a system for running apps on many servers).
 
-**Use them together.** Flisk generates a Compose file and a Tiltfile and runs them with Docker and Tilt, so the generated files stay readable with `flisk config explain`.
+**Use them together.** Flisk writes (generates) a Compose file and a Tiltfile for you and runs them with Docker and Tilt, so the generated files stay readable with `flisk config explain`, which tells you where each one comes from.
 
 More: [comparison.md](../comparison.md#flisk-vs-docker-compose)
 

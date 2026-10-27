@@ -1,6 +1,14 @@
 # Flisk on Windows
 
+On Windows, you run Flisk inside the **Ubuntu** app. Ubuntu is a free version of Linux, and [WSL2](start/words.md#wsl2) (Windows Subsystem for Linux) is the part of Windows that runs it, next to your usual Windows apps. You install it once with one command, then type every Flisk command in the Ubuntu app, which is your [terminal](start/words.md#terminal) on Windows.
+
+Why the extra step? Flisk starts your app with Linux tools: Linux [containers](start/words.md#container), [Docker](start/words.md#docker) and [Tilt](start/words.md#tilt). Windows cannot run Linux containers without WSL2.
+
+Just want the short version? [Set up Windows](setup/windows.md) has three steps. Never written code? [Start here](start/first-time.md). This page has every step in detail, an example app to try, and fixes for common problems.
+
 ## Support summary
+
+Which Flisk commands work where. In short: on Windows, use the Ubuntu app for everything. Windows on its own ("native Windows") can check your computer and show what Flisk would start, but cannot start your app.
 
 | Platform | `flisk up` | `flisk doctor` | `flisk --version` | `flisk up --dry-run` | Notes |
 |----------|------------|----------------|-------------------|----------------------|-------|
@@ -19,6 +27,8 @@
 - Admin rights for Docker Desktop installation
 
 ### Step-by-step
+
+Do these in order. Each grey box is a [command](start/words.md#command): paste it into the Ubuntu app and press Enter.
 
 1. **Install Docker Desktop with WSL2 backend**
    - Download from [docker.com](https://www.docker.com/products/docker-desktop/)

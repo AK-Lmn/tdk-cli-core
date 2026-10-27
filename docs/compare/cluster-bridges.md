@@ -8,7 +8,7 @@
 </table>
 <!-- /tabs:compare -->
 
-Telepresence and mirrord run one service on your laptop as if it were inside a remote Kubernetes cluster. Flisk runs the whole stack on your laptop.
+Some teams run their app on a group of servers managed by Kubernetes (a "cluster"). Telepresence and mirrord let a developer run one service, one part of that app, on their laptop as if it were inside the remote Kubernetes cluster, talking to the real other parts. Flisk runs the whole stack, every part of your app, on your laptop.
 
 | | Telepresence | mirrord | Flisk |
 | --- | --- | --- | --- |
@@ -21,7 +21,7 @@ Telepresence and mirrord run one service on your laptop as if it were inside a r
 
 **Where they are stronger**
 
-- When a bug only shows up with real staging traffic or data, a cluster bridge is the right tool.
+- When a bug only shows up with real staging traffic or data (the shared test copy of your app and what flows through it), a cluster bridge like these is the right tool.
 
 More: [comparison.md](../comparison.md)
 

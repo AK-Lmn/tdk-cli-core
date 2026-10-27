@@ -7,18 +7,24 @@
 <tr><td><a href="npm.md"><img src="../assets/tabs/install/npm.b1895033.svg" alt="npm" width="86" height="48" align="top"></a><a href="bun.md"><img src="../assets/tabs/install/bun-selected.fb3d2ee2.svg" alt="Bun (selected)" width="84" height="48" align="top"></a><a href="binary.md"><img src="../assets/tabs/install/binary.d45225e1.svg" alt="Prebuilt binary" width="155" height="48" align="top"></a><a href="bun.md"><img src="../assets/tabs/install/count.dd332b8b.svg" alt="3 ways to install" width="125" height="48" align="top"></a></td></tr>
 <tr><td>
 
+Bun is a newer alternative to [Node.js](../start/words.md#nodejs) that can also install JavaScript tools. Use this tab if you already use Bun. Never heard of it? The **npm** or **Prebuilt binary** tab above is all you need.
+
 **Needs:** Bun 1.2 or newer. Install it with `curl -fsSL https://bun.sh/install | bash`.
+
+Then paste this into your [terminal](../start/words.md#terminal) and press Enter:
 
 ```bash
 bun add -g @flisk-sh/flisk
 flisk --version
 ```
 
-If your shell says `flisk: command not found`, add Bun's global bin folder to your `PATH`; `bun pm bin -g` prints it. Then check your machine with `flisk doctor`.
+The first line [installs](../start/words.md#install) Flisk. The second prints a version number: if you see one, Flisk is installed.
 
-**Update:** `flisk upgrade` (alias `flisk update`). It detects a Bun install and updates it with Bun.
+If your terminal says `flisk: command not found`, it cannot find Flisk yet. `PATH` is the list of folders your terminal looks in for commands: add Bun's global bin folder to your `PATH`; `bun pm bin -g` prints it. Then check your computer with [`flisk doctor`](../start/words.md#flisk-doctor).
 
-**Uninstall:**
+**Update** to the newest version: `flisk upgrade` (alias `flisk update`). It detects a Bun install and updates it with Bun.
+
+**Uninstall** (remove Flisk from your computer):
 
 ```bash
 bun remove -g @flisk-sh/flisk

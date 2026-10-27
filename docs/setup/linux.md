@@ -8,25 +8,31 @@
 <tr><td><a href="macos.md"><img src="../assets/tabs/setup/macos.30aa2fb5.svg" alt="macOS" width="105" height="48" align="top"></a><a href="linux.md"><img src="../assets/tabs/setup/linux-selected.dcb1327b.svg" alt="Ubuntu (selected)" width="105" height="48" align="top"></a><a href="windows.md"><img src="../assets/tabs/setup/windows.29eccf1f.svg" alt="Windows (WSL2)" width="170" height="48" align="top"></a><a href="omarchy.md"><img src="../assets/tabs/setup/omarchy.e161f95c.svg" alt="Omarchy" width="117" height="48" align="top"></a><a href="linux.md"><img src="../assets/tabs/setup/count.b292db9a.svg" alt="4 systems" width="91" height="48" align="top"></a></td></tr>
 <tr><td>
 
-**1. Node.js 22.12 or newer** from [nodejs.org](https://nodejs.org/), plus your app's own runtime. That is all the [simplest path](../start/simplest.md) needs: your services run as local processes.
+Get your Ubuntu computer ready for Flisk. You do this once. Every grey box below is a [command](../start/words.md#command): copy it, paste it into the [terminal](../start/words.md#terminal) and press Enter. To open the terminal, press Ctrl+Alt+T, or search your apps for **Terminal**. Never written code? [Start here](../start/first-time.md).
 
-**2. For a database, one gateway URL and the same container you deploy**, also install Docker Engine 25+ with the Compose plugin 2.20.2+ ([install guide for Ubuntu](https://docs.docker.com/engine/install/ubuntu/)), and Tilt 0.25+:
+**1. Node.js 22.12 or newer** from [nodejs.org](https://nodejs.org/). [Node.js](../start/words.md#nodejs) is a free program that Flisk runs on. If your app is written in something else, such as Python, install that too. For a small app, that is all you need: the [simplest path](../start/simplest.md) runs each [part of your app](../start/words.md#app-parts) as a normal program on your computer.
+
+**For developers:** the simplest path needs only Node.js and your app's own runtime; your services run as local processes.
+
+**2. Only for bigger apps: Docker and Tilt.** You need these when your app has a [database](../start/words.md#database), one web address in front of all its parts (a gateway URL), or must run in the same [container](../start/words.md#container) you deploy. Then also install [Docker](../start/words.md#docker) Engine 25+ with the Compose plugin 2.20.2+ ([install guide for Ubuntu](https://docs.docker.com/engine/install/ubuntu/)), and [Tilt](../start/words.md#tilt) 0.25+. This command downloads and installs Tilt:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh \
   | bash
 ```
 
-Start Docker with `sudo systemctl start docker`. To run `docker` without `sudo`, follow Docker's [post-install steps](https://docs.docker.com/engine/install/linux-postinstall/).
+Start Docker with `sudo systemctl start docker`. A command that starts with `sudo` runs as the computer's administrator, so it asks for your password. To run `docker` without `sudo`, follow Docker's [post-install steps](https://docs.docker.com/engine/install/linux-postinstall/).
 
-**3. Install Flisk and check the machine:**
+**3. Install Flisk and check your computer:**
 
 ```bash
 npm install -g @flisk-sh/flisk
 flisk doctor
 ```
 
-`flisk doctor` checks only what your project uses and prints a fix for anything missing. No Node.js? [Install the prebuilt binary](../install/binary.md) instead.
+The first line [installs](../start/words.md#install) Flisk with [npm](../start/words.md#npm), which comes with Node.js. The second, [`flisk doctor`](../start/words.md#flisk-doctor), checks only what your project uses and prints a fix for anything missing. To check that Flisk itself is installed, run `flisk --version`: it prints a version number.
+
+Rather not install Node.js? [Install the prebuilt binary](../install/binary.md) instead: it needs nothing else.
 
 </td></tr>
 <tr><td><img src="../assets/tabs/setup/linux-bottom.ad78c53d.svg" alt="flisk@ubuntu:~/my-shop$ flisk up · Docker Engine · Tilt · Node.js 22" width="100%" align="top"></td></tr>

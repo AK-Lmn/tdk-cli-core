@@ -1,4 +1,4 @@
-# One-command demo
+# One-command demo: see a whole app run on your computer
 
 [← Back to the README](../../README.md#quick-start)
 
@@ -7,7 +7,11 @@
 <tr><td><a href="simplest.md"><img src="../assets/tabs/start/simplest.97ab17b9.svg" alt="Simplest" width="115" height="48" align="top"></a><a href="demo.md"><img src="../assets/tabs/start/demo-selected.dd6aa65b.svg" alt="One-command demo (selected)" width="196" height="48" align="top"></a><a href="manual.md"><img src="../assets/tabs/start/manual.31a9b318.svg" alt="Full control" width="133" height="48" align="top"></a><a href="guided.md"><img src="../assets/tabs/start/guided.9c2c6f9a.svg" alt="Guided setup" width="146" height="48" align="top"></a><a href="demo.md"><img src="../assets/tabs/start/count.e67cc7bd.svg" alt="4 ways to start" width="116" height="48" align="top"></a></td></tr>
 <tr><td>
 
-A whole app running on your laptop, with no manual steps. Best for a first look or a throwaway test.
+See a whole example app run on your laptop, with no manual steps. Best for a first look or a throwaway test.
+
+**Before you start:** the demo runs each part of the app (each service) in its own [container](words.md#container), a sealed box, so your computer needs [Docker](words.md#docker) and [Tilt](words.md#tilt). See [set up your machine](../setup/macos.md). `flisk doctor` tells you what is missing. On Windows it works only inside Ubuntu on [WSL2](words.md#wsl2).
+
+Paste these lines into your [terminal](words.md#terminal) and press Enter. Lines that start with `#` are notes for you; the computer skips them.
 
 ```bash
 # 1. Install Flisk
@@ -19,14 +23,12 @@ flisk demo
 
 What happens:
 
-1. Flisk clones the starter into `~/.flisk/flisk-demo`.
-2. It installs the service dependencies.
-3. It starts the full stack: Postgres, a backend, a frontend, NATS and the Traefik gateway.
-4. It opens the frontend in your browser.
+1. Flisk copies a ready-made example app (it clones the starter) into `~/.flisk/flisk-demo`, a folder in your home folder.
+2. It installs what each part of the app needs (the service dependencies).
+3. It starts every part (the full stack): a [database](words.md#database) (Postgres), a back end, a website (the frontend), a messaging system (NATS) and one front door for web traffic (the Traefik gateway).
+4. It opens the website in your browser. That is the demo app, running on your computer.
 
-Press `Ctrl+C` to stop, then run `flisk down` from the demo folder to clean up.
-
-The demo runs its services in containers, so it needs Docker and Tilt ([set up your machine](../setup/macos.md)); `flisk doctor` tells you what is missing. On Windows it works only inside Ubuntu on WSL2.
+To stop, press `Ctrl+C` (hold Control and press C). Then run `flisk down` from the demo folder (`~/.flisk/flisk-demo`) to clean up.
 
 </td></tr>
 </table>
@@ -34,4 +36,4 @@ The demo runs its services in containers, so it needs Docker and Tilt ([set up y
 
 ---
 
-Want to build your own services instead? Pick another tab above.
+Want to build your own app instead? Pick another tab above. Never written code? [Start here](first-time.md).

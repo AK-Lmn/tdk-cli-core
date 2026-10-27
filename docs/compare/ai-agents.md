@@ -8,7 +8,7 @@
 </table>
 <!-- /tabs:compare -->
 
-LangGraph and Mastra are frameworks for writing agents: prompts, tools, the turn loop and checkpoints. Flisk does not replace them; it runs the agent next to its database, MCP tool servers and other services.
+LangGraph and Mastra are toolkits that programmers use to build their own AI agents: programs that take a request, decide what to do next and use tools on their own. They handle the agent's thinking: prompts, tools, the turn loop and checkpoints. Flisk does not replace them; it runs the agent on your computer next to the other parts it needs: its [database](../start/words.md#database), [MCP](../start/words.md#mcp) tool servers and other services.
 
 | | LangGraph | Mastra | Flisk |
 | --- | --- | --- | --- |
@@ -21,9 +21,9 @@ LangGraph and Mastra are frameworks for writing agents: prompts, tools, the turn
 
 **Where they are stronger**
 
-- Write the agent in LangGraph or Mastra; neither needs Flisk for a single agent.
+- To write the agent itself, use LangGraph or Mastra. For a single agent on its own, neither needs Flisk.
 
-**Use them together.** Run a LangGraph or Mastra agent as a Flisk `agent` resource, next to its MCP servers and database.
+**Use them together.** Build the agent with LangGraph or Mastra, and let Flisk run it as a Flisk `agent` resource, next to its MCP servers and database.
 
 More: [compare-honest.md](../compare-honest.md#ai-agent-frameworks-and-workflow-engines-libfx-langgraph-mastra-vercel-workflows-temporal)
 

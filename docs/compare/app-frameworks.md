@@ -8,7 +8,7 @@
 </table>
 <!-- /tabs:compare -->
 
-Aspire and Encore run a multi-service app locally from code you write in their framework. Flisk runs any services, in any language, from a `service.json` next to each one.
+Aspire and Encore are frameworks: ready-made ways to write an app, where you follow their rules and they handle the wiring for you. They run an app made of several [parts](../start/words.md#app-parts) on your computer, from code you write in their framework. Flisk runs any services, in any programming language, from a small `service.json` settings file next to each one, without asking you to rewrite your code.
 
 | | .NET Aspire | Encore | Flisk |
 | --- | --- | --- | --- |
@@ -21,8 +21,8 @@ Aspire and Encore run a multi-service app locally from code you write in their f
 
 **Where they are stronger**
 
-- If your team writes .NET, Aspire's dashboard and service discovery are hard to beat.
-- Encore gives typed APIs, infrastructure from code and deploys in one framework.
+- If your team writes .NET (Microsoft's way of building apps), Aspire's dashboard and service discovery (how the parts find each other) are hard to beat.
+- Encore does more in one framework: typed APIs (the parts talk to each other in a checked format), infrastructure from code (it sets up things like databases from the code you write) and deploys (putting your app online).
 
 More: [gradual-adoption.md](../gradual-adoption.md)
 

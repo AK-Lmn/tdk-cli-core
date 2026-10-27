@@ -8,7 +8,7 @@
 </table>
 <!-- /tabs:compare -->
 
-Dev Containers and Devbox give every developer the same toolchain. Flisk runs the app's services; it checks your tools but does not install them.
+Dev Containers and Devbox make sure every developer on a team has the same programs and versions installed (the same toolchain). Flisk runs the app's services, the parts of your app; it checks your tools but does not install them.
 
 | | Dev Containers | Devbox | Flisk |
 | --- | --- | --- | --- |
@@ -21,9 +21,9 @@ Dev Containers and Devbox give every developer the same toolchain. Flisk runs th
 
 **Where they are stronger**
 
-- Both solve "works on my machine" for the toolchain, which Flisk leaves to you.
+- Both solve the classic "works on my machine" problem for the toolchain, which Flisk leaves to you.
 
-**Use them together.** Run Flisk inside a dev container: the container brings the tools, Flisk brings the running stack.
+**Use them together.** Run Flisk inside a dev container: the container brings the tools, Flisk brings the running stack (your app, up and running).
 
 More: [agent-hosts.md](../agent-hosts.md)
 
