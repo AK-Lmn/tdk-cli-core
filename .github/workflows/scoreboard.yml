@@ -18,7 +18,7 @@ concurrency:
 jobs:
   report:
     name: 📊 Report
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     permissions:
       contents: read
@@ -42,7 +42,7 @@ jobs:
 
   lighthouse:
     name: 🔦 Lighthouse
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -60,7 +60,7 @@ jobs:
 
   mutation:
     name: 🧬 Mutation
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 60
     defaults:
       run:
@@ -77,9 +77,13 @@ jobs:
       # Stryker is added for this job only: --no-save leaves package.json and the lockfiles alone.
       - run: bun add --no-save @stryker-mutator/core@10.0.0 @stryker-mutator/vitest-runner@10.0.0
       # Run the installed binary: `npx --no-install` checks package.json, which --no-save leaves without Stryker.
+      # --inPlace mutates this throwaway checkout instead of a sandbox copy. A sandbox makes Stryker rewrite
+      # tsconfig.json with the TypeScript compiler API, which TypeScript 7 in cli/ does not have
+      # (ts.parseConfigFileTextToJson is not a function); cli/tsconfig.json has no extends or references to rewrite.
       - name: Stryker on the generators
         run: >-
           ./node_modules/.bin/stryker run
+          --inPlace
           --testRunner vitest
           --coverageAnalysis perTest
           --mutate src/generator/template-engine.ts,src/generator/resource-templates.ts
