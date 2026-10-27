@@ -61,7 +61,7 @@ Notable changes to the `flisk` CLI. Versions match [npm](https://www.npmjs.com/p
 
 ## 1.3.130 (2026-10-08)
 
-- Releases now come with a signed checksum list: `checksums.txt.sigstore.json` (keyless Sigstore signature from the release workflow) is attached next to the binaries in [tdk-cli-releases](https://github.com/tdk-landscape/tdk-cli-releases/releases) and to a release with the same tag here. How to verify is in [docs/security.md](docs/security.md#releases). The binaries themselves are not signed individually (#869, #840).
+- Releases now come with a signed checksum list: `checksums.txt.sigstore.json` (keyless Sigstore signature from the release workflow) is attached next to the binaries in [tdk-cli-releases](https://github.com/tdk-landscape/tdk-cli-releases/releases) and to a release with the same tag here. How to verify is in [docs/security.md](security.md#releases). The binaries themselves are not signed individually (#869, #840).
 - `flisk resource` for a Python backend now writes `pytest==9.0.3` in the generated `pyproject.toml` (was 8.3.4, affected by GHSA-6w46-j5rx-g56g) (#867).
 - Examples: bumped past open Dependabot alerts: puma 7.2.1 (Sinatra), NestJS 11.1.18, drizzle-orm 0.45.2 and pytest 9.0.3 (#867).
 - Supply chain: every checked-in Dockerfile base image is pinned to a digest (#865).

@@ -49,6 +49,81 @@
       ]
     },
     {
+      "id": "compare",
+      "count": "comparisons",
+      "dir": "docs/compare",
+      "back": "README.md#why-flisk-cli",
+      "hosts": [
+        {
+          "file": "README.md",
+          "selected": "compose-tilt"
+        }
+      ],
+      "tabs": [
+        {
+          "slug": "compose-tilt",
+          "label": "Compose & Tilt",
+          "icon": "package",
+          "title": "Flisk vs Docker Compose and Tilt"
+        },
+        {
+          "slug": "kubernetes-dev",
+          "label": "Kubernetes loops",
+          "icon": "sliders",
+          "title": "Flisk vs Skaffold and DevSpace"
+        },
+        {
+          "slug": "local-kubernetes",
+          "label": "Local clusters",
+          "icon": "server",
+          "title": "Flisk vs kind and minikube"
+        },
+        {
+          "slug": "process-runners",
+          "label": "Process runners",
+          "icon": "play",
+          "title": "Flisk vs process-compose and Overmind"
+        },
+        {
+          "slug": "dev-environments",
+          "label": "Dev environments",
+          "icon": "terminal",
+          "title": "Flisk vs Dev Containers and Devbox"
+        },
+        {
+          "slug": "cloud-workspaces",
+          "label": "Cloud workspaces",
+          "icon": "cloud",
+          "title": "Flisk vs GitHub Codespaces and Coder"
+        },
+        {
+          "slug": "app-frameworks",
+          "label": "App frameworks",
+          "icon": "code",
+          "title": "Flisk vs .NET Aspire and Encore"
+        },
+        {
+          "slug": "monorepo-tools",
+          "label": "Monorepo tools",
+          "icon": "tiles",
+          "title": "Flisk vs Nx and Turborepo"
+        },
+        {
+          "slug": "cluster-bridges",
+          "label": "Cluster bridges",
+          "icon": "link",
+          "title": "Flisk vs Telepresence and mirrord"
+        },
+        {
+          "slug": "ai-agents",
+          "label": "AI agents",
+          "icon": "sparkle",
+          "title": "Flisk vs LangGraph and Mastra"
+        }
+      ],
+      "panel": false
+    },
+    {
       "id": "start",
       "count": "ways to start",
       "dir": "docs/start",

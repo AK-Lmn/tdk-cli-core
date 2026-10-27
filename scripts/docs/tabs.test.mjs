@@ -118,3 +118,22 @@ test("every frame kind draws a top and a bottom at the frame width, and an unkno
   }
   assert.throws(() => frameSvgs({ kind: "amiga" }, "os/mac"), /unknown frame "amiga" for os\/mac/);
 });
+
+test("a group with panel: false draws the bar alone and keeps the content after the block", () => {
+  const root = fixture();
+  try {
+    const spec = structuredClone(SPEC);
+    spec.groups[0].panel = false;
+    delete spec.groups[0].tabs[0].frame;
+    writeFileSync(path.join(root, "docs/tabs.json"), JSON.stringify(spec));
+    writeFileSync(path.join(root, "README.md"), "# Demo\n\n<!-- tabs:os mac -->\n<!-- /tabs:os -->\n\n| a | b |\n| - | - |\n| 1 | 2 |\n");
+    assert.deepEqual(run(root, { write: true }).problems, []);
+    const readme = readFileSync(path.join(root, "README.md"), "utf8");
+    assert.match(readme, /<table>\n<tr><td><a href="docs\/os\/mac.md"><img [^\n]*<\/td><\/tr>\n<\/table>\n<!-- \/tabs:os -->\n\n\| a \| b \|/);
+    assert.doesNotMatch(readme, /<tr><td>\n/, "no panel row");
+    assert.match(stubOf(root), /<!-- \/tabs:os -->\n\n_Write this tab._/);
+    assert.deepEqual(run(root, { write: false }), { stale: [], problems: [] });
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
