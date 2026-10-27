@@ -59,6 +59,47 @@ body:
         - I did not get as far as running an app
     validations:
       required: true
+  - type: dropdown
+    id: before
+    attributes:
+      label: What did you use before Flisk to run an app like this? (optional)
+      description: Lets us compare Flisk with the tool you know, rated by the same people on the same two questions.
+      options:
+        - Nothing, this was my first time
+        - Docker Compose
+        - Tilt
+        - Skaffold
+        - DevSpace
+        - Garden
+        - A cloud app builder (Lovable, Bolt, Replit)
+        - Scripts I wrote myself
+        - Something else
+  - type: dropdown
+    id: before-capabilities
+    attributes:
+      label: "“The tool I used before met my requirements” (optional)"
+      description: Your rating of that tool, 1 (strongly disagree) to 7 (strongly agree)
+      options:
+        - "1 - Strongly disagree"
+        - "2"
+        - "3"
+        - "4"
+        - "5"
+        - "6"
+        - "7 - Strongly agree"
+  - type: dropdown
+    id: before-ease
+    attributes:
+      label: "“The tool I used before was easy to use” (optional)"
+      description: Your rating of that tool, 1 (strongly disagree) to 7 (strongly agree)
+      options:
+        - "1 - Strongly disagree"
+        - "2"
+        - "3"
+        - "4"
+        - "5"
+        - "6"
+        - "7 - Strongly agree"
   - type: input
     id: built
     attributes:
