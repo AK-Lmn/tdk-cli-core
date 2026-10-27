@@ -7,6 +7,7 @@ import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, 
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
+import { FRAME_KINDS, frameSvgs, WIDTH } from "./frames.mjs";
 import { ASSETS, counterSvg, rewrite, run, tabSvg, textWidth } from "./tabs.mjs";
 
 const SPEC = {
@@ -18,13 +19,15 @@ const SPEC = {
       back: "README.md#setup",
       hosts: [{ file: "README.md", selected: "mac" }],
       tabs: [
-        { slug: "mac", label: "macOS", icon: "laptop", title: "Set up macOS" },
+        { slug: "mac", label: "macOS", icon: "laptop", title: "Set up macOS", frame: { kind: "macos", title: "~/shop", left: "up in 1 s", right: "M1" } },
         { slug: "linux", label: "Linux", icon: "server" },
       ],
     },
   ],
 };
 const README = "# Demo\n\n## Setup\n\n<!-- tabs:os mac -->\n<table>\n<tr><td></td></tr>\n<tr><td>\n\nRun `brew install x`.\n\n</td></tr>\n</table>\n<!-- /tabs:os -->\n\nAfter.\n";
+
+const stubOf = (root) => readFileSync(path.join(root, "docs/os/linux.md"), "utf8");
 
 function fixture() {
   const root = mkdtempSync(path.join(tmpdir(), "flisk-tabs-"));
@@ -75,13 +78,15 @@ test("write mode produces everything, then --check is clean; a hand edit or a st
     assert.deepEqual(run(root, { write: false }), { stale: [], problems: [] });
 
     const images = readdirSync(path.join(root, ASSETS, "os")).sort();
-    assert.equal(images.length, 5, "two tabs in two states plus the counter");
-    assert.ok(images.every((name) => /^(mac|linux|count)(-selected)?\.[0-9a-f]{8}\.svg$/.test(name)));
+    assert.equal(images.length, 7, "two tabs in two states, the counter, and the macOS frame's top and bottom");
+    assert.ok(images.every((name) => /^(mac|linux|count)(-selected|-top|-bottom)?\.[0-9a-f]{8}\.svg$/.test(name)));
 
     const readme = readFileSync(path.join(root, "README.md"), "utf8");
     assert.match(readme, /<a href="docs\/os\/mac.md"><img src="docs\/assets\/tabs\/os\/mac-selected\.[0-9a-f]{8}\.svg" alt="macOS \(selected\)"/);
-    assert.match(readme, /Run `brew install x`\./);
-    const stub = readFileSync(path.join(root, "docs/os/linux.md"), "utf8");
+    assert.match(readme, /<table>\n<tr><td><img src="docs\/assets\/tabs\/os\/mac-top\.[0-9a-f]{8}\.svg" alt="macOS window: ~\/shop" width="100%" align="top"><\/td><\/tr>\n<tr><td><a /);
+    assert.match(readme, /Run `brew install x`\.\n\n<\/td><\/tr>\n<tr><td><img src="docs\/assets\/tabs\/os\/mac-bottom\.[0-9a-f]{8}\.svg" alt="up in 1 s · M1" width="100%" align="top"><\/td><\/tr>\n<\/table>/);
+    assert.doesNotMatch(stubOf(root), /-top\./, "a tab without a frame gets no frame rows");
+    const stub = stubOf(root);
     assert.match(stub, /^# Linux\n\n\[← Back\]\(\.\.\/\.\.\/README\.md#setup\)/);
     assert.match(stub, /<a href="linux.md"><img src="\.\.\/assets\/tabs\/os\/linux-selected\./);
 
@@ -96,4 +101,15 @@ test("write mode produces everything, then --check is clean; a hand edit or a st
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
+});
+
+test("every frame kind draws a top and a bottom at the frame width, and an unknown kind fails", () => {
+  for (const kind of FRAME_KINDS) {
+    const { top, bottom } = frameSvgs({ kind, title: "~/my-shop", left: "a:b$ c", right: "r", prompt: "p" }, kind);
+    for (const svg of [top, bottom]) {
+      assert.match(svg, new RegExp(`^<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="\\d+"`), kind);
+      assert.match(svg, /<title>[^<]+<\/title>/, kind);
+    }
+  }
+  assert.throws(() => frameSvgs({ kind: "amiga" }, "os/mac"), /unknown frame "amiga" for os\/mac/);
 });
