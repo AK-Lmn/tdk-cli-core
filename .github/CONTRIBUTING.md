@@ -323,7 +323,7 @@ Every commit needs a [Developer Certificate of Origin](../docs/project/DCO) sign
 Every contribution matters. When your pull request is merged:
 
 - You are credited in the automated GitHub release notes for the next release.
-- Your contribution is recorded in [CHANGELOG.md](../CHANGELOG.md).
+- Your contribution is recorded in [CHANGELOG.md](../docs/CHANGELOG.md).
 - You are recognized across the project contributor list and All Contributors records.
 
 ## Contributor badges

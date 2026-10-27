@@ -39,7 +39,7 @@
     "cli/templates",
     "cli/package.json",
     "cli/shared-platform-engineering/docker-templates",
-    "CHANGELOG.md"
+    "docs/CHANGELOG.md"
   ],
   "scripts": {
     "build": "cd cli && npm run build",

@@ -35,9 +35,9 @@ If PATH contains more than one Flisk install, run `flisk upgrade --all` to updat
 
 | Thing | Version | Where |
 | --- | --- | --- |
-| CLI, bundled engine and binaries | One number, the npm package version | `flisk version`, [CHANGELOG](../CHANGELOG.md) |
+| CLI, bundled engine and binaries | One number, the npm package version | `flisk version`, [CHANGELOG](CHANGELOG.md) |
 | `service.json` format | `schemaVersion` (currently `1`); `flisk doctor` rejects an unsupported value | [configuration](configuration.md) |
-| `--json` output of `status`, `resources`, `networks`, `doctor`, `config verify` | `schemaVersion` in the envelope | [CHANGELOG](../CHANGELOG.md) |
+| `--json` output of `status`, `resources`, `networks`, `doctor`, `config verify` | `schemaVersion` in the envelope | [CHANGELOG](CHANGELOG.md) |
 | `.flisk/project.json` | No format version; optional `minFliskVersion` | this page |
 
 ## Compatibility policy

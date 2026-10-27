@@ -121,7 +121,7 @@ documentation:
           - "docs/**"
           - "README*"
           - ".github/CONTRIBUTING.md"
-          - "CHANGELOG.md"
+          - "docs/CHANGELOG.md"
           - "cli/README.md"
           - "runtime/engine/README.md"
           - "**/*.md"

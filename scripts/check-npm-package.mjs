@@ -26,7 +26,7 @@ export const ALLOWED_PATHS = [
   "cli/package.json",
   "runtime/",
   "examples/flisk-example/",
-  "CHANGELOG.md",
+  "docs/CHANGELOG.md",
   "LICENSE",
   "README.md",
   "package.json",

@@ -211,7 +211,7 @@ EOF
     /^## Unreleased[[:space:]]*$/ { in_unreleased = 1; next }
     /^## / && in_unreleased { exit }
     in_unreleased { print }
-  ' "${ROOT_DIR}/CHANGELOG.md")"
+  ' "${ROOT_DIR}/docs/CHANGELOG.md")"
   # The changelog's "Unreleased" section is only rolled into a version heading when the
   # post-release bump can be pushed to main. While that is rejected (protected branch) it
   # keeps its old entries, so leave out any line the previous release already published.
