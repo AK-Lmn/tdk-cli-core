@@ -42,6 +42,8 @@ Both installation paths install the same CLI, and `flisk mcp` comes with it. The
 
 ## 2. Point a client at `flisk mcp`
 
+Shortcut for Claude Code, Cursor and Codex: `flisk connect <claude|cursor|codex>` in the project writes the project entry shown below (merged into an existing file) and the Flisk skills. Add `--dry-run` to see the files first. See [Flisk for AI agents](../agents/flisk-for-agents.md). The manual steps follow.
+
 The client launches `flisk mcp` for you. The server inherits the directory it is started in, so the project tools find `.flisk/project.json` when the client runs inside a Flisk project. Two ways to make that deterministic:
 
 - start the client in the project directory, or

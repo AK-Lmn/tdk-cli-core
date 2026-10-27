@@ -85,6 +85,11 @@ const COMMAND_GROUPS = [
             { name: "doctor", desc: "Check environment readiness", alias: "" },
             { name: "mcp", desc: "Run an MCP server over stdio for coding agents", alias: "" },
             {
+                name: "connect",
+                desc: "Connect a coding agent: MCP server entry and Flisk skills",
+                alias: "<claude|cursor|codex> --dry-run",
+            },
+            {
                 name: "runtime",
                 desc: "Inspect packaged engine and template assets",
                 alias: "--check-assets",

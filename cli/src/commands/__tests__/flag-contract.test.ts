@@ -15,6 +15,7 @@ import {
 } from "../../test-support/index.js";
 import { YES_OPTION_DESCRIPTION } from "../../utils/command-helpers.js";
 import { configCommand } from "../config.js";
+import { connectCommand } from "../connect.js";
 import { downCommand } from "../down.js";
 import { ejectCommand } from "../eject.js";
 import { networksCommand } from "../networks.js";
@@ -94,6 +95,12 @@ const DRY_RUN_MATRIX: Array<{
     project: CONFIGURED_PROJECT,
     expect: "Dry run",
   },
+  {
+    site: "connect --dry-run",
+    command: ["connect"],
+    project: CONFIGURED_PROJECT,
+    expect: "Dry run",
+  },
   { site: "down --dry-run", command: ["down"], project: CONFIGURED_PROJECT, expect: "Dry run" },
   {
     site: "eject --dry-run",
@@ -158,6 +165,8 @@ const DOCTOR_JSON: { site: string; command: string[] } = {
  * Shrinking this list is the work; a new entry needs a reason.
  */
 const EXEMPT: Record<string, string> = {
+  "connect --json":
+    "takes a required <host> argument and works outside a project, so the matrix's argument-less, project-required rows do not fit; connect.test.ts covers the envelope and its error cases",
   "config explain --json":
     "takes a required <file> argument, so the matrix's argument-less run cannot exercise it; config-explain.test.ts covers the envelope and its error cases",
   "doctor --dry-run":
@@ -362,6 +371,7 @@ describe("flag contract: completeness", () => {
 /** The command object and arguments that each dry-run row runs in-process, without `--dry-run` (added below). */
 const DRY_RUN_TARGETS: Record<string, { command: Command; args: string[] }> = {
   "config regenerate": { command: configCommand, args: ["regenerate"] },
+  connect: { command: connectCommand, args: ["claude"] },
   down: { command: downCommand, args: [] },
   eject: { command: ejectCommand, args: [] },
   up: { command: upCommand, args: [] },
