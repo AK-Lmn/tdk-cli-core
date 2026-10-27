@@ -81,6 +81,21 @@ jobs:
         with:
           config: ./.github/_typos.toml
 
+  # Runs on docs-only PRs too, which skip the test job: links and anchors (D3) and the tab bars drawn from docs/tabs.json (D4).
+  docs:
+    name: 📚 Docs links and tabs
+    runs-on: ubuntu-26.04
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 22
+      - run: bash tests/e2e/static/skills-and-docs.sh
+      - run: node --test scripts/docs/tabs.test.mjs
+
   lint:
     name: 🛡️ Lint
     runs-on: ubuntu-26.04

@@ -83,6 +83,14 @@
 		},
 		{
 			"workflow": "ci.yml",
+			"job": "docs",
+			"tier": "gate",
+			"required": false,
+			"reason": "Docs links, anchors and generated tab bars on every PR, docs-only ones included",
+			"owner": "maintainers"
+		},
+		{
+			"workflow": "ci.yml",
 			"job": "lint",
 			"tier": "gate",
 			"required": false,

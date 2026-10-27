@@ -1,0 +1,57 @@
+{
+  "$comment": "Tab bars in the docs. Run `node scripts/docs/tabs.mjs` after editing; the docs check fails until you do. Each tab has a page at <dir>/<slug>.md. hosts are other pages that show one tab inline. icon is a key of ICONS in scripts/docs/tabs.mjs.",
+  "groups": [
+    {
+      "id": "agents",
+      "count": "agents",
+      "dir": "docs/agents",
+      "back": "README.md#pick-your-agent",
+      "hosts": [{ "file": "README.md", "selected": "claude-code" }],
+      "tabs": [
+        { "slug": "claude-code", "label": "Claude Code", "icon": "terminal", "title": "Use Flisk with Claude Code" },
+        { "slug": "codex", "label": "Codex", "icon": "code", "title": "Use Flisk with Codex" },
+        { "slug": "cursor", "label": "Cursor", "icon": "pointer", "title": "Use Flisk with Cursor" }
+      ]
+    },
+    {
+      "id": "start",
+      "count": "ways to start",
+      "dir": "docs/start",
+      "back": "README.md#quick-start",
+      "hosts": [
+        { "file": "README.md", "selected": "simplest" },
+        { "file": "docs/quickstart.md", "selected": "simplest" }
+      ],
+      "tabs": [
+        { "slug": "simplest", "label": "Simplest", "icon": "play", "title": "Simplest path: run your services as local processes" },
+        { "slug": "demo", "label": "One-command demo", "icon": "sparkle", "title": "One-command demo" },
+        { "slug": "manual", "label": "Full control", "icon": "sliders", "title": "Full control: set up a project by hand" },
+        { "slug": "guided", "label": "Guided setup", "icon": "chat", "title": "Guided setup: answer a few questions" }
+      ]
+    },
+    {
+      "id": "setup",
+      "count": "systems",
+      "dir": "docs/setup",
+      "back": "README.md#prerequisites-install-once",
+      "hosts": [{ "file": "README.md", "selected": "macos" }],
+      "tabs": [
+        { "slug": "macos", "label": "macOS", "icon": "laptop", "title": "Set up macOS for Flisk" },
+        { "slug": "linux", "label": "Linux", "icon": "server", "title": "Set up Linux for Flisk" },
+        { "slug": "windows", "label": "Windows (WSL2)", "icon": "window", "title": "Set up Windows for Flisk (WSL2)" }
+      ]
+    },
+    {
+      "id": "install",
+      "count": "ways to install",
+      "dir": "docs/install",
+      "back": "README.md#installation",
+      "hosts": [{ "file": "README.md", "selected": "npm" }],
+      "tabs": [
+        { "slug": "npm", "label": "npm", "icon": "package", "title": "Install Flisk with npm" },
+        { "slug": "bun", "label": "Bun", "icon": "zap", "title": "Install Flisk with Bun" },
+        { "slug": "binary", "label": "Prebuilt binary", "icon": "download", "title": "Install the Flisk binary" }
+      ]
+    }
+  ]
+}
