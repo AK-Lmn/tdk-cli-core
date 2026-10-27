@@ -43,7 +43,7 @@ args = ["mcp"]
 Docs: [CLI](https://learn.chatgpt.com/docs/codex/cli.md) · [MCP](https://learn.chatgpt.com/docs/extend/mcp?surface=cli) · [AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md.md) · [skills](https://learn.chatgpt.com/docs/build-skills.md)
 
 </td></tr>
-<tr><td><img src="../assets/tabs/agents/codex-bottom.634cbdff.svg" alt="Codex input: Build me a small online shop with a storefront and an orders API…" width="100%" align="top"></td></tr>
+<tr><td><img src="../assets/tabs/agents/codex-bottom.66984153.svg" alt="Codex input: Build me a small online shop with a storefront and an orders API…" width="100%" align="top"></td></tr>
 </table>
 <!-- /tabs:agents -->
 

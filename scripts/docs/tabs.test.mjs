@@ -109,6 +109,11 @@ test("every frame kind draws a top and a bottom at the frame width, and an unkno
     for (const svg of [top, bottom]) {
       assert.match(svg, new RegExp(`^<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="\\d+"`), kind);
       assert.match(svg, /<title>[^<]+<\/title>/, kind);
+      if (svg.includes("animation:")) assert.match(svg, /@media \(prefers-reduced-motion:reduce\)\{\*\{animation:none!important\}\}/, kind);
+    }
+    if (["claude-code", "codex", "cursor", "ubuntu", "omarchy"].includes(kind)) {
+      assert.match(bottom, /<text [^>]*xml:space="preserve"[^>]*textLength=/, `${kind} types its prompt`);
+      assert.match(bottom, /\.ty\{transform:translateX\(\d+px\)/, `${kind}: a static render shows the whole prompt`);
     }
   }
   assert.throws(() => frameSvgs({ kind: "amiga" }, "os/mac"), /unknown frame "amiga" for os\/mac/);

@@ -37,7 +37,7 @@ Cursor has no command to add a server, so create `.cursor/mcp.json` in the proje
 Docs: [CLI install](https://cursor.com/docs/cli/installation) · [MCP](https://cursor.com/docs/context/mcp) · [rules](https://cursor.com/docs/context/rules) · [skills](https://cursor.com/docs/context/skills)
 
 </td></tr>
-<tr><td><img src="../assets/tabs/agents/cursor-bottom.382ffd3a.svg" alt="Agent chat input: Build me a small online shop with a storefront and an orders API…" width="100%" align="top"></td></tr>
+<tr><td><img src="../assets/tabs/agents/cursor-bottom.16e850fe.svg" alt="Agent chat input: Build me a small online shop with a storefront and an orders API…" width="100%" align="top"></td></tr>
 </table>
 <!-- /tabs:agents -->
 

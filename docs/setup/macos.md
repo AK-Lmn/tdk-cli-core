@@ -30,7 +30,7 @@ flisk doctor
 `flisk doctor` checks only what your project uses and prints a fix for anything missing. No Node.js? [Install the prebuilt binary](../install/binary.md) instead.
 
 </td></tr>
-<tr><td><img src="../assets/tabs/setup/macos-bottom.5f4104a9.svg" alt="2 services healthy in 0.8 s · no Docker · Apple M1 · 16 GB · flisk 1.4.7" width="100%" align="top"></td></tr>
+<tr><td><img src="../assets/tabs/setup/macos-bottom.5726a279.svg" alt="2 services healthy in 0.8 s · no Docker · Apple M1 · 16 GB · flisk 1.4.7" width="100%" align="top"></td></tr>
 </table>
 <!-- /tabs:setup -->
 

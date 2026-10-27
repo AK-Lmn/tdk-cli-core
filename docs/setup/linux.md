@@ -29,7 +29,7 @@ flisk doctor
 `flisk doctor` checks only what your project uses and prints a fix for anything missing. No Node.js? [Install the prebuilt binary](../install/binary.md) instead.
 
 </td></tr>
-<tr><td><img src="../assets/tabs/setup/linux-bottom.11260d54.svg" alt="flisk@ubuntu:~/my-shop$ flisk up · Docker Engine · Tilt · Node.js 22" width="100%" align="top"></td></tr>
+<tr><td><img src="../assets/tabs/setup/linux-bottom.ad78c53d.svg" alt="flisk@ubuntu:~/my-shop$ flisk up · Docker Engine · Tilt · Node.js 22" width="100%" align="top"></td></tr>
 </table>
 <!-- /tabs:setup -->
 

@@ -30,7 +30,7 @@ flisk doctor
 Run every Flisk command from Ubuntu, not from PowerShell. The [Windows & WSL2 guide](../wsl2.md) has the full walkthrough, an example stack and troubleshooting.
 
 </td></tr>
-<tr><td><img src="../assets/tabs/setup/windows-bottom.4139ebb0.svg" alt="Run every flisk command inside Ubuntu · WSL 2 · Docker Desktop" width="100%" align="top"></td></tr>
+<tr><td><img src="../assets/tabs/setup/windows-bottom.bc8c202b.svg" alt="Run every flisk command inside Ubuntu · WSL 2 · Docker Desktop" width="100%" align="top"></td></tr>
 </table>
 <!-- /tabs:setup -->
 
