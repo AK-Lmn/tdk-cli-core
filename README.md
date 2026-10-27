@@ -1,5 +1,7 @@
 <div align="center">
 
+👋 **Welcome** · [欢迎](docs/README-zh_cn.md "简体中文") · [歡迎](docs/README-zh_tw.md "繁體中文") · [ようこそ](docs/README-ja.md "日本語") · [환영합니다](docs/README-ko.md "한국어") · [Bienvenue](docs/README-fr.md "Français") · [Bienvenido](docs/README-es.md "Español") · [Bem-vindos](docs/README-pt-BR.md "Português (Brasil)") · [Willkommen](docs/README-de.md "Deutsch") · [Benvenuti](docs/README-it.md "Italiano") · [أهلًا](docs/README-ar.md "العربية") · [Hoş geldiniz](docs/README-tr.md "Türkçe") · [Ласкаво просимо](docs/README-uk.md "Українська") · [Witamy](docs/README-pl.md "Polski") · [خوش آمدید](docs/README-fa.md "فارسی") · [Selamat datang](docs/README-id.md "Bahasa Indonesia") · [Chào mừng](docs/README-vi.md "Tiếng Việt") · [ยินดีต้อนรับ](docs/README-th.md "ไทย") · [Καλώς ήρθατε](docs/README-el.md "Ελληνικά") · [സ്വാഗതം](docs/README-ml.md "മലയാളം")
+
 # Flisk: your whole app, running on your computer with one command
 
 Describe an app to your AI helper, or type four commands yourself.<br />Flisk runs every part of it on your computer (the website, the back end, the database), connects them, and keeps them in sync as you change things.
