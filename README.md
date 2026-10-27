@@ -10,6 +10,10 @@ Describe an app to your AI helper, or type four commands yourself.<br />Flisk ru
 
 **Never written code? [Start here](docs/start/first-time.md)**, step by step, no experience needed · [Words you'll see](docs/start/words.md)
 
+<a href="https://www.producthunt.com/products/flisk?utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=flisk-readme" target="_blank" rel="noopener noreferrer"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1289517&amp;theme=light" alt="Flisk on Product Hunt" width="250" height="54" /></a>
+
+**🚀 Flisk is live on Product Hunt today.** Try it, then tell us there what worked and what did not.
+
 <img src="https://raw.githubusercontent.com/flisk-sh/.github/main/profile/header-flisk.svg" alt="Flisk: your whole stack, running locally with one command." width="100%">
 
 [![Flisk Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?logo=discord&logoColor=white)](https://discord.gg/Sjhb3tnq3)
