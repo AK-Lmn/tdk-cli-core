@@ -1,12 +1,16 @@
 {
+	"action-consistency": 31,
 	"ade": 50,
+	"env-var-consistency": 9,
 	"error-contract": 48.3,
 	"install-weight": 1133.1,
 	"json-coverage": 60.9,
+	"legacy-names": 1,
 	"llms-freshness": 71.6,
 	"mcp-parity": 88.9,
 	"schema-coverage": 97.1,
 	"skills-parity": 100,
 	"steps-to-first-healthy": 7,
+	"tool-consistency": 3,
 	"translation-drift": 0
 }

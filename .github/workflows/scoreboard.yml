@@ -28,6 +28,7 @@ jobs:
       actions: read # workflow run pass rates (example boot, agent and mcp resources, WSL2)
       security-events: read # open code-scanning alerts
       vulnerability-alerts: read # open Dependabot alerts
+      discussions: read # launch-inbound: discussions opened by outsiders
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:

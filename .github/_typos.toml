@@ -28,3 +28,6 @@ postgress = "postgress"
 certifi = "certifi"
 # in-toto attestation filename (checksums.txt.intoto.jsonl).
 intoto = "intoto"
+# Jest/Mocha function names that scripts/scores/skipped-tests.mjs searches for.
+xdescribe = "xdescribe"
+xit = "xit"

@@ -7,9 +7,13 @@
 //
 // The form's optional "before" questions ask the same two items about the tool the person used before Flisk. Those
 // answers give the only honest competitor comparison: the same people rating both tools. Each tool's row compares the
-// two means over the people who rated it.
+// two means over the people who rated it (the findings; the before-to-after change is the gap between those two means).
+//
+// The optional "How did you hear about Flisk?" question (id `source`) splits the summary by where people came from, so
+// the launch's answers (Product Hunt) read apart from the rest. Each source is quoted with its own n; a blank answer
+// ("_No response_") and an issue filed before the question existed are "not answered".
 import { formFields, rating, round1 } from "./lib.mjs";
-import { scoreResponse } from "../umux-lite-score.mjs";
+import { scoreResponse, summarize } from "../umux-lite-score.mjs";
 import { responses } from "./pmf.mjs";
 
 export const meta = {
@@ -25,6 +29,17 @@ export const MIN_N = 20;
 export const BEFORE = "What did you use before Flisk to run an app like this? (optional)";
 export const BEFORE_CAPABILITIES = "“The tool I used before met my requirements” (optional)";
 export const BEFORE_EASE = "“The tool I used before was easy to use” (optional)";
+export const SOURCE = "How did you hear about Flisk?";
+export const SOURCE_OPTIONS = [
+	"Product Hunt",
+	"Hacker News",
+	"GitHub",
+	"Search engine",
+	"A friend or colleague",
+	"Social media",
+	"Other",
+];
+export const NOT_ANSWERED = "not answered";
 // Answers that name no tool to compare with.
 const NO_TOOL = new Set(["", "_No response_", "Nothing, this was my first time"]);
 
@@ -41,13 +56,25 @@ export function beforeResponse(body) {
 	return { tool, score: umux(capabilities, ease) };
 }
 
+// Where the person heard about Flisk: one of SOURCE_OPTIONS, or "not answered".
+export function sourceOf(body) {
+	const answer = (formFields(body)[SOURCE] ?? "").trim();
+	return SOURCE_OPTIONS.includes(answer) ? answer : NOT_ANSWERED;
+}
+
 export function measure(ctx) {
 	const scored = responses(ctx.gh, ctx.repo)
-		.map((issue) => ({ flisk: scoreResponse(issue.body), before: beforeResponse(issue.body) }))
+		.map((issue) => ({ flisk: scoreResponse(issue.body), before: beforeResponse(issue.body), source: sourceOf(issue.body) }))
 		.filter((r) => r.flisk);
 	if (!scored.length) return { value: null, summary: "no answers yet" };
 	const n = scored.length;
 	const value = round1(mean(scored.map((r) => r.flisk.score)));
+	const bySource = new Map();
+	for (const r of scored) bySource.set(r.source, [...(bySource.get(r.source) ?? []), r.flisk]);
+	const sources = [...bySource.entries()]
+		.sort(([a, x], [b, y]) => y.length - x.length || a.localeCompare(b))
+		.map(([source, rows]) => `${source} n=${rows.length} mean ${round1(summarize(rows).mean)}`)
+		.join(", ");
 	const trust = n < MIN_N ? `; fewer than ${MIN_N} answers, too few to trust` : "";
 	const byTool = new Map();
 	for (const r of scored.filter((x) => x.before)) {
@@ -62,5 +89,5 @@ export function measure(ctx) {
 			const after = round1(mean(rows.map((r) => r.flisk.score)));
 			return `${tool}: n=${rows.length}, ${before} for ${tool} vs ${after} for Flisk (same people)`;
 		});
-	return { value, summary: `n=${n}, mean ${value}${trust}`, findings };
+	return { value, summary: `n=${n}, mean ${value}, median ${round1(summarize(scored.map((r) => r.flisk)).median)}; by source: ${sources}${trust}`, findings };
 }

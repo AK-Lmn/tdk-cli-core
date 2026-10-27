@@ -664,7 +664,7 @@ function Invoke-Wh6 {
   $homeBefore = $env:USERPROFILE
   $homeEnvBefore = $env:HOME
   $prefixBefore = $env:npm_config_prefix
-  $allowBefore = $env:TDK_ALLOW_NATIVE_WINDOWS
+  $allowBefore = $env:FLISK_ALLOW_NATIVE_WINDOWS
   $tempHome = Join-Path $script:WorkDir 'demo home'
   $tempPrefix = Join-Path $script:WorkDir 'demo npm prefix'
   New-Item -ItemType Directory -Force -Path $tempHome | Out-Null
@@ -676,13 +676,13 @@ function Invoke-Wh6 {
     $env:USERPROFILE = $tempHome
     $env:HOME = $tempHome
     $env:npm_config_prefix = $tempPrefix
-    Remove-Item Env:TDK_ALLOW_NATIVE_WINDOWS -ErrorAction SilentlyContinue
+    Remove-Item Env:FLISK_ALLOW_NATIVE_WINDOWS -ErrorAction SilentlyContinue
     $result = Invoke-Exe $exe @('demo') $workDir 600
   } finally {
     if ($null -eq $homeBefore) { Remove-Item Env:USERPROFILE -ErrorAction SilentlyContinue } else { $env:USERPROFILE = $homeBefore }
     if ($null -eq $homeEnvBefore) { Remove-Item Env:HOME -ErrorAction SilentlyContinue } else { $env:HOME = $homeEnvBefore }
     if ($null -eq $prefixBefore) { Remove-Item Env:npm_config_prefix -ErrorAction SilentlyContinue } else { $env:npm_config_prefix = $prefixBefore }
-    if ($allowBefore) { $env:TDK_ALLOW_NATIVE_WINDOWS = $allowBefore }
+    if ($allowBefore) { $env:FLISK_ALLOW_NATIVE_WINDOWS = $allowBefore }
   }
 
   if ($result.ExitCode -eq 0) { throw 'the demo command succeeded on native Windows; it must not boot a stack' }
