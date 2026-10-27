@@ -79,7 +79,7 @@ Press `Ctrl+C`, then:
 # Stop the stack (containers stay for inspection)
 flisk down
 
-# Also remove this project's Docker networks that no container uses (data volumes are kept)
+# Also remove this project's unused Docker networks (data volumes are kept)
 flisk down --prune-networks
 ```
 

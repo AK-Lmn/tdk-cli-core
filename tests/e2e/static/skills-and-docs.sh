@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Copyright (c) 2026 Flisk Landscape contributors
 # SPDX-License-Identifier: MIT
-# Repository checks that need no stack: the skill symlinks, the skill sync script, the documentation links and the generated
-# docs tab bars. The first three were cases of the agent suite; they all run in make test-shell instead, since they need only
-# the checkout and no Docker or Tilt.
+# Repository checks that need no stack: the skill symlinks, the skill sync script, the documentation links, the generated
+# docs tab bars and the fit calculator. The first three were cases of the agent suite; they all run in make test-shell
+# instead, since they need only the checkout and no Docker or Tilt.
 #   tests/e2e/static/skills-and-docs.sh
 set -euo pipefail
 
@@ -76,7 +76,12 @@ D4() {
   (cd "$REPO_ROOT" && node scripts/docs/tabs.mjs --check) || die "generated docs tabs are out of date; run: node scripts/docs/tabs.mjs"
 }
 
-for case in D1 D2 D3 D4; do
+D5() {
+  log "D5 the fit calculator pages and the README fit section match scripts/docs/fit.mjs"
+  (cd "$REPO_ROOT" && node scripts/docs/fit.mjs --check) || die "generated fit pages are out of date; run: node scripts/docs/fit.mjs"
+}
+
+for case in D1 D2 D3 D4 D5; do
   "$case"
   echo "PASS $case"
 done

@@ -67,12 +67,15 @@ function style(rules) {
 }
 
 // One tab. Both states of a tab have the same width (the bold label's), so the bar does not shift between sibling pages.
-// Selected: bold label, a rounded wash behind it and a 2px accent underline, as in GitHub's UnderlineNav.
+// Selected: bold label, a rounded wash behind it and a 2px accent underline, as in GitHub's UnderlineNav. icon is optional.
 export function tabSvg({ label, icon }, selected) {
-  if (!ICONS[icon]) throw new Error(`unknown icon "${icon}" for tab "${label}"; known: ${Object.keys(ICONS).join(", ")}`);
+  if (icon !== undefined && !ICONS[icon]) {
+    throw new Error(`unknown icon "${icon}" for tab "${label}"; known: ${Object.keys(ICONS).join(", ")}`);
+  }
   const weight = selected ? 600 : 400;
   const slot = Math.max(textWidth(label, 14, 600), textWidth(label, 14, 400));
-  const width = 40 + slot + 16;
+  const textX = icon ? 40 : 18;
+  const width = textX + slot + (icon ? 16 : 18);
   const title = selected ? `${label} (selected)` : label;
   const css = (c) => `.t{fill:${c.fg}}.i{stroke:${selected ? c.fg : c.muted}}.w{fill:${c.wash}}.u{fill:${c.accent}}`;
   return [
@@ -81,8 +84,8 @@ export function tabSvg({ label, icon }, selected) {
     style(css),
     selected ? `<rect class="w" x="8" y="8" width="${width - 16}" height="32" rx="6"/>` : "",
     selected ? `<rect class="u" x="8" y="46" width="${width - 16}" height="2" rx="1"/>` : "",
-    `<g class="i" transform="translate(16 16)" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${ICONS[icon]}</g>`,
-    `<text class="t" x="40" y="29" font-family="${FONT}" font-size="14" font-weight="${weight}" textLength="${textWidth(label, 14, weight)}" lengthAdjust="spacingAndGlyphs">${esc(label)}</text>`,
+    icon ? `<g class="i" transform="translate(16 16)" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${ICONS[icon]}</g>` : "",
+    `<text class="t" x="${textX}" y="29" font-family="${FONT}" font-size="14" font-weight="${weight}" textLength="${textWidth(label, 14, weight)}" lengthAdjust="spacingAndGlyphs">${esc(label)}</text>`,
     "</svg>",
     "",
   ]

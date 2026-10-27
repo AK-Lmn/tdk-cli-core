@@ -32,6 +32,7 @@ test-shell: ## Check shell script syntax, e2e suite definitions, the CI inventor
 	node tests/e2e/lib/validate-suites.mjs
 	bash tests/e2e/static/skills-and-docs.sh >/dev/null
 	node --test scripts/docs/tabs.test.mjs
+	node --test scripts/docs/fit.test.mjs
 	node scripts/check-ci-inventory.mjs
 	node --test scripts/check-ci-inventory.test.mjs
 	node --test scripts/check-test-helper-allowlist.test.mjs
