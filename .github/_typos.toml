@@ -7,6 +7,8 @@ extend-exclude = [
   "examples/byo-jobs/prisma/prisma/migrations/migration_lock.toml",
   # Translated READMEs use other languages, which the English word list flags.
   "docs/README-*.md",
+  # Generated images are named after a content hash (score-84.3dbe6268.svg), which the word list reads as typos.
+  "docs/assets/fit/**",
 ]
 
 [default]

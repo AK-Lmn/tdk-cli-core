@@ -3,7 +3,7 @@
 // Mutation score from a Stryker report (`--mutation reports/mutation/mutation.json`, the mutation-testing-elements JSON
 // schema): of the mutants the tests could have caught, the share they did catch. Coverage says a line ran; this says a
 // test would notice if the line were wrong. Report only: the weekly scoreboard workflow runs Stryker on the generators.
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { round1 } from "./lib.mjs";
 
 export const meta = {
@@ -33,6 +33,11 @@ export function mutationScore(report) {
 
 export function measure({ mutation }) {
 	if (!mutation) return { value: null };
+	// Stryker writes the report at the end of a run, so a missing file means the run itself failed: say that instead
+	// of a bare ENOENT, which reads like a bug in this scorer.
+	if (!existsSync(mutation)) {
+		return { value: null, summary: `no Stryker report at ${mutation}: the Stryker step failed, see its log` };
+	}
 	const { score, detected, total, files } = mutationScore(JSON.parse(readFileSync(mutation, "utf8")));
 	const survivors = files.flatMap((f) =>
 		f.undetected.map((m) => `${f.file}:${m.location?.start?.line ?? "?"} ${m.mutatorName} ${m.status}`),

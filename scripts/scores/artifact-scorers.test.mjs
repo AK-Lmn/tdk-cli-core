@@ -147,3 +147,10 @@ test("lighthouse reads the report file and names the audited URL", () =>
 		assert.equal(r.summary, "https://flisk.sh/ performance 81, accessibility 97, best-practices 100, seo 90");
 		assert.deepEqual(r.findings, ["contrast: Contrast", "lcp: Largest Contentful Paint"]);
 	}));
+
+test("a missing Stryker report is no data with a pointer to the failed step, not an ENOENT", () =>
+	withTmp((dir) => {
+		const r = mutation({ mutation: path.join(dir, "mutation.json") });
+		assert.equal(r.value, null);
+		assert.match(r.summary, /the Stryker step failed/);
+	}));

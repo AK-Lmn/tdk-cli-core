@@ -5,5 +5,5 @@
 	"json-coverage": 60.9,
 	"mcp-parity": 88.9,
 	"steps-to-first-healthy": 7,
-	"translation-drift": 19
+	"translation-drift": 0
 }
