@@ -16,7 +16,10 @@ export function parseStackResourceConfig(content, configPath) {
     }
     catch (error) {
         const reason = error instanceof Error ? error.message : String(error);
-        throw new FliskError(`Could not parse service.json at ${configPath}: ${reason}`);
+        throw new FliskError(`Could not parse service.json at ${configPath}: ${reason}`, [
+            "Fix the JSON syntax in that file",
+            "Check every service.json with: flisk config verify",
+        ]);
     }
 }
 function normalizeResourceNames(names) {

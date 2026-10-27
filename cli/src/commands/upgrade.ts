@@ -21,7 +21,7 @@ import { Command } from "commander";
 import { LEGACY_PACKAGE } from "../utils/cli-command.js";
 import { addYesOption, handleDryRun } from "../utils/command-helpers.js";
 import { PACKAGE_JSON } from "../utils/constants.js";
-import { getErrorMessage, logVerbose, showErrorAndExit } from "../utils/errors.js";
+import { FliskError, getErrorMessage, logVerbose, showErrorAndExit } from "../utils/errors.js";
 import { showCancelled } from "../utils/formatting.js";
 import { getPackageVersion } from "../utils/paths.js";
 import { binaryAssetName, executableName, isWindows } from "../utils/platform.js";
@@ -599,8 +599,9 @@ export async function upgradeViaGit(path: string): Promise<boolean> {
       encoding: "utf-8",
     }).trim();
     if (dirty) {
-      throw new Error(
+      throw new FliskError(
         "The Flisk source checkout has local changes. Commit or stash them, then run `flisk upgrade` again.",
+        ["git stash", "flisk upgrade"],
       );
     }
 
@@ -630,8 +631,9 @@ export async function upgradeViaGit(path: string): Promise<boolean> {
       }
     }
     if (!defaultRef?.startsWith("origin/")) {
-      throw new Error(
+      throw new FliskError(
         "Could not find the default branch for origin (expected origin/HEAD, origin/main, or origin/master).",
+        ["git remote set-head origin --auto", "flisk upgrade"],
       );
     }
     const defaultBranch = defaultRef.slice("origin/".length);

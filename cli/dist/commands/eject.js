@@ -5,7 +5,7 @@ import { join } from "node:path";
 import chalk from "chalk";
 import { Command } from "commander";
 import { addYesOption, confirmOrCancel, handleDryRun } from "../utils/command-helpers.js";
-import { errorFactories, runCommand } from "../utils/errors.js";
+import { errorFactories, FliskError, runCommand } from "../utils/errors.js";
 import { findProjectRoot } from "../utils/paths.js";
 // Same location `flisk up` hands to Tilt (see getTiltfilePath in utils/tilt.ts), relative to the project root.
 export const TILTFILE_RELATIVE_PATH = ".flisk/.flisk-out/Tiltfile";
@@ -65,7 +65,7 @@ export const ejectCommand = addYesOption(new Command("eject"))
             }
         });
         if (!existsSync(join(projectRoot, ".flisk", ".flisk-out", "Tiltfile"))) {
-            throw new Error("Generated Tilt files are missing. Run `flisk project --yes` before ejecting.");
+            throw new FliskError("Generated Tilt files are missing. Run `flisk project --yes` before ejecting.", ["flisk project --yes", "flisk eject"]);
         }
         const rootTiltfile = join(projectRoot, "Tiltfile");
         const userTiltfile = existsSync(rootTiltfile) ? ["Tiltfile"] : [];

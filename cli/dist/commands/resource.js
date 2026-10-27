@@ -79,14 +79,23 @@ export function resolveResourcePort(resourceType, value, assignedPort, resources
     const flag = resourceType === BRING_YOUR_OWN_TYPE ? "BYO --port" : "--port";
     const subject = resourceType === BRING_YOUR_OWN_TYPE ? "BYO port" : "Port";
     if (!/^\d+$/.test(value)) {
-        throw new FliskError(`${flag} must be an integer from ${min} through ${max}.`);
+        throw new FliskError(`${flag} must be an integer from ${min} through ${max}.`, [
+            `Pass a port in range, for example ${flag} ${min}`,
+            "Or leave the flag out and Flisk assigns a free port",
+        ]);
     }
     const port = Number(value);
     if (!Number.isInteger(port) || port < min || port > max) {
-        throw new FliskError(`${flag} must be an integer from ${min} through ${max}.`);
+        throw new FliskError(`${flag} must be an integer from ${min} through ${max}.`, [
+            `Pass a port in range, for example ${flag} ${min}`,
+            "Or leave the flag out and Flisk assigns a free port",
+        ]);
     }
     if (resources.some((resource) => resource.config?.port === port)) {
-        throw new FliskError(`${subject} ${port} is already assigned to another resource.`);
+        throw new FliskError(`${subject} ${port} is already assigned to another resource.`, [
+            "See the ports in use with: flisk resources",
+            "Pick another port, or leave the flag out and Flisk assigns a free one",
+        ]);
     }
     return port;
 }
@@ -345,7 +354,10 @@ export function parseExistingServiceJson(content, configPath) {
     }
     catch (error) {
         const reason = error instanceof Error ? error.message : String(error);
-        throw new FliskError(`Could not parse service.json at ${configPath}: ${reason}`);
+        throw new FliskError(`Could not parse service.json at ${configPath}: ${reason}`, [
+            "Fix the JSON syntax in that file",
+            "Check every service.json with: flisk config verify",
+        ]);
     }
 }
 /**

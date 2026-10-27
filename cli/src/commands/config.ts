@@ -24,7 +24,13 @@ import {
 } from "../utils/constants.js";
 import { clearDiscoveryCache } from "../utils/discovery-context.js";
 import { checkPrismaConsistency } from "../utils/doctor-wiring.js";
-import { errorFactories, requireProjectRoot, runCommand, showError } from "../utils/errors.js";
+import {
+  errorFactories,
+  FliskError,
+  requireProjectRoot,
+  runCommand,
+  showError,
+} from "../utils/errors.js";
 import { writeJsonFile } from "../utils/file-helpers.js";
 import { createMachineEnvelope, writeMachineError } from "../utils/machine-output.js";
 import { findProjectRoot } from "../utils/paths.js";
@@ -456,7 +462,9 @@ export const configCommand = new Command("config")
 
         const projectJsonPath = join(projectRoot, ".flisk", PROJECT_JSON);
         if (!existsSync(projectJsonPath)) {
-          throw new Error(".flisk/project.json not found");
+          throw new FliskError(".flisk/project.json not found", [
+            "Create the project config with: flisk project --yes",
+          ]);
         }
 
         const editor = process.env.EDITOR || "vi";
@@ -519,9 +527,13 @@ async function toggleInfraService(service: string, enabled: boolean): Promise<vo
   if (service === "verdaccio" && enabled) {
     const granted = await hasVerdaccioLicense(projectRoot);
     if (!granted) {
-      throw new Error(
+      throw new FliskError(
         "Verdaccio is a Premium feature and requires a license key that grants it. " +
           "Set export FLISK_LICENSE_KEY=<key> (request a Premium license at https://flisk.sh/#waitlist) and try again.",
+        [
+          "export FLISK_LICENSE_KEY=<key>",
+          "Request a Premium license at https://flisk.sh/#waitlist",
+        ],
       );
     }
   }
@@ -530,9 +542,10 @@ async function toggleInfraService(service: string, enabled: boolean): Promise<vo
 
   // Runtime validation: ensure service is a valid key of optional_infra
   if (!isOptionalInfraKey(service, config)) {
-    throw new Error(
+    throw new FliskError(
       `Invalid infrastructure service: "${service}". ` +
         `Must be one of: ${Object.keys(config.optional_infra).join(", ")}`,
+      [`flisk config enable-infra ${Object.keys(config.optional_infra)[0] ?? "monitoring"}`],
     );
   }
 

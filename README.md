@@ -8,6 +8,10 @@
 
 Describe an app to your AI helper, or type four commands yourself.<br />Flisk runs every part of it on your computer (the website, the back end, the database), connects them, and keeps them in sync as you change things.
 
+```bash
+npm install -g @flisk-sh/flisk
+```
+
 **Never written code? [Start here](docs/start/first-time.md)**, step by step, no experience needed · [Words you'll see](docs/start/words.md)
 
 <a href="https://www.producthunt.com/products/flisk?utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=flisk-readme" target="_blank" rel="noopener noreferrer"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1289517&amp;theme=light" alt="Flisk on Product Hunt" width="250" height="54" /></a>

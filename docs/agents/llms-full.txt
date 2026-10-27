@@ -1,5 +1,7 @@
 # Flisk CLI Core — Complete Context for LLMs
 
+> Flisk is the local runtime for full-stack and AI-agent systems: services, agents, MCP tool servers, databases, and queues, orchestrated locally on Docker + Tilt behind a Traefik gateway with zero Kubernetes.
+
 Flisk CLI Core is an open-source (MIT) CLI tool that turns clean service manifests (`service.json`) into fully orchestrated local Docker + Tilt development environments with zero Kubernetes on the host.
 
 See also the product site [llms.txt](https://flisk.sh/llms.txt).
