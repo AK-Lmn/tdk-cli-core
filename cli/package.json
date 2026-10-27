@@ -1,7 +1,7 @@
 {
   "name": "flisk-cli-internal",
   "private": true,
-  "version": "1.4.7",
+  "version": "1.4.8",
   "description": "Flisk CLI — start services on your machine.",
   "keywords": [
     "flisk",
