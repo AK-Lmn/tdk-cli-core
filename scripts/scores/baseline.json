@@ -1,9 +1,9 @@
 {
 	"ade": 50,
-	"error-contract": 44,
+	"error-contract": 48.3,
 	"install-weight": 1133.1,
 	"json-coverage": 60.9,
-	"mcp-parity": 44.4,
+	"mcp-parity": 88.9,
 	"steps-to-first-healthy": 7,
 	"translation-drift": 19
 }

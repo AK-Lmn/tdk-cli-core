@@ -11,7 +11,7 @@ You can ask for operations in plain language; you do not need to write JavaScrip
 
 ## The tools at a glance
 
-The server exposes nine tools: `doctor`, `up`, `down`, `status`, `logs`, `resource_list`, `restart_resource`, `list_agents`, and `get_agent_sessions`. The [setup guide](flisk-mcp-setup.md#the-tools) says what each one does and when to use it.
+The server exposes nineteen tools: `doctor`, `up`, `down`, `status`, `logs`, `resource_list`, `restart_resource`, `list_agents`, `get_agent_sessions`, `stack_list`, `project_info`, `network_list`, `config_verify`, `config_explain`, `runtime_check`, `config_regenerate`, `resource_create`, `stack_assign`, and `project_init`. The [setup guide](flisk-mcp-setup.md#the-tools) says what each one does and when to use it.
 
 ## Reporting problems found while using the Flisk MCP
 

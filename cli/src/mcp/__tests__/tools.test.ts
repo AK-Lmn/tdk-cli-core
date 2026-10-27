@@ -10,15 +10,23 @@ import { fileURLToPath } from "node:url";
 import type { Command } from "commander";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getRegisteredCommands } from "../../commands/registry.js";
+import { CREATABLE_RESOURCE_TYPES } from "../../types/index.js";
+import { FliskError } from "../../utils/errors.js";
 import { PROJECT_TEMPLATES } from "../../utils/project-templates.js";
 import {
+  buildConfigRegenerateArgs,
   buildLogsArgs,
+  buildProjectInitArgs,
+  buildResourceCreateArgs,
+  buildStackAssignArgs,
   buildUpArgs,
   cliInvocation,
   createFliskTools,
   defaultUpDeps,
+  type FliskRun,
   runFliskCli,
   startUp,
+  toTextResult,
   toToolResult,
   type UpDeps,
 } from "../tools.js";
@@ -121,6 +129,51 @@ function checkDocCliInvocations(docText: string, commands: Map<string, Command>)
   return problems;
 }
 
+/** What in a tool's `flisk <args>` its command does not declare: unknown options, or more positionals than it takes. */
+function undeclaredArguments(args: string[], commands: Map<string, Command>): string[] {
+  const [name = "", ...rest] = args;
+  const root = commands.get(name);
+  if (!root) return [`unknown command "flisk ${name}"`];
+  const sub = root.commands.find((c) => c.name() === rest[0]);
+  const target = sub ?? root;
+  const tokens = sub ? rest.slice(1) : rest;
+  const declared = new Set(
+    target.options.flatMap((opt) => [opt.long, opt.short].filter((f): f is string => Boolean(f))),
+  );
+  const problems = tokens
+    .filter((token) => token.startsWith("-"))
+    .map((token) => token.split("=")[0] ?? token)
+    .filter((option) => !declared.has(option))
+    .map((option) => `flisk ${target.name()}: unknown option "${option}"`);
+  const positionals = tokens.filter((token) => !token.startsWith("-")).length;
+  if (positionals > target.registeredArguments.length) {
+    problems.push(
+      `flisk ${target.name()} takes ${target.registeredArguments.length} positional argument(s), got ${positionals}`,
+    );
+  }
+  return problems;
+}
+
+/** Tools whose CLI runs are recorded (arguments, directory and any timeout) and answered with `stdout`. */
+function recordingTools(
+  stdout: string,
+  result: Partial<FliskRun> = {},
+): {
+  seen: { args: string[]; cwd?: string; timeoutMs?: number }[];
+  tools: ReturnType<typeof createFliskTools>;
+} {
+  const seen: { args: string[]; cwd?: string; timeoutMs?: number }[] = [];
+  const tools = createFliskTools(async (args, options) => {
+    seen.push({
+      args,
+      cwd: options?.cwd,
+      ...(options?.timeoutMs === undefined ? {} : { timeoutMs: options.timeoutMs }),
+    });
+    return { exitCode: 0, stdout, stderr: "", ...result };
+  });
+  return { seen, tools };
+}
+
 describe("argument building", () => {
   it("builds up arguments, one --only= per service so a value is never a flag", () => {
     expect(
@@ -155,6 +208,142 @@ describe("argument building", () => {
     for (const bad of [{ tail: 0 }, { tail: 1.5 }, { since: "5" }, { services: ["-x"] }]) {
       expect(() => buildLogsArgs(bad)).toThrow();
     }
+  });
+
+  it("builds resource_create arguments, always non-interactive, with options after the name", () => {
+    expect(buildResourceCreateArgs({ name: "api" })).toEqual(["resource", "api", "--yes"]);
+    expect(
+      buildResourceCreateArgs({
+        name: "api",
+        type: "backend",
+        stack: "shop",
+        framework: "hono",
+        language: "bun",
+        port: 4100,
+        features: ["prisma", "drizzle"],
+      }),
+    ).toEqual([
+      "resource",
+      "api",
+      "--type=backend",
+      "--stack=shop",
+      "--framework=hono",
+      "--language=bun",
+      "--port=4100",
+      "--feature=prisma",
+      "--feature=drizzle",
+      "--yes",
+    ]);
+    expect(
+      buildResourceCreateArgs({
+        name: "bot",
+        type: "agent",
+        runtime: "custom",
+        durability: "files",
+      }),
+    ).toEqual([
+      "resource",
+      "bot",
+      "--type=agent",
+      "--runtime=custom",
+      "--durability=files",
+      "--yes",
+    ]);
+  });
+  it.each([
+    [{}, "name is required"],
+    [{ name: "-rf" }, "name must be a name"],
+    [{ name: "a b" }, "name must be a name"],
+    [{ name: 7 }, "name must be a name"],
+    [{ name: "api", type: "lambda" }, "type must be one of: backend, frontend"],
+    [{ name: "api", type: "sdk" }, "type must be one of"],
+    [{ name: "api", stack: "--json" }, "stack must be a name"],
+    [{ name: "api", framework: "react native" }, "framework must be a name"],
+    [{ name: "api", language: "-x" }, "language must be a name"],
+    [{ name: "api", port: 0 }, "port must be an integer from 1 to 65535"],
+    [{ name: "api", port: 70000 }, "port must be an integer from 1 to 65535"],
+    [{ name: "api", port: "4000" }, "port must be an integer from 1 to 65535"],
+    [{ name: "api", port: 4000.5 }, "port must be an integer from 1 to 65535"],
+    [{ name: "api", features: "prisma" }, "features must be an array of names"],
+    [{ name: "api", features: ["--force"] }, "features must be an array of names"],
+    [{ name: "bot", runtime: "a/b" }, "runtime must be a name"],
+    [{ name: "bot", durability: "" }, "durability must be a name"],
+  ])("rejects resource_create arguments %j", (args, message) => {
+    expect(() => buildResourceCreateArgs(args)).toThrow(message);
+  });
+
+  it("builds stack_assign arguments with one --resources= per name", () => {
+    expect(buildStackAssignArgs({ stack: "shop", resources: ["api", "web"] })).toEqual([
+      "stack",
+      "shop",
+      "--resources=api",
+      "--resources=web",
+      "--yes",
+    ]);
+  });
+  it.each([
+    [{ resources: ["api"] }, "stack is required"],
+    [{ stack: "shop" }, "resources must name at least one resource"],
+    [{ stack: "shop", resources: [] }, "resources must name at least one resource"],
+    [{ stack: "-shop", resources: ["api"] }, "stack must be a name"],
+    [{ stack: "shop", resources: "api" }, "resources must be an array of names"],
+    [{ stack: "shop", resources: ["api", "--list"] }, "resources must be an array of names"],
+  ])("rejects stack_assign arguments %j", (args, message) => {
+    expect(() => buildStackAssignArgs(args)).toThrow(message);
+  });
+
+  it("builds project_init arguments and never passes --force", () => {
+    expect(buildProjectInitArgs({})).toEqual(["project", "--yes"]);
+    expect(buildProjectInitArgs({ agentSkills: false })).toEqual([
+      "project",
+      "--no-agent-skills",
+      "--yes",
+    ]);
+    expect(buildProjectInitArgs({ agentSkills: true })).toEqual(["project", "--yes"]);
+    expect(buildProjectInitArgs({ template: "agent-stack" })).toEqual([
+      "project",
+      "agent-stack",
+      "--yes",
+    ]);
+    expect(buildProjectInitArgs({ template: "saas", path: "apps/my saas" })).toEqual([
+      "project",
+      "saas",
+      "--path=apps/my saas",
+      "--yes",
+    ]);
+    for (const template of Object.keys(PROJECT_TEMPLATES)) {
+      expect(buildProjectInitArgs({ template })).toEqual(["project", template, "--yes"]);
+    }
+    expect(JSON.stringify(buildProjectInitArgs({ force: true }))).not.toContain("--force");
+  });
+  it.each([
+    [{ template: "rails" }, "template must be one of: demo"],
+    [{ template: "--force" }, "template must be one of"],
+    [{ path: "elsewhere" }, "path applies only with a template"],
+    [
+      { template: "saas", path: "-x" },
+      'path must be a non-empty path that does not start with "-"',
+    ],
+    [{ template: "saas", path: "" }, "path must be a non-empty path"],
+    [{ template: "saas", path: "a\nb" }, "path must be a non-empty path"],
+    [{ template: "saas", agentSkills: false }, "agentSkills applies only to a blank project"],
+    [{ agentSkills: "no" }, "agentSkills must be a boolean"],
+  ])("rejects project_init arguments %j", (args, message) => {
+    expect(() => buildProjectInitArgs(args)).toThrow(message);
+  });
+
+  it("makes config_regenerate a dry run unless dryRun is explicitly false", () => {
+    expect(buildConfigRegenerateArgs({})).toEqual(["config", "regenerate", "--dry-run"]);
+    expect(buildConfigRegenerateArgs({ dryRun: true })).toEqual([
+      "config",
+      "regenerate",
+      "--dry-run",
+    ]);
+    expect(buildConfigRegenerateArgs({ dryRun: false })).toEqual(["config", "regenerate"]);
+    expect(() => buildConfigRegenerateArgs({ dryRun: "false" })).toThrow(
+      "dryRun must be a boolean",
+    );
+    expect(() => buildConfigRegenerateArgs({ dryRun: 0 })).toThrow("dryRun must be a boolean");
   });
 });
 
@@ -272,6 +461,41 @@ describe("toToolResult", () => {
     expect(empty.isError).toBe(true);
     expect(JSON.stringify(empty.data)).toContain("flisk exited with code 3");
   });
+  it("reads a pretty-printed envelope (projects, networks) after incidental output", () => {
+    const envelope = {
+      schemaVersion: 1,
+      data: { services: [{ name: "api", status: "stopped" }, {}] },
+      errors: [],
+    };
+    const r = toToolResult(run(`warning: slow\n${JSON.stringify(envelope, null, 2)}\n`));
+    expect(r).toEqual({ data: envelope, isError: false });
+    const failed = { schemaVersion: 1, data: null, errors: [{ code: "NOT_IN_PROJECT" }] };
+    expect(toToolResult(run(JSON.stringify(failed, null, 2), 1))).toEqual({
+      data: failed,
+      isError: true,
+    });
+  });
+  it("marks a top-level ok:false (runtime --check-assets --json) as an error", () => {
+    const r = toToolResult(run('{"ok":false,"assetRoot":null,"missing":["engine"]}', 1));
+    expect(r).toEqual({ data: { ok: false, assetRoot: null, missing: ["engine"] }, isError: true });
+    expect(toToolResult(run('{"ok":true,"missing":[]}')).isError).toBe(false);
+  });
+});
+
+describe("toTextResult", () => {
+  it("returns the text output, with stderr only when there is some", () => {
+    expect(toTextResult({ exitCode: 0, stdout: "  created\n", stderr: "" })).toEqual({
+      data: { exitCode: 0, output: "created" },
+      isError: false,
+    });
+  });
+  it("is an error result on a non-zero or missing exit code", () => {
+    expect(toTextResult({ exitCode: 1, stdout: "", stderr: "❌ Directory exists\n" })).toEqual({
+      data: { exitCode: 1, output: "", stderr: "❌ Directory exists" },
+      isError: true,
+    });
+    expect(toTextResult({ exitCode: null, stdout: "partial", stderr: "" }).isError).toBe(true);
+  });
 });
 
 function fakeUp(options: { logs: string[]; exitAfter?: { atRead: number; code: number } }): {
@@ -357,6 +581,16 @@ describe("tool list", () => {
       "restart_resource",
       "list_agents",
       "get_agent_sessions",
+      "stack_list",
+      "project_info",
+      "network_list",
+      "config_verify",
+      "config_explain",
+      "runtime_check",
+      "config_regenerate",
+      "resource_create",
+      "stack_assign",
+      "project_init",
     ]);
     for (const t of tools)
       expect(t.inputSchema).toMatchObject({ type: "object", additionalProperties: false });
@@ -425,6 +659,221 @@ describe("tool list", () => {
     const tools = createFliskTools(async () => ({ exitCode: 0, stdout: "", stderr: "" }), deps);
     const result = await tools.find((t) => t.name === "up")?.handler({ waitSeconds: 0 });
     expect(result?.isError).toBe(false);
+  });
+
+  it("routes the read-only tools to their --json commands and project directory", async () => {
+    const { seen, tools } = recordingTools('{"schemaVersion":1,"data":{},"errors":[]}');
+    const call = (name: string, args: Record<string, unknown>) =>
+      tools.find((t) => t.name === name)?.handler(args);
+    await call("stack_list", { projectPath: "/work/erp" });
+    await call("stack_list", { services: true, verbose: true });
+    await call("project_info", {});
+    await call("network_list", { stack: "shop" });
+    await call("network_list", {});
+    await call("config_verify", { projectPath: "/work/erp" });
+    await call("config_explain", { file: ".flisk/.flisk-out/Tiltfile" });
+    await call("config_explain", { file: "/work/erp/services/shop/api/service.json" });
+    await call("runtime_check", {});
+    expect(seen).toEqual([
+      { args: ["stacks", "--json"], cwd: "/work/erp" },
+      { args: ["stacks", "--json", "--services", "--verbose"], cwd: undefined },
+      { args: ["projects", "--json"], cwd: undefined },
+      { args: ["networks", "--json", "--stack=shop"], cwd: undefined },
+      { args: ["networks", "--json"], cwd: undefined },
+      { args: ["config", "verify", "--json"], cwd: "/work/erp" },
+      { args: ["config", "explain", ".flisk/.flisk-out/Tiltfile", "--json"], cwd: undefined },
+      {
+        args: ["config", "explain", "/work/erp/services/shop/api/service.json", "--json"],
+        cwd: undefined,
+      },
+      { args: ["runtime", "--check-assets", "--json"], cwd: undefined },
+    ]);
+    expect(tools.find((t) => t.name === "config_explain")?.inputSchema).toMatchObject({
+      required: ["file"],
+    });
+  });
+
+  it("rejects invalid read-only tool arguments before running the CLI", async () => {
+    const { seen, tools } = recordingTools("");
+    const call = (name: string, args: Record<string, unknown>) =>
+      tools.find((t) => t.name === name)?.handler(args);
+    await expect(call("stack_list", { services: "yes" })).rejects.toThrow(
+      "services must be a boolean",
+    );
+    await expect(call("stack_list", { verbose: 1 })).rejects.toThrow("verbose must be a boolean");
+    await expect(call("network_list", { stack: "-s" })).rejects.toThrow("stack must be a name");
+    await expect(call("config_explain", {})).rejects.toThrow("file is required");
+    await expect(call("config_explain", { file: "--json" })).rejects.toThrow(
+      'file must be a non-empty path that does not start with "-"',
+    );
+    await expect(call("config_explain", { file: 42 })).rejects.toThrow("file must be a non-empty");
+    await expect(call("project_info", { projectPath: "relative" })).rejects.toThrow(
+      "projectPath must be an absolute path",
+    );
+    expect(seen).toEqual([]);
+  });
+
+  it("runs the scaffolding tools non-interactively and returns their text output", async () => {
+    const { seen, tools } = recordingTools("✅ Resource created successfully!\n");
+    const call = (name: string, args: Record<string, unknown>) =>
+      tools.find((t) => t.name === name)?.handler(args);
+    const created = await call("resource_create", {
+      projectPath: "/work/erp",
+      name: "api",
+      type: "backend",
+      stack: "shop",
+    });
+    expect(created).toEqual({
+      data: { exitCode: 0, output: "✅ Resource created successfully!" },
+      isError: false,
+    });
+    await call("stack_assign", { stack: "shop", resources: ["api"] });
+    await call("project_init", { projectPath: "/work/new-app" });
+    await call("project_init", { template: "agent-stack" });
+    await call("config_regenerate", {});
+    await call("config_regenerate", { dryRun: false });
+    expect(seen).toEqual([
+      {
+        args: ["resource", "api", "--type=backend", "--stack=shop", "--yes"],
+        cwd: "/work/erp",
+      },
+      { args: ["stack", "shop", "--resources=api", "--yes"], cwd: undefined },
+      { args: ["project", "--yes"], cwd: "/work/new-app", timeoutMs: 300_000 },
+      { args: ["project", "agent-stack", "--yes"], cwd: undefined, timeoutMs: 300_000 },
+      { args: ["config", "regenerate", "--dry-run"], cwd: undefined },
+      { args: ["config", "regenerate"], cwd: undefined },
+    ]);
+    expect(tools.find((t) => t.name === "resource_create")?.inputSchema).toMatchObject({
+      required: ["name"],
+      properties: { type: { enum: [...CREATABLE_RESOURCE_TYPES] } },
+    });
+    expect(tools.find((t) => t.name === "stack_assign")?.inputSchema).toMatchObject({
+      required: ["stack", "resources"],
+    });
+    expect(tools.find((t) => t.name === "project_init")?.inputSchema).toMatchObject({
+      properties: { template: { enum: Object.keys(PROJECT_TEMPLATES) } },
+    });
+    expect(JSON.stringify(tools.find((t) => t.name === "project_init")?.inputSchema)).not.toContain(
+      "force",
+    );
+  });
+
+  it("returns a failed scaffold as an error result with its stderr", async () => {
+    const { tools } = recordingTools("", { exitCode: 1, stderr: "❌ Directory already exists" });
+    const result = await tools
+      .find((t) => t.name === "resource_create")
+      ?.handler({ name: "api", stack: "shop" });
+    expect(result).toEqual({
+      data: { exitCode: 1, output: "", stderr: "❌ Directory already exists" },
+      isError: true,
+    });
+  });
+
+  it("rejects invalid scaffolding arguments before running the CLI", async () => {
+    const { seen, tools } = recordingTools("");
+    const call = (name: string, args: Record<string, unknown>) =>
+      tools.find((t) => t.name === name)?.handler(args);
+    await expect(call("resource_create", {})).rejects.toThrow("name is required");
+    await expect(call("resource_create", { name: "api", type: "lambda" })).rejects.toThrow(
+      "type must be one of",
+    );
+    await expect(call("stack_assign", { stack: "shop", resources: [] })).rejects.toThrow(
+      "resources must name at least one resource",
+    );
+    await expect(call("project_init", { template: "nope" })).rejects.toThrow(
+      "template must be one of",
+    );
+    await expect(call("project_init", { projectPath: "new-app" })).rejects.toThrow(
+      "projectPath must be an absolute path",
+    );
+    await expect(call("config_regenerate", { dryRun: "no" })).rejects.toThrow(
+      "dryRun must be a boolean",
+    );
+    expect(seen).toEqual([]);
+  });
+
+  it("says what to try next when it rejects a new tool's argument", async () => {
+    const { tools } = recordingTools("");
+    const call = (name: string, args: Record<string, unknown>) =>
+      tools.find((t) => t.name === name)?.handler(args);
+    const rejected: [string, Record<string, unknown>][] = [
+      ["resource_create", {}],
+      ["resource_create", { name: "api", type: "lambda" }],
+      ["resource_create", { name: "api", port: 0 }],
+      ["stack_assign", { resources: ["api"] }],
+      ["stack_assign", { stack: "shop", resources: [] }],
+      ["project_init", { path: "elsewhere" }],
+      ["project_init", { template: "saas", agentSkills: false }],
+      ["config_explain", {}],
+      ["config_explain", { file: "-x" }],
+    ];
+    for (const [name, args] of rejected) {
+      const error = await Promise.resolve(call(name, args)).catch((e: unknown) => e);
+      expect(error, `${name} ${JSON.stringify(args)}`).toBeInstanceOf(FliskError);
+      expect((error as FliskError).suggestions.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("passes only arguments and options that the target CLI command declares", async () => {
+    const commands = loadRegisteredCommandMap();
+    const { seen, tools } = recordingTools('{"schemaVersion":1,"data":{},"errors":[]}');
+    // Every tool that runs the CLI directly, with every option it can pass.
+    const calls: Record<string, Record<string, unknown>> = {
+      doctor: { noPing: true },
+      down: { dryRun: true },
+      status: {},
+      logs: { services: ["api"], tail: 5, since: "5m" },
+      resource_list: { stack: "shop" },
+      restart_resource: { resource: "api" },
+      list_agents: { stack: "shop" },
+      get_agent_sessions: { resource: "bot", sessionId: "s1" },
+      stack_list: { services: true, verbose: true },
+      project_info: {},
+      network_list: { stack: "shop" },
+      config_verify: {},
+      config_explain: { file: "service.json" },
+      runtime_check: {},
+      config_regenerate: { dryRun: true },
+      resource_create: {
+        name: "bot",
+        type: "agent",
+        stack: "shop",
+        framework: "hono",
+        language: "bun",
+        port: 4800,
+        features: ["prisma"],
+        runtime: "custom",
+        durability: "files",
+      },
+      stack_assign: { stack: "shop", resources: ["api", "web"] },
+      project_init: { agentSkills: false },
+    };
+    expect(Object.keys(calls).sort()).toEqual(
+      tools
+        .map((t) => t.name)
+        .filter((name) => name !== "up")
+        .sort(),
+    );
+    for (const [name, args] of Object.entries(calls)) {
+      await tools.find((t) => t.name === name)?.handler(args);
+    }
+    await tools.find((t) => t.name === "project_init")?.handler({ template: "saas", path: "app" });
+    expect(seen).toHaveLength(Object.keys(calls).length + 1);
+    for (const { args } of seen) expect(undeclaredArguments(args, commands)).toEqual([]);
+    expect(
+      undeclaredArguments(
+        buildUpArgs({ stack: "shop", only: ["api"], force: true, dryRun: true }),
+        commands,
+      ),
+    ).toEqual([]);
+
+    // The check itself catches an unknown option and a surplus positional argument.
+    expect(undeclaredArguments(["stacks", "--bogus"], commands)).toEqual([
+      'flisk stacks: unknown option "--bogus"',
+    ]);
+    expect(undeclaredArguments(["config", "verify", "extra"], commands)).toEqual([
+      "flisk verify takes 0 positional argument(s), got 1",
+    ]);
   });
 
   it("keeps docs/agents/llms.txt and docs/agents/llms-full.txt in sync with MCP tools and CLI commands", async () => {

@@ -159,7 +159,7 @@ Stop the stack when you are done:
 
 ## The tools
 
-The server exposes nine tools. Six cover the stack lifecycle: `doctor`, `up`, `down`, `status`, `logs`, and `resource_list`. Three more cover agent resources: `restart_resource`, `list_agents`, and `get_agent_sessions`. Each one runs the matching Flisk CLI command with `--json`, so it behaves exactly like the command you would run by hand.
+The server exposes nineteen tools. Six cover the stack lifecycle: `doctor`, `up`, `down`, `status`, `logs`, and `resource_list`. Three cover agent resources: `restart_resource`, `list_agents`, and `get_agent_sessions`. Six inspect the project and its generated files: `stack_list`, `project_info`, `network_list`, `config_verify`, `config_explain`, and `runtime_check`. Four create or change files: `config_regenerate`, `resource_create`, `stack_assign`, and `project_init`. Each one runs the matching Flisk CLI command, so it behaves exactly like the command you would run by hand. The first fifteen run it with `--json` and return its envelope; the four that create or change files return the command's text output as `exitCode`, `output`, and `stderr`, and are an error result when it exits non-zero.
 
 | Tool | What it does | Use it when | Inputs |
 | --- | --- | --- | --- |
@@ -172,10 +172,29 @@ The server exposes nine tools. Six cover the stack lifecycle: `doctor`, `up`, `d
 | `restart_resource` | Restarts a running resource, or triggers its rebuild. | When one service needs a fresh start. | `projectPath`, `resource` |
 | `list_agents` | Lists the project's agent resources with their stack, runtime, durability, and port. | To work with agent resources. | `projectPath`, `stack` |
 | `get_agent_sessions` | Lists the sessions of a running agent resource, or reads one checkpoint. | To inspect an agent's session state. | `projectPath`, `resource`, `sessionId` (optional) |
+| `stack_list` | Lists the project's stacks with their resource counts. | To find a stack name. | `projectPath`, `services`, `verbose` |
+| `project_info` | Reports the project root, whether the generated master files exist, and resource and stack counts. | To check that a directory is a configured Flisk project. | `projectPath` |
+| `network_list` | Lists the Traefik URL of every frontend and API service and whether it answers. | To find the URL to open or call. | `projectPath`, `stack` |
+| `config_verify` | Checks that the generated files match `.flisk/project.json` and that every `service.json` is valid. | After editing `service.json` or `project.json`, or when `up` reports drift. | `projectPath` |
+| `config_explain` | Says whether a file is generated or user-owned, and what editing it does on `up`. | Before editing a file you did not write. | `projectPath`, `file` |
+| `runtime_check` | Checks that the installed CLI has its bundled runtime assets. | When generated files or templates are missing. | `projectPath` |
+| `config_regenerate` | Regenerates the master config files from `.flisk/project.json`; a dry run unless `dryRun` is `false`. | When `config_verify` reports a drifted generated file. | `projectPath`, `dryRun` |
+| `resource_create` | Scaffolds a service (or registers a directory that already has a `service.json`) without prompts. | To add a backend, frontend, worker, MCP server, or agent. | `projectPath`, `name`, `type`, `stack`, `framework`, `language`, `port`, `features`, `runtime`, `durability` |
+| `stack_assign` | Assigns resources that have no stack yet to a stack. | To group services so `up` can start them together. | `projectPath`, `stack`, `resources` |
+| `project_init` | Creates a Flisk project in a directory, or clones a starter template into it. | To start a new project. | `projectPath`, `template`, `path`, `agentSkills` |
 
-`projectPath` is an absolute path to a Flisk project root. Every tool accepts it, so a client that does not launch the server from the project directory can still target the right project. Without it, the tools use the server's own working directory and fail with `Could not find project root` when that directory is not a Flisk project.
+`projectPath` is an absolute path to a Flisk project root. Every tool accepts it, so a client that does not launch the server from the project directory can still target the right project. Without it, the tools use the server's own working directory and fail with `Could not find project root` when that directory is not a Flisk project. For `project_init` it is the existing directory to create the project in, or to clone the template from.
 
-`get_agent_sessions` needs a `resource`; without a `sessionId` it lists the agent's sessions; the other tools need one argument at most.
+`get_agent_sessions` and `resource_create` need a `resource` or `name`, `config_explain` a `file`, and `stack_assign` a `stack` and at least one name in `resources`; without a `sessionId`, `get_agent_sessions` lists the agent's sessions.
+
+The tools that change files are careful by default. `config_regenerate` only reports what would change until it is called with `dryRun: false`; a real run discards hand edits in the generated files. `resource_create` refuses a directory that already exists unless it has a `service.json`, which it then registers; calling it again for a resource that is already registered rewrites that `service.json` and can give it a new port, so check `resource_list` first. `stack_assign` refuses a resource that is already in a stack. `project_init` never passes `--force`, so it never overwrites an existing `.flisk/project.json`; inside an existing project it refreshes that project's generated files.
+
+Some commands have no tool, so an agent runs them in a shell where you can see them:
+
+- `flisk eject`: leaving Flisk is your decision, and the command only writes `EJECTED.md`.
+- `flisk import`: it downloads and runs the `flisk-import` package from npm, even for a dry run.
+- `flisk config migrate`, `flisk config enable-infra`, and `flisk config disable-infra`: they rewrite `service.json` files or `.flisk/project.json` and have no dry run.
+- `flisk config edit`: it opens your editor.
 
 To start part of a stack, name the services in `only`. Flisk starts their dependencies and the shared infrastructure with them.
 

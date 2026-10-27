@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
 import { describe, expect, it } from "vitest";
+import { FliskError } from "../../utils/errors.js";
 import { createMcpServer, type McpTool } from "../server.js";
 
 const echo: McpTool = {
@@ -95,6 +96,34 @@ describe("mcp server", () => {
     });
     expect((res as Partial<Response>).error).toBeUndefined();
     expect(res.result).toMatchObject({ isError: true, content: [{ text: "kaput" }] });
+  });
+  it("adds a thrown FliskError's suggestions under its message", async () => {
+    const hinted = createMcpServer(
+      [
+        {
+          ...echo,
+          name: "hinted",
+          handler: async () =>
+            Promise.reject(new FliskError("name is required", ["Pass a name", "Or omit it"])),
+        },
+        { ...echo, name: "bare", handler: async () => Promise.reject(new FliskError("no hints")) },
+      ],
+      { name: "flisk", version: "1.0.0" },
+    );
+    const callTool = async (name: string): Promise<ToolCallResult> => {
+      const line = await hinted.handleLine(
+        JSON.stringify({ jsonrpc: "2.0", id: 9, method: "tools/call", params: { name } }),
+      );
+      return (JSON.parse(line ?? "null") as { result: ToolCallResult }).result;
+    };
+    expect(await callTool("hinted")).toMatchObject({
+      isError: true,
+      content: [{ text: "name is required\n- Pass a name\n- Or omit it" }],
+    });
+    expect(await callTool("bare")).toMatchObject({
+      isError: true,
+      content: [{ text: "no hints" }],
+    });
   });
   it("rejects an unknown tool, non-object arguments, and unknown methods", async () => {
     expect(

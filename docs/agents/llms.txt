@@ -12,7 +12,7 @@ See also the product site [llms.txt](https://flisk.sh/llms.txt).
 - **AI Agent Systems**:
   - `agent` resource type: Long-running agent process with `files` durability (named volume surviving `flisk down`), sticky session routing via `x-session-id`, graceful SIGTERM turn draining, `/health` (liveness) and `/ready` (application readiness for callers).
   - `mcp` resource type: Standard Model Context Protocol servers over Streamable HTTP (`/mcp`) routed via Traefik.
-  - `flisk mcp`: Control plane stdio server allowing Claude Code, Cursor, and Codex to operate Flisk (`doctor`, `up`, `down`, `status`, `logs`, `resource_list`, `restart_resource`, `list_agents`, `get_agent_sessions`):
+  - `flisk mcp`: Control plane stdio server allowing Claude Code, Cursor, and Codex to operate Flisk (`doctor`, `up`, `down`, `status`, `logs`, `resource_list`, `restart_resource`, `list_agents`, `get_agent_sessions`, `stack_list`, `project_info`, `network_list`, `config_verify`, `config_explain`, `runtime_check`, `config_regenerate`, `resource_create`, `stack_assign`, `project_init`):
     - `doctor`: Check whether this machine can run the Flisk stack and optionally validate a project.
     - `up`: Start the stack (or selected services) detached and watch briefly for early failures.
     - `down`: Stop the running stack.
@@ -22,6 +22,17 @@ See also the product site [llms.txt](https://flisk.sh/llms.txt).
     - `restart_resource`: Restart a running resource in the stack (or trigger its rebuild).
     - `list_agents`: List AI agent resources (`appType: "agent"`) with their stack, runtime, durability, and port.
     - `get_agent_sessions`: List sessions of a running AI agent resource, or inspect one session checkpoint (`sessionId` optional).
+    - `stack_list`: List the project's stacks with their resource counts (`services` adds service names, `verbose` descriptions).
+    - `project_info`: Show the project root, whether the generated master files exist, and resource and stack counts.
+    - `network_list`: List the Traefik URL of every frontend and API service and whether it answers (`stack` optional).
+    - `config_verify`: Check that the generated files match `.flisk/project.json` and that every `service.json` is valid.
+    - `config_explain`: Say whether a project file is generated or user-owned and what editing it does on `up` (`file` required).
+    - `runtime_check`: Check that the installed CLI has its bundled runtime assets (a source checkout reports `ok: false`).
+    - `config_regenerate`: Regenerate the master config files; a dry run unless `dryRun` is `false`, and a real run discards hand edits in them.
+    - `resource_create`: Scaffold a service non-interactively (`name` required; `type`, `stack`, `framework`, `language`, `port`, `features`, `runtime`, `durability`).
+    - `stack_assign`: Assign resources that have no stack to a stack (`stack` and `resources` required).
+    - `project_init`: Create a Flisk project in `projectPath`, or clone a starter `template` there; it never overwrites an existing `.flisk/project.json`.
+    - The scaffolding tools (`config_regenerate`, `resource_create`, `stack_assign`, `project_init`) return the command's text output; the others return its `--json` envelope. `eject`, `import`, `config migrate`, `config edit`, `config enable-infra` and `config disable-infra` have no tool; run them in a shell.
 - **Zero-Config Port Management**: Automatically assigns conflict-free ports and exposes services via Traefik at `*.localhost` (port 80 or 8080-8180).
 
 ## Essential CLI Commands

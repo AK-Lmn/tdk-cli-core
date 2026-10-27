@@ -68,8 +68,18 @@ export function createMcpServer(tools, info) {
                 catch (error) {
                     // A tool failure is a tool result, not a protocol error, so the model can read and react to it.
                     const text = error instanceof Error ? error.message : String(error);
+                    // A FliskError carries what to try next; read it by shape so this module stays dependency-free.
+                    const suggestions = error?.suggestions;
+                    const hints = Array.isArray(suggestions)
+                        ? suggestions.filter((s) => typeof s === "string")
+                        : [];
                     return reply(message.id, {
-                        content: [{ type: "text", text }],
+                        content: [
+                            {
+                                type: "text",
+                                text: hints.length > 0 ? `${text}\n${hints.map((s) => `- ${s}`).join("\n")}` : text,
+                            },
+                        ],
                         isError: true,
                     });
                 }

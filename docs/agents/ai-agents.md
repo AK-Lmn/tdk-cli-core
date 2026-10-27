@@ -87,6 +87,9 @@ Now Claude Code, Cursor, or Codex can:
 - Call `up` / `down` to launch or teardown services safely.
 - Read structured `status` to verify whether APIs and databases are healthy.
 - Inspect `logs` with bounded windows to debug failures without dumping mega-token stack traces into context.
+- Create the project and its services with `project_init`, `resource_create` and `stack_assign`, then check the result with `config_verify`.
+
+The setup guide lists every tool: [docs/agent-tooling/flisk-mcp-setup.md](../agent-tooling/flisk-mcp-setup.md#the-tools).
 
 ---
 
