@@ -678,7 +678,7 @@ export async function checkDockerNetworkCapacity(exec = execAsync) {
                 name: "Docker networks",
                 didPass: false,
                 message: "Docker cannot create another network: all predefined address pools are in use. Each Flisk project needs several",
-                fix: "run flisk down --prune-networks in projects you are not using, or docker network prune (removes all unused networks)",
+                fix: "Run flisk doctor --fix --scope=machine: it removes unused networks of every Flisk project and keeps the ones in use. Or run flisk down --prune-networks in each project you are not using",
             };
         }
         return {

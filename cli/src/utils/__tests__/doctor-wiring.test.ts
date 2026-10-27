@@ -773,7 +773,7 @@ describe("checkDockerNetworkCapacity", async () => {
     }) as unknown as ExecAsync;
     const result = await checkDockerNetworkCapacity(exec);
     expect(result.didPass).toBe(false);
-    expect(result.fix).toContain("docker network prune");
+    expect(result.fix).toContain("flisk doctor --fix --scope=machine");
   });
 
   it("does not fail on unrelated Docker errors", async () => {
