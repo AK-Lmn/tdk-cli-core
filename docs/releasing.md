@@ -63,7 +63,7 @@ npm --prefix cli run check:dist   # builds, then diffs cli/dist
 git add -f cli/dist && git commit -s -m "Rebuild cli/dist" && git push
 ```
 
-`cli/dist` is committed so `npm install -g github:flisk-sh/flisk` works without a build step; new files under it need `git add -f` (it is gitignored file-by-file).
+`cli/dist` is committed so a source checkout runs without a build step; new files under it need `git add -f` (it is gitignored file-by-file). The npm package ships the CLI once, as `cli/dist-bundle/` (built by `prepack` from `cli/dist`), plus the two `cli/dist/` files of its `main` entry; `scripts/check-npm-package.mjs` rejects a tarball that carries more of `cli/dist/`.
 
 ### 2. Release candidate
 

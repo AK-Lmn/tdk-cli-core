@@ -57,8 +57,23 @@ CI SHALL run `scripts/check-npm-package.mjs` on the root package pack in the `pa
 
 #### Scenario: An unexpected path would ship
 
-- **WHEN** the pack contains a path outside `cli/bin`, `cli/dist`, `cli/dist-bundle`, `cli/templates`, `cli/shared-platform-engineering/docker-templates`, `runtime/`, `examples/flisk-example/`, or the top-level `package.json`, `README.md`, `LICENSE`, `CHANGELOG.md`
+- **WHEN** the pack contains a path outside `cli/bin`, `cli/dist-bundle`, the `main` entry files `cli/dist/types/index.js` and `cli/dist/utils/constants.js`, `cli/templates`, `cli/shared-platform-engineering/docker-templates`, `runtime/`, `examples/flisk-example/`, or the top-level `package.json`, `README.md`, `LICENSE`, `CHANGELOG.md`
 - **THEN** the check exits non-zero and lists each such path
+
+#### Scenario: The CLI would ship twice
+
+- **WHEN** the pack contains any other file under `cli/dist/` (such as `cli/dist/cli.js`) next to `cli/dist-bundle/`, which is the only copy `cli/bin/flisk.js` runs in an installed package
+- **THEN** the check exits non-zero and lists each such path as outside the allowlist
+
+#### Scenario: Auditing a version that is already published
+
+- **WHEN** `npm-registry-audit` checks the pinned registry tarball with `--published`, and that version ships `cli/dist/` or a root `CHANGELOG.md` (the layout before 1.4.8)
+- **THEN** the check accepts those paths and still fails on test files, missing required paths and every manifest problem
+
+#### Scenario: The main entry imports a file that does not ship
+
+- **WHEN** the `main` entry, or a file it imports, imports a relative path that is not in the tarball
+- **THEN** the check exits non-zero and names each missing file
 
 #### Scenario: The module format is not declared
 

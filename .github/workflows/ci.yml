@@ -374,9 +374,9 @@ jobs:
           bun install --frozen-lockfile
           npm run build
 
-      # cli/dist is committed so `npm install -g github:flisk-sh/flisk`
-      # works without a build step. Fail if a source change was committed
-      # without rebuilding it.
+      # cli/dist is committed so a source checkout runs without a build
+      # step, and prepack bundles it into the package's cli/dist-bundle.
+      # Fail if a source change was committed without rebuilding it.
       # Locally: `npm run check:dist` in cli/ does both steps.
       - name: Check committed cli/dist is up to date
         run: scripts/check-cli-dist.sh
@@ -562,7 +562,8 @@ jobs:
         run: |
           pinned="$(node -p "require('./.github/npm-package-smoke/package.json').dependencies['@flisk-sh/flisk']")"
           npm pack "@flisk-sh/flisk@${pinned}" --pack-destination "${RUNNER_TEMP}" --silent
-          node scripts/check-npm-package.mjs --tarball "${RUNNER_TEMP}/flisk-sh-flisk-${pinned}.tgz"
+          # --published also accepts the pre-1.4.8 layout (cli/dist/, root CHANGELOG.md); drop it once the pin is past it.
+          node scripts/check-npm-package.mjs --published --tarball "${RUNNER_TEMP}/flisk-sh-flisk-${pinned}.tgz"
 
   secret-scan:
     name: 🔑 Secret Scan

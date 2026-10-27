@@ -6,6 +6,8 @@
 // ~18 MB) are inlined so the npm package does not install them. commander and
 // handlebars stay external. dist/ itself is committed and untouched; bin/flisk.js
 // prefers dist-bundle/ when it exists (only inside a packed/installed package).
+// The npm package ships dist-bundle/ and not dist/ (only the two files of its "main"
+// entry), so bundled code must not read or import a file under dist/ at runtime.
 
 import { readFileSync, rmSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
@@ -19,6 +21,8 @@ const out = join(cliDir, "dist-bundle");
 // their original place in dist/ (e.g. dist/generator/ -> cli/templates).
 // Flattened into one file that depth is lost, so pin each module's
 // import.meta.* to where it lived in dist/, relative to the bundle's location.
+// These are only starting points for path arithmetic (cli/templates, the
+// package root); the dist/ directory itself need not exist.
 const keepModuleLocation = {
   name: "keep-module-location",
   setup(b) {

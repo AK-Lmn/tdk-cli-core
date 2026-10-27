@@ -132,7 +132,7 @@ The full steps for reviewers, including what to look at, are in [docs/contributi
 
 ## Changing the CLI source
 
-The CLI is committed as compiled output in `cli/dist/`, so `npm install -g github:flisk-sh/flisk` works without a build step. CI checks that `cli/dist/` matches `cli/src/`.
+The CLI is committed as compiled output in `cli/dist/`, so a source checkout runs `cli/bin/flisk.js` without a build step. CI checks that `cli/dist/` matches `cli/src/`. The npm package does not ship `cli/dist/`: `prepack` bundles it into `cli/dist-bundle/`, which `cli/bin/flisk.js` runs when it is present, and the package carries only that bundle plus the two `cli/dist/` files of its `main` entry (`scripts/check-npm-package.mjs` fails the `📦 Pack CLI` job otherwise).
 
 After you change anything under `cli/src/`:
 
