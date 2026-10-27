@@ -11,17 +11,28 @@
 <tr><td><sub><b>3. Services running at once</b></sub><br><a href="python-compose-1.md"><img src="../assets/fit/size-1.b78fdcfa.svg" alt="1 service" width="96" height="48" align="top"></a><a href="python-compose-2-4.md"><img src="../assets/fit/size-2-4.6c924d0b.svg" alt="2–4 services" width="120" height="48" align="top"></a><a href="python-compose-5-plus.md"><img src="../assets/fit/size-5-plus-selected.594da307.svg" alt="5+ services (selected)" width="112" height="48" align="top"></a></td></tr>
 </table>
 
-<p align="center"><img src="../assets/fit/score-76.43e3ea81.svg" alt="76% fit score: Strong fit" width="240"></p>
+<p align="center"><img src="../assets/fit/score-80.8ee7e31c.svg" alt="80% fit score: Strong fit" width="240"></p>
 
 **Strong fit.** Flisk was built for exactly this setup.
 
-- 🟡 Python services run in Docker today; the generators are tuned for Node, TypeScript and Bun first.
+- ✅ `flisk resource api --type backend --language python` scaffolds a Python backend; see the [one-backend-python example](../../examples/one-backend-python/README.md).
 - ✅ You already think in containers: Flisk writes the Compose file and the Tiltfile for you.
 - ✅ `flisk doctor` and `flisk up` are designed to replace a setup wiki. Onboarding time has not been measured on a hiring cohort.
 - ✅ Golden Docker L1–L4 image layers give every developer the same base images.
 - ✅ 5 or more services is Flisk's range. CI boots 100 generated `/health` services through one gateway (a fixture, not an app).
 - ✅ The score assumes 10 developers. It is arithmetic on your answers, not measured savings.
 
-The score is the one on [flisk.sh/fit](https://flisk.sh/fit/): 2 × runtime + 2 × setup + pains + services + team, out of 100. Pains and team size have no tabs here; they stay at the website's defaults (onboarding and environment drift, 10 developers). Change them on the website.
+**How the score adds up**
+
+| | Your answer | Points |
+| --- | --- | --- |
+| Runtime | Python | 18 / 20 |
+| Today's setup | Docker Compose | 16 / 20 |
+| Pains (assumed) | Onboarding, environment drift | 12 / 24 |
+| Services | 5+ services | 20 / 20 |
+| Team (assumed) | 10 developers | 14 / 16 |
+| **Score** | | **80%** |
+
+Same formula as [flisk.sh/fit](https://flisk.sh/fit/). Pains and team size have no tabs here, so they stay at the website's defaults (marked assumed); change them on the website. The caps keep the verdict in line with the reasons.
 
 **Next:** [install Flisk](../install/npm.md) and [pick how to start](../../README.md#quick-start).

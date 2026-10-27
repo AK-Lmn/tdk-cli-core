@@ -11,17 +11,30 @@
 <tr><td><sub><b>3. Services running at once</b></sub><br><a href="python-dev-containers-1.md"><img src="../assets/fit/size-1-selected.e15045ec.svg" alt="1 service (selected)" width="96" height="48" align="top"></a><a href="python-dev-containers-2-4.md"><img src="../assets/fit/size-2-4.6c924d0b.svg" alt="2–4 services" width="120" height="48" align="top"></a><a href="python-dev-containers-5-plus.md"><img src="../assets/fit/size-5-plus.9d0096be.svg" alt="5+ services" width="112" height="48" align="top"></a></td></tr>
 </table>
 
-<p align="center"><img src="../assets/fit/score-56.018c1fec.svg" alt="56% fit score: Partial fit" width="240"></p>
+<p align="center"><img src="../assets/fit/score-40.535d34d3.svg" alt="40% fit score: Not a fit yet" width="240"></p>
 
-**Partial fit.** Flisk will help; read the caveats below first.
+**Not a fit yet.** Your setup does not have the pain Flisk solves, yet.
 
-- 🟡 Python services run in Docker today; the generators are tuned for Node, TypeScript and Bun first.
+- ✅ `flisk resource api --type backend --language python` scaffolds a Python backend; see the [one-backend-python example](../../examples/one-backend-python/README.md).
 - 🟡 Dev Containers give each developer the same tools; Flisk adds running all the services together.
 - ✅ `flisk doctor` and `flisk up` are designed to replace a setup wiki. Onboarding time has not been measured on a hiring cohort.
 - ✅ Golden Docker L1–L4 image layers give every developer the same base images.
 - ❌ One service does not need a multi-service orchestrator. Flisk pays off from about 5.
 - ✅ The score assumes 10 developers. It is arithmetic on your answers, not measured savings.
 
-The score is the one on [flisk.sh/fit](https://flisk.sh/fit/): 2 × runtime + 2 × setup + pains + services + team, out of 100. Pains and team size have no tabs here; they stay at the website's defaults (onboarding and environment drift, 10 developers). Change them on the website.
+**How the score adds up**
 
-**Next:** [install Flisk](../install/npm.md) and [pick how to start](../../README.md#quick-start).
+| | Your answer | Points |
+| --- | --- | --- |
+| Runtime | Python | 18 / 20 |
+| Today's setup | Dev Containers (VS Code Remote) | 12 / 20 |
+| Pains (assumed) | Onboarding, environment drift | 12 / 24 |
+| Services | 1 service | 4 / 20 |
+| Team (assumed) | 10 developers | 14 / 16 |
+| Sum | | 60 / 100 |
+| **Cap** | 1 service: Flisk is a multi-service tool, so the score stops at 40%. | **40** |
+| **Score** | | **40%** |
+
+Same formula as [flisk.sh/fit](https://flisk.sh/fit/). Pains and team size have no tabs here, so they stay at the website's defaults (marked assumed); change them on the website. The caps keep the verdict in line with the reasons.
+
+**Next:** [see what Flisk generates](../generated-files.md), or [run your services without Docker](../run-without-docker.md).

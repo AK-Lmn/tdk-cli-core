@@ -15,13 +15,24 @@
 
 **Partial fit.** Flisk will help; read the caveats below first.
 
-- 🟡 Java / JVM services run in Docker today; the generators are tuned for Node, TypeScript and Bun first.
+- 🟡 No Java scaffold yet: bring your own Dockerfile, or give each service a `command` and run it without Docker.
 - 🟡 Dev Containers give each developer the same tools; Flisk adds running all the services together.
 - ✅ `flisk doctor` and `flisk up` are designed to replace a setup wiki. Onboarding time has not been measured on a hiring cohort.
 - ✅ Golden Docker L1–L4 image layers give every developer the same base images.
 - ✅ 5 or more services is Flisk's range. CI boots 100 generated `/health` services through one gateway (a fixture, not an app).
 - ✅ The score assumes 10 developers. It is arithmetic on your answers, not measured savings.
 
-The score is the one on [flisk.sh/fit](https://flisk.sh/fit/): 2 × runtime + 2 × setup + pains + services + team, out of 100. Pains and team size have no tabs here; they stay at the website's defaults (onboarding and environment drift, 10 developers). Change them on the website.
+**How the score adds up**
+
+| | Your answer | Points |
+| --- | --- | --- |
+| Runtime | Java / JVM | 12 / 20 |
+| Today's setup | Dev Containers (VS Code Remote) | 12 / 20 |
+| Pains (assumed) | Onboarding, environment drift | 12 / 24 |
+| Services | 5+ services | 20 / 20 |
+| Team (assumed) | 10 developers | 14 / 16 |
+| **Score** | | **70%** |
+
+Same formula as [flisk.sh/fit](https://flisk.sh/fit/). Pains and team size have no tabs here, so they stay at the website's defaults (marked assumed); change them on the website. The caps keep the verdict in line with the reasons.
 
 **Next:** [install Flisk](../install/npm.md) and [pick how to start](../../README.md#quick-start).

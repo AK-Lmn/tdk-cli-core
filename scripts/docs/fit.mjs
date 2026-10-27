@@ -4,9 +4,11 @@
 // page: three tab bars (runtime, today's setup, number of services), and each tab links to the page with that one answer
 // changed. 6 x 9 x 3 = 162 pages under docs/fit/, all generated. Each shows an animated score gauge, the verdict and the
 // reasons. The README shows the default page between <!-- fit --> and <!-- /fit -->.
-// The score is the website's (flisk-sh/website fit/index.html): 2 x runtime + 2 x setup + pains + services + team, out of 100.
-// Pains and team size have no tabs here; they stay at the website's defaults (onboarding and drift, 10 developers), so the
-// default page scores the same 82% as flisk.sh/fit. Keep the numbers in step with the website.
+// The score is the website's (flisk-sh/website fit/index.html): 2 x runtime + 2 x setup + pains + services + team, out of 100,
+// then capped so the verdict cannot contradict the reasons: 1 service stops at 40% (not a fit), 2-4 services at 74% (at most
+// partial), and on the website "None, we're happy" stops at 60%. Pains and team size have no tabs here; they stay at the
+// website's defaults (onboarding and drift, 10 developers) and every page shows them as assumed, so the default page scores
+// the same 82% as flisk.sh/fit. Keep the weights and caps in step with the website.
 //   node scripts/docs/fit.mjs [--root <repo dir>]           write everything
 //   node scripts/docs/fit.mjs [--root <repo dir>] --check   exit 1 when anything is out of date (D5 in
 //                                                           tests/e2e/static/skills-and-docs.sh)
@@ -21,13 +23,21 @@ export const PAGES = "docs/fit";
 export const ASSETS = "docs/assets/fit";
 const GENERATOR = "scripts/docs/fit.mjs";
 
+// Weights follow what the CLI ships (docs/backend-language-providers.md): Node, TypeScript and Bun are the default generators
+// and golden images; Python and Go have backend scaffolds (`--language`); the rest run from your own Dockerfile or a `command`.
 export const RUNTIMES = [
-  { slug: "node", label: "Node / TS / Bun", name: "Node.js / TypeScript / Bun", value: 10 },
-  { slug: "python", label: "Python", name: "Python", value: 7 },
-  { slug: "go", label: "Go", name: "Go", value: 7 },
-  { slug: "jvm", label: "Java / JVM", name: "Java / JVM", value: 6 },
-  { slug: "ruby-php", label: "Ruby / PHP", name: "Ruby / PHP", value: 6 },
-  { slug: "other", label: "Other", name: "Other", value: 4 },
+  { slug: "node", label: "Node / TS / Bun", name: "Node.js / TypeScript / Bun", value: 10,
+    mark: "yes", reason: "Built for it: the default generators and golden images are TypeScript and Bun (Hono, Express, NestJS and more; Vite frontends)." },
+  { slug: "python", label: "Python", name: "Python", value: 9,
+    mark: "yes", reason: "`flisk resource api --type backend --language python` scaffolds a Python backend; see the [one-backend-python example](../../examples/one-backend-python/README.md)." },
+  { slug: "go", label: "Go", name: "Go", value: 9,
+    mark: "yes", reason: "`flisk resource api --type backend --language go` scaffolds a Go backend." },
+  { slug: "jvm", label: "Java / JVM", name: "Java / JVM", value: 6,
+    mark: "partly", reason: "No Java scaffold yet: bring your own Dockerfile, or give each service a `command` and run it without Docker." },
+  { slug: "ruby-php", label: "Ruby / PHP", name: "Ruby / PHP", value: 6,
+    mark: "partly", reason: "No Ruby or PHP scaffold yet: bring your own Dockerfile, or give each service a `command` and run it without Docker." },
+  { slug: "other", label: "Other", name: "Other", value: 5,
+    mark: "partly", reason: "Scaffolds exist for Node, Python, Go and Rust; anything else runs from your own Dockerfile or a `command`." },
 ];
 
 export const SETUPS = [
@@ -45,8 +55,8 @@ export const SETUPS = [
     mark: "partly", reason: "Dev Containers give each developer the same tools; Flisk adds running all the services together." },
   { slug: "cloud-ide", label: "Cloud IDE", name: "Cloud IDE (Gitpod / Codespaces / Coder)", value: 5,
     mark: "partly", reason: "Cloud IDEs solve a different problem; Flisk runs the same stack on your own machine, with no per-seat bill." },
-  { slug: "native", label: "Native processes", name: "No containers: native processes", value: 4,
-    mark: "partly", reason: "Keep your processes: give each service a `command` and Flisk runs them without Docker. Containers come when you need a database or one gateway URL." },
+  { slug: "native", label: "Native processes", name: "No containers: native processes", value: 8,
+    mark: "yes", reason: "Keep your processes: give each service a `command` and Flisk runs them without Docker. Containers come when you need a database or one gateway URL." },
   { slug: "other", label: "Other", name: "Other or custom setup", value: 5,
     mark: "partly", reason: "A custom setup may fit: compare its orchestration, generated files and diagnostics with Flisk's." },
 ];
@@ -78,9 +88,26 @@ export function teamScore(n) {
   return 16;
 }
 
+// The verdict must not contradict the reasons, so some answers cap the score.
+export function cap(size) {
+  if (size.count <= 1) return { limit: 40, why: "1 service: Flisk is a multi-service tool, so the score stops at 40%." };
+  if (size.count < 5) return { limit: 74, why: "Fewer than 5 services: the score stops at 74%, below a strong fit." };
+  return null;
+}
+
+// The score with its parts, so every page can show how it adds up.
 export function score(runtime, setup, size) {
-  const total = runtime.value * 2 + setup.value * 2 + PAINS.length * PAIN_POINTS + serviceScore(size.count) + teamScore(TEAM);
-  return Math.max(0, Math.min(100, Math.round(total)));
+  const parts = [
+    { name: "Runtime", answer: runtime.name, points: runtime.value * 2, max: 20 },
+    { name: "Today's setup", answer: setup.name, points: setup.value * 2, max: 20 },
+    { name: "Pains (assumed)", answer: "Onboarding, environment drift", points: PAINS.length * PAIN_POINTS, max: 24 },
+    { name: "Services", answer: size.label, points: serviceScore(size.count), max: 20 },
+    { name: "Team (assumed)", answer: `${TEAM} developers`, points: teamScore(TEAM), max: 16 },
+  ];
+  const raw = parts.reduce((sum, part) => sum + part.points, 0);
+  const limit = cap(size);
+  const total = Math.max(0, Math.min(100, limit ? Math.min(raw, limit.limit) : raw));
+  return { total, raw, parts, cap: limit && raw > limit.limit ? limit : null };
 }
 
 export function verdict(total) {
@@ -93,9 +120,7 @@ const MARK = { yes: "✅", partly: "🟡", no: "❌" };
 
 export function reasons(runtime, setup, size) {
   const out = [];
-  if (runtime.value >= 10) out.push(["yes", "Built for it: the generated services and golden images are TypeScript and Bun first (Vite, Prisma)."]);
-  else if (runtime.value >= 6) out.push(["partly", `${runtime.name} services run in Docker today; the generators are tuned for Node, TypeScript and Bun first.`]);
-  else out.push(["no", `${runtime.name} stacks are not the main target of Flisk's generators yet. Bring your own Dockerfile, or a \`command\`.`]);
+  out.push([runtime.mark, runtime.reason]);
   out.push([setup.mark, setup.reason]);
   for (const pain of PAINS) out.push(["yes", pain]);
   if (size.count <= 1) out.push(["no", "One service does not need a multi-service orchestrator. Flisk pays off from about 5."]);
@@ -191,13 +216,23 @@ export function plan() {
   };
 
   const result = (from, at) => {
-    const total = score(at.runtime, at.setup, at.size);
+    const s = score(at.runtime, at.setup, at.size);
+    const total = s.total;
     const v = verdict(total);
     const g = gauge(total);
     return {
       total,
       gauge: `<p align="center"><img src="${path.posix.relative(from, g.file)}" alt="${total}% fit score: ${v.name}" width="${g.width}"></p>`,
       verdict: `**${v.name}.** ${v.line}`,
+      breakdown: [
+        "**How the score adds up**",
+        "",
+        "| | Your answer | Points |",
+        "| --- | --- | --- |",
+        ...s.parts.map((part) => `| ${part.name} | ${part.answer} | ${part.points} / ${part.max} |`),
+        ...(s.cap ? [`| Sum | | ${s.raw} / 100 |`, `| **Cap** | ${s.cap.why} | **${s.total}** |`] : []),
+        `| **Score** | | **${s.total}%** |`,
+      ].join("\n"),
     };
   };
 
@@ -223,7 +258,9 @@ export function plan() {
           "",
           ...reasons(runtime, setup, size).map(([mark, text]) => `- ${MARK[mark]} ${text}`),
           "",
-          "The score is the one on [flisk.sh/fit](https://flisk.sh/fit/): 2 × runtime + 2 × setup + pains + services + team, out of 100. Pains and team size have no tabs here; they stay at the website's defaults (onboarding and environment drift, 10 developers). Change them on the website.",
+          r.breakdown,
+          "",
+          "Same formula as [flisk.sh/fit](https://flisk.sh/fit/). Pains and team size have no tabs here, so they stay at the website's defaults (marked assumed); change them on the website. The caps keep the verdict in line with the reasons.",
           "",
           r.total >= 45 ? "**Next:** [install Flisk](../install/npm.md) and [pick how to start](../../README.md#quick-start)." : "**Next:** [see what Flisk generates](../generated-files.md), or [run your services without Docker](../run-without-docker.md).",
           "",

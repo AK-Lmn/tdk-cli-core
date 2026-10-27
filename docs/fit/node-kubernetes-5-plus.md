@@ -15,13 +15,24 @@
 
 **Strong fit.** Flisk was built for exactly this setup.
 
-- ✅ Built for it: the generated services and golden images are TypeScript and Bun first (Vite, Prisma).
+- ✅ Built for it: the default generators and golden images are TypeScript and Bun (Hono, Express, NestJS and more; Vite frontends).
 - ✅ You run a cluster just to develop. Flisk runs the same services on your laptop without one.
 - ✅ `flisk doctor` and `flisk up` are designed to replace a setup wiki. Onboarding time has not been measured on a hiring cohort.
 - ✅ Golden Docker L1–L4 image layers give every developer the same base images.
 - ✅ 5 or more services is Flisk's range. CI boots 100 generated `/health` services through one gateway (a fixture, not an app).
 - ✅ The score assumes 10 developers. It is arithmetic on your answers, not measured savings.
 
-The score is the one on [flisk.sh/fit](https://flisk.sh/fit/): 2 × runtime + 2 × setup + pains + services + team, out of 100. Pains and team size have no tabs here; they stay at the website's defaults (onboarding and environment drift, 10 developers). Change them on the website.
+**How the score adds up**
+
+| | Your answer | Points |
+| --- | --- | --- |
+| Runtime | Node.js / TypeScript / Bun | 20 / 20 |
+| Today's setup | Kubernetes (kind / minikube / k3d) | 20 / 20 |
+| Pains (assumed) | Onboarding, environment drift | 12 / 24 |
+| Services | 5+ services | 20 / 20 |
+| Team (assumed) | 10 developers | 14 / 16 |
+| **Score** | | **86%** |
+
+Same formula as [flisk.sh/fit](https://flisk.sh/fit/). Pains and team size have no tabs here, so they stay at the website's defaults (marked assumed); change them on the website. The caps keep the verdict in line with the reasons.
 
 **Next:** [install Flisk](../install/npm.md) and [pick how to start](../../README.md#quick-start).
