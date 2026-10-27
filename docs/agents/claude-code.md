@@ -19,7 +19,8 @@ Windows: `irm https://claude.ai/install.ps1 | iex`. Also available with `brew in
 **2. Paste the prompt**
 
 ```text
-Build me a small online shop with a storefront and an orders API, and run it on my laptop with Flisk.
+Build me a small online shop with a storefront and an orders API,
+and run it on my laptop with Flisk.
 ```
 
 **3. Skills and instructions.** `flisk project` writes the Flisk skills to `.claude/skills/`, which Claude Code loads. It also writes an `AGENTS.md`. Claude Code reads that only when the project has no `CLAUDE.md`, so if you have one, add the line `@AGENTS.md` to it.

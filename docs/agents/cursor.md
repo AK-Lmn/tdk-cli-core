@@ -19,7 +19,8 @@ npm install -g @flisk-sh/flisk
 **2. Paste the prompt**
 
 ```text
-Build me a small online shop with a storefront and an orders API, and run it on my laptop with Flisk.
+Build me a small online shop with a storefront and an orders API,
+and run it on my laptop with Flisk.
 ```
 
 **3. Skills and instructions.** Cursor reads the `AGENTS.md` and the skills in `.agents/skills/` (and `.claude/skills/`) that `flisk project` writes.

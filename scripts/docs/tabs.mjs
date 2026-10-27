@@ -198,6 +198,21 @@ export function plan(root) {
 
 const BEGIN = /<!-- tabs:([a-z0-9-]+) ([a-z0-9-]+)[^\n]*?-->\n/g;
 
+// A code block cannot wrap, and GitHub sizes a table to its widest line: a longer line than this widens the whole panel past
+// an 861px-wide page (README at 1280px) and cuts off its text. 91 characters overflowed by 11px; 88 fit.
+export const MAX_CODE_LINE = 88;
+
+function longCodeLines(panel) {
+  let fence = null;
+  const long = [];
+  for (const line of panel.split("\n")) {
+    const marker = /^\s*(```|~~~)/.exec(line);
+    if (marker && (!fence || marker[1] === fence)) fence = fence ? null : marker[1];
+    else if (fence && line.length > MAX_CODE_LINE) long.push(line.length);
+  }
+  return long;
+}
+
 // Rewrites the bar of every block in a page; the panel text is kept, with its leading and trailing blank lines normalized.
 export function rewrite(text, blocks, file) {
   const problems = [];
@@ -227,6 +242,9 @@ export function rewrite(text, blocks, file) {
       .replace(/\s*<\/td><\/tr>\s*<\/table>\s*$/, "")
       .replace(/^\s*\n/, "")
       .trimEnd();
+    for (const length of longCodeLines(panel)) {
+      problems.push(`${file}: tabs:${id} panel has a ${length}-character code line; GitHub then widens the panel past the page. Keep code lines to ${MAX_CODE_LINE} (end a shell line with \\)`);
+    }
     out += text.slice(at, match.index) + block.head + panel + "\n\n" + block.tail;
     at = close + endMarker.length;
   }

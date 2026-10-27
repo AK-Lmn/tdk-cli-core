@@ -60,6 +60,10 @@ test("rewrite replaces the bar, keeps the panel and reports a block the spec doe
   assert.equal(rewrite(text, [block], "README.md").text, text, "rewriting twice changes nothing");
   assert.match(rewrite(README, [], "README.md").problems[0], /tabs:os block that docs\/tabs.json does not list/);
   assert.match(rewrite("# Empty\n", [block], "README.md").problems[0], /missing the tabs:os block/);
+  const wide = README.replace("Run `brew install x`.", "```bash\n" + "x".repeat(89) + "\n" + "y".repeat(88) + "\n```");
+  assert.deepEqual(rewrite(wide, [block], "README.md").problems, [
+    "README.md: tabs:os panel has a 89-character code line; GitHub then widens the panel past the page. Keep code lines to 88 (end a shell line with \\)",
+  ]);
 });
 
 test("write mode produces everything, then --check is clean; a hand edit or a stray image makes it stale", () => {
