@@ -141,7 +141,7 @@ export const configCommand = new Command("config")
                                         diffLines.push(chalk.green(`     + ${newLine.substring(0, 60)}${newLine.length > 60 ? "..." : ""}`));
                                     }
                                 }
-                                else {
+                                else if (line !== undefined) {
                                     diffLines.push(chalk.gray(`       ${line.substring(0, 60)}${line.length > 60 ? "..." : ""}`));
                                 }
                             }
@@ -425,7 +425,7 @@ export const configCommand = new Command("config")
         const editor = process.env.EDITOR || "vi";
         console.log(chalk.blue(`Opening ${projectJsonPath} in ${editor}...`));
         const editorParts = editor.trim().split(/\s+/);
-        const editorCmd = editorParts[0];
+        const editorCmd = editorParts[0] || "vi";
         const editorArgs = [...editorParts.slice(1), projectJsonPath];
         const allowedEditors = [
             "vi",

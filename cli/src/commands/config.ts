@@ -212,7 +212,7 @@ export const configCommand = new Command("config")
                               ),
                             );
                           }
-                        } else {
+                        } else if (line !== undefined) {
                           diffLines.push(
                             chalk.gray(
                               `       ${line.substring(0, 60)}${line.length > 60 ? "..." : ""}`,
@@ -551,7 +551,7 @@ export const configCommand = new Command("config")
         console.log(chalk.blue(`Opening ${projectJsonPath} in ${editor}...`));
 
         const editorParts = editor.trim().split(/\s+/);
-        const editorCmd = editorParts[0];
+        const editorCmd = editorParts[0] || "vi";
         const editorArgs = [...editorParts.slice(1), projectJsonPath];
 
         const allowedEditors = [

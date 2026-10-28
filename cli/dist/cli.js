@@ -259,7 +259,8 @@ if (templateArg) {
 }
 if (process.argv[2] === "--doctor")
     process.argv[2] = "doctor";
-if (process.argv.length === 3 && ["-h", "--help", "help"].includes(process.argv[2])) {
+const helpArg = process.argv[2];
+if (process.argv.length === 3 && helpArg && ["-h", "--help", "help"].includes(helpArg)) {
     showHelp();
     process.exit(0);
 }
@@ -276,6 +277,8 @@ function readOptionValue(args, name) {
     const prefix = `${name}=`;
     for (let index = 0; index < args.length; index += 1) {
         const arg = args[index];
+        if (!arg)
+            continue;
         if (arg.startsWith(prefix))
             return arg.slice(prefix.length);
         if (arg === name)

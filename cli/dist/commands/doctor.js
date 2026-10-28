@@ -187,9 +187,10 @@ export async function runChecks(checks, options = {}) {
     let containerRuntimeFailed = Boolean(options.containerRuntimeFailed);
     for (const check of checks) {
         if (containerRuntimeFailed && isContainerDependentCheck(check)) {
+            const mappedName = check.name ? CONTAINER_CHECK_NAMES_MAP[check.name] : undefined;
             const checkName = check.checkName ??
-                (check.name && CONTAINER_CHECK_NAMES_MAP[check.name]
-                    ? CONTAINER_CHECK_NAMES_MAP[check.name]
+                (mappedName
+                    ? mappedName
                     : check.name && check.name !== "check" && check.name !== "fn"
                         ? check.name
                         : "Container check");
@@ -737,7 +738,8 @@ function findReferencedTemplateFiles(projectRoot) {
             if (!entry.startsWith("Dockerfile") || entry.endsWith(".dockerignore"))
                 continue;
             for (const match of readFileSync(join(dir, entry), "utf-8").matchAll(TEMPLATE_COPY_PATTERN)) {
-                referenced.add(match[1]);
+                if (match[1])
+                    referenced.add(match[1]);
             }
         }
     }
