@@ -128,11 +128,16 @@ export async function pingHealthTarget(target, timeoutMs) {
         return { ...target, ok: response.ok, status: response.status };
     }
     catch (err) {
-        const error = err instanceof Error && err.name === "TimeoutError"
-            ? `no response within ${timeoutMs}ms`
-            : err instanceof Error
-                ? err.message
-                : String(err);
+        let error;
+        if (err instanceof Error && err.name === "TimeoutError") {
+            error = `no response within ${timeoutMs}ms`;
+        }
+        else if (err instanceof Error) {
+            error = err.message;
+        }
+        else {
+            error = String(err);
+        }
         return { ...target, ok: false, error };
     }
 }

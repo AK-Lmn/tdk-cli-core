@@ -73,15 +73,21 @@ export function parseTiltUiResourceList(value) {
             const warnings = readStringArray(build.warnings);
             const details = [error, ...warnings].filter((entry) => Boolean(entry));
             const spanId = readString(build.spanID);
+            let kind = "success";
+            let title = "Build completed";
+            if (error) {
+                kind = "failed";
+                title = "Build failed";
+            }
+            else if (warnings.length > 0) {
+                kind = "warning";
+                title = "Build completed with warnings";
+            }
             events.push({
                 id: `${resourceName}:build:${spanId ?? String(buildIndex)}`,
                 resourceName,
-                kind: error ? "failed" : warnings.length ? "warning" : "success",
-                title: error
-                    ? "Build failed"
-                    : warnings.length
-                        ? "Build completed with warnings"
-                        : "Build completed",
+                kind,
+                title,
                 occurredAt: readString(build.finishTime) ?? readString(build.startTime),
                 details: details.length ? details.join("; ") : undefined,
             });

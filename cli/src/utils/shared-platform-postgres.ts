@@ -244,11 +244,12 @@ export function evaluateSharedPlatformPostgres(
   }
 
   const willStart = featureOn || dependsOnUsers.length > 0;
-  const reason: SharedPlatformPostgresEvaluation["reason"] = featureOn
-    ? "feature"
-    : dependsOnUsers.length > 0
-      ? "dependsOn"
-      : "none";
+  let reason: SharedPlatformPostgresEvaluation["reason"] = "none";
+  if (featureOn) {
+    reason = "feature";
+  } else if (dependsOnUsers.length > 0) {
+    reason = "dependsOn";
+  }
 
   return {
     featureOn,

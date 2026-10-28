@@ -232,14 +232,12 @@ export function orderDoctorResults(results: CheckResult[]): CheckResult[] {
     (result) => result.didPass || result.isSkipped || result.isWarning,
   );
   failures.sort((left, right) => {
-    const rank = (result: CheckResult) =>
-      result.name === "Host Ports" && /\b5432\b/.test(result.message)
-        ? 0
-        : result.name === "Host Ports"
-          ? 1
-          : result.name === "Ingress Ports"
-            ? 2
-            : 3;
+    const rank = (result: CheckResult) => {
+      if (result.name === "Host Ports" && /\b5432\b/.test(result.message)) return 0;
+      if (result.name === "Host Ports") return 1;
+      if (result.name === "Ingress Ports") return 2;
+      return 3;
+    };
     return rank(left) - rank(right);
   });
   return [...failures, ...remaining];
@@ -307,14 +305,17 @@ export async function runChecks(
   let containerRuntimeFailed = Boolean(options.containerRuntimeFailed);
   for (const check of checks) {
     if (containerRuntimeFailed && isContainerDependentCheck(check)) {
-      const mappedName = check.name ? CONTAINER_CHECK_NAMES_MAP[check.name] : undefined;
-      const checkName =
-        check.checkName ??
-        (mappedName
-          ? mappedName
-          : check.name && check.name !== "check" && check.name !== "fn"
-            ? check.name
-            : "Container check");
+      let checkName = check.checkName;
+      if (checkName === undefined) {
+        const mappedName = check.name ? CONTAINER_CHECK_NAMES_MAP[check.name] : undefined;
+        if (mappedName) {
+          checkName = mappedName;
+        } else if (check.name && check.name !== "check" && check.name !== "fn") {
+          checkName = check.name;
+        } else {
+          checkName = "Container check";
+        }
+      }
       results.push({
         name: checkName,
         didPass: true,
@@ -1455,14 +1456,14 @@ function printFixActions(actions: DoctorAction[], dryRun: boolean): void {
     return;
   }
   for (const action of actions) {
-    const label =
-      action.status === "planned"
-        ? `${chalk.cyan("would run")}`
-        : action.status === "applied"
-          ? chalk.green("ran")
-          : action.status === "failed"
-            ? chalk.red("failed")
-            : chalk.gray("skipped");
+    let label = chalk.gray("skipped");
+    if (action.status === "planned") {
+      label = `${chalk.cyan("would run")}`;
+    } else if (action.status === "applied") {
+      label = chalk.green("ran");
+    } else if (action.status === "failed") {
+      label = chalk.red("failed");
+    }
     const detail = action.status === "planned" ? "" : ` (${action.reason})`;
     console.log(`${label}: ${action.command}${detail}`);
   }
@@ -1582,11 +1583,14 @@ export const doctorCommand = new Command("doctor")
     const scopeInvalid = !["project", "machine"].includes(options.scope);
     const scopeWithoutFix = options.scope !== "project" && !options.fix;
     if (scopeInvalid || scopeWithoutFix || ((options.dryRun || options.yes) && !options.fix)) {
-      const message = scopeInvalid
-        ? `--scope must be project or machine, got "${options.scope}"`
-        : scopeWithoutFix
-          ? "--scope only applies with --fix"
-          : `${options.dryRun ? "--dry-run" : "--yes"} only applies with --fix`;
+      let message: string;
+      if (scopeInvalid) {
+        message = `--scope must be project or machine, got "${options.scope}"`;
+      } else if (scopeWithoutFix) {
+        message = "--scope only applies with --fix";
+      } else {
+        message = `${options.dryRun ? "--dry-run" : "--yes"} only applies with --fix`;
+      }
       if (options.json)
         console.log(JSON.stringify(createDoctorReport([], false, [{ code: "USAGE", message }])));
       console.error(message);

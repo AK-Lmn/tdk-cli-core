@@ -221,11 +221,13 @@ export const statusCommand = new Command("status")
                     const state = states[resource.name];
                     if (!state)
                         continue;
-                    const mark = state.status === "ready"
-                        ? chalk.green("✓")
-                        : state.status === "error"
-                            ? chalk.red("✗")
-                            : chalk.yellow("…");
+                    let mark = chalk.yellow("…");
+                    if (state.status === "ready") {
+                        mark = chalk.green("✓");
+                    }
+                    else if (state.status === "error") {
+                        mark = chalk.red("✗");
+                    }
                     const ports = buildServicePorts(resource, portPlan?.ingressHttp);
                     const urlPart = ports.url ? ` → ${ports.url}` : "";
                     showDetail(`${mark} ${resource.name}${urlPart}  ${state.status}${state.reason ? ` (${state.reason})` : ""}`, 6);

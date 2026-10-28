@@ -68,11 +68,11 @@ export declare function createPackageJson(name: string, type: string, frameworkI
     version: string;
     type: string;
     scripts: {
+        start?: string;
         predev?: string | undefined;
         prebuild?: string | undefined;
         dev: string;
         build: string;
-        start?: string | undefined;
         test: string;
         lint: string;
         "lint:fix": string;

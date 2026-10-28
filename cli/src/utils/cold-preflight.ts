@@ -292,24 +292,28 @@ export async function runColdPreflight(
   const blockingIds = blockingCheckIds(scope);
   const machineFailed = failures.some((check) => blockingIds.includes(check.id));
   const bunFailed = failures.some((check) => check.id === "bun");
-  const header = failures.length
-    ? machineFailed
-      ? scope === "native"
-        ? "Cannot start the local processes. Fix the machine checks below."
-        : scope === "scaffold"
-          ? bunFailed
-            ? `Project setup blocked. Bun ${BUN_FLOOR_LABEL} must be installed on PATH.\nFix the machine checks below.`
-            : "Project setup blocked. Fix the machine checks below."
-          : bunFailed
-            ? `Cold start blocked. Bun ${BUN_FLOOR_LABEL} must be installed on PATH.\nPrisma/NATS configuration is project-specific and generated after \`flisk project\`. Fix the machine checks below.`
-            : "Cold start blocked. Bun/Prisma/NATS are not the first failure.\nThey are generated after `flisk project`. Fix the machine checks below."
-      : "Machine is ready. Project wiring is not."
-    : "";
-  const footer = failures.length
-    ? ""
-    : inProject
+  let header = "";
+  if (failures.length > 0) {
+    if (!machineFailed) {
+      header = "Machine is ready. Project wiring is not.";
+    } else if (scope === "native") {
+      header = "Cannot start the local processes. Fix the machine checks below.";
+    } else if (scope === "scaffold") {
+      header = bunFailed
+        ? `Project setup blocked. Bun ${BUN_FLOOR_LABEL} must be installed on PATH.\nFix the machine checks below.`
+        : "Project setup blocked. Fix the machine checks below.";
+    } else {
+      header = bunFailed
+        ? `Cold start blocked. Bun ${BUN_FLOOR_LABEL} must be installed on PATH.\nPrisma/NATS configuration is project-specific and generated after \`flisk project\`. Fix the machine checks below.`
+        : "Cold start blocked. Bun/Prisma/NATS are not the first failure.\nThey are generated after `flisk project`. Fix the machine checks below.";
+    }
+  }
+  let footer = "";
+  if (failures.length === 0) {
+    footer = inProject
       ? "Environment ready for Flisk"
       : `This machine is ready for Flisk.\n${readyNextStep()}`;
+  }
   return { ok: failures.length === 0, inProject, scope, items: failures, header, footer };
 }
 

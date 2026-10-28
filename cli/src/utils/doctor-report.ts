@@ -124,5 +124,6 @@ export function createDoctorReport(
 
 /** 0: ready (warnings permitted), 1: blocking findings, 2: usage/internal failure. */
 export function getDoctorExitCode(report: DoctorReport): 0 | 1 | 2 {
-  return report.errors.length > 0 ? 2 : report.data.ready ? 0 : 1;
+  if (report.errors.length > 0) return 2;
+  return report.data.ready ? 0 : 1;
 }

@@ -197,11 +197,13 @@ export function evaluateSharedPlatformPostgres(projectRoot, resources = discover
         }
     }
     const willStart = featureOn || dependsOnUsers.length > 0;
-    const reason = featureOn
-        ? "feature"
-        : dependsOnUsers.length > 0
-            ? "dependsOn"
-            : "none";
+    let reason = "none";
+    if (featureOn) {
+        reason = "feature";
+    }
+    else if (dependsOnUsers.length > 0) {
+        reason = "dependsOn";
+    }
     return {
         featureOn,
         featureOnFromProjectJson,
