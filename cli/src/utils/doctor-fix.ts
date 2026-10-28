@@ -252,18 +252,29 @@ export function createDockerFixDeps(run: DockerRunner = runDocker): DoctorFixDep
 
 export const dockerFixDeps = createDockerFixDeps();
 
+export type ColimaRunner = (
+  file: string,
+  args: string[],
+  options: { encoding: "utf-8"; timeout: number; env?: NodeJS.ProcessEnv },
+) => Promise<unknown>;
+
 /** Starts or restarts Colima, with a native limactl first on PATH when one is installed. */
-async function runColima(action: "start" | "restart" | "native-lima"): Promise<void> {
+export async function runColima(
+  action: "start" | "restart" | "native-lima",
+  run: ColimaRunner = execFilePromise,
+  findNativeLima: () => string | undefined | null = nativeLimaPath,
+  hasFile: (path: string) => boolean = existsSync,
+): Promise<void> {
   if (action === "native-lima") {
-    let nativeDir = nativeLimaPath();
+    let nativeDir = findNativeLima();
     if (!nativeDir) {
       // No native limactl on PATH: reinstall Lima through the native Homebrew, which pulls a native build on Apple Silicon.
-      const brewBin = existsSync("/opt/homebrew/bin/brew") ? "/opt/homebrew/bin/brew" : "brew";
-      await execFilePromise(brewBin, ["reinstall", "lima"], {
+      const brewBin = hasFile("/opt/homebrew/bin/brew") ? "/opt/homebrew/bin/brew" : "brew";
+      await run(brewBin, ["reinstall", "lima"], {
         encoding: "utf-8",
         timeout: 300_000,
       });
-      nativeDir = nativeLimaPath();
+      nativeDir = findNativeLima();
       if (!nativeDir) {
         throw new FliskError("brew reinstall lima did not provide a native limactl", [
           "Reinstall Lima with the arm64 Homebrew in /opt/homebrew: brew reinstall lima",
@@ -274,14 +285,14 @@ async function runColima(action: "start" | "restart" | "native-lima"): Promise<v
     const env = nativeDir
       ? { ...process.env, PATH: `${nativeDir}:${process.env.PATH ?? ""}` }
       : process.env;
-    await execFilePromise("colima", ["start"], { encoding: "utf-8", timeout: 300_000, env });
+    await run("colima", ["start"], { encoding: "utf-8", timeout: 300_000, env });
     return;
   }
-  const nativeDir = nativeLimaPath();
+  const nativeDir = findNativeLima();
   const env = nativeDir
     ? { ...process.env, PATH: `${nativeDir}:${process.env.PATH ?? ""}` }
     : process.env;
-  await execFilePromise("colima", [action], { encoding: "utf-8", timeout: 300_000, env });
+  await run("colima", [action], { encoding: "utf-8", timeout: 300_000, env });
 }
 
 export interface PlanContext {

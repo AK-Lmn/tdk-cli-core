@@ -193,17 +193,17 @@ export function createDockerFixDeps(run = runDocker) {
 }
 export const dockerFixDeps = createDockerFixDeps();
 /** Starts or restarts Colima, with a native limactl first on PATH when one is installed. */
-async function runColima(action) {
+export async function runColima(action, run = execFilePromise, findNativeLima = nativeLimaPath, hasFile = existsSync) {
     if (action === "native-lima") {
-        let nativeDir = nativeLimaPath();
+        let nativeDir = findNativeLima();
         if (!nativeDir) {
             // No native limactl on PATH: reinstall Lima through the native Homebrew, which pulls a native build on Apple Silicon.
-            const brewBin = existsSync("/opt/homebrew/bin/brew") ? "/opt/homebrew/bin/brew" : "brew";
-            await execFilePromise(brewBin, ["reinstall", "lima"], {
+            const brewBin = hasFile("/opt/homebrew/bin/brew") ? "/opt/homebrew/bin/brew" : "brew";
+            await run(brewBin, ["reinstall", "lima"], {
                 encoding: "utf-8",
                 timeout: 300_000,
             });
-            nativeDir = nativeLimaPath();
+            nativeDir = findNativeLima();
             if (!nativeDir) {
                 throw new FliskError("brew reinstall lima did not provide a native limactl", [
                     "Reinstall Lima with the arm64 Homebrew in /opt/homebrew: brew reinstall lima",
@@ -214,14 +214,14 @@ async function runColima(action) {
         const env = nativeDir
             ? { ...process.env, PATH: `${nativeDir}:${process.env.PATH ?? ""}` }
             : process.env;
-        await execFilePromise("colima", ["start"], { encoding: "utf-8", timeout: 300_000, env });
+        await run("colima", ["start"], { encoding: "utf-8", timeout: 300_000, env });
         return;
     }
-    const nativeDir = nativeLimaPath();
+    const nativeDir = findNativeLima();
     const env = nativeDir
         ? { ...process.env, PATH: `${nativeDir}:${process.env.PATH ?? ""}` }
         : process.env;
-    await execFilePromise("colima", [action], { encoding: "utf-8", timeout: 300_000, env });
+    await run("colima", [action], { encoding: "utf-8", timeout: 300_000, env });
 }
 /**
  * What `--fix` would do: stop this project's stale Tilt; remove unused networks that are a leftover doctor probe or

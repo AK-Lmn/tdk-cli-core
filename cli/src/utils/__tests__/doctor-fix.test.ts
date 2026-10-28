@@ -5,7 +5,7 @@ import { spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, realpathSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { ColimaStatus } from "../colima.js";
 import {
   anyTiltAnswers,
@@ -20,6 +20,7 @@ import {
   parseElapsed,
   planDoctorFixes,
   projectTiltPids,
+  runColima,
 } from "../doctor-fix.js";
 
 function fakeDocker(
@@ -385,6 +386,18 @@ describe("createDockerFixDeps", () => {
     const status = await deps.tiltStatus(process.pid);
     expect(["healthy", "stale", "unknown"]).toContain(status);
   });
+
+  it("sends SIGTERM to the target PID in stopProcess", () => {
+    const killSpy = vi.spyOn(process, "kill").mockImplementation(() => true);
+    try {
+      const deps = createDockerFixDeps();
+      deps.stopProcess(4321);
+      expect(killSpy).toHaveBeenCalledTimes(1);
+      expect(killSpy).toHaveBeenCalledWith(4321, "SIGTERM");
+    } finally {
+      killSpy.mockRestore();
+    }
+  });
 });
 
 describe("dockerFixDeps", () => {
@@ -695,5 +708,125 @@ describe("Colima repairs", () => {
     );
     expect(ran).toEqual(["start"]);
     expect(results.find((action) => action.id === "colima:start")?.status).toBe("applied");
+  });
+
+  it("plans and applies native-lima repair and records failure when native-lima throws", async () => {
+    const ran: string[] = [];
+    const deps = baseDeps({
+      colimaStatus: () => ({
+        isColima: true,
+        running: false,
+        problem: "Lima is installed as an x86_64 build",
+      }),
+      colima: async (action) => {
+        ran.push(action);
+      },
+    });
+    const plan = await planDoctorFixes("shop", deps);
+    expect(plan.find((action) => action.id === "colima:native-lima")?.status).toBe("planned");
+    const applied = await applyDoctorFixes(
+      plan,
+      { dryRun: false, confirm: async () => true },
+      deps,
+    );
+    expect(ran).toEqual(["native-lima"]);
+    expect(applied[0]?.status).toBe("applied");
+    expect(applied[0]?.reason).toBe("native lima repaired and colima started");
+
+    const failingDeps = baseDeps({
+      colimaStatus: () => ({
+        isColima: true,
+        running: false,
+        problem: "Lima is installed as an x86_64 build",
+      }),
+      colima: async () => {
+        throw new Error("brew reinstall lima failed");
+      },
+    });
+    const failed = await applyDoctorFixes(
+      plan,
+      { dryRun: false, confirm: async () => true },
+      failingDeps,
+    );
+    expect(failed[0]?.status).toBe("failed");
+    expect(failed[0]?.reason).toBe("Error: brew reinstall lima failed");
+  });
+});
+
+describe("runColima", () => {
+  it("runs colima start with native limactl prepended to PATH when present", async () => {
+    const calls: Array<{ file: string; args: string[]; path?: string }> = [];
+    await runColima(
+      "start",
+      async (file, args, options) => {
+        calls.push({ file, args, path: options.env?.PATH });
+      },
+      () => "/opt/homebrew/bin",
+    );
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.file).toBe("colima");
+    expect(calls[0]?.args).toEqual(["start"]);
+    expect(calls[0]?.path?.startsWith("/opt/homebrew/bin:")).toBe(true);
+  });
+
+  it("runs colima restart without modifying PATH when no native limactl is found", async () => {
+    const calls: Array<{ file: string; args: string[]; env?: NodeJS.ProcessEnv }> = [];
+    await runColima(
+      "restart",
+      async (file, args, options) => {
+        calls.push({ file, args, env: options.env });
+      },
+      () => null,
+    );
+    expect(calls).toEqual([{ file: "colima", args: ["restart"], env: process.env }]);
+  });
+
+  it("starts colima directly for native-lima when a native limactl is already installed", async () => {
+    const calls: Array<{ file: string; args: string[]; path?: string }> = [];
+    await runColima(
+      "native-lima",
+      async (file, args, options) => {
+        calls.push({ file, args, path: options.env?.PATH });
+      },
+      () => "/opt/homebrew/bin",
+    );
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.file).toBe("colima");
+    expect(calls[0]?.args).toEqual(["start"]);
+    expect(calls[0]?.path?.startsWith("/opt/homebrew/bin:")).toBe(true);
+  });
+
+  it("reinstalls lima via homebrew and starts colima when native-lima initially lacks native limactl", async () => {
+    const calls: Array<{ file: string; args: string[]; path?: string }> = [];
+    let checks = 0;
+    await runColima(
+      "native-lima",
+      async (file, args, options) => {
+        calls.push({ file, args, path: options.env?.PATH });
+      },
+      () => (checks++ === 0 ? null : "/opt/homebrew/bin"),
+      (path) => path === "/opt/homebrew/bin/brew",
+    );
+    expect(calls).toHaveLength(2);
+    expect(calls[0]?.file).toBe("/opt/homebrew/bin/brew");
+    expect(calls[0]?.args).toEqual(["reinstall", "lima"]);
+    expect(calls[1]?.file).toBe("colima");
+    expect(calls[1]?.args).toEqual(["start"]);
+    expect(calls[1]?.path?.startsWith("/opt/homebrew/bin:")).toBe(true);
+  });
+
+  it("throws FliskError when brew reinstall lima still does not provide a native limactl", async () => {
+    const calls: Array<{ file: string; args: string[] }> = [];
+    await expect(
+      runColima(
+        "native-lima",
+        async (file, args) => {
+          calls.push({ file, args });
+        },
+        () => null,
+        () => false,
+      ),
+    ).rejects.toThrow("brew reinstall lima did not provide a native limactl");
+    expect(calls).toEqual([{ file: "brew", args: ["reinstall", "lima"] }]);
   });
 });

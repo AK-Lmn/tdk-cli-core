@@ -54,6 +54,13 @@ export declare function parseElapsed(etime: string): number | null;
 export declare function anyTiltAnswers(ports: number[], probe?: (port: number) => Promise<string | null>, attempts?: number, wait?: (ms: number) => Promise<void>): Promise<boolean>;
 export declare function createDockerFixDeps(run?: DockerRunner): DoctorFixDeps;
 export declare const dockerFixDeps: DoctorFixDeps;
+export type ColimaRunner = (file: string, args: string[], options: {
+    encoding: "utf-8";
+    timeout: number;
+    env?: NodeJS.ProcessEnv;
+}) => Promise<unknown>;
+/** Starts or restarts Colima, with a native limactl first on PATH when one is installed. */
+export declare function runColima(action: "start" | "restart" | "native-lima", run?: ColimaRunner, findNativeLima?: () => string | undefined | null, hasFile?: (path: string) => boolean): Promise<void>;
 export interface PlanContext {
     /** `tilt up` processes for this project (see `projectTiltPids`). */
     tiltPids?: number[];
