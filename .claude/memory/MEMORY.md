@@ -30,6 +30,8 @@ Hard-won, repo-specific facts for anyone (human or agent) working here. Keep ent
 
 - 2026-10-27: e2e suites that call `start_stack` run `flisk up` in the background and never read its readiness result, so a case that only polls for a log line and a running container passes while `flisk up` itself fails. The migrator suite (M3) accepted a migrator stuck in `Restarting (0)` that way. Assert the container state (`docker inspect` exit code, restart policy, health) or `flisk status --json` as well.
 
+- 2026-10-28: A skill `description` is a plain YAML scalar, so a `: ` inside it ("tooling: AWS") makes the whole frontmatter unparseable and the skill invisible to routers; check with `ruby -ryaml` (the roadmap's skill eval is Ruby) or use ` - `. `flisk-doctor`, `flisk-troubleshoot` and `layer-autoresearch` are synced from flisk-sh/flisk-skills (not in `.claude/skills/LOCAL`): fix them there first, then copy here and into `cli/templates/agent-skills`.
+
 ## PR and CI traps
 - 2026-10-27: `extension-fetch.test.ts` fails 12 cases locally (on main too) when `~/.flisk/cache/premium-flisk-test-key-0001` exists in the real home: the cache from an earlier run is read despite the test setting `HOME`, so every case reports "cache: hit" and never calls the mocked fetch. Delete that folder before blaming a change.
 - 2026-10-27: `utils/errors.ts` imports `utils/paths.ts`, so `paths.ts` must not import `FliskError`: the cycle breaks the tests that `vi.mock` `paths.js` for `findProjectRoot` (`errors.test.ts`, `config.test.ts` fail with "Could not find project root"). Other utils can extend `FliskError` (`InvalidServiceJsonError`, `TiltEventsLoadError`).
