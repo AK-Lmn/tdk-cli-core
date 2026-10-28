@@ -21,10 +21,9 @@ if [[ -f "$repo_root/.claude/skills/LOCAL" ]]; then
   done <"$repo_root/.claude/skills/LOCAL"
 fi
 
-mkdir -p "$repo_root/.claude-plugin" "$repo_root/.claude/skills" "$repo_root/.agents/skills"
-cp "$source_repo/.claude-plugin/marketplace.json" "$repo_root/.claude-plugin/marketplace.json"
-rm -rf "$repo_root/.claude-plugin/flisk-cli"
-cp -R "$source_repo/plugins/flisk-cli/.claude-plugin" "$repo_root/.claude-plugin/flisk-cli"
+# Only the skills come across. This repo's .claude-plugin/marketplace.json lists its own plugin (plugins/flisk, written
+# by scripts/agent-plugin.mjs); the flisk-cli plugin stays a flisk-skills marketplace entry.
+mkdir -p "$repo_root/.claude/skills" "$repo_root/.agents/skills"
 for dir in "$repo_root"/.claude/skills/*/; do
   name="$(basename "$dir")"
   [[ " ${local_skills[*]-} " == *" $name "* ]] || rm -rf "$dir"

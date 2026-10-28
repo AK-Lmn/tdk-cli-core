@@ -81,8 +81,8 @@ jobs:
         with:
           config: ./.github/_typos.toml
 
-  # Runs on docs-only PRs too, which skip the test job: links and anchors (D3), the tab bars drawn from docs/tabs.json (D4)
-  # and the fit calculator pages (D5).
+  # Runs on docs-only PRs too, which skip the test job: links and anchors (D3), the tab bars drawn from docs/tabs.json (D4),
+  # the fit calculator pages (D5) and the Flisk plugin files from scripts/agent-plugin.mjs (D6).
   docs:
     name: 📚 Docs links and tabs
     runs-on: ubuntu-26.04
@@ -97,6 +97,7 @@ jobs:
       - run: bash tests/e2e/static/skills-and-docs.sh
       - run: node --test scripts/docs/tabs.test.mjs
       - run: node --test scripts/docs/fit.test.mjs
+      - run: node --test scripts/agent-plugin.test.mjs
 
   lint:
     name: 🛡️ Lint

@@ -1,17 +1,20 @@
 {
-  "name": "flisk-skills",
+  "name": "flisk",
   "owner": {
-    "name": "Flisk Landscape"
+    "name": "Flisk",
+    "url": "https://flisk.sh"
   },
   "metadata": {
-    "description": "Shared agent skills for the Flisk CLI and landscape repositories",
-    "version": "1.0.0"
+    "description": "The Flisk plugin: skills and the flisk mcp server for running your app locally"
   },
   "plugins": [
     {
-      "name": "flisk-cli",
-      "source": "./plugins/flisk-cli",
-      "description": "Operate and troubleshoot the Flisk CLI in a project repository"
+      "name": "flisk",
+      "description": "Run your whole app on your own computer with one command. Skills and an MCP server that let your coding agent build, start, check and fix a local stack with the Flisk CLI.",
+      "source": "./plugins/flisk",
+      "homepage": "https://flisk.sh",
+      "license": "MIT",
+      "category": "development"
     }
   ]
 }

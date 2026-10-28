@@ -4,8 +4,8 @@
 // way. Four checks, each a drift when the surfaces disagree: the headline (README H1, package.json description, the home
 // page's title and hero <h1>, the site's _config.yml tagline), the command each one leads with (the README quickstart
 // leads with `flisk project` while the home page hero leads with `flisk import` is one drift), the install command, and
-// the spelling of the name (FLISK or FLisk where Flisk is meant; all lower case is the command and is fine). The old
-// tdk names are legacy-names' job. The value is the number of checks that drift, so 0 is one brand everywhere.
+// the spelling of the name (FLISK or FLisk where Flisk is meant; all lower case is the command and is fine). Leftover
+// names from the rename are legacy-names' job. The value is the number of checks that drift, so 0 is one brand everywhere.
 import { codeBlocks, read } from "./lib.mjs";
 import { firstH1, normalise } from "./tagline-consistency.mjs";
 import { quickstart, shellCommands } from "./translation-drift.mjs";

@@ -6,6 +6,7 @@ The Flisk CLI ships a local Model Context Protocol (MCP) server, `flisk mcp`. Yo
 
 - [Set up the Flisk MCP server](flisk-mcp-setup.md): install Flisk, point Codex, Claude Code, Claude Desktop, or Cursor at `flisk mcp`, and run `doctor` then `up` for the first time. Start here if no client can call Flisk yet.
 - [Flisk MCP quick guide](flisk-mcp.md): what each tool does and how to call it once the server is connected.
+- [The Flisk plugin](../../plugins/flisk/README.md): the skills and `flisk mcp` in one install for Claude Code (`/plugin marketplace add flisk-sh/flisk`), Codex, GitHub Copilot CLI, Gemini CLI and Cursor.
 
 You can ask for operations in plain language; you do not need to write JavaScript or call the tools by name.
 

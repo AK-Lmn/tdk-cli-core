@@ -240,7 +240,7 @@
 					{
 						"text": {
 							"file": ".claude-plugin/marketplace.json",
-							"contains": "flisk-cli"
+							"contains": "./plugins/flisk"
 						}
 					}
 				]
