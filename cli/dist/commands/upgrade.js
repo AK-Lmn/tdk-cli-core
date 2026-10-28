@@ -148,8 +148,11 @@ export function parseChecksums(text) {
     const sums = new Map();
     for (const line of text.split("\n")) {
         const match = line.trim().match(/^([0-9a-f]{64})\s+\*?(.+)$/i);
-        if (match)
-            sums.set(match[2].trim(), match[1].toLowerCase());
+        if (match) {
+            const [, hash, name] = match;
+            if (hash && name)
+                sums.set(name.trim(), hash.toLowerCase());
+        }
     }
     return sums;
 }
@@ -680,7 +683,7 @@ export function createUpgradeCommand() {
                 }
                 showErrorAndExit(`Unsupported OS: Flisk does not support this OS: ${process.platform}. Supported: linux, darwin, win32.`);
             }
-            latestVersion = binaryRelease.tag.replace(/^v/, "").split("-")[0];
+            latestVersion = binaryRelease.tag.replace(/^v/, "").split("-")[0] ?? binaryRelease.tag;
             if (latestVersion === currentVersion && !options.force) {
                 console.log(chalk.green("\n✅ You are already on the latest version!"));
                 console.log(chalk.gray(`   ${currentVersion} (current) = ${latestVersion} (latest)`));

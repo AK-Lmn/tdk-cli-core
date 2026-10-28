@@ -61,7 +61,8 @@ function determineDefaultDomain() {
         // Capture every Host(`...`) in a rule (multi-host rules included), avoid ReDoS with bounded classes
         const domainRegex = /Host\(`([a-zA-Z0-9_.-]{1,100})`\)/g;
         for (let match = domainRegex.exec(traefikLabels); match !== null; match = domainRegex.exec(traefikLabels)) {
-            domains.add(match[1]);
+            if (match[1])
+                domains.add(match[1]);
         }
     }
     catch (err) {

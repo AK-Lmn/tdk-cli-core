@@ -77,7 +77,7 @@ function readTextIfExists(path: string): string | undefined {
 function parseStarlarkStringList(source: string, name: string): string[] | undefined {
   const skipSpaces = (at: number): number => {
     let i = at;
-    while (i < source.length && /\s/.test(source[i])) i += 1;
+    while (i < source.length && /\s/.test(source.charAt(i))) i += 1;
     return i;
   };
   let from = 0;

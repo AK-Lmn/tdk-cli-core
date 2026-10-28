@@ -44,7 +44,7 @@ function readTextIfExists(path) {
 function parseStarlarkStringList(source, name) {
     const skipSpaces = (at) => {
         let i = at;
-        while (i < source.length && /\s/.test(source[i]))
+        while (i < source.length && /\s/.test(source.charAt(i)))
             i += 1;
         return i;
     };

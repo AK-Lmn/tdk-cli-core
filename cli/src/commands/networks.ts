@@ -89,7 +89,7 @@ function determineDefaultDomain(): string {
       match !== null;
       match = domainRegex.exec(traefikLabels)
     ) {
-      domains.add(match[1]);
+      if (match[1]) domains.add(match[1]);
     }
   } catch (err: unknown) {
     console.warn(chalk.yellow("⚠️ Could not scan Traefik domains (Docker unavailable)"));

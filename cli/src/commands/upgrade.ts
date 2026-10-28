@@ -191,7 +191,10 @@ export function parseChecksums(text: string): Map<string, string> {
   const sums = new Map<string, string>();
   for (const line of text.split("\n")) {
     const match = line.trim().match(/^([0-9a-f]{64})\s+\*?(.+)$/i);
-    if (match) sums.set(match[2].trim(), match[1].toLowerCase());
+    if (match) {
+      const [, hash, name] = match;
+      if (hash && name) sums.set(name.trim(), hash.toLowerCase());
+    }
   }
   return sums;
 }
@@ -794,7 +797,7 @@ export function createUpgradeCommand(): Command {
           );
         }
 
-        latestVersion = binaryRelease.tag.replace(/^v/, "").split("-")[0];
+        latestVersion = binaryRelease.tag.replace(/^v/, "").split("-")[0] ?? binaryRelease.tag;
 
         if (latestVersion === currentVersion && !options.force) {
           console.log(chalk.green("\n✅ You are already on the latest version!"));

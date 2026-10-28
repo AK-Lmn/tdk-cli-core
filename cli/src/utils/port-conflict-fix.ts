@@ -15,7 +15,9 @@ export function conflictPort(message: string): number | null {
   const match =
     message.match(/^host port (\d+) is already allocated$/) ??
     message.match(/Bind for [^ ]+:(\d+) failed: port is already allocated/i);
-  return match ? Number(match[1]) : null;
+  if (!match) return null;
+  const [, port] = match;
+  return port ? Number(port) : null;
 }
 
 /**

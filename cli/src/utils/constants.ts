@@ -125,7 +125,7 @@ export function getBaseDomain(): string {
       const u = new URL(override.includes("://") ? override : `http://${override}`);
       return u.hostname;
     } catch {
-      return override.replace(/^https?:\/\//, "").split("/")[0];
+      return override.replace(/^https?:\/\//, "").split("/")[0] || BASE_DOMAIN_DEFAULT;
     }
   }
   return BASE_DOMAIN_DEFAULT;

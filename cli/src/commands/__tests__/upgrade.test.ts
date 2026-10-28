@@ -367,6 +367,16 @@ describe("parseChecksums", () => {
     expect(sums.get("flisk-cli-engine.tar.gz")).toBe("b".repeat(64));
     expect(sums.size).toBe(2);
   });
+
+  it("skips lines missing checksum hash or file name", () => {
+    const validHash = "c".repeat(64);
+    const sums = parseChecksums(
+      `\n   \nshort-hash  file.tar.gz\n${validHash}\n${validHash}   \n${validHash}  valid-file.tar.gz\n`,
+    );
+
+    expect(sums.get("valid-file.tar.gz")).toBe(validHash);
+    expect(sums.size).toBe(1);
+  });
 });
 
 describe("Windows upgrade installation routing", () => {
