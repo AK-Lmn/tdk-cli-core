@@ -28,6 +28,7 @@ test("every demo link an agent is told to write has words, so demo.flisk.sh buil
 		for (const [link] of sentence.matchAll(/https:\/\/demo\.flisk\.sh\/[^\s`"]*/g)) {
 			if (link.includes("/v1/demo/")) continue; // the JSON API, read and never posted
 			links += 1;
+			assert.ok(!link.startsWith("https://demo.flisk.sh/d/"), `a /d/ id is made by the server, never written: ${sentence}`);
 			if (/^https:\/\/demo\.flisk\.sh\/<x-handle>$/.test(link)) {
 				assert.match(sentence, /404/, `a bare-handle link is named only as a 404: ${sentence}`);
 			} else {
