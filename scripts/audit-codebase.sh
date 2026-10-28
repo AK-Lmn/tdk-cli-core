@@ -83,16 +83,16 @@ scan_directory() {
 }
 
 # Scan CLI (TypeScript)
-scan_directory "$CLI_DIR" "CLI (TypeScript)" "$TS_EXTENSIONS" "$CLI_FINDINGS"
-cli_count=$?
+cli_count=0
+scan_directory "$CLI_DIR" "CLI (TypeScript)" "$TS_EXTENSIONS" "$CLI_FINDINGS" || cli_count=$?
 
 # Scan Discovery (Python and Starlark)
-scan_directory "$DISCOVERY_DIR" "Discovery (Python/Starlark)" "$PY_EXTENSIONS $STAR_EXTENSIONS" "$DISCOVERY_FINDINGS"
-discovery_count=$?
+discovery_count=0
+scan_directory "$DISCOVERY_DIR" "Discovery (Python/Starlark)" "$PY_EXTENSIONS $STAR_EXTENSIONS" "$DISCOVERY_FINDINGS" || discovery_count=$?
 
 # Scan Engine (Starlark)
-scan_directory "$ENGINE_DIR" "Engine (Starlark)" "$STAR_EXTENSIONS $GO_EXTENSIONS" "$ENGINE_FINDINGS"
-engine_count=$?
+engine_count=0
+scan_directory "$ENGINE_DIR" "Engine (Starlark)" "$STAR_EXTENSIONS $GO_EXTENSIONS" "$ENGINE_FINDINGS" || engine_count=$?
 
 # Calculate total
 total_count=$((cli_count + discovery_count + engine_count))
