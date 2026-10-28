@@ -121,7 +121,7 @@ The commands you will use most, by what you want to do:
 |------|---------|
 | Interactive dashboard | `flisk ui` |
 | Environment health check | `flisk doctor` |
-| View service logs | `flisk logs api` |
+| View service logs | `flisk logs --service api` |
 | Restart a service | `flisk restart api` |
 | Preview without starting | `flisk up main --dry-run` |
 | Check config drift | `flisk config verify` |
@@ -163,7 +163,7 @@ Something not working? Run [`flisk doctor`](start/words.md#flisk-doctor) first. 
 | `flisk up` refuses | Run `flisk doctor` first; it explains what's missing |
 | `flisk config verify` shows drift | `flisk config regenerate` to reset, or edit `service.json` instead |
 | Tilt UI not opening | Check `flisk doctor` for port conflicts; Tilt runs on 10350 by default |
-| Backend health fails | `flisk logs api` to see container logs; check `DATABASE_URL` in `.env` |
+| Backend health fails | `flisk logs --service api` to see container logs; check `DATABASE_URL` in `.env` |
 
 Full troubleshooting: [troubleshooting.md](troubleshooting.md)
 

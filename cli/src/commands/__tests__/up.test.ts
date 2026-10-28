@@ -147,7 +147,9 @@ describe("flisk up success output", () => {
     expect(lines.some((l) => l.includes("⟳ web"))).toBe(true);
     expect(lines.some((l) => l.includes("✗ worker"))).toBe(true);
     expect(lines).toContain("Stop: flisk down");
-    expect(lines).toContain("Logs: flisk logs <service>");
+    expect(lines).toContain("Logs: flisk logs --service <name>");
+    // `flisk logs <service>` is rejected ("too many arguments"); service names are an option.
+    expect(lines).not.toContain("Logs: flisk logs <service>");
   });
 });
 

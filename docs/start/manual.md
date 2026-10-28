@@ -67,7 +67,7 @@ Services:
   ✓ api → http://api.main.localhost/api/api/health
   ✓ web → http://web.main.localhost
 Stop: flisk down
-Logs: flisk logs <service>
+Logs: flisk logs --service <name>
 Next: flisk help  # or visit https://flisk.sh/docs
 ```
 

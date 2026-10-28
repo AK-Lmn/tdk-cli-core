@@ -175,7 +175,7 @@ export function formatUpSuccess(
 
   lines.push("Stop: flisk down");
   if (showLogsHint) {
-    lines.push("Logs: flisk logs <service>");
+    lines.push("Logs: flisk logs --service <name>");
   }
   lines.push("Next: flisk help  # or visit https://flisk.sh/docs");
 
