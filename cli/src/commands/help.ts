@@ -80,6 +80,11 @@ const COMMAND_GROUPS = [
     commands: [
       { name: "ui, interactive", desc: "Interactive TUI for managing services", alias: "" },
       {
+        name: "os",
+        desc: "Start FliskOS, the local desktop app for projects and agents",
+        alias: "--port, --no-open",
+      },
+      {
         name: "config",
         desc: "Manage project configuration and regenerate master files",
         alias: "regenerate, verify, edit",

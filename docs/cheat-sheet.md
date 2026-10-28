@@ -95,6 +95,7 @@ flisk version                 # aliases: flisk v, flisk -v, flisk --version
 | `flisk config <subcommand>` | | Regenerate, verify, migrate or edit project config |
 | `flisk doctor` | | Check environment readiness |
 | `flisk ui` | `interactive` | Interactive terminal UI |
+| `flisk os` | | Start FliskOS, the local desktop app for projects and agents |
 | `flisk mcp` | | MCP server over stdio for coding agents |
 | `flisk runtime` | | Inspect packaged engine and template assets |
 | `flisk completion [shell]` | | Shell completion scripts |
@@ -420,6 +421,27 @@ See the [doctor contract](reference/doctor-contract.md) and [troubleshooting](tr
 | `-v`, `--verbose` | More output |
 
 See [UI](ui.md).
+
+### `flisk os`
+
+Starts [FliskOS](https://github.com/flisk-sh/fliskos), the local desktop app for your Flisk projects, coding agents and Flisk apps. It runs the `fliskos` command when that is on `PATH`, with the current project as `--project`, and otherwise opens `FliskOS.app` (macOS, in `/Applications` or `~/Applications`). Flisk never installs it: when neither is there, the command exits 1 and says how (`npm install --global @flisk-sh/fliskos` once that package is published, or `npm run install:mac` in a checkout of the FliskOS repository). This is not `flisk ui`, the terminal dashboard.
+
+```bash
+flisk os                              # open FliskOS on the project around this folder
+flisk os --project ~/work/shop        # open a given project from anywhere
+flisk os --port 4300 --no-open        # serve on port 4300 without opening a window
+flisk os --scan-root ~/code           # also look for Flisk projects under ~/code
+```
+
+| Flag | Effect |
+| --- | --- |
+| `--project <dir>` | Open this Flisk project (default: the project around the current folder; outside one, FliskOS lists the projects it finds) |
+| `--port <port>` | Port FliskOS listens on (default: a free one) |
+| `--no-open` | Start the server without opening a window or browser; FliskOS then stops when its stdin closes |
+| `--scan-root <dir>` | Also look for Flisk projects under this folder; repeat it for more |
+| `--json` | Print one JSON envelope once FliskOS is up, with its URL (which carries an access token); FliskOS keeps running |
+
+`FliskOS.app` takes none of these options; `flisk os` names the ones it could not pass on. The command stays in the foreground and exits with the exit code of `fliskos`.
 
 ### `flisk mcp`
 

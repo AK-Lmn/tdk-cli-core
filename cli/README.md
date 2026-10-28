@@ -216,6 +216,7 @@ The frontend provider owns root `index.html` and starter source. After Flisk gen
 | Command | Description |
 |---------|-------------|
 | `flisk ui [--high-contrast] [--no-animations]` | 🎨 Interactive terminal UI |
+| `flisk os` | 🖥️ Start [FliskOS](https://github.com/flisk-sh/fliskos), the local desktop app for projects, coding agents and Flisk apps: runs `fliskos` for the current project when it is on `PATH`, else opens `FliskOS.app` on macOS; never installs it (`--project`, `--port`, `--no-open`, `--scan-root`, `--json`; see the [cheat sheet](../docs/cheat-sheet.md#flisk-os)) |
 | `flisk networks` | 🌐 Show Traefik-routed URLs (`--stack`, `--json`, `--raw`) |
 | `flisk import [dir]` | 📥 Import the services in a directory's root `docker-compose.yml` (`--dry-run`, `--yes`, `--force`) |
 | `flisk eject` | 🚪 Write `EJECTED.md` describing the generated Tilt files; copies nothing (`--dry-run`, `--yes`) |

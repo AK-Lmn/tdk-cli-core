@@ -221,6 +221,8 @@ const EXEMPT: Record<string, string> = {
     "creates a project outside one instead of failing, so the outside-project row does not apply; json-scaffold-commands.test.ts covers it",
   "logs --json":
     "reads logs through the host's Tilt UI port; needs Tilt, and the output depends on whether a stack is running",
+  "os --json":
+    "starts the host's fliskos command (or FliskOS.app) and keeps running until it stops, so a matrix run would launch a server; os.test.ts covers the envelope with a stub fliskos and spawn doubles",
   "restart --json":
     "triggers a resource on the host's Tilt UI port, and isTiltAvailable checks the host's tilt binary; needs Tilt and a running stack",
   "runtime --json":

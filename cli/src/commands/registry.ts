@@ -25,6 +25,7 @@ import { maintainersCommand } from "./maintainers.js";
 import { mcpCommand } from "./mcp.js";
 import { networksCommand } from "./networks.js";
 import { openCommand } from "./open.js";
+import { osCommand } from "./os.js";
 import { projectCommand } from "./project.js";
 import { projectsCommand } from "./projects.js";
 import { resourceCommand } from "./resource.js";
@@ -60,6 +61,7 @@ export function getRegisteredCommands(): readonly Command[] {
     projectCommand,
     configCommand,
     uiCommand,
+    osCommand,
     versionCommand,
     maintainersCommand,
     doctorCommand,

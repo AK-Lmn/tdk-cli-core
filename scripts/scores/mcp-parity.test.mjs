@@ -85,7 +85,7 @@ test("a command is covered by a tool name or by the CLI arguments a handler buil
 });
 
 test("human-only commands are left out, with a reason each, and so are their subcommands", () => {
-	for (const name of ["help", "completion", "ui", "mcp", "version", "maintainers", "open", "upgrade"])
+	for (const name of ["help", "completion", "ui", "mcp", "version", "maintainers", "open", "os", "upgrade"])
 		assert.ok(HUMAN_ONLY[name], name);
 	assert.equal(isHumanOnly("maintainers check"), true);
 	assert.equal(isHumanOnly("status"), false);

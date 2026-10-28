@@ -26,6 +26,7 @@ export const HUMAN_ONLY = {
 	version: "prints the CLI version, which doctor --json already reports",
 	maintainers: "checks this repo's MAINTAINERS.md, not a user's project",
 	open: "opens a browser for a person to look at",
+	os: "starts a desktop app for a person to look at; it runs until the person closes it",
 	upgrade: "replaces the installed CLI, a person's call",
 };
 
