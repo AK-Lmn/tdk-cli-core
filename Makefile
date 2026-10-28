@@ -55,6 +55,7 @@ test-shell: ## Check shell script syntax, e2e suite definitions, the CI inventor
 	node scripts/competitor-matrix.mjs --check
 	node --test scripts/ci-report.test.mjs
 	node --test scripts/test-summary.test.mjs
+	node --test scripts/sync-byo-templates.test.mjs
 	node --test 'tests/e2e/lib/__tests__/*.test.mjs'
 
 ade-score: ## Print the deterministic ADE score (no AI, files only); add ARGS="--markdown" or ARGS="--json"
