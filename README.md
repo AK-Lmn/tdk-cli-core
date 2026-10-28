@@ -4,18 +4,20 @@
 
 # Flisk: your whole app, running on your computer with one command
 
-Flisk runs every part of your app (API, website, workers, AI agents, database) on your laptop behind one local address, and reloads a part when you save it. You describe each part in a small `service.json`; Flisk writes the Dockerfiles, the Compose file and the Tiltfile from it, and keeps them in sync.
-
 [![Flisk Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?logo=discord&logoColor=white)](https://discord.gg/Sjhb3tnq3)
 [![npm version](https://img.shields.io/npm/v/@flisk-sh/flisk.svg?style=flat&color=blue)](https://www.npmjs.com/package/@flisk-sh/flisk) [![npm weekly downloads](https://img.shields.io/npm/dw/@flisk-sh/flisk?style=flat&color=blue)](https://www.npmjs.com/package/@flisk-sh/flisk) [![GitHub stars](https://img.shields.io/github/stars/flisk-sh/flisk?style=flat&logo=github)](https://github.com/flisk-sh/flisk/stargazers) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**[Quick start](#quick-start) · [With your AI agent](#use-flisk-with-your-ai-agent) · [Why Flisk](#why-flisk-cli) · [Examples](#examples) · [FAQ](#faq) · [Docs](#docs) · [Website](https://flisk.sh/)**
+**[What is Flisk?](#what-is-flisk) · [Key features](#key-features) · [Quick start](#quick-start) · [Commands](#commands) · [Configuration](#configuration) · [With your AI agent](#use-flisk-with-your-ai-agent) · [FAQ](#faq) · [Docs](#docs)**
 
 <a id="readme-languages"></a>
 
 <sub>👋 **Welcome** · [欢迎](docs/README-zh_cn.md "简体中文") · [歡迎](docs/README-zh_tw.md "繁體中文") · [ようこそ](docs/README-ja.md "日本語") · [환영합니다](docs/README-ko.md "한국어") · [Bienvenue](docs/README-fr.md "Français") · [Bienvenido](docs/README-es.md "Español") · [Bem-vindos](docs/README-pt-BR.md "Português (Brasil)") · [Willkommen](docs/README-de.md "Deutsch") · [Benvenuti](docs/README-it.md "Italiano") · [Bun venit](docs/README-ro.md "Română") · [أهلًا](docs/README-ar.md "العربية") · [Hoş geldiniz](docs/README-tr.md "Türkçe") · [Ласкаво просимо](docs/README-uk.md "Українська") · [Witamy](docs/README-pl.md "Polski") · [خوش آمدید](docs/README-fa.md "فارسی") · [Selamat datang](docs/README-id.md "Bahasa Indonesia") · [Chào mừng](docs/README-vi.md "Tiếng Việt") · [ยินดีต้อนรับ](docs/README-th.md "ไทย") · [Καλώς ήρθατε](docs/README-el.md "Ελληνικά") · [സ്വാഗതം](docs/README-ml.md "മലയാളം")</sub>
 
 </div>
+
+## What is Flisk?
+
+Flisk is a command-line tool for local development. It runs every part of your app (API, website, workers, AI agents, database) on your computer behind one local address, and reloads a part when you save it. You describe each part in a small `service.json`; Flisk writes the Dockerfiles, the Compose file and the Tiltfile from it, and keeps them in sync. It does not deploy: production stays with your own tools.
 
 ```bash
 npm install -g @flisk-sh/flisk
@@ -62,6 +64,19 @@ flisk up
 <sub>A plain Compose app (a Node API and Postgres) answered through Flisk's router **49 s after `flisk import`** on a clean Ubuntu CI runner, images pulled and built from scratch, install not counted ([run](https://github.com/flisk-sh/flisk/actions/runs/40660606705), [claims](docs/claims.md)). CI repeats it on every pull request.</sub>
 
 **Rather ask your AI helper?** It runs these commands for you: [copy a prompt](#use-flisk-with-your-ai-agent). **Never written code?** [Start here](docs/start/first-time.md), step by step · [Words you'll see](docs/start/words.md)
+
+## Key features
+
+- **One `service.json` per service.** Flisk generates the Dockerfile, the Compose entry, the Traefik routes, the health check and the Tiltfile from it. You do not hand-write a `docker-compose.yml` or `nginx.conf`.
+- **One command, one address.** `flisk up` starts Postgres, your services and a local gateway, starts services in health-checked `dependsOn` order, and prints a `*.localhost` URL for each.
+- **Hot reload while you code.** Tilt live-updates a container when you save its files; there is no rebuild step.
+- **Wired for you.** `DATABASE_URL`, the API URL your frontend calls, and missing secrets such as `JWT_SECRET` are generated and injected, never copied by hand.
+- **Generated files you can check.** Flisk records what it wrote, refuses to start when a generated file was edited by hand, and `flisk config verify` reports drift ([generated files and drift checks](docs/generated-files.md)).
+- **Built for AI helpers.** `flisk mcp` gives Claude Code, Codex, Cursor and other agents 21 tools, and `flisk project` adds the Flisk skills and an `AGENTS.md`.
+- **Runs AI agents too.** Agent services get durable checkpoints, sticky `x-session-id` routing, and `/health` and `/ready` checks ([below](#run-your-ai-agents-next-to-your-services)).
+- **No Kubernetes; no Docker for small apps.** Docker and Tilt run the stack without a local cluster such as kind or minikube, and services that each declare a `command` run as plain local processes.
+- **Quick to start.** With warm image layers, a one-backend stack is healthy in 12.8 to 13.8 seconds ([timing notes](docs/benchmarks/quickstart-timing.md)). An 8-service stack settles in 32 to 42 seconds warm and about 4.5 minutes on its first cold build ([benchmark](docs/benchmarks/results/tdk-up-warm-start-2026-10-11/summary.md)).
+- **Free core.** The CLI is MIT and needs no key to run `flisk up`; Premium extras are optional ([license matrix](#license-matrix)).
 
 ## Is Flisk right for your team?
 
@@ -185,92 +200,7 @@ flisk up shop
 
 Agents get durable checkpoint volumes that survive `flisk down`, sticky session routing via `x-session-id`, graceful SIGTERM drain during hot reloads, a Docker health check on `/health`, and application-level readiness checks on `/ready`. See the [AI agents guide](docs/agents/ai-agents.md) and [honest comparison with agent frameworks](docs/compare-honest.md#ai-agent-frameworks-and-workflow-engines-libfx-langgraph-mastra-vercel-workflows-temporal).
 
-## Why Flisk CLI?
-
-- **One `service.json` per service.** Flisk generates the Dockerfile, Traefik routing, and Tiltfile from it. You do not hand-write a `docker-compose.yml` or `nginx.conf`.
-- **Local stack without Kubernetes.** Services run on Docker and Tilt on your machine. You do not need a local cluster such as kind or minikube.
-- **Hot reload while you code.** Tilt live-updates the containers when files change.
-- **Generated files you can check.** `flisk` records the generated files and reports drift, so local config stays in sync. See [generated files and drift checks](docs/generated-files.md).
-- **Quick to start.** With warm image layers, a one-backend stack is healthy in 12.8 to 13.8 seconds ([timing notes](docs/benchmarks/quickstart-timing.md)). An 8-service stack settles in 32 to 42 seconds warm and about 4.5 minutes on its first cold build ([benchmark](docs/benchmarks/results/tdk-up-warm-start-2026-10-11/summary.md)).
-- **Local only.** Flisk is not a deploy tool. Production deployment stays with Helm, Argo CD, or Kustomize.
-
-How Flisk compares, in 10 categories with two tools each. Pick a tab:
-
-<!-- tabs:compare compose-tilt · generated by scripts/docs/tabs.mjs from docs/tabs.json; the tab's content follows this block -->
-<table>
-<tr><td><a href="docs/compare/compose-tilt.md"><img src="docs/assets/tabs/compare/compose-tilt-selected.b6430755.svg" alt="Compose &amp; Tilt (selected)" width="159" height="48" align="top"></a><a href="docs/compare/kubernetes-dev.md"><img src="docs/assets/tabs/compare/kubernetes-dev.dfa5f16f.svg" alt="Kubernetes loops" width="175" height="48" align="top"></a><a href="docs/compare/local-kubernetes.md"><img src="docs/assets/tabs/compare/local-kubernetes.c6d934bd.svg" alt="Local clusters" width="151" height="48" align="top"></a><a href="docs/compare/process-runners.md"><img src="docs/assets/tabs/compare/process-runners.b6681417.svg" alt="Process runners" width="167" height="48" align="top"></a><a href="docs/compare/dev-environments.md"><img src="docs/assets/tabs/compare/dev-environments.552b3b67.svg" alt="Dev environments" width="178" height="48" align="top"></a><a href="docs/compare/cloud-workspaces.md"><img src="docs/assets/tabs/compare/cloud-workspaces.59ad3b90.svg" alt="Cloud workspaces" width="180" height="48" align="top"></a><a href="docs/compare/app-frameworks.md"><img src="docs/assets/tabs/compare/app-frameworks.6a800f81.svg" alt="App frameworks" width="166" height="48" align="top"></a><a href="docs/compare/monorepo-tools.md"><img src="docs/assets/tabs/compare/monorepo-tools.3bd97380.svg" alt="Monorepo tools" width="161" height="48" align="top"></a><a href="docs/compare/cluster-bridges.md"><img src="docs/assets/tabs/compare/cluster-bridges.5987c7b4.svg" alt="Cluster bridges" width="159" height="48" align="top"></a><a href="docs/compare/ai-agents.md"><img src="docs/assets/tabs/compare/ai-agents.13e8fbd8.svg" alt="AI agents" width="120" height="48" align="top"></a><a href="docs/compare/compose-tilt.md"><img src="docs/assets/tabs/compare/count.8b0f72b7.svg" alt="10 comparisons" width="124" height="48" align="top"></a></td></tr>
-</table>
-<!-- /tabs:compare -->
-
-Docker Compose and Tilt are tools developers use to start the parts of an app on their computer. Compose runs [containers](docs/start/words.md#container) from a YAML settings file you write. [Tilt](docs/start/words.md#tilt) watches your files and live-updates the running app as you save them, from a Tiltfile you write. Flisk writes both files for you from one small `service.json` per service (per part of your app), then runs Tilt.
-
-| | Docker Compose | Tilt | Flisk |
-| --- | --- | --- | --- |
-| Scaffold a new service in one command | Partial (`docker init` writes a Dockerfile and compose file) | No | Yes (`flisk resource`) |
-| Hot reload on file change | Partial (`compose watch`) | Yes (`live_update`) | Yes (generated Tilt `live_update`) |
-| Health-checked startup order | Yes (`depends_on: condition: service_healthy`) | Yes (`resource_deps`, written by hand) | Yes (from `dependsOn`) |
-| Gateway URL per service and Postgres included | No (you add them) | No (you add them) | Yes (Traefik `*.localhost` and Postgres) |
-| Start one stack of a large system | Partial (profiles) | Yes (`tilt up <resource>`) | Yes (`flisk up <stack>`) |
-| Config you write by hand | `compose.yaml` | `Tiltfile` (Starlark) | `service.json` only; the rest is generated and drift-checked |
-
-**Where they are stronger**
-
-- **Compose** is the simpler choice for two or three services you already containerized, and it needs no Tilt.
-- **Tilt** gives full control when you are happy to write and maintain a Tiltfile, and it also targets Kubernetes.
-
-**Use them together.** Flisk generates a Compose file and a Tiltfile and runs them with Docker and Tilt, so the generated files stay readable with `flisk config explain`.
-
-See the [detailed tool comparison](docs/comparison.md) for architectural tradeoffs, when each tool is the better choice, and migration workflows.
-
-## How Flisk works
-
-1. **Describe each service** in a `service.json` next to its code.
-2. **Run `flisk up <stack>`.** Flisk generates the local runtime files from those manifests: Dockerfiles, Traefik routing, and the Tiltfile.
-3. **Docker runs the containers and Tilt watches them.** Edit code and the containers live-update. Use `flisk ui` to inspect running services, and `flisk doctor` or `flisk config verify` to check the environment and generated files.
-
-### Everything is wired together, and stays in sync
-
-You do not connect services by hand. Flisk derives each connection from the same `service.json` files and regenerates it when they change.
-
-| When you... | Flisk updates |
-| --- | --- |
-| Add a service with `flisk resource` | It is discovered automatically and its stack is enabled on the next `flisk up`. It gets an image build, a Compose entry, gateway routes, a health check, and its own `.autogenerated/` files. |
-| Edit a `service.json` (port, `dependsOn`, features) | The Dockerfile, Compose entry, Traefik labels, and nginx config are regenerated on the next `flisk up`. A hand edit to a generated file is caught as drift before anything starts. |
-| Edit your code | Tilt live-updates the running container. No rebuild step. |
-| Add a backend route | Frontends already point at the API through generated `VITE_API_URL`, `env.ts`, and `api-client.ts`, built from the same hostnames the gateway routes. |
-| Add a database or a second backend | `DATABASE_URL` and the other connection settings are injected into each service's environment. No copying of passwords or hostnames. |
-| Run on a project with an older or missing `.env` | Missing secrets such as `JWT_SECRET` are generated without overwriting your values. |
-| Declare `dependsOn` | Services start in health-checked order. |
-
-See [how `flisk up` works](docs/how-flisk-up-works.md) for the full startup sequence.
-
-### What you can do with Flisk
-
-| You want to | Flisk does | Command |
-| --- | --- | --- |
-| Start a new project | Creates the project and first services | `flisk project --yes` |
-| Add a service | Writes its `service.json` and generated files | `flisk resource <name> --type backend --stack <stack> --yes` |
-| Start a whole stack | Starts Postgres, your services, and the routing, and prints the URLs | `flisk up <stack>` |
-| Preview before starting | Shows which services and URLs would start, without containers | `flisk up <stack> --dry-run` |
-| Inspect running services | Opens an interactive terminal dashboard | `flisk ui` |
-| Check your machine | Reports Docker, Tilt, and port readiness | `flisk doctor` |
-| Catch config drift | Compares generated files with what Flisk last wrote | `flisk config verify` |
-| Read one service's logs | Prints its recent log lines | `flisk logs --service <name>` |
-| Restart one service | Restarts it in the running stack | `flisk restart <name>` |
-| Stop everything | Stops every service in the stack | `flisk down` |
-| Keep Flisk current | Upgrades the CLI in place | `flisk upgrade` |
-
-Flisk works with:
-
-* **Runtimes & Frameworks:** Bun, Node, Python, Go, Rust, React, Vue, Svelte, Elysia, Fastify, NestJS
-* **Databases & Tooling:** Prisma, Drizzle, Atlas, Dbmate
-* **Messaging & Gateway:** NATS, Traefik
-
-## Quick start
-
-The commands at the top of this page are the whole quick start. This section is the long version: what to install, the other ways to start, and what to expect. Works on macOS, Linux, and Windows (through [WSL2](docs/start/words.md#wsl2)). Never used a terminal? [Start here](docs/start/first-time.md) instead.
-
-### Prerequisites (install once)
+## Prerequisites (install once)
 
 | Tool | Version | Install | Needed for |
 |------|---------|---------|------------|
@@ -314,6 +244,39 @@ flisk doctor
 <tr><td><img src="docs/assets/tabs/setup/macos-bottom.5726a279.svg" alt="2 services healthy in 0.8 s · no Docker · Apple M1 · 16 GB · flisk 1.4.7" width="100%" align="top"></td></tr>
 </table>
 <!-- /tabs:setup -->
+
+## Installation
+
+Install the CLI with npm, with Bun, or as a prebuilt binary that needs no Node.js or Bun:
+
+<!-- tabs:install npm · generated by scripts/docs/tabs.mjs from docs/tabs.json; edit the panel below, not the bar -->
+<table>
+<tr><td><a href="docs/install/npm.md"><img src="docs/assets/tabs/install/npm-selected.7e6ed338.svg" alt="npm (selected)" width="86" height="48" align="top"></a><a href="docs/install/bun.md"><img src="docs/assets/tabs/install/bun.ade4a64c.svg" alt="Bun" width="84" height="48" align="top"></a><a href="docs/install/binary.md"><img src="docs/assets/tabs/install/binary.d45225e1.svg" alt="Prebuilt binary" width="155" height="48" align="top"></a><a href="docs/install/npm.md"><img src="docs/assets/tabs/install/count.dd332b8b.svg" alt="3 ways to install" width="125" height="48" align="top"></a></td></tr>
+<tr><td>
+
+```bash
+npm install -g @flisk-sh/flisk
+```
+
+This downloads Flisk with [npm](docs/start/words.md#npm), which comes with Node.js 22.12+. Check it with `flisk --version`: it prints a version number. Update later with `flisk upgrade`. Pinning a version and uninstalling: [install with npm](docs/install/npm.md).
+
+**For developers:** public npm is the recommended default; to install through GitHub Packages instead, configure registry authentication as described in [GitHub Packages installation](docs/github-packages.md).
+
+</td></tr>
+</table>
+<!-- /tabs:install -->
+
+Update later with `flisk upgrade` (or its alias `flisk update`), or `npm install -g @flisk-sh/flisk@latest`. To pin a version or read what changed, see [upgrading and version pinning](docs/upgrading.md).
+
+> [!IMPORTANT]
+> Get Flisk from the [flisk-sh/flisk](https://github.com/flisk-sh/flisk) repository, the
+> [`@flisk-sh/flisk`](https://www.npmjs.com/package/@flisk-sh/flisk) npm package, or the
+> [official website](https://flisk.sh/). Follow the installation links from these official sources.
+> A similar repository name or copied README does not establish that a download is official.
+
+## Quick start
+
+The commands under [What is Flisk?](#what-is-flisk) are the whole quick start, once the [prerequisites](#prerequisites-install-once) are in place. This section is the long version: the other ways to start, what to expect, and what Flisk writes. Never used a terminal? [Start here](docs/start/first-time.md) instead.
 
 ### Pick how to start
 
@@ -393,7 +356,7 @@ Starting 2 services from stack "shop"...
 Host ports: HTTP 80, HTTPS 443, Postgres 15432
 ```
 
-Then Tilt builds and starts the containers, and `flisk up` ends with `Flisk is up.` and the Tilt dashboard address, `http://localhost:10350`, where each service turns green when it is healthy. Your host ports can differ: when 80 or 5432 is busy, Flisk picks a free one and the URLs include it. `flisk down` stops everything. Every command you will use next is in [what you can do with Flisk](#what-you-can-do-with-flisk).
+Then Tilt builds and starts the containers, and `flisk up` ends with `Flisk is up.` and the Tilt dashboard address, `http://localhost:10350`, where each service turns green when it is healthy. Your host ports can differ: when 80 or 5432 is busy, Flisk picks a free one and the URLs include it. `flisk down` stops everything. Every command you will use next is under [Commands](#commands).
 
 ### Troubleshooting
 
@@ -512,6 +475,106 @@ You never write an nginx config, a Dockerfile, a Compose file, or Traefik labels
 
 See [how Flisk compares to alternative dev tools](docs/comparison.md), [how Flisk CLI works alongside Helm](https://flisk.sh/docs/with-helm/), the [service schema](runtime/engine/schemas/service-schema.json), and the [project configuration schema](runtime/engine/schemas/project-schema.json).
 
+## Commands
+
+The commands you will use every day:
+
+| You want to | Flisk does | Command |
+| --- | --- | --- |
+| Start a new project | Creates the project and first services | `flisk project --yes` |
+| Add a service | Writes its `service.json` and generated files | `flisk resource <name> --type backend --stack <stack> --yes` |
+| Start a whole stack | Starts Postgres, your services, and the routing, and prints the URLs | `flisk up <stack>` |
+| Preview before starting | Shows which services and URLs would start, without containers | `flisk up <stack> --dry-run` |
+| Inspect running services | Opens an interactive terminal dashboard | `flisk ui` |
+| Check your machine | Reports Docker, Tilt, and port readiness | `flisk doctor` |
+| Catch config drift | Compares generated files with what Flisk last wrote | `flisk config verify` |
+| Read one service's logs | Prints its recent log lines | `flisk logs --service <name>` |
+| Restart one service | Restarts it in the running stack | `flisk restart <name>` |
+| Stop everything | Stops every service in the stack | `flisk down` |
+| Keep Flisk current | Upgrades the CLI in place | `flisk upgrade` |
+
+Commands take `--help`, and `--json` prints one JSON object for scripts and agents ([machine-readable output](docs/reference/machine-readable-cli.md)). The same actions are MCP tools through `flisk mcp`. Every command and flag: [cheat sheet](docs/cheat-sheet.md).
+
+Flisk works with:
+
+* **Runtimes & Frameworks:** Bun, Node, Python, Go, Rust, React, Vue, Svelte, Elysia, Fastify, NestJS
+* **Databases & Tooling:** Prisma, Drizzle, Atlas, Dbmate
+* **Messaging & Gateway:** NATS, Traefik
+
+## Configuration
+
+You edit three kinds of files; Flisk writes everything else and checks it for hand edits.
+
+| File | What it holds | Reference |
+| --- | --- | --- |
+| `service.json`, one per service | Name, type, stack, port, health check, `dependsOn`, a `command` to run it as a local process, and optional features | [Every field](docs/service-json.md) |
+| `.flisk/project.json` | The project name and which stacks each phase enables; `flisk project` creates it | [Project settings](docs/configuration.md#fliskprojectjson) |
+| `.env` | Secrets such as `DB_PASSWORD` and `JWT_SECRET`; `flisk project` generates them and adds `.env` to `.gitignore` | [Environment](docs/environment.md) |
+
+Flisk selects host ports from bounded fallback ranges for HTTP, HTTPS, and Postgres, and dev ports listen on `127.0.0.1` only, so other machines on your network cannot reach them. These environment variables change that and more:
+
+| Variable | What it does |
+| --- | --- |
+| `FLISK_HTTP_PORT`, `FLISK_HTTPS_PORT`, `FLISK_POSTGRES_PORT` | Pin the host port for the gateway (HTTP, HTTPS) or Postgres |
+| `FLISK_BIND_ADDRESS` | The address dev ports listen on, `127.0.0.1` by default. `0.0.0.0` lets you test from a phone; `flisk doctor` warns when it is a wildcard address |
+| `FLISK_SECRET_PROVIDER` | `infisical` reads secrets from [Infisical](https://infisical.com/) instead of `.env` |
+| `TILT_PORT` | The Tilt UI port, 10350 by default |
+| `FLISK_DEBUG` | `1`, with `flisk up --verbose`, adds Starlark debug logs to the Tilt output |
+
+Editor autocomplete and validation for both JSON files: [configuration and editor schemas](docs/configuration.md).
+
+## How Flisk works
+
+1. **Describe each service** in a `service.json` next to its code.
+2. **Run `flisk up <stack>`.** Flisk generates the local runtime files from those manifests: Dockerfiles, Traefik routing, and the Tiltfile.
+3. **Docker runs the containers and Tilt watches them.** Edit code and the containers live-update. Use `flisk ui` to inspect running services, and `flisk doctor` or `flisk config verify` to check the environment and generated files.
+
+### Everything is wired together, and stays in sync
+
+You do not connect services by hand. Flisk derives each connection from the same `service.json` files and regenerates it when they change.
+
+| When you... | Flisk updates |
+| --- | --- |
+| Add a service with `flisk resource` | It is discovered automatically and its stack is enabled on the next `flisk up`. It gets an image build, a Compose entry, gateway routes, a health check, and its own `.autogenerated/` files. |
+| Edit a `service.json` (port, `dependsOn`, features) | The Dockerfile, Compose entry, Traefik labels, and nginx config are regenerated on the next `flisk up`. A hand edit to a generated file is caught as drift before anything starts. |
+| Edit your code | Tilt live-updates the running container. No rebuild step. |
+| Add a backend route | Frontends already point at the API through generated `VITE_API_URL`, `env.ts`, and `api-client.ts`, built from the same hostnames the gateway routes. |
+| Add a database or a second backend | `DATABASE_URL` and the other connection settings are injected into each service's environment. No copying of passwords or hostnames. |
+| Run on a project with an older or missing `.env` | Missing secrets such as `JWT_SECRET` are generated without overwriting your values. |
+| Declare `dependsOn` | Services start in health-checked order. |
+
+See [how `flisk up` works](docs/how-flisk-up-works.md) for the full startup sequence.
+
+## Why Flisk CLI?
+
+How Flisk compares, in 10 categories with two tools each. Pick a tab:
+
+<!-- tabs:compare compose-tilt · generated by scripts/docs/tabs.mjs from docs/tabs.json; the tab's content follows this block -->
+<table>
+<tr><td><a href="docs/compare/compose-tilt.md"><img src="docs/assets/tabs/compare/compose-tilt-selected.b6430755.svg" alt="Compose &amp; Tilt (selected)" width="159" height="48" align="top"></a><a href="docs/compare/kubernetes-dev.md"><img src="docs/assets/tabs/compare/kubernetes-dev.dfa5f16f.svg" alt="Kubernetes loops" width="175" height="48" align="top"></a><a href="docs/compare/local-kubernetes.md"><img src="docs/assets/tabs/compare/local-kubernetes.c6d934bd.svg" alt="Local clusters" width="151" height="48" align="top"></a><a href="docs/compare/process-runners.md"><img src="docs/assets/tabs/compare/process-runners.b6681417.svg" alt="Process runners" width="167" height="48" align="top"></a><a href="docs/compare/dev-environments.md"><img src="docs/assets/tabs/compare/dev-environments.552b3b67.svg" alt="Dev environments" width="178" height="48" align="top"></a><a href="docs/compare/cloud-workspaces.md"><img src="docs/assets/tabs/compare/cloud-workspaces.59ad3b90.svg" alt="Cloud workspaces" width="180" height="48" align="top"></a><a href="docs/compare/app-frameworks.md"><img src="docs/assets/tabs/compare/app-frameworks.6a800f81.svg" alt="App frameworks" width="166" height="48" align="top"></a><a href="docs/compare/monorepo-tools.md"><img src="docs/assets/tabs/compare/monorepo-tools.3bd97380.svg" alt="Monorepo tools" width="161" height="48" align="top"></a><a href="docs/compare/cluster-bridges.md"><img src="docs/assets/tabs/compare/cluster-bridges.5987c7b4.svg" alt="Cluster bridges" width="159" height="48" align="top"></a><a href="docs/compare/ai-agents.md"><img src="docs/assets/tabs/compare/ai-agents.13e8fbd8.svg" alt="AI agents" width="120" height="48" align="top"></a><a href="docs/compare/compose-tilt.md"><img src="docs/assets/tabs/compare/count.8b0f72b7.svg" alt="10 comparisons" width="124" height="48" align="top"></a></td></tr>
+</table>
+<!-- /tabs:compare -->
+
+Docker Compose and Tilt are tools developers use to start the parts of an app on their computer. Compose runs [containers](docs/start/words.md#container) from a YAML settings file you write. [Tilt](docs/start/words.md#tilt) watches your files and live-updates the running app as you save them, from a Tiltfile you write. Flisk writes both files for you from one small `service.json` per service (per part of your app), then runs Tilt.
+
+| | Docker Compose | Tilt | Flisk |
+| --- | --- | --- | --- |
+| Scaffold a new service in one command | Partial (`docker init` writes a Dockerfile and compose file) | No | Yes (`flisk resource`) |
+| Hot reload on file change | Partial (`compose watch`) | Yes (`live_update`) | Yes (generated Tilt `live_update`) |
+| Health-checked startup order | Yes (`depends_on: condition: service_healthy`) | Yes (`resource_deps`, written by hand) | Yes (from `dependsOn`) |
+| Gateway URL per service and Postgres included | No (you add them) | No (you add them) | Yes (Traefik `*.localhost` and Postgres) |
+| Start one stack of a large system | Partial (profiles) | Yes (`tilt up <resource>`) | Yes (`flisk up <stack>`) |
+| Config you write by hand | `compose.yaml` | `Tiltfile` (Starlark) | `service.json` only; the rest is generated and drift-checked |
+
+**Where they are stronger**
+
+- **Compose** is the simpler choice for two or three services you already containerized, and it needs no Tilt.
+- **Tilt** gives full control when you are happy to write and maintain a Tiltfile, and it also targets Kubernetes.
+
+**Use them together.** Flisk generates a Compose file and a Tiltfile and runs them with Docker and Tilt, so the generated files stay readable with `flisk config explain`.
+
+See the [detailed tool comparison](docs/comparison.md) for architectural tradeoffs, when each tool is the better choice, and migration workflows.
+
 ## Examples
 
 Runnable examples show Flisk on real stacks. Start with the smallest one:
@@ -525,35 +588,6 @@ Runnable examples show Flisk on real stacks. Start with the smallest one:
 | [byo-jobs](examples/byo-jobs/README.md) | Bring-your-own jobs |
 | [flisk-example](examples/flisk-example/README.md) | A full multi-service stack |
 
-## Installation
-
-Install the CLI with npm, with Bun, or as a prebuilt binary that needs no Node.js or Bun:
-
-<!-- tabs:install npm · generated by scripts/docs/tabs.mjs from docs/tabs.json; edit the panel below, not the bar -->
-<table>
-<tr><td><a href="docs/install/npm.md"><img src="docs/assets/tabs/install/npm-selected.7e6ed338.svg" alt="npm (selected)" width="86" height="48" align="top"></a><a href="docs/install/bun.md"><img src="docs/assets/tabs/install/bun.ade4a64c.svg" alt="Bun" width="84" height="48" align="top"></a><a href="docs/install/binary.md"><img src="docs/assets/tabs/install/binary.d45225e1.svg" alt="Prebuilt binary" width="155" height="48" align="top"></a><a href="docs/install/npm.md"><img src="docs/assets/tabs/install/count.dd332b8b.svg" alt="3 ways to install" width="125" height="48" align="top"></a></td></tr>
-<tr><td>
-
-```bash
-npm install -g @flisk-sh/flisk
-```
-
-This downloads Flisk with [npm](docs/start/words.md#npm), which comes with Node.js 22.12+. Check it with `flisk --version`: it prints a version number. Update later with `flisk upgrade`. Pinning a version and uninstalling: [install with npm](docs/install/npm.md).
-
-**For developers:** public npm is the recommended default; to install through GitHub Packages instead, configure registry authentication as described in [GitHub Packages installation](docs/github-packages.md).
-
-</td></tr>
-</table>
-<!-- /tabs:install -->
-
-Update later with `flisk upgrade` (or its alias `flisk update`), or `npm install -g @flisk-sh/flisk@latest`. To pin a version or read what changed, see [upgrading and version pinning](docs/upgrading.md).
-
-> [!IMPORTANT]
-> Get Flisk from the [flisk-sh/flisk](https://github.com/flisk-sh/flisk) repository, the
-> [`@flisk-sh/flisk`](https://www.npmjs.com/package/@flisk-sh/flisk) npm package, or the
-> [official website](https://flisk.sh/). Follow the installation links from these official sources.
-> A similar repository name or copied README does not establish that a download is official.
-
 ## When not to use Flisk
 
 - Your existing Compose or Tilt workflow already gives you a working local environment.
@@ -562,9 +596,13 @@ Update later with `flisk upgrade` (or its alias `flisk update`), or `npm install
 
 ## Requirements and support
 
-For the Docker + Tilt path, install Docker (Desktop, OrbStack, or Colima; Engine 25+, Compose 2.20.2+) and [Tilt](https://docs.tilt.dev/install.html). Bun 1.2+ is used by the default generated services. Flisk selects host ports from bounded fallback ranges for HTTP, HTTPS, and Postgres; set `FLISK_HTTP_PORT`, `FLISK_HTTPS_PORT`, or `FLISK_POSTGRES_PORT` to override them. Dev ports listen on `127.0.0.1` only, so other machines on your network cannot reach them. Set `FLISK_BIND_ADDRESS` (for example `0.0.0.0`, to test from a phone) to change that; `flisk doctor` warns when it is a wildcard address.
+For the Docker + Tilt path, install Docker (Desktop, OrbStack, or Colima; Engine 25+, Compose 2.20.2+) and [Tilt](https://docs.tilt.dev/install.html). Bun 1.2+ is used by the default generated services. Ports and other settings: [Configuration](#configuration).
 
 Flisk supports macOS, Linux, and **Windows through WSL2 Ubuntu**. Native Windows is inspect-only: `flisk --version`, `flisk doctor`, and `flisk up --dry-run` work, and `flisk up` exits 1 with “Landscape startup needs Ubuntu on WSL2. Native Windows is inspect-only.” See the **[Windows & WSL2 guide](docs/wsl2.md)** for the recommended setup, prerequisites, verification steps, and troubleshooting.
+
+## Roadmap
+
+For the next 12 months Flisk plans to keep 1.x stable (`flisk up`, scaffolding, generated files and `flisk config verify` stay backward compatible), keep the core free, keep Windows and WSL2 working, keep hardening the supply chain, keep the docs current, and add maintainers. It does not plan to deploy to production or to target Kubernetes. The full plan, and how to propose a change: [ROADMAP.md](docs/ROADMAP.md).
 
 ## License matrix
 
