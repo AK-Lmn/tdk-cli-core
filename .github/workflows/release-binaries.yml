@@ -386,6 +386,37 @@ jobs:
           GH_TOKEN="$RELEASE_TOKEN" gh release upload "v${VERSION}" --repo flisk-sh/releases --clobber \
             checksums.txt.intoto.jsonl || echo "::warning::Could not attach the provenance to the flisk-sh/releases release"
 
+      # List this version in the official MCP Registry (registry.modelcontextprotocol.io) as io.github.flisk-sh/flisk, so
+      # MCP clients that search the registry find `flisk mcp`. The registry proves the name with this run's GitHub OIDC
+      # token and checks the mcpName in the npm package that was just published. Like the signing, it can never block a release.
+      - name: Publish to the MCP Registry
+        continue-on-error: true
+        env:
+          VERSION: ${{ needs.build.outputs.version }}
+          MCP_PUBLISHER_VERSION: v1.8.6
+        run: |
+          set -euo pipefail
+          archive="mcp-publisher_linux_amd64.tar.gz"
+          base_url="https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}"
+          curl --fail --location --silent --show-error --output "$RUNNER_TEMP/$archive" "$base_url/$archive"
+          curl --fail --location --silent --show-error --output "$RUNNER_TEMP/$archive.sigstore.json" "$base_url/$archive.sigstore.json"
+          cosign verify-blob \
+            --bundle "$RUNNER_TEMP/$archive.sigstore.json" \
+            --certificate-identity "https://github.com/modelcontextprotocol/registry/.github/workflows/release.yml@refs/tags/${MCP_PUBLISHER_VERSION}" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            "$RUNNER_TEMP/$archive"
+          tar xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP" mcp-publisher
+          node scripts/agent-plugin.mjs --mcp-registry server.json --version "$VERSION"
+          "$RUNNER_TEMP/mcp-publisher" login github-oidc
+          # The registry reads mcpName from npm, which can lag the publish by a minute.
+          for attempt in 1 2 3 4 5; do
+            if "$RUNNER_TEMP/mcp-publisher" publish server.json; then exit 0; fi
+            echo "Attempt ${attempt} failed; retrying in 30 seconds."
+            sleep 30
+          done
+          echo "::warning::Could not publish io.github.flisk-sh/flisk@${VERSION} to the MCP Registry"
+          exit 1
+
       # Keep main in step with what was published. A push made with
       # github.token doesn't trigger workflows, so this can't loop. This runs
       # last on purpose (2026-10-23, v1.3.207): when the bump push was

@@ -11,7 +11,7 @@ This page is the setup path, from installing Flisk to a first `doctor` and `up`.
 | Requirement | What it is for |
 | --- | --- |
 | The Flisk CLI (`flisk --version`) | Everything. `flisk mcp` is a subcommand of it. |
-| An MCP client: Codex, Claude Code, Claude Desktop, or Cursor | Connecting the server. |
+| An MCP client: Codex, Claude Code, Claude Desktop, Cursor, or VS Code | Connecting the server. |
 | Docker running and Tilt installed | Starting and stopping a stack. |
 | A Flisk project directory, the folder that holds `.flisk/project.json` | Every tool except `doctor`. |
 
@@ -93,7 +93,7 @@ Replace the example path with the absolute path to the folder that contains `.fl
 
 ### Cursor
 
-Put the entry in `.cursor/mcp.json` in the project, or in `~/.cursor/mcp.json` for every project:
+One click: [Add to Cursor](https://cursor.com/en/install-mcp?name=flisk&config=eyJjb21tYW5kIjoiZmxpc2siLCJhcmdzIjpbIm1jcCJdfQ==) adds `flisk mcp` to your Cursor settings. To pin the project directory instead, put the entry in `.cursor/mcp.json` in the project, or in `~/.cursor/mcp.json` for every project:
 
 ```json
 {
@@ -108,6 +108,24 @@ Put the entry in `.cursor/mcp.json` in the project, or in `~/.cursor/mcp.json` f
 ```
 
 `${workspaceFolder}` is the folder that holds `.cursor/mcp.json`. Cursor's documented stdio fields are `type`, `command`, `args`, `env`, and `envFile`; there is no `cwd` key, so the `cd` in the command is what pins the project directory. The [Cursor MCP guide](https://cursor.com/docs/mcp) lists the rest of the format.
+
+### VS Code
+
+One click: [Install in VS Code](https://vscode.dev/redirect/mcp/install?name=flisk&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22flisk%22%2C%22args%22%3A%5B%22mcp%22%5D%7D) opens VS Code and asks you to add the `flisk mcp` server. Or add it to `.vscode/mcp.json` in the project:
+
+```json
+{
+  "servers": {
+    "flisk": { "type": "stdio", "command": "flisk", "args": ["mcp"] }
+  }
+}
+```
+
+VS Code starts the server in the workspace folder. Run **MCP: List Servers** from the Command Palette to confirm it is running. The [VS Code MCP guide](https://code.visualstudio.com/docs/copilot/customization/mcp-servers) lists the other options.
+
+### Clients that search the MCP Registry
+
+Flisk is listed in the official [MCP Registry](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.flisk-sh/flisk) as `io.github.flisk-sh/flisk`: the npm package `@flisk-sh/flisk`, started as `flisk mcp` over stdio. Clients and catalogs that read the registry can add it from there; each release publishes its version.
 
 ## 3. First run
 

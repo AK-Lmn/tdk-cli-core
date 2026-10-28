@@ -40,7 +40,7 @@ What you will see: the agent writes the files and runs the Flisk commands, one s
 
 You can skip this step: everything above works without it. With [MCP](../start/words.md#mcp), the agent starts, checks and restarts your app with Flisk's own tools instead of typing commands.
 
-Cursor has no command to add a server, so create `.cursor/mcp.json` in the project (or `~/.cursor/mcp.json` for every project):
+The quickest way: [Add to Cursor](https://cursor.com/en/install-mcp?name=flisk&config=eyJjb21tYW5kIjoiZmxpc2siLCJhcmdzIjpbIm1jcCJdfQ==) opens Cursor and asks you to add the Flisk server. Or create `.cursor/mcp.json` in the project (or `~/.cursor/mcp.json` for every project):
 
 ```json
 { "mcpServers": { "flisk": { "type": "stdio", "command": "flisk", "args": ["mcp"] } } }

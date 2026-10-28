@@ -18,7 +18,9 @@ npm install -g @flisk-sh/flisk
 | Gemini CLI | `gemini extensions install https://github.com/flisk-sh/flisk` |
 | Cursor | Install Flisk from the Cursor marketplace once it is listed. Until then, run `flisk connect cursor` in your project |
 
-Any other MCP client (Claude Desktop, VS Code, Windsurf, Zed and the rest): add the stdio server `flisk mcp` by hand, as the [setup guide](../../docs/agent-tooling/flisk-mcp-setup.md) shows.
+Just the MCP server, in one click: [Add to Cursor](https://cursor.com/en/install-mcp?name=flisk&config=eyJjb21tYW5kIjoiZmxpc2siLCJhcmdzIjpbIm1jcCJdfQ==) · [Install in VS Code](https://vscode.dev/redirect/mcp/install?name=flisk&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22flisk%22%2C%22args%22%3A%5B%22mcp%22%5D%7D). Each link opens the editor's own prompt to add `flisk mcp`.
+
+Flisk is also listed in the official [MCP Registry](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.flisk-sh/flisk) as `io.github.flisk-sh/flisk`, so clients that search the registry find it. Any other MCP client (Claude Desktop, Windsurf, Zed and the rest): add the stdio server `flisk mcp` by hand, as the [setup guide](../../docs/agent-tooling/flisk-mcp-setup.md) shows.
 
 The MCP server runs in the folder your agent was started in. Start the agent in your project folder, or let it pass `projectPath` (the absolute path of the folder that holds `.flisk/project.json`) to the Flisk tools.
 

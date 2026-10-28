@@ -20,6 +20,11 @@
 //   node scripts/agent-plugin.mjs [--root <repo dir>] --openai-zip <file>
 //                                                                     the skills-only package for the ChatGPT and Codex
 //                                                                     plugin directory (platform.openai.com/plugins)
+//   node scripts/agent-plugin.mjs [--root <repo dir>] --mcp-registry <file> [--version <x.y.z>]
+//                                                                     server.json for the official MCP Registry
+//                                                                     (registry.modelcontextprotocol.io), for the version
+//                                                                     in package.json unless --version is given; the
+//                                                                     release workflow writes and publishes it
 import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -66,6 +71,41 @@ export const OPENAI_INTERFACE = {
 
 // The server every host starts: the Flisk CLI's own stdio server, run in the user's project.
 const SERVER = { command: "flisk", args: ["mcp"] };
+
+// The name the MCP Registry lists Flisk under. The io.github.flisk-sh/ namespace is proven by publishing from a
+// flisk-sh GitHub Actions run, and the registry checks that the npm package's mcpName (root package.json) matches it.
+export const MCP_REGISTRY_NAME = "io.github.flisk-sh/flisk";
+const NPM_PACKAGE = "@flisk-sh/flisk";
+
+/** server.json for the official MCP Registry: the npm package, run as `flisk mcp` over stdio. */
+export function mcpRegistryServer(version) {
+  return {
+    $schema: "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+    name: MCP_REGISTRY_NAME,
+    title: OPENAI_INTERFACE.displayName,
+    // The registry allows at most 100 characters.
+    description: "Run your whole app on your computer with one command: build, start, check and fix a local stack.",
+    repository: { url: PLUGIN.repository, source: "github" },
+    websiteUrl: PLUGIN.homepage,
+    version,
+    packages: [
+      {
+        registryType: "npm",
+        identifier: NPM_PACKAGE,
+        version,
+        transport: { type: "stdio" },
+        packageArguments: SERVER.args.map((value) => ({ type: "positional", value })),
+      },
+    ],
+  };
+}
+
+// One-click install links for editors that take an MCP server from a URL. Both open the editor's own
+// "add this server" prompt; the user confirms there.
+export const INSTALL_LINKS = {
+  cursor: `https://cursor.com/en/install-mcp?name=flisk&config=${Buffer.from(JSON.stringify(SERVER)).toString("base64")}`,
+  vscode: `https://vscode.dev/redirect/mcp/install?name=flisk&config=${encodeURIComponent(JSON.stringify({ type: "stdio", ...SERVER }))}`,
+};
 
 const json = (value) => `${JSON.stringify(value, null, 2)}\n`;
 
@@ -217,9 +257,14 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   };
   const root = path.resolve(flag("--root") ?? path.join(path.dirname(fileURLToPath(import.meta.url)), ".."));
   const zip = flag("--openai-zip");
+  const registry = flag("--mcp-registry");
   if (zip) {
     openaiZip(root, zip);
     console.log(`Wrote ${zip}`);
+  } else if (registry) {
+    const version = flag("--version") ?? JSON.parse(readFileSync(path.join(root, "package.json"), "utf8")).version;
+    writeFileSync(registry, json(mcpRegistryServer(version)));
+    console.log(`Wrote ${registry} for ${MCP_REGISTRY_NAME}@${version}`);
   } else if (args.includes("--check")) {
     const stale = run(root, { write: false });
     if (stale.length) {

@@ -10,8 +10,20 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { absoluteDocLinks, OPENAI_INTERFACE, openaiZip, PLUGIN_DIR, run, SKILLS_SOURCE, skillNames } from "./agent-plugin.mjs";
+import {
+  absoluteDocLinks,
+  INSTALL_LINKS,
+  MCP_REGISTRY_NAME,
+  mcpRegistryServer,
+  OPENAI_INTERFACE,
+  openaiZip,
+  PLUGIN_DIR,
+  run,
+  SKILLS_SOURCE,
+  skillNames,
+} from "./agent-plugin.mjs";
 
+const GENERATOR = fileURLToPath(new URL("./agent-plugin.mjs", import.meta.url));
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SCHEMAS = path.join(ROOT, "scripts/agent-plugin-schemas");
 const readJson = (...parts) => JSON.parse(readFileSync(path.join(...parts), "utf8"));
@@ -177,5 +189,60 @@ test("the ChatGPT directory package is skills-only and desktop-only", { skip: !h
     assert.equal(manifest.extensions["com.openai"].interface.displayName, "Flisk");
   } finally {
     rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("the MCP Registry entry is the published npm package, started as flisk mcp", () => {
+  const pkg = readJson(ROOT, "package.json");
+  const server = mcpRegistryServer("1.2.3");
+  // The registry rejects a publish whose npm package does not carry the same mcpName.
+  assert.equal(pkg.mcpName, MCP_REGISTRY_NAME);
+  assert.equal(server.name, MCP_REGISTRY_NAME);
+  assert.match(server.name, /^io\.github\.flisk-sh\//);
+  assert.ok(server.description.length <= 100, "the registry allows at most 100 characters");
+  assert.equal(server.version, "1.2.3");
+  assert.deepEqual(server.packages, [
+    {
+      registryType: "npm",
+      identifier: pkg.name,
+      version: "1.2.3",
+      transport: { type: "stdio" },
+      packageArguments: [{ type: "positional", value: "mcp" }],
+    },
+  ]);
+});
+
+test("--mcp-registry writes server.json for package.json's version, or for --version", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "agent-plugin-registry-"));
+  try {
+    const out = path.join(dir, "server.json");
+    execFileSync(process.execPath, [GENERATOR, "--root", ROOT, "--mcp-registry", out], { stdio: "ignore" });
+    assert.equal(readJson(out).version, readJson(ROOT, "package.json").version);
+    execFileSync(process.execPath, [GENERATOR, "--root", ROOT, "--mcp-registry", out, "--version", "9.8.7"], { stdio: "ignore" });
+    assert.deepEqual(readJson(out), mcpRegistryServer("9.8.7"));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("the one-click install links start flisk mcp, and the docs use them as generated", () => {
+  const cursor = new URL(INSTALL_LINKS.cursor);
+  assert.equal(cursor.searchParams.get("name"), "flisk");
+  assert.deepEqual(JSON.parse(Buffer.from(cursor.searchParams.get("config"), "base64").toString()), {
+    command: "flisk",
+    args: ["mcp"],
+  });
+  const vscode = new URL(INSTALL_LINKS.vscode);
+  assert.equal(vscode.searchParams.get("name"), "flisk");
+  assert.deepEqual(JSON.parse(vscode.searchParams.get("config")), { type: "stdio", command: "flisk", args: ["mcp"] });
+
+  const docs = {
+    [`${PLUGIN_DIR}/README.md`]: ["cursor", "vscode"],
+    "docs/agent-tooling/flisk-mcp-setup.md": ["cursor", "vscode"],
+    "docs/agents/cursor.md": ["cursor"],
+  };
+  for (const [rel, hosts] of Object.entries(docs)) {
+    const text = readFileSync(path.join(ROOT, rel), "utf8");
+    for (const host of hosts) assert.ok(text.includes(`](${INSTALL_LINKS[host]})`), `${rel}: the ${host} link is not the generated one`);
   }
 });
