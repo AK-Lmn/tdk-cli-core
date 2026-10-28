@@ -4,19 +4,45 @@
 
 👋 **Welcome** · [欢迎](docs/README-zh_cn.md "简体中文") · [歡迎](docs/README-zh_tw.md "繁體中文") · [ようこそ](docs/README-ja.md "日本語") · [환영합니다](docs/README-ko.md "한국어") · [Bienvenue](docs/README-fr.md "Français") · [Bienvenido](docs/README-es.md "Español") · [Bem-vindos](docs/README-pt-BR.md "Português (Brasil)") · [Willkommen](docs/README-de.md "Deutsch") · [Benvenuti](docs/README-it.md "Italiano") · [Bun venit](docs/README-ro.md "Română") · [أهلًا](docs/README-ar.md "العربية") · [Hoş geldiniz](docs/README-tr.md "Türkçe") · [Ласкаво просимо](docs/README-uk.md "Українська") · [Witamy](docs/README-pl.md "Polski") · [خوش آمدید](docs/README-fa.md "فارسی") · [Selamat datang](docs/README-id.md "Bahasa Indonesia") · [Chào mừng](docs/README-vi.md "Tiếng Việt") · [ยินดีต้อนรับ](docs/README-th.md "ไทย") · [Καλώς ήρθατε](docs/README-el.md "Ελληνικά") · [സ്വാഗതം](docs/README-ml.md "മലയാളം")
 
-# Flisk: your docker-compose.yml, running locally and updating as you save
+# Flisk: one small `service.json` per service, your whole stack running locally
 
-Have a `docker-compose.yml`? Two commands turn it into a local stack with routes, its database and an MCP server your AI agent can drive. Save a file and that service rebuilds. No Kubernetes. Not a deploy tool.
+Describe each part of your app (an API, a website, a worker, an AI agent) in a short `service.json`. Flisk writes everything else from it: the Dockerfiles, the Compose files, the Tiltfile, the routes and the database wiring. `flisk up` starts the stack, rebuilds a part when you save, and gives your AI helper an MCP server to drive it. No Kubernetes. Not a deploy tool.
+
+```json
+{
+  "$schema": "https://flisk.sh/schema.service.json",
+  "schemaVersion": 1,
+  "appName": "orders-api",
+  "appType": "backend",
+  "stack": "shop",
+  "port": 4000,
+  "healthCheckPath": "/health"
+}
+```
+
+<sub>That is the whole file for an API behind the local gateway. [Every field](docs/service-json.md) · [What Flisk writes from it](#what-flisk-writes-for-you)</sub>
+
+You do not have to write it by hand. `flisk resource` writes the `service.json` and starter code for each part:
 
 ```bash
 npm install -g @flisk-sh/flisk
-flisk import .   # one service.json per Compose service: ports, names and env values kept
-flisk up         # build, run and route every service; rebuild one when its files change
+mkdir my-shop && cd my-shop
+flisk project --yes
+flisk resource orders-api --type backend --stack shop --yes   # a service.json like the one above, plus starter code
+flisk resource shop-web --type frontend --stack shop --yes
+flisk up shop                                                  # build, run and route both; rebuild one when its files change
+```
+
+**Already have a `docker-compose.yml`?** `flisk import .` writes one `service.json` per Compose service, keeping its ports, names and env values. Then run `flisk up`.
+
+```bash
+flisk import .
+flisk up
 ```
 
 <sub>A plain Compose app (a Node API and Postgres) answered through Flisk's router **49 s after `flisk import`** on a clean Ubuntu CI runner, images pulled and built from scratch, install not counted ([run](https://github.com/flisk-sh/flisk/actions/runs/40660606705), [claims](docs/claims.md)). CI repeats it on every pull request.</sub>
 
-**No Compose file yet?** Describe an app to your AI helper, or start from `flisk project`. **Never written code? [Start here](docs/start/first-time.md)**, step by step · [Words you'll see](docs/start/words.md)
+**Rather not type commands?** Describe the app to your AI helper and it runs them for you ([prompts](#with-your-ai-agent)). **Never written code? [Start here](docs/start/first-time.md)**, step by step · [Words you'll see](docs/start/words.md)
 
 <a href="https://www.producthunt.com/products/flisk?utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=flisk-readme" target="_blank" rel="noopener noreferrer"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1289517&amp;theme=light" alt="Flisk on Product Hunt" width="250" height="54" /></a>
 
