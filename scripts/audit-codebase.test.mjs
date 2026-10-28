@@ -14,6 +14,11 @@ const SCRIPT_PATH = path.resolve(__dirname, "audit-codebase.sh");
 
 function findBash() {
 	if (process.platform === "win32") {
+		const isBash = (p) => {
+			if (!p || !existsSync(p)) return false;
+			const base = path.basename(p).toLowerCase();
+			return base === "bash" || base === "bash.exe";
+		};
 		const candidates = [
 			process.env.SHELL,
 			"C:\\Program Files\\Git\\bin\\bash.exe",
@@ -23,7 +28,7 @@ function findBash() {
 			process.env.LOCALAPPDATA && path.join(process.env.LOCALAPPDATA, "Programs", "Git", "bin", "bash.exe"),
 		].filter(Boolean);
 		for (const candidate of candidates) {
-			if (existsSync(candidate)) return candidate;
+			if (isBash(candidate)) return candidate;
 		}
 	}
 	return "bash";
@@ -55,14 +60,14 @@ test("asserts report lists only the file with TODO when clean file is also prese
 		assert.ok(reportName, "audit report markdown file must be generated");
 		assert.match(reportContent, /cli\/src\/dirty\.ts/);
 		assert.doesNotMatch(reportContent, /clean\.ts/);
-		assert.match(reportContent, /- \*\*Total markers found:\*\* 1/);
-		assert.match(reportContent, /- \*\*CLI \(User-facing\):\*\* 1/);
-		assert.match(reportContent, /- \*\*Discovery:\*\* 0/);
-		assert.match(reportContent, /- \*\*Engine:\*\* 0/);
+		assert.match(reportContent, /- \*\*Total markers found:\*\* 1\b/);
+		assert.match(reportContent, /- \*\*CLI \(User-facing\):\*\* 1\b/);
+		assert.match(reportContent, /- \*\*Discovery:\*\* 0\b/);
+		assert.match(reportContent, /- \*\*Engine:\*\* 0\b/);
 
 		assert.match(stdout, /cli\/src\/dirty\.ts/);
 		assert.doesNotMatch(stdout, /clean\.ts/);
-		assert.match(stdout, /Total markers found: 1/);
+		assert.match(stdout, /Total markers found: 1\b/);
 	} finally {
 		rmSync(tempDir, { recursive: true, force: true });
 	}
@@ -85,14 +90,32 @@ test("reports zero findings in a clean workspace", () => {
 		const { stdout, reportName, reportContent } = runAudit(tempDir);
 
 		assert.ok(reportName, "audit report markdown file must be generated");
-		assert.match(reportContent, /- \*\*Total markers found:\*\* 0/);
-		assert.match(reportContent, /- \*\*CLI \(User-facing\):\*\* 0/);
-		assert.match(reportContent, /- \*\*Discovery:\*\* 0/);
-		assert.match(reportContent, /- \*\*Engine:\*\* 0/);
+		assert.match(reportContent, /- \*\*Total markers found:\*\* 0\b/);
+		assert.match(reportContent, /- \*\*CLI \(User-facing\):\*\* 0\b/);
+		assert.match(reportContent, /- \*\*Discovery:\*\* 0\b/);
+		assert.match(reportContent, /- \*\*Engine:\*\* 0\b/);
 		assert.match(reportContent, /No findings/);
 
-		assert.match(stdout, /Total markers found: 0/);
+		assert.match(stdout, /Total markers found: 0\b/);
 		assert.match(stdout, /No technical debt markers found!/);
+	} finally {
+		rmSync(tempDir, { recursive: true, force: true });
+	}
+});
+
+test("counts marker occurrences within a single file rather than only marked files", () => {
+	const tempDir = mkdtempSync(path.join(tmpdir(), "audit-test-"));
+	try {
+		const cliDir = path.join(tempDir, "cli", "src");
+		mkdirSync(cliDir, { recursive: true });
+		writeFileSync(path.join(cliDir, "multi.ts"), "// TODO: first task\nconst a = 1;\n// FIXME: second task\n");
+
+		const { stdout, reportName, reportContent } = runAudit(tempDir);
+
+		assert.ok(reportName, "audit report markdown file must be generated");
+		assert.match(reportContent, /- \*\*Total markers found:\*\* 2\b/);
+		assert.match(reportContent, /- \*\*CLI \(User-facing\):\*\* 2\b/);
+		assert.match(stdout, /Total markers found: 2\b/);
 	} finally {
 		rmSync(tempDir, { recursive: true, force: true });
 	}
@@ -116,17 +139,17 @@ test("categorizes markers across CLI, discovery, and engine", () => {
 		const { stdout, reportName, reportContent } = runAudit(tempDir);
 
 		assert.ok(reportName, "audit report markdown file must be generated");
-		assert.match(reportContent, /- \*\*Total markers found:\*\* 3/);
-		assert.match(reportContent, /- \*\*CLI \(User-facing\):\*\* 1/);
-		assert.match(reportContent, /- \*\*Discovery:\*\* 1/);
-		assert.match(reportContent, /- \*\*Engine:\*\* 1/);
+		assert.match(reportContent, /- \*\*Total markers found:\*\* 3\b/);
+		assert.match(reportContent, /- \*\*CLI \(User-facing\):\*\* 1\b/);
+		assert.match(reportContent, /- \*\*Discovery:\*\* 1\b/);
+		assert.match(reportContent, /- \*\*Engine:\*\* 1\b/);
 
 		assert.match(reportContent, /cli\/src\/feature\.tsx/);
 		assert.match(reportContent, /discovery\/scanner\.py/);
 		assert.match(reportContent, /engine\/pipeline\.star/);
 		assert.doesNotMatch(reportContent, /clean\.py/);
 
-		assert.match(stdout, /Total markers found: 3/);
+		assert.match(stdout, /Total markers found: 3\b/);
 	} finally {
 		rmSync(tempDir, { recursive: true, force: true });
 	}

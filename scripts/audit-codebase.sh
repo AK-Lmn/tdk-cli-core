@@ -69,7 +69,10 @@ scan_directory() {
                         echo "$file"
                         echo "$findings"
                         echo ""
-                    } >> "$output_file"
+                    } >> "$output_file" || {
+                        echo "Error: cannot write findings to ${output_file}" >&2
+                        exit 1
+                    }
                     local file_count
                     file_count=$(echo "$findings" | wc -l)
                     count=$((count + file_count))
