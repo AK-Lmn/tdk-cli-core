@@ -1,4 +1,4 @@
-# Flisk CLI — 전체 기술 스택을 생성하고 실행
+# Flisk: 내 컴퓨터에서 명령 하나로 앱 전체를 실행
 
 [![Test coverage](https://raw.githubusercontent.com/flisk-sh/flisk/main/docs/assets/coverage.svg)](https://github.com/flisk-sh/flisk/blob/main/docs/assets/coverage.svg)
 
@@ -7,7 +7,7 @@
 <a href="https://trendshift.io/repositories/266432?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-266432" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/266432/daily?language=Starlark" alt="flisk-sh%2Fflisk | Trendshift" width="250" height="55"/></a>
 <a href="https://trendshift.io/repositories/266432?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-266432" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/266432/weekly?language=Starlark" alt="flisk-sh%2Fflisk | Trendshift" width="250" height="55"/></a>
 
-빈 폴더에서 명령 하나로 실행 중인 기술 스택까지. 각 서비스를 `service.json`에 정의한 뒤 `flisk up`을 실행하세요. 머신에 Kubernetes는 필요 없습니다.
+Flisk는 로컬 개발용 명령줄 도구입니다. 앱의 모든 부분(API, 웹사이트, 워커, AI 에이전트, 데이터베이스)을 하나의 로컬 주소 뒤에서 사용자의 컴퓨터로 실행하고, 저장하면 해당 부분을 다시 불러옵니다. 각 부분은 작은 `service.json`에 정의하며, Flisk가 이를 바탕으로 Dockerfile, Compose 파일, Tiltfile을 만들고 동기화 상태를 유지합니다. 배포는 하지 않습니다. 프로덕션은 직접 쓰는 도구에 맡깁니다.
 
 빠른 시작:
 

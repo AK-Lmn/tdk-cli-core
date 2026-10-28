@@ -1,4 +1,4 @@
-# Flisk CLI — generează și rulează întreaga aplicație pe calculatorul tău
+# Flisk: toată aplicația ta, rulând pe calculatorul tău cu o singură comandă
 
 [![Test coverage](https://raw.githubusercontent.com/flisk-sh/flisk/main/docs/assets/coverage.svg)](https://github.com/flisk-sh/flisk/blob/main/docs/assets/coverage.svg)
 
@@ -7,7 +7,7 @@
 <a href="https://trendshift.io/repositories/266432?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-266432" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/266432/daily?language=Starlark" alt="flisk-sh%2Fflisk | Trendshift" width="250" height="55"/></a>
 <a href="https://trendshift.io/repositories/266432?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-266432" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/266432/weekly?language=Starlark" alt="flisk-sh%2Fflisk | Trendshift" width="250" height="55"/></a>
 
-De la un dosar gol la o aplicație care rulează, cu o singură comandă. Descrii fiecare parte a aplicației într-un fișier `service.json` și rulezi `flisk up`. Nu ai nevoie de Kubernetes pe calculator.
+Flisk este o unealtă din linia de comandă pentru dezvoltarea locală. Rulează fiecare parte a aplicației tale (API, site web, workeri, agenți AI, bază de date) pe calculatorul tău, în spatele unei singure adrese locale, și reîncarcă o parte când o salvezi. Descrii fiecare parte într-un `service.json` mic; Flisk scrie din el Dockerfile-urile, fișierul Compose și Tiltfile-ul și le ține sincronizate. Nu face deploy: producția rămâne la uneltele tale.
 
 Pornire rapidă:
 

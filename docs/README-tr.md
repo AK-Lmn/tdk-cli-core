@@ -1,4 +1,4 @@
-# Flisk CLI — tüm teknoloji yığınınızı oluşturun ve çalıştırın
+# Flisk: tüm uygulamanız tek komutla kendi bilgisayarınızda çalışır
 
 [![Test coverage](https://raw.githubusercontent.com/flisk-sh/flisk/main/docs/assets/coverage.svg)](https://github.com/flisk-sh/flisk/blob/main/docs/assets/coverage.svg)
 
@@ -7,7 +7,7 @@
 <a href="https://trendshift.io/repositories/266432?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-266432" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/266432/daily?language=Starlark" alt="flisk-sh%2Fflisk | Trendshift" width="250" height="55"/></a>
 <a href="https://trendshift.io/repositories/266432?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-266432" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/266432/weekly?language=Starlark" alt="flisk-sh%2Fflisk | Trendshift" width="250" height="55"/></a>
 
-Boş bir klasörden tek komutla çalışan bir yığına. Her servisi `service.json` içinde tanımlayın, ardından `flisk up` çalıştırın. Makinede Kubernetes gerekmez.
+Flisk, yerel geliştirme için bir komut satırı aracıdır. Uygulamanızın her parçasını (API, web sitesi, worker'lar, yapay zekâ ajanları, veritabanı) bilgisayarınızda tek bir yerel adresin arkasında çalıştırır ve bir parçayı kaydettiğinizde yeniden yükler. Her parçayı küçük bir `service.json` içinde tanımlarsınız; Flisk bundan Dockerfile'ları, Compose dosyasını ve Tiltfile'ı yazar ve eşzamanlı tutar. Dağıtım yapmaz: üretim ortamı kendi araçlarınızda kalır.
 
 Hızlı başlangıç:
 

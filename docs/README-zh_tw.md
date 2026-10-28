@@ -1,4 +1,4 @@
-# Flisk CLI — 一次指令產生並執行整套技術堆疊
+# Flisk：你的整個應用程式，一個指令就在你的電腦上執行
 
 [![Test coverage](https://raw.githubusercontent.com/flisk-sh/flisk/main/docs/assets/coverage.svg)](https://github.com/flisk-sh/flisk/blob/main/docs/assets/coverage.svg)
 
@@ -7,7 +7,7 @@
 <a href="https://trendshift.io/repositories/266432?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-266432" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/266432/daily?language=Starlark" alt="flisk-sh%2Fflisk | Trendshift" width="250" height="55"/></a>
 <a href="https://trendshift.io/repositories/266432?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-266432" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/266432/weekly?language=Starlark" alt="flisk-sh%2Fflisk | Trendshift" width="250" height="55"/></a>
 
-從空資料夾到執行中的技術堆疊，只需一條指令。在 `service.json` 中定義每個服務，然後執行 `flisk up`。機器上不需要 Kubernetes。
+Flisk 是用於本機開發的命令列工具。它在你的電腦上，把應用程式的每個部分（API、網站、worker、AI 代理、資料庫）執行在同一個本機位址之後，並在你儲存時重新載入對應部分。你用一個小小的 `service.json` 描述每個部分；Flisk 會據此產生 Dockerfile、Compose 檔案和 Tiltfile，並讓它們保持同步。它不負責部署：正式環境仍由你自己的工具管理。
 
 快速開始:
 

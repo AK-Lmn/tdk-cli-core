@@ -1,4 +1,4 @@
-# Flisk CLI — tạo và chạy toàn bộ tech stack của bạn
+# Flisk: toàn bộ ứng dụng của bạn chạy trên máy tính của bạn chỉ với một lệnh
 
 [![Test coverage](https://raw.githubusercontent.com/flisk-sh/flisk/main/docs/assets/coverage.svg)](https://github.com/flisk-sh/flisk/blob/main/docs/assets/coverage.svg)
 
@@ -7,7 +7,7 @@
 <a href="https://trendshift.io/repositories/266432?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-266432" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/266432/daily?language=Starlark" alt="flisk-sh%2Fflisk | Trendshift" width="250" height="55"/></a>
 <a href="https://trendshift.io/repositories/266432?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-266432" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/266432/weekly?language=Starlark" alt="flisk-sh%2Fflisk | Trendshift" width="250" height="55"/></a>
 
-Từ một thư mục trống đến một stack đang chạy chỉ với một lệnh. Khai báo từng service trong `service.json`, rồi chạy `flisk up`. Máy không cần Kubernetes.
+Flisk là công cụ dòng lệnh cho phát triển cục bộ. Nó chạy mọi phần của ứng dụng (API, website, worker, AI agent, cơ sở dữ liệu) trên máy tính của bạn sau một địa chỉ cục bộ duy nhất, và tải lại một phần khi bạn lưu nó. Bạn mô tả từng phần trong một `service.json` nhỏ; Flisk viết Dockerfile, file Compose và Tiltfile từ đó, rồi giữ chúng đồng bộ. Flisk không triển khai: môi trường production vẫn do các công cụ của riêng bạn đảm nhận.
 
 Bắt đầu nhanh:
 

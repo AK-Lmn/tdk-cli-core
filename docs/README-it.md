@@ -1,4 +1,4 @@
-# Flisk CLI — genera ed esegui l'intero stack tecnico
+# Flisk: tutta la tua app, in esecuzione sul tuo computer con un solo comando
 
 [![Test coverage](https://raw.githubusercontent.com/flisk-sh/flisk/main/docs/assets/coverage.svg)](https://github.com/flisk-sh/flisk/blob/main/docs/assets/coverage.svg)
 
@@ -7,7 +7,7 @@
 <a href="https://trendshift.io/repositories/266432?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-266432" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/266432/daily?language=Starlark" alt="flisk-sh%2Fflisk | Trendshift" width="250" height="55"/></a>
 <a href="https://trendshift.io/repositories/266432?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-266432" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/266432/weekly?language=Starlark" alt="flisk-sh%2Fflisk | Trendshift" width="250" height="55"/></a>
 
-Da una cartella vuota a uno stack in esecuzione con un solo comando. Definisci ogni servizio in `service.json` ed esegui `flisk up`. Sulla macchina non serve Kubernetes.
+Flisk è uno strumento da riga di comando per lo sviluppo locale. Esegue ogni parte della tua app (API, sito web, worker, agenti IA, database) sul tuo computer dietro un unico indirizzo locale e ricarica una parte quando la salvi. Descrivi ogni parte in un piccolo `service.json`; Flisk ne genera i Dockerfile, il file Compose e il Tiltfile e li mantiene sincronizzati. Non fa il deploy: la produzione resta ai tuoi strumenti.
 
 Avvio rapido:
 

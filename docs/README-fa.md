@@ -1,4 +1,4 @@
-# Flisk CLI — ساخت و اجرای کل پشته فنی شما
+# Flisk: کل برنامه شما، با یک دستور روی رایانه خودتان اجرا می‌شود
 
 [![Test coverage](https://raw.githubusercontent.com/flisk-sh/flisk/main/docs/assets/coverage.svg)](https://github.com/flisk-sh/flisk/blob/main/docs/assets/coverage.svg)
 
@@ -7,7 +7,7 @@
 <a href="https://trendshift.io/repositories/266432?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-266432" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/266432/daily?language=Starlark" alt="flisk-sh%2Fflisk | Trendshift" width="250" height="55"/></a>
 <a href="https://trendshift.io/repositories/266432?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-266432" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/266432/weekly?language=Starlark" alt="flisk-sh%2Fflisk | Trendshift" width="250" height="55"/></a>
 
-از یک پوشه خالی تا یک پشته فنی در حال اجرا با یک دستور. هر سرویس را در `service.json` تعریف کنید و `flisk up` را اجرا کنید. روی دستگاه به Kubernetes نیازی نیست.
+Flisk یک ابزار خط فرمان برای توسعه محلی است. هر بخش از برنامه شما (API، وب‌سایت، workerها، عامل‌های هوش مصنوعی، پایگاه داده) را روی رایانه شما پشت یک نشانی محلی اجرا می‌کند و هر بخش را به‌محض ذخیره دوباره بارگذاری می‌کند. هر بخش را در یک `service.json` کوچک توصیف می‌کنید؛ Flisk از آن Dockerfileها، فایل Compose و Tiltfile را می‌نویسد و همگام نگه می‌دارد. Flisk استقرار انجام نمی‌دهد: محیط تولید در دست ابزارهای خودتان می‌ماند.
 
 شروع سریع:
 

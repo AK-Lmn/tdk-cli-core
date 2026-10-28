@@ -1,4 +1,4 @@
-# Flisk CLI — شغّل مكدسك التقني كاملاً على جهازك
+# Flisk: تطبيقك بالكامل يعمل على حاسوبك بأمر واحد
 
 [![Test coverage](https://raw.githubusercontent.com/flisk-sh/flisk/main/docs/assets/coverage.svg)](https://github.com/flisk-sh/flisk/blob/main/docs/assets/coverage.svg)
 
@@ -7,7 +7,7 @@
 <a href="https://trendshift.io/repositories/266432?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-266432" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/266432/daily?language=Starlark" alt="flisk-sh%2Fflisk | Trendshift" width="250" height="55"/></a>
 <a href="https://trendshift.io/repositories/266432?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-266432" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/266432/weekly?language=Starlark" alt="flisk-sh%2Fflisk | Trendshift" width="250" height="55"/></a>
 
-انتقل من مجلد فارغ إلى مكدس تقني يعمل بأمر واحد. عرّف كل خدمة في `service.json` ثم شغّل `flisk up`. لا يحتاج الجهاز إلى Kubernetes.
+Flisk أداة سطر أوامر للتطوير المحلي. تشغّل كل جزء من تطبيقك (API، الموقع، العمّال، وكلاء الذكاء الاصطناعي، قاعدة البيانات) على حاسوبك خلف عنوان محلي واحد، وتعيد تحميل الجزء عند حفظه. تصف كل جزء في ملف `service.json` صغير، ومنه يكتب Flisk ملفات Dockerfile وملف Compose وTiltfile ويُبقيها متزامنة. لا ينشر Flisk تطبيقك: يبقى الإنتاج بيد أدواتك الخاصة.
 
 البداية السريعة:
 
