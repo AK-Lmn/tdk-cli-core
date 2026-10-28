@@ -39,20 +39,22 @@ export function htmlText(html) {
 	return String(html)
 		.replace(/\{%[\s\S]*?%\}|\{\{[\s\S]*?\}\}/g, " ")
 		.replace(/<[^>]+>/g, " ")
-		.replace(/&amp;/g, "&")
 		.replace(/&lt;/g, "<")
 		.replace(/&gt;/g, ">")
 		.replace(/&quot;/g, '"')
 		.replace(/&#39;/g, "'")
+		.replace(/&amp;/g, "&")
 		.replace(/\s+/g, " ")
 		.trim();
 }
 
 // A YAML front matter or config value on one line (`key: value`, quotes dropped), or null.
 export function yamlValue(text, key) {
-	const m = new RegExp(`^${key}:\\s*(.*)$`, "m").exec(String(text));
-	if (!m) return null;
-	const v = m[1].trim().replace(/\s+#.*$/, "");
+	const line = String(text)
+		.split(/\r?\n/)
+		.find((l) => l.startsWith(`${key}:`));
+	if (line === undefined) return null;
+	const v = line.slice(key.length + 1).trim().replace(/\s+#.*$/, "");
 	return v.replace(/^(["'])(.*)\1$/, "$2") || null;
 }
 
