@@ -29,6 +29,40 @@ function getBash() {
   return "bash";
 }
 
+// Build a PATH for running the real script without bun on it and without ever
+// reaching a real `gh`: a stub node reports a fake version, a stub gh records
+// its call and fails. Directories that contain a bun executable are dropped
+// whatever they are called (/usr/local/bin, /opt/homebrew/bin, ~/.bun/bin).
+function isolatedPath(workDir) {
+  const pathSep = process.platform === "win32" ? ";" : ":";
+  const stubBin = join(workDir, "stub-bin");
+  mkdirSync(stubBin, { recursive: true });
+  writeFileSync(
+    join(stubBin, "node"),
+    `#!/usr/bin/env bash
+for arg in "$@"; do
+  if [[ "$arg" == *"package.json"* ]]; then
+    echo "0.2.0"
+    exit 0
+  fi
+done
+exit 1
+`,
+  );
+  writeFileSync(
+    join(stubBin, "gh"),
+    `#!/usr/bin/env bash
+echo "gh must not be called: $*" >&2
+touch "${join(workDir, "gh-called").replace(/\\/g, "/")}"
+exit 99
+`,
+  );
+  chmodSync(join(stubBin, "node"), 0o755);
+  chmodSync(join(stubBin, "gh"), 0o755);
+  const hasBun = (dir) => ["bun", "bun.exe"].some((name) => existsSync(join(dir, name)));
+  return [stubBin, ...(process.env.PATH || "").split(pathSep).filter((dir) => dir && !hasBun(dir))].join(pathSep);
+}
+
 function extractFunction(source, fnName) {
   const start = source.indexOf(`${fnName}() {`);
   assert.ok(start >= 0, `function ${fnName} must exist in release-binaries.sh`);
@@ -69,26 +103,7 @@ test("release-binaries.sh fails with clear error when bun is missing", (t) => {
   const workDir = mkdtempSync(join(tmpdir(), "flisk-release-test-"));
 
   try {
-    const nodeShim = join(workDir, "node");
-    writeFileSync(
-      nodeShim,
-      `#!/usr/bin/env bash
-for arg in "$@"; do
-  if [[ "$arg" == *"package.json"* ]]; then
-    echo "0.2.0"
-    exit 0
-  fi
-done
-exec node "$@"
-`,
-    );
-    chmodSync(nodeShim, 0o755);
-
-    const pathSep = process.platform === "win32" ? ";" : ":";
-    const cleanPath = [
-      workDir,
-      ...(process.env.PATH || "").split(pathSep).filter((p) => !p.toLowerCase().includes("bun")),
-    ].join(pathSep);
+    const cleanPath = isolatedPath(workDir);
 
     const proc = spawnSync(bash, [SCRIPT_PATH.replace(/\\/g, "/")], {
       cwd: ROOT_DIR,
@@ -113,26 +128,7 @@ test("release-binaries.sh --publish-only bypasses bun requirement check", (t) =>
   const workDir = mkdtempSync(join(tmpdir(), "flisk-release-test-"));
 
   try {
-    const nodeShim = join(workDir, "node");
-    writeFileSync(
-      nodeShim,
-      `#!/usr/bin/env bash
-for arg in "$@"; do
-  if [[ "$arg" == *"package.json"* ]]; then
-    echo "0.2.0"
-    exit 0
-  fi
-done
-exec node "$@"
-`,
-    );
-    chmodSync(nodeShim, 0o755);
-
-    const pathSep = process.platform === "win32" ? ";" : ":";
-    const cleanPath = [
-      workDir,
-      ...(process.env.PATH || "").split(pathSep).filter((p) => !p.toLowerCase().includes("bun")),
-    ].join(pathSep);
+    const cleanPath = isolatedPath(workDir);
 
     const proc = spawnSync(bash, [SCRIPT_PATH.replace(/\\/g, "/"), "--publish-only"], {
       cwd: ROOT_DIR,
@@ -152,6 +148,7 @@ exec node "$@"
       /bun is required to build release binaries/,
       "bun check must be bypassed with --publish-only",
     );
+    assert.equal(existsSync(join(workDir, "gh-called")), false, "validation must fail before any gh call");
   } finally {
     rmSync(workDir, { recursive: true, force: true });
   }
