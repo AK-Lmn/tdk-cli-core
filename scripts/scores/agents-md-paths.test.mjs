@@ -59,3 +59,23 @@ test("a path .gitignore ignores is not checked, so local test output does not ch
 		rmSync(root, { recursive: true, force: true });
 	}
 });
+
+test("a path outside the repo does not hide the ignored paths named after it", () => {
+	const root = mkdtempSync(path.join(tmpdir(), "agents-md-paths-outside-"));
+	try {
+		execFileSync("git", ["init", "-q"], { cwd: root });
+		mkdirSync(path.join(root, "cli"), { recursive: true });
+		writeFileSync(path.join(root, ".gitignore"), "cli/dist-bundle/\n");
+		// git check-ignore dies at the first path it cannot resolve (absolute, or `..` out of the repo), and an ignored
+		// path read after that came back as not ignored: build output that CI never makes was reported missing.
+		writeFileSync(
+			path.join(root, "AGENTS.md"),
+			"Temp files: `/var/folders` and `/d/some-demo-id`, `../elsewhere/x`. Build: `cli/dist-bundle/`, not `cli/gone.ts`.\n",
+		);
+		const paths = ["/var/folders", "/d/some-demo-id", "../elsewhere/x", "cli/dist-bundle/", "cli/gone.ts"];
+		assert.deepEqual([...gitIgnored(root, paths)], ["cli/dist-bundle/"]);
+		assert.deepEqual(measure({ root }).findings, ["AGENTS.md:1 `cli/gone.ts`: no such file or directory"]);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});

@@ -10,6 +10,7 @@
 // in some checkouts and not others, so it is not checked: the result must not depend on what ran before. Gate at zero.
 import { execFileSync } from "node:child_process";
 import { readdirSync } from "node:fs";
+import path from "node:path";
 import { has, read, walk } from "./lib.mjs";
 
 export const meta = {
@@ -57,16 +58,24 @@ export function staleReason(root, roots, p) {
 	return null;
 }
 
+// A path git can name relative to the checkout: not absolute (/var/folders), not out of it (../x).
+const inRepo = (p) => {
+	const n = path.posix.normalize(p);
+	return !n.startsWith("/") && n !== ".." && !n.startsWith("../");
+};
+
 // The paths .gitignore ignores, of the ones given. git exits 1 when none is ignored; outside a checkout (a test
-// fixture) it fails, and then none is.
+// fixture) it fails, and then none is. One path git cannot resolve ends the whole run with "outside repository"
+// (exit 128) and drops every ignored path after it, so only paths inside the checkout are handed over.
 export function gitIgnored(root, paths) {
-	if (!paths.length) return new Set();
+	const inside = paths.filter(inRepo);
+	if (!inside.length) return new Set();
 	const lines = (text) => new Set(String(text ?? "").split("\n").filter(Boolean));
 	try {
 		return lines(
 			execFileSync("git", ["check-ignore", "--stdin"], {
 				cwd: root,
-				input: paths.join("\n"),
+				input: inside.join("\n"),
 				encoding: "utf8",
 				stdio: ["pipe", "pipe", "ignore"],
 			}),
