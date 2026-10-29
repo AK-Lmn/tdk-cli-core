@@ -9,6 +9,7 @@
 
 load("../../../../../../../discovery/registry.star", "get_app_resources", "get_resource_by_name")
 load("../../../../../platform/docker/networking/traefik_helpers.star", "cli_api_path")
+load("../../../../common/dependencies.star", "declared_dependencies")
 
 def _find_backend_resource(resource_name):
     """Find a discovered resource by its own name, e.g. "api".
@@ -39,7 +40,7 @@ def _find_frontend_backend(manifest):
         if backend:
             return backend_name, backend.get("_manifest", {})
 
-    for dep_name in manifest.get("dependsOn", []):
+    for dep_name in declared_dependencies(manifest):
         dep = _find_backend_resource(dep_name)
         if dep and dep.get("_manifest", {}).get("appType") in ["backend", "mcp", "agent"]:
             return dep_name, dep.get("_manifest", {})
@@ -64,6 +65,22 @@ def resolve_backend_api_path(manifest):
     if backend_name == None:
         return None
     return cli_api_path(backend_name, backend_manifest)
+
+
+def resolve_dependency_api_path(dep_name):
+    """Resolve the URL path of one dependency, or None when it is not a backend-side service.
+
+    This is the same route `resolve_backend_api_path` gives a frontend's own backend, so VITE_API_URL and the
+    VITE_<DEP>_API_URL line for that backend point at one place. A name that is not a service (a typo, a stack, the shared
+    Postgres), or that is a frontend, has no API route.
+    """
+    dep = _find_backend_resource(dep_name)
+    if not dep:
+        return None
+    dep_manifest = dep.get("_manifest", {})
+    if dep_manifest.get("appType") not in ["backend", "mcp", "agent"]:
+        return None
+    return cli_api_path(dep_name, dep_manifest)
 
 
 def resolve_dependency_api_urls(manifest):
@@ -156,6 +173,7 @@ def inject_dependency_env_vars(manifest, base_env_vars):
 # Export struct for easy importing
 DependencyResolvers = struct(
     resolve_backend_api_path = resolve_backend_api_path,
+    resolve_dependency_api_path = resolve_dependency_api_path,
     resolve_dependency_api_urls = resolve_dependency_api_urls,
     get_backend_manifest = get_backend_manifest,
     inject_dependency_env_vars = inject_dependency_env_vars,

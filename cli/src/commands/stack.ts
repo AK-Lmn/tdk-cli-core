@@ -1,8 +1,10 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
+
 import { readFileSync } from "node:fs";
 import chalk from "chalk";
 import { Command } from "commander";
+import type { JsonCommandResult } from "../types/index.js";
 import { addYesOption, assertValid, confirmOrCancel } from "../utils/command-helpers.js";
 import { clearDiscoveryCache, createDiscoveryContext } from "../utils/discovery-context.js";
 import { errorFactories, FliskError, requireProjectRoot, runCommand } from "../utils/errors.js";
@@ -14,7 +16,7 @@ import {
   showDetail,
   showSuccess,
 } from "../utils/formatting.js";
-import { type JsonCommandResult, runJsonCommand } from "../utils/json-command.js";
+import { runJsonCommand } from "../utils/json-command.js";
 import { findProjectRoot } from "../utils/paths.js";
 import { promptMultiSelect, promptText } from "../utils/prompt.js";
 import { createKebabCaseValidator, validateStackName } from "../utils/validation.js";

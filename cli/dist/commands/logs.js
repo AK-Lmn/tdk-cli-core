@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 import { Command } from "commander";
 import { STANDARD_PORTS } from "../utils/constants.js";
+import { dependsOnOf } from "../utils/dependency-graph.js";
 import { getDeferredResourceNames } from "../utils/doctor-runtime.js";
 import { errorFactories, FliskError, runCommand, showErrorAndExit } from "../utils/errors.js";
 import { createMachineEnvelope } from "../utils/machine-output.js";
@@ -56,7 +57,7 @@ async function tiltUnhealthyNames(projectRoot, port) {
         // Without discovery there are no dependsOn edges; Tilt's own states still decide.
     }
     try {
-        const states = deriveServiceStates(text, Object.fromEntries(resources.map((r) => [r.name, r.config?.dependsOn ?? []])), getDeferredResourceNames(resources));
+        const states = deriveServiceStates(text, Object.fromEntries(resources.map((r) => [r.name, dependsOnOf(r.config)])), getDeferredResourceNames(resources));
         return unhealthyServiceNames(Object.keys(states).map((name) => ({ name })), states);
     }
     catch {

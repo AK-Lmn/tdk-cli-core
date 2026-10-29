@@ -1,5 +1,4 @@
-import type { DiscoveredResource } from "../types/index.js";
-import type { HostPortPlan } from "./host-port-plan.js";
+import type { DiscoveredResource, HostPortPlan } from "../types/index.js";
 export interface ServicePorts {
     /** Ingress address (Traefik), or null for resources with no route (workers, libraries, migrators). */
     url: string | null;

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 import chalk from "chalk";
 import { Command } from "commander";
+import { dependsOnOf } from "../utils/dependency-graph.js";
 import { createDiscoveryContext } from "../utils/discovery-context.js";
 import { getDeferredResourceNames } from "../utils/doctor-runtime.js";
 import { runCommand } from "../utils/errors.js";
@@ -98,20 +99,20 @@ export const statusCommand = new Command("status")
             if (text) {
                 const deferred = getDeferredResourceNames(discovery.resources);
                 try {
-                    if (options.json)
-                        readiness = evaluateTiltReadiness(text, deferred).result;
+                    readiness = evaluateTiltReadiness(text, deferred).result;
                 }
                 catch {
                     readiness = null;
                 }
                 try {
-                    serviceStates = deriveServiceStates(text, Object.fromEntries(discovery.resources.map((r) => [r.name, r.config?.dependsOn ?? []])), deferred);
+                    serviceStates = deriveServiceStates(text, Object.fromEntries(discovery.resources.map((r) => [r.name, dependsOnOf(r.config)])), deferred);
                 }
                 catch {
                     serviceStates = null;
                 }
             }
         }
+        const tiltfileError = readiness?.failures.find((failure) => failure.name === "(Tiltfile)")?.message ?? null;
         if (options.json) {
             const errors = queryError ? [{ code: "TILT_STATUS_UNAVAILABLE", message: queryError }] : [];
             // A native run answers the readiness question agents poll (data.tilt.readiness.ready) from its own run state.
@@ -136,6 +137,7 @@ export const statusCommand = new Command("status")
                     resourcesQueried: options.tilt && tiltAvailable,
                     resources: tiltResources,
                     readiness,
+                    tiltfileError,
                 },
                 resourceCount: discovery.resources.length,
                 resources: discovery.resources.map((resource) => ({
@@ -175,6 +177,15 @@ export const statusCommand = new Command("status")
         console.log(chalk.bold("Stacks:"), `${discovery.stacks.length} defined`);
         const hasStates = serviceStates !== null && Object.keys(serviceStates).length > 0;
         const unhealthyOnly = Boolean(options.unhealthy);
+        // When the Tiltfile cannot be re-run (a cycle, a wrong-typed field in a service.json just edited), Tilt keeps the last good
+        // graph and every service still reads as healthy. Without this line the edit seems to have had no effect. The cause varies
+        // (a first load has no previous graph), so the guidance does not claim what the stack is running.
+        if (tiltfileError && !unhealthyOnly) {
+            console.log();
+            console.log(chalk.red(`✗ Tilt could not reload the Tiltfile: ${tiltfileError}`));
+            showDetail("Fix the cause shown above. If Tilt does not pick the fix up, restart with flisk down and flisk up.");
+            console.log();
+        }
         // With service states the grouped "Services:" section below replaces the plain per-stack counts.
         if (!hasStates && !unhealthyOnly) {
             for (const stack of discovery.stacks) {

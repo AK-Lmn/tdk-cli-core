@@ -1,15 +1,12 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
+
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { join, resolve, sep } from "node:path";
+import type { HostPortPlan } from "../types/index.js";
 import { PROJECT_JSON } from "./constants.js";
-import {
-  createHostPortPlan,
-  type HostPortPlan,
-  isHostPortAvailable,
-  PREFERRED_HOST_PORTS,
-} from "./host-port-plan.js";
+import { createHostPortPlan, isHostPortAvailable, PREFERRED_HOST_PORTS } from "./host-port-plan.js";
 
 const CONFIG_PATH = join(".flisk", ".flisk-out", "host-ports.json");
 

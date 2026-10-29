@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
-import type { PortOccupant } from "./port-occupant.js";
+import type { PortOccupant } from "../types/index.js";
 
 /** The env var that moves each host port Flisk publishes. Services publish no host ports, so only these conflict. */
 const PORT_ENV_VARS: Record<string, string> = {

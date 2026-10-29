@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
+
 import fs, { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import type {
@@ -21,6 +22,7 @@ import {
   SERVICE_JSON,
   SKIP_DIRECTORIES,
 } from "./constants.js";
+import { dependsOnOf } from "./dependency-graph.js";
 import { errorFactories, FliskError } from "./errors.js";
 import { formatCount } from "./formatting.js";
 import { declaresCommand, validateNativeServiceFields } from "./native-service.js";
@@ -408,7 +410,7 @@ export function getResourceMetadata(resource: DiscoveredResource): ResourceMetad
     port: resource.config?.port,
     createdAt,
     lastModified,
-    dependencies: resource.config?.dependsOn ?? [],
+    dependencies: dependsOnOf(resource.config),
     hasDockerfile,
     hasTiltfile,
     hasDockerCompose,

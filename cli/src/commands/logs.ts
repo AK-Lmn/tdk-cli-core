@@ -1,8 +1,10 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
+
 import { Command } from "commander";
 import type { DiscoveredResource } from "../types/index.js";
 import { STANDARD_PORTS } from "../utils/constants.js";
+import { dependsOnOf } from "../utils/dependency-graph.js";
 import { getDeferredResourceNames } from "../utils/doctor-runtime.js";
 import { errorFactories, FliskError, runCommand, showErrorAndExit } from "../utils/errors.js";
 import { createMachineEnvelope } from "../utils/machine-output.js";
@@ -71,7 +73,7 @@ async function tiltUnhealthyNames(projectRoot: string, port: string): Promise<st
   try {
     const states = deriveServiceStates(
       text,
-      Object.fromEntries(resources.map((r) => [r.name, r.config?.dependsOn ?? []])),
+      Object.fromEntries(resources.map((r) => [r.name, dependsOnOf(r.config)])),
       getDeferredResourceNames(resources),
     );
     return unhealthyServiceNames(

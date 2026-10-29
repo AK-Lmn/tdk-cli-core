@@ -1,21 +1,10 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
+
 import { createServer } from "node:net";
+import type { HostPortPlan } from "../types/index.js";
 import { FliskError } from "./errors.js";
 import { hasLocalListener } from "./port-listener-probe.js";
-
-export interface HostPortPlan {
-  ingressHttp: number;
-  ingressHttps: number;
-  postgres: number;
-  requested: { ingressHttp: number; ingressHttps: number; postgres: number };
-  explicit: {
-    ingressHttp: boolean;
-    ingressHttps: boolean;
-    postgres: boolean;
-  };
-  reason: { ingressHttp: string; ingressHttps: string; postgres: string };
-}
 
 export interface HostPortPlanOptions {
   env?: NodeJS.ProcessEnv;

@@ -314,6 +314,38 @@ describe("flisk status", () => {
       expect(byName["report-job"]).toMatchObject({ status: "unknown" });
     });
 
+    it("says so when the Tiltfile could not be reloaded, instead of showing the old graph as healthy", async () => {
+      // A cycle written into a service.json while the stack runs: Tilt keeps the last good graph, every service stays ready, and
+      // only the (Tiltfile) resource carries the error. It used to reach the JSON readiness only, never the terminal.
+      const broken = JSON.stringify({
+        items: [
+          {
+            metadata: { name: "(Tiltfile)" },
+            status: {
+              updateStatus: "error",
+              runtimeStatus: "not_applicable",
+              buildHistory: [{ error: "cycle detected in resource dependency graph: a -> b -> a" }],
+            },
+          },
+          { metadata: { name: "orders-api" }, status: { updateStatus: "ok", runtimeStatus: "ok" } },
+        ],
+      });
+      vi.mocked(tiltGetUiResources).mockResolvedValue(broken);
+
+      const human = await runStatus([]);
+      expect(human).toContain("Tilt could not reload the Tiltfile");
+      expect(human).toContain("a -> b -> a");
+
+      const data = JSON.parse(await runStatus(["--json"])).data;
+      expect(data.tilt.tiltfileError).toContain("cycle detected");
+    });
+
+    it("reports no Tiltfile error when the Tiltfile is fine", async () => {
+      vi.mocked(tiltGetUiResources).mockResolvedValue(apiDown);
+      expect(await runStatus([])).not.toContain("could not reload the Tiltfile");
+      expect(JSON.parse(await runStatus(["--json"])).data.tilt.tiltfileError).toBeNull();
+    });
+
     it("shows every service as unknown when no Tilt answers", async () => {
       const output = await runStatus(["--json"]);
       const resources = JSON.parse(output).data.resources as Array<{ status: string }>;

@@ -1,6 +1,8 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
+
 import type { CheckResult, DiscoveredResource } from "../types/index.js";
+import { dependsOnOf } from "./dependency-graph.js";
 import { formatCount } from "./formatting.js";
 import {
   findMissingPrograms,
@@ -55,8 +57,7 @@ export function checkNativeCommands(
 export function checkNativeDependsOn(resources: readonly DiscoveredResource[]): CheckResult {
   const names = new Set(resources.map((resource) => resource.name));
   const problems = resources.flatMap((resource) => {
-    const deps = resource.config?.dependsOn;
-    return (Array.isArray(deps) ? deps : [])
+    return dependsOnOf(resource.config)
       .filter((dep) => !names.has(dep))
       .map((dep) => `${resource.name} dependsOn "${dep}", which is not a service of this project`);
   });

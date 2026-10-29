@@ -1,4 +1,4 @@
-import { type HostPortPlan } from "./host-port-plan.js";
+import type { HostPortPlan } from "../types/index.js";
 export declare function isDockerPortOwnedByProject(dockerPs: string, projectPrefix: string, port: number): boolean;
 export declare function readSavedHostPortPlan(projectRoot: string): HostPortPlan | null;
 export declare function writeSavedHostPortPlan(projectRoot: string, plan: HostPortPlan): void;

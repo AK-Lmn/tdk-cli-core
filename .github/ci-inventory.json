@@ -765,6 +765,14 @@
 			"owner": "maintainers"
 		},
 		{
+			"workflow": "service-json-chaos.yml",
+			"job": "chaos",
+			"tier": "test",
+			"required": false,
+			"reason": "service.json chaos tests (tests/chaos): graph, gates and Docker tiers on PRs that touch the code behind them, plus a nightly longer search",
+			"owner": "maintainers"
+		},
+		{
 			"workflow": "scoreboard.yml",
 			"job": "report",
 			"tier": "report",

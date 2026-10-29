@@ -20,6 +20,8 @@ export interface ResourceConfigFields {
     runtime?: string;
     featuresEnabled?: string[];
     dependsOn?: string[];
+    /** Deprecated spelling of dependsOn; still read, and counted with it. */
+    dependencies?: string[];
     enabled?: boolean;
     basePath?: string;
     backendName?: string;
@@ -317,3 +319,62 @@ export type MasterConfigFileName = typeof TECH_STACK_FILE | typeof RESOURCE_DEFA
  * Eliminates the need for 'as MasterConfigFileName' assertion.
  */
 export declare function isMasterConfigFileName(filename: string): filename is MasterConfigFileName;
+export type DoctorActionStatus = "planned" | "applied" | "skipped" | "failed";
+/** One repair `flisk doctor --fix` plans or performs. Part of the `--json` report (`data.actions`). */
+export interface DoctorAction {
+    id: string;
+    check: string;
+    /**
+     * `project`: owned by the current project. `probe`: a doctor probe, owned by no project. `machine`: another
+     * Flisk project's resource, only ever planned with `--scope=machine`. `host`: a cache shared by every project
+     * (Docker build cache, dangling images), only planned while free disk space is low.
+     */
+    scope: "project" | "probe" | "machine" | "host";
+    /** The exact command a user could run by hand. */
+    command: string;
+    status: DoctorActionStatus;
+    reason: string;
+}
+export interface HostPortPlan {
+    ingressHttp: number;
+    ingressHttps: number;
+    postgres: number;
+    requested: {
+        ingressHttp: number;
+        ingressHttps: number;
+        postgres: number;
+    };
+    explicit: {
+        ingressHttp: boolean;
+        ingressHttps: boolean;
+        postgres: boolean;
+    };
+    reason: {
+        ingressHttp: string;
+        ingressHttps: string;
+        postgres: string;
+    };
+}
+/** What a `--json` action reports: its data, any errors, and a non-zero exit code when the report is a failure. */
+export interface JsonCommandResult {
+    data: unknown;
+    errors?: MachineError[];
+    exitCode?: number;
+}
+export interface MachineError {
+    code: string;
+    message: string;
+    suggestions?: string[];
+}
+export interface PortOccupant {
+    pid: number;
+    /** The program's name, without its directory (`postgres`, not `/opt/homebrew/bin/postgres`). */
+    command: string;
+}
+export interface ServiceRuntimeState {
+    status: ResourceStatus;
+    /** Why the service is not ready: its own error, or the dependency that failed or is still starting. */
+    reason?: string;
+    /** Failed services this one depends on, directly or through others. */
+    blockedBy?: string[];
+}

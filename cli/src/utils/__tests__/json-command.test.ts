@@ -1,15 +1,12 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
+
 import chalk from "chalk";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { captureExit } from "../../test-support/index.js";
+import type { JsonCommandResult } from "../../types/index.js";
 import { FliskError, ProcessExitError, showError } from "../errors.js";
-import {
-  failureFromStderr,
-  JsonCommandError,
-  type JsonCommandResult,
-  runJsonCommand,
-} from "../json-command.js";
+import { failureFromStderr, JsonCommandError, runJsonCommand } from "../json-command.js";
 
 /** Runs `runJsonCommand` with stdout and stderr captured, and returns what each received and the exit code. */
 async function run(

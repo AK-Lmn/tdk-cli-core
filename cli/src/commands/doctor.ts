@@ -8,7 +8,7 @@ import chalk from "chalk";
 import { Command } from "commander";
 import { hasVerdaccioLicense } from "../generator/extension-fetch.js";
 import { readProjectConfig } from "../generator/template-engine.js";
-import type { CheckResult } from "../types/index.js";
+import type { CheckResult, DoctorAction, HostPortPlan } from "../types/index.js";
 import {
   DEVCONTAINER_DOCKER_FIX,
   detectHost,
@@ -30,7 +30,6 @@ import { checkCrashLoopingContainers } from "../utils/doctor-crashloop.js";
 import {
   applyDoctorFixes,
   checkDuplicateFliskInstalls,
-  type DoctorAction,
   hasFailedActions,
   planDoctorFixes,
   projectTiltPids,
@@ -79,7 +78,7 @@ import { type ExecAsync, execAsync, isExecTimeout } from "../utils/exec-async.js
 import { evaluateFliskVersionFloor } from "../utils/flisk-version.js";
 import { formatCount } from "../utils/formatting.js";
 import { getHostPortPlan, resolveRuntimeIngressPort } from "../utils/host-port-config.js";
-import { createHostPortPlan, type HostPortPlan } from "../utils/host-port-plan.js";
+import { createHostPortPlan } from "../utils/host-port-plan.js";
 import { findNativeProject } from "../utils/native-project.js";
 import { findProjectRoot, getPackageVersion } from "../utils/paths.js";
 import { promptConfirm } from "../utils/prompt.js";

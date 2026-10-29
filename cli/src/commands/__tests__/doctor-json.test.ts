@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: MIT
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { captureExit, type ExitCapture, parseEnvelope } from "../../test-support/index.js";
-import type { CheckResult } from "../../types/index.js";
+import type { CheckResult, DoctorAction } from "../../types/index.js";
 import { WEBCONTAINER_DOCS, WEBCONTAINER_UP_MESSAGE } from "../../utils/agent-host.js";
-import { type DoctorAction, hasFailedActions } from "../../utils/doctor-fix.js";
+import { hasFailedActions } from "../../utils/doctor-fix.js";
 import {
   collectDoctorChecks,
   createDoctorReport,

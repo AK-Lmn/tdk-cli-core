@@ -6,8 +6,10 @@ import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   checkCircularDependencies,
+  checkCustomDockerfiles,
   checkDependsOnShape,
   checkSchemaVersions,
+  checkServiceFields,
   checkServicePorts,
   enforceServiceConfigGate,
   warnSchemaVersions,
@@ -415,5 +417,146 @@ describe("additional edge cases across service config checks", () => {
     expect(reported).toContain("circular dependency");
     // Check invalid ports reported
     expect(reported).toContain("invalid port");
+  });
+});
+
+describe("checkServiceFields", () => {
+  it("passes names Docker can use", () => {
+    service("orders-api");
+    service("orders2", { stack: "back_office" }, "bo/orders2");
+    expect(checkServiceFields(root).didPass).toBe(true);
+  });
+  it.each(["Orders", "my service", "orders/", "-orders", "orders-", "orders:tag", "a".repeat(60)])(
+    "refuses the appName %j, which Docker cannot name an image after",
+    (name) => {
+      service(name);
+      const result = checkServiceFields(root);
+      expect(result.didPass).toBe(false);
+      expect(result.message).toContain("appName");
+    },
+  );
+  it("refuses a stack with an uppercase letter", () => {
+    service("orders", { stack: "Shop" });
+    expect(checkServiceFields(root).message).toContain("stack");
+  });
+  it("leaves a local-process service alone: it never reaches Docker", () => {
+    service("Orders", { command: "node server.js" });
+    expect(checkServiceFields(root).didPass).toBe(true);
+  });
+  it("refuses a field of the wrong type, which would stop the Tiltfile", () => {
+    service("orders", { traefik: "x" });
+    expect(checkServiceFields(root).message).toContain("traefik: expected an object");
+  });
+  it("does not require schemaVersion or stack, which old projects lack", () => {
+    service("orders", { stack: undefined });
+    expect(checkServiceFields(root).didPass).toBe(true);
+  });
+  it("is part of the gate flisk up applies", () => {
+    service("Orders");
+    const exit = vi.fn(() => {
+      throw new Error("exit");
+    }) as never;
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(() => enforceServiceConfigGate(root, {}, exit)).toThrow("exit");
+  });
+});
+
+describe("circular dependencies through stacks and backendName", () => {
+  it("finds a cycle that runs through a frontend's backendName", () => {
+    service("api", { dependsOn: ["ui"] });
+    service("ui", { appType: "frontend", backendName: "api" });
+    expect(checkCircularDependencies(root).didPass).toBe(false);
+  });
+  it("finds a cycle through a stack name", () => {
+    service("a", { dependsOn: ["core"], stack: "edge" }, "edge/a");
+    service("b", { dependsOn: ["a"], stack: "core" }, "core/b");
+    expect(checkCircularDependencies(root).didPass).toBe(false);
+  });
+  it("does not call a service that depends on its own stack a cycle", () => {
+    service("a", { dependsOn: ["app"] });
+    service("b");
+    expect(checkCircularDependencies(root).didPass).toBe(true);
+  });
+});
+
+describe("checkCustomDockerfiles", () => {
+  it("passes when no custom dockerfile is declared", () => {
+    service("api");
+    expect(checkCustomDockerfiles(root).didPass).toBe(true);
+  });
+  it("passes when the file exists, relative to the service or to its buildContext", () => {
+    service("api", { dockerfile: "docker/Dockerfile.dev" });
+    mkdirSync(join(root, "services/app/api/docker"), { recursive: true });
+    writeFileSync(join(root, "services/app/api/docker/Dockerfile.dev"), "FROM scratch\n");
+    service("web", { dockerfile: "Dockerfile", buildContext: "ctx" });
+    mkdirSync(join(root, "services/app/web/ctx"), { recursive: true });
+    writeFileSync(join(root, "services/app/web/ctx/Dockerfile"), "FROM scratch\n");
+    expect(checkCustomDockerfiles(root).didPass).toBe(true);
+  });
+  it("treats a directory as missing: the loader checks for a regular file", () => {
+    service("api", { dockerfile: "docker" });
+    mkdirSync(join(root, "services/app/api/docker"), { recursive: true });
+    expect(checkCustomDockerfiles(root).didPass).toBe(false);
+  });
+  it("names a missing file", () => {
+    service("api", { dockerfile: "does/not/exist/Dockerfile" });
+    const result = checkCustomDockerfiles(root);
+    expect(result.didPass).toBe(false);
+    expect(result.message).toContain("services/app/api/service.json dockerfile");
+  });
+  it("is part of the gate flisk up applies", () => {
+    service("api", { dockerfile: "missing" });
+    const exit = vi.fn(() => {
+      throw new Error("exit");
+    }) as never;
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(() => enforceServiceConfigGate(root, {}, exit)).toThrow("exit");
+  });
+});
+
+describe("the gate accepts what `flisk import` writes for a Compose app", () => {
+  // Found by the compose-import journey: the gate refused buildContext "../../../api" (a Dockerfile that stays where the Compose
+  // file had it, outside the service directory), `flisk up` exited before starting anything and the journey timed out.
+  it("an api built from a tree outside its service directory, and a database from an image", () => {
+    mkdirSync(join(root, "api"), { recursive: true });
+    writeFileSync(join(root, "api/Dockerfile"), "FROM node:22-alpine\n");
+    service(
+      "api",
+      {
+        appType: "backend",
+        stack: "composeapp",
+        port: 3000,
+        healthCheckPath: "/",
+        dependsOn: ["db"],
+        buildContext: "../../../api",
+        dockerfile: "Dockerfile",
+      },
+      "composeapp/api",
+    );
+    service(
+      "db",
+      {
+        appType: "bring-your-own",
+        stack: "composeapp",
+        port: 4000,
+        image: "postgres:16-alpine",
+        exposeViaProxy: false,
+        secrets: { required: ["POSTGRES_PASSWORD"] },
+      },
+      "composeapp/db",
+    );
+    const exit = vi.fn(() => {
+      throw new Error("exit");
+    }) as never;
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(() => enforceServiceConfigGate(root, {}, exit)).not.toThrow();
+    expect(exit).not.toHaveBeenCalled();
+  });
+
+  it("still refuses a build context that is an absolute path, which the loader cannot resolve", () => {
+    service("api", { buildContext: "/srv/api", dockerfile: "Dockerfile" });
+    expect(checkServiceFields(root).message).toContain(
+      "buildContext: must be a path relative to the service directory",
+    );
   });
 });

@@ -5,6 +5,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { DiscoveredResource } from "../types/index.js";
 import { DATABASE_MANAGEMENT_FEATURE, PROJECT_JSON } from "./constants.js";
+import { dependsOnOf } from "./dependency-graph.js";
 import { DEFAULT_ALWAYS_ENABLED_INFRA } from "./project-config-defaults.js";
 import { discoverResourcesFromRoot } from "./services.js";
 
@@ -227,7 +228,7 @@ export function evaluateSharedPlatformPostgres(
   const unknownDependsOnNames: Array<{ resource: string; name: string }> = [];
 
   for (const resource of resources) {
-    const deps = resource.config?.dependsOn ?? [];
+    const deps = dependsOnOf(resource.config);
     let usesSharedPostgres = false;
     for (const dep of deps) {
       if (isSharedPlatformPostgresDependency(dep)) {

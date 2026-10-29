@@ -1,13 +1,14 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
+
 import { createServer } from "node:net";
 import { describe, expect, it } from "vitest";
+import type { HostPortPlan } from "../../types/index.js";
 import { FliskError } from "../errors.js";
 import {
   createHostPortPlan,
   DEFAULT_HOST_PORT_RANGES,
   formatHostPortPlan,
-  type HostPortPlan,
   type HostPortPlanOptions,
   isPrivilegedBindFree,
   PREFERRED_HOST_PORTS,

@@ -1,17 +1,12 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
+
 import { writeSync } from "node:fs";
 import { format, stripVTControlCharacters } from "node:util";
 import chalk from "chalk";
+import type { JsonCommandResult, MachineError } from "../types/index.js";
 import { FliskError, ProcessExitError } from "./errors.js";
-import { createMachineEnvelope, type MachineError, toMachineError } from "./machine-output.js";
-
-/** What a `--json` action reports: its data, any errors, and a non-zero exit code when the report is a failure. */
-export interface JsonCommandResult {
-  data: unknown;
-  errors?: MachineError[];
-  exitCode?: number;
-}
+import { createMachineEnvelope, toMachineError } from "./machine-output.js";
 
 /** A command failure with a machine code more precise than COMMAND_FAILED, such as IMPORT_FAILED. */
 export class JsonCommandError extends FliskError {

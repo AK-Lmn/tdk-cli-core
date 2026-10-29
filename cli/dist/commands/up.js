@@ -9,6 +9,7 @@ import { ensureProjectRuntimeAssets, generateMasterConfigs, ProjectConfigNotFoun
 import { DEVCONTAINER_DOCKER_FIX, detectHost, isContainerHost, WEBCONTAINER_UP_MESSAGE, } from "../utils/agent-host.js";
 import { handleDryRun } from "../utils/command-helpers.js";
 import { STANDARD_PORTS } from "../utils/constants.js";
+import { dependsOnOf, unknownBackendNames } from "../utils/dependency-graph.js";
 import { getDeferredResourceNames, summarizeTiltBuildError } from "../utils/doctor-runtime.js";
 import { applyEnvFileSelection, assertEngineSupportsEnvFile, EnvFileError, envFileWarning, PROJECT_ENV_FILE_VAR, selectEnvFile, } from "../utils/env-selection.js";
 import { completeEnvFile } from "../utils/env-validator.js";
@@ -33,6 +34,7 @@ import { enforceSchemaVersionGate } from "../utils/schema-version-gate.js";
 import { enforceServiceConfigGate, warnSchemaVersions } from "../utils/service-config-checks.js";
 import { appendHealthPath, resolveServiceUrl, resolveSubdomainBases, } from "../utils/service-urls.js";
 import { discoverResourcesStrict, discoverResourcesWithProblems, discoverStacks, getResourcesForStack, stackExists, warnAboutSkippedFiles, } from "../utils/services.js";
+import { evaluateSharedPlatformPostgres } from "../utils/shared-platform-postgres.js";
 import { buildSmokePlans, formatSmokeFailure, runSmokePlans, safeSmokeDeps, } from "../utils/smoke.js";
 import { buildStartupReport, formatStartupReport, isStartupStalled, machineProblemFixes, } from "../utils/startup-report.js";
 import { buildTiltUpArgs, runTilt } from "../utils/tilt.js";
@@ -50,26 +52,29 @@ export function formatUpSuccess(port, options = {}) {
     lines.push("Flisk is up.");
     lines.push(`Tilt UI: http://localhost:${port}`);
     if (serviceHealth.length > 0) {
+        // Services with a URL come first. Tilt lists its own resources ((Tiltfile), golden-layers-build, init-networks, the
+        // *-config-gen steps, ...) in no useful order, and cutting that mix at ten dropped a running service into "and N more"
+        // as soon as one more internal resource existed. Array.prototype.sort is stable, so each group keeps Tilt's order.
+        const services = [...serviceHealth].sort((a, b) => Number(Boolean(b.url)) - Number(Boolean(a.url)));
         lines.push("Services:");
-        for (const svc of serviceHealth.slice(0, 10)) {
+        for (const svc of services.slice(0, 10)) {
             const icon = svc.status === "ready" ? "✓" : svc.status === "failed" ? "✗" : "⟳";
             const urlPart = svc.url ? ` → ${svc.url}` : "";
             lines.push(`  ${icon} ${svc.name}${urlPart}`);
         }
-        if (serviceHealth.length > 10) {
-            lines.push(`  … and ${serviceHealth.length - 10} more`);
+        if (services.length > 10) {
+            lines.push(`  … and ${services.length - 10} more`);
         }
-        // Health check URLs for test infrastructure and monitoring
+        // Health check URLs for test infrastructure and monitoring: only services that have one, so internals do not use up the ten.
+        const withUrl = services.filter((svc) => svc.url);
         lines.push("Health checks:");
-        for (const svc of serviceHealth.slice(0, 10)) {
+        for (const svc of withUrl.slice(0, 10)) {
             const icon = svc.status === "ready" ? "✓" : svc.status === "failed" ? "✗" : "⟳";
-            if (svc.url) {
-                const healthUrl = svc.url.endsWith("/health") ? svc.url : `${svc.url}/health`;
-                lines.push(`  ${icon} ${svc.name}: ${healthUrl}`);
-            }
+            const healthUrl = svc.url?.endsWith("/health") ? svc.url : `${svc.url}/health`;
+            lines.push(`  ${icon} ${svc.name}: ${healthUrl}`);
         }
-        if (serviceHealth.length > 10) {
-            lines.push(`  … and ${serviceHealth.length - 10} more`);
+        if (withUrl.length > 10) {
+            lines.push(`  … and ${withUrl.length - 10} more`);
         }
     }
     else if (appUrls.length > 0) {
@@ -497,6 +502,21 @@ export const upCommand = new Command("up")
                 onInvalid: (message) => emit?.({ ok: false }, [{ code: "INVALID_SERVICE_CONFIG", message }]),
             });
         }
+        // A dependsOn name that is no service, stack or shared Postgres is dropped by the Tiltfile; say so instead of starting without it.
+        const unknownDependsOn = foundRoot
+            ? evaluateSharedPlatformPostgres(foundRoot, discoveredResources).unknownDependsOnNames
+            : [];
+        const unknownBackends = foundRoot ? unknownBackendNames(discoveredResources) : [];
+        if (unknownBackends.length > 0 && !emit && !options.quiet) {
+            for (const { resource, name } of unknownBackends) {
+                console.warn(chalk.yellow(`⚠️  ${resource} has backendName "${name}", which is not a service of this project; it has no backend to wait for or call.`));
+            }
+        }
+        if (unknownDependsOn.length > 0 && !emit && !options.quiet) {
+            for (const { resource, name } of unknownDependsOn) {
+                console.warn(chalk.yellow(`⚠️  ${resource} dependsOn "${name}", which is not a service or stack of this project; it is ignored. Fix the name, or remove it.`));
+            }
+        }
         // A project without schemaVersion keeps working; say how to add it, but only where a person is reading.
         if (foundRoot && !emit && !options.quiet) {
             warnSchemaVersions(foundRoot, discoveredResources);
@@ -618,6 +638,8 @@ export const upCommand = new Command("up")
                 ...(options.only
                     ? { requested: options.only, declaredDependencies: dependencyNames }
                     : {}),
+                ...(unknownDependsOn.length > 0 ? { unknownDependsOn } : {}),
+                ...(unknownBackends.length > 0 ? { unknownBackendNames: unknownBackends } : {}),
                 command: dryRunCommand,
             });
             return;
@@ -721,7 +743,7 @@ export const upCommand = new Command("up")
             let startedDependencies = dependencyNames;
             if (uiReady && emit) {
                 const deferred = getDeferredResourceNames(discoveredResources);
-                const dependsOn = Object.fromEntries(discoveredResources.map((r) => [r.name, r.config?.dependsOn ?? []]));
+                const dependsOn = Object.fromEntries(discoveredResources.map((r) => [r.name, dependsOnOf(r.config)]));
                 const readiness = await waitForTiltResourcesReady(port, {
                     deferred,
                     // Only what the caller named must be enabled. Dependencies are the Tiltfile's call (it skips some on purpose).
@@ -767,7 +789,7 @@ export const upCommand = new Command("up")
             // what failed and what it blocks.
             if (uiReady && !emit) {
                 const deferred = getDeferredResourceNames(discoveredResources);
-                const dependsOn = Object.fromEntries(discoveredResources.map((r) => [r.name, r.config?.dependsOn ?? []]));
+                const dependsOn = Object.fromEntries(discoveredResources.map((r) => [r.name, dependsOnOf(r.config)]));
                 const progress = createUpProgressReporter({
                     write: (text) => process.stdout.write(text),
                     redraw: shouldRedrawUpProgress({
@@ -809,7 +831,7 @@ export const upCommand = new Command("up")
             }
             if (uiReady && !options.quiet && !startupFailed) {
                 const deferred = getDeferredResourceNames(discoveredResources);
-                const dependsOn = Object.fromEntries(discoveredResources.map((r) => [r.name, r.config?.dependsOn ?? []]));
+                const dependsOn = Object.fromEntries(discoveredResources.map((r) => [r.name, dependsOnOf(r.config)]));
                 const readiness = await waitForTiltResourcesReady(port, {
                     deferred,
                     isStalled: (text) => isStartupStalled(text, dependsOn, deferred),
@@ -899,7 +921,7 @@ export const upCommand = new Command("up")
         }
         if (!options.quiet && result.exitCode === 0 && !printedSuccess) {
             const deferred = getDeferredResourceNames(discoveredResources);
-            const dependsOn = Object.fromEntries(discoveredResources.map((r) => [r.name, r.config?.dependsOn ?? []]));
+            const dependsOn = Object.fromEntries(discoveredResources.map((r) => [r.name, dependsOnOf(r.config)]));
             const readiness = await waitForTiltResourcesReady(port, {
                 deferred,
                 isStalled: (text) => isStartupStalled(text, dependsOn, deferred),

@@ -35,6 +35,7 @@ import type {
   AgentConfig,
   CreatableResourceType,
   FileGenerationTask,
+  JsonCommandResult,
   PortAssignableResourceType,
   ResourceType,
 } from "../types/index.js";
@@ -56,7 +57,7 @@ import {
 import { errorFactories, FliskError, requireProjectRoot, runCommand } from "../utils/errors.js";
 import { writeFilesWithProgress } from "../utils/file-helpers.js";
 import { showCommandHeader } from "../utils/formatting.js";
-import { type JsonCommandResult, runJsonCommand } from "../utils/json-command.js";
+import { runJsonCommand } from "../utils/json-command.js";
 import { findProjectRoot } from "../utils/paths.js";
 import { assignPort } from "../utils/port-assignment.js";
 import { promptSelect, promptText } from "../utils/prompt.js";
