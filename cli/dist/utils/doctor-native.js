@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Flisk Landscape contributors
+// SPDX-License-Identifier: MIT
+import { dependsOnOf } from "./dependency-graph.js";
 import { formatCount } from "./formatting.js";
 import { findMissingPrograms, isPortListening, isProcessAlive, localUrl, planNativeRun, readNativeRunState, } from "./native-runtime.js";
 import { isNativeService } from "./native-service.js";
@@ -35,8 +38,7 @@ export function checkNativeCommands(resources, find = findOnPath) {
 export function checkNativeDependsOn(resources) {
     const names = new Set(resources.map((resource) => resource.name));
     const problems = resources.flatMap((resource) => {
-        const deps = resource.config?.dependsOn;
-        return (Array.isArray(deps) ? deps : [])
+        return dependsOnOf(resource.config)
             .filter((dep) => !names.has(dep))
             .map((dep) => `${resource.name} dependsOn "${dep}", which is not a service of this project`);
     });

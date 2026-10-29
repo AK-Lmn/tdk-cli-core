@@ -72,4 +72,30 @@ describe("findUnknownServices", () => {
   it("returns names that match no service", () => {
     expect(findUnknownServices(["catalog-api", "nope"], all)).toEqual(["nope"]);
   });
+  it("follows a stack name to the stack's services", () => {
+    const stacked = [svc("a", [], "core"), svc("b", [], "core"), svc("c", ["core"], "edge")];
+    expect(resolveOnlySelection(["c"], stacked).selected.map((r) => r.name)).toEqual([
+      "a",
+      "b",
+      "c",
+    ]);
+  });
+  it("pulls in a frontend's backendName, even from another stack", () => {
+    const ui = {
+      ...svc("ui", [], "front"),
+      config: { appName: "ui", appType: "frontend", backendName: "catalog-api" },
+    } as never as DiscoveredResource;
+    const { selected, dependencies } = resolveOnlySelection(["ui"], [...all, ui]);
+    expect(selected.map((r) => r.name)).toEqual(["catalog-api", "ui"]);
+    expect(dependencies).toEqual(["catalog-api"]);
+  });
+  it("does not fail on a dependsOn that is not a list", () => {
+    const odd = {
+      ...svc("odd"),
+      config: { appName: "odd", appType: "backend", dependsOn: { catalog: true } },
+    } as never as DiscoveredResource;
+    expect(resolveOnlySelection(["odd"], [...all, odd]).selected.map((r) => r.name)).toEqual([
+      "odd",
+    ]);
+  });
 });

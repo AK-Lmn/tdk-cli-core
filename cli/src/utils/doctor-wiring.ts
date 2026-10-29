@@ -14,6 +14,7 @@ import {
   PACKAGE_JSON,
   PROJECT_JSON,
 } from "./constants.js";
+import { dependsOnOf } from "./dependency-graph.js";
 import { type ExecAsync, execAsync } from "./exec-async.js";
 import { formatCount } from "./formatting.js";
 import { findProjectRoot } from "./paths.js";
@@ -157,14 +158,14 @@ export function checkPrismaConsistency(
 
     const appType = resource.config?.appType ?? resource.type;
     if (appType === "migrator") {
-      const postgresDependency = resource.config?.dependsOn?.some(
+      const postgresDependency = dependsOnOf(resource.config).some(
         (name) => name === "postgres" || name === DATABASE_MANAGEMENT_FEATURE,
       );
       if (!postgresDependency)
         findings.push(`${resource.name}: migrator must depend on postgres or database-management`);
     } else {
       // The API reaches Postgres only through its migrator, and that migrator must start Postgres (checked above).
-      const migratorDependency = resource.config?.dependsOn?.some((name) =>
+      const migratorDependency = dependsOnOf(resource.config).some((name) =>
         migrators.some((candidate) => candidate.name === name),
       );
       if (!migratorDependency)

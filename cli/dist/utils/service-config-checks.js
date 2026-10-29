@@ -1,28 +1,20 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
-import { relative } from "node:path";
+import { statSync } from "node:fs";
+import { dirname, join, relative } from "node:path";
 import chalk from "chalk";
+import { declaredDependsOn, dependencyEdges } from "./dependency-graph.js";
 import { checkDuplicateResourceNames } from "./doctor-wiring.js";
 import { formatCount } from "./formatting.js";
 import { findProjectRoot } from "./paths.js";
-import { SERVICE_MANIFEST_SCHEMA_VERSION } from "./service-manifest.js";
+import { SERVICE_MANIFEST_SCHEMA_VERSION, validateServiceManifest } from "./service-manifest.js";
 import { discoverResourcesFromRoot } from "./services.js";
 function filePath(projectRoot, resource) {
     return relative(projectRoot, resource.configPath) || resource.configPath;
 }
-/** The dependsOn names a service declares: none when absent, null when it is not an array of strings. */
-function declaredDependsOn(resource) {
-    const value = resource.config?.dependsOn;
-    if (value === undefined)
-        return [];
-    if (Array.isArray(value) && value.every((entry) => typeof entry === "string"))
-        return value;
-    return null;
-}
 /** Each cycle once, as service names starting from the alphabetically first, ending where it started. */
 function findDependencyCycles(resources) {
-    const known = new Set(resources.map((r) => r.name));
-    const edges = new Map(resources.map((r) => [r.name, (declaredDependsOn(r) ?? []).filter((dep) => known.has(dep))]));
+    const edges = dependencyEdges(resources);
     const cycles = new Map();
     const state = new Map();
     const stack = [];
@@ -51,7 +43,7 @@ function findDependencyCycles(resources) {
 }
 /** A dependsOn that is not a list of service names cannot be followed, so say so instead of failing later. */
 export function checkDependsOnShape(projectRoot = findProjectRoot() ?? process.cwd(), resources = discoverResourcesFromRoot(projectRoot)) {
-    const problems = resources.flatMap((resource) => declaredDependsOn(resource) === null
+    const problems = resources.flatMap((resource) => declaredDependsOn(resource.config) === null
         ? [
             `${filePath(projectRoot, resource)} dependsOn ${JSON.stringify(resource.config?.dependsOn)}: expected an array of service names`,
         ]
@@ -91,6 +83,62 @@ export function checkCircularDependencies(projectRoot = findProjectRoot() ?? pro
         didPass: false,
         message: `${cycles.length} ${cycles.length === 1 ? "circular dependency" : "circular dependencies"}:\n    ${lines.join("\n    ")}`,
         fix: 'Remove one "dependsOn" entry in each cycle so the services no longer wait on each other, or move what they share into a third service',
+    };
+}
+/**
+ * Everything `flisk config verify` reports about one service.json's own fields (Docker-safe names, field types, line breaks,
+ * route paths), applied before `flisk up` starts anything. Without it a bad value passed `flisk up` and stopped inside Tilt
+ * ("repository name must be lowercase", "string has no .get field or method"). A missing schemaVersion or required field is
+ * left out: old projects keep working without them, and `flisk config migrate` adds the version.
+ */
+export function checkServiceFields(projectRoot = findProjectRoot() ?? process.cwd(), resources = discoverResourcesFromRoot(projectRoot)) {
+    const problems = resources.flatMap((resource) => validateServiceManifest({
+        ...(resource.config ?? {}),
+        // A service with no appName is named after its directory; that name has to be Docker-safe too. A wrong-typed one is reported.
+        appName: resource.config && "appName" in resource.config ? resource.config.appName : resource.name,
+    }, filePath(projectRoot, resource)).errors.filter((error) => !/required field is missing|\.schemaVersion:/.test(error)));
+    if (problems.length === 0) {
+        return { name: "Service fields", didPass: true, message: "Every service.json field is valid" };
+    }
+    return {
+        name: "Service fields",
+        didPass: false,
+        message: `${formatCount(problems.length, "invalid field")}:\n    ${problems.join("\n    ")}`,
+        fix: "Correct the field in service.json; the published schema (flisk.sh/schema.service.json) lists each field's type",
+    };
+}
+/**
+ * A custom `dockerfile` (relative to the service, or to its `buildContext`) that does not exist stops the Tiltfile with
+ * "CUSTOM DOCKERFILE NOT FOUND" (discovery/manifest/loading.star), after `flisk up` has said yes.
+ */
+export function checkCustomDockerfiles(projectRoot = findProjectRoot() ?? process.cwd(), resources = discoverResourcesFromRoot(projectRoot)) {
+    const problems = resources.flatMap((resource) => {
+        const config = resource.config;
+        const dockerfile = config?.dockerfile;
+        if (typeof dockerfile !== "string" || dockerfile === "")
+            return [];
+        const context = typeof config?.buildContext === "string" ? config.buildContext : "";
+        const path = join(dirname(resource.configPath), context === "." ? "" : context, dockerfile);
+        // The loader runs `test -f`, so a directory (for example ".autogenerated") is as missing as a path that does not exist.
+        let isFile = false;
+        try {
+            isFile = statSync(path).isFile();
+        }
+        catch {
+            isFile = false;
+        }
+        return isFile
+            ? []
+            : [`${filePath(projectRoot, resource)} dockerfile: no such file in the service directory`];
+    });
+    if (problems.length === 0) {
+        return { name: "Custom Dockerfiles", didPass: true, message: "Every custom dockerfile exists" };
+    }
+    return {
+        name: "Custom Dockerfiles",
+        didPass: false,
+        message: `${formatCount(problems.length, "missing dockerfile")}:\n    ${problems.join("\n    ")}`,
+        fix: 'Create the file, or remove "dockerfile" from service.json to use the generated Dockerfile',
     };
 }
 /** A port outside 1-65535 can never be bound, and `flisk up` would otherwise find out only when Docker fails. */
@@ -170,6 +218,8 @@ export function enforceServiceConfigGate(projectRoot, options = {}, exit = proce
     const resources = options.resources ?? discoverResourcesFromRoot(projectRoot);
     const failed = [
         checkDuplicateResourceNames(projectRoot, resources),
+        checkServiceFields(projectRoot, resources),
+        checkCustomDockerfiles(projectRoot, resources),
         checkDependsOnShape(projectRoot, resources),
         checkCircularDependencies(projectRoot, resources),
         checkServicePorts(projectRoot, resources),

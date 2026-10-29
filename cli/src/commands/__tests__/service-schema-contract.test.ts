@@ -45,6 +45,7 @@ const RESOURCE_CONFIG_FIELDS = [
   "runtime",
   "featuresEnabled",
   "dependsOn",
+  "dependencies",
   "enabled",
   "basePath",
   "backendName",

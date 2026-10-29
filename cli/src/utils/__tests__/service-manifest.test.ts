@@ -5,8 +5,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
+  dockerNameErrors,
   generatedFieldErrorsForFile,
   getInvalidServiceRoutePathFields,
+  isDockerSafeName,
   SERVICE_MANIFEST_SCHEMA_URL,
   SERVICE_MANIFEST_SCHEMA_VERSION,
   validateGeneratedStringFields,
@@ -109,7 +111,6 @@ describe("service manifest compatibility", () => {
       featuresEnabled: ["tracing"],
       framework: "fastapi",
       healthCheckPath: "/health",
-      image: "ghcr.io/org/repo:tag",
       language: "python",
       name: "full-service",
       nats: { queueGroup: "q_group" },
@@ -129,11 +130,112 @@ describe("service manifest compatibility", () => {
       type: "service",
     };
 
+    // `image` and `dockerfile` are alternatives (a service runs from one source), so `image` is checked on its own.
     const result = validateServiceManifest(allKnown, "service.json");
     expect(result.errors).toEqual([]);
+    const withImage = validateServiceManifest(
+      { ...manifestBase(), image: "ghcr.io/org/repo:tag" },
+      "service.json",
+    );
+    expect(withImage.errors).toEqual([]);
     // Only deprecation warnings should be present, no "unknown field" warnings
-    const unknownWarnings = result.warnings.filter((w) => w.includes("unknown field"));
+    const unknownWarnings = [...result.warnings, ...withImage.warnings].filter((w) =>
+      w.includes("unknown field"),
+    );
     expect(unknownWarnings).toEqual([]);
+  });
+
+  describe("field types the engine reads", () => {
+    const base = (): Record<string, unknown> => ({ ...manifestBase() });
+    const errorsFor = (extra: Record<string, unknown>): string[] =>
+      validateServiceManifest({ ...base(), ...extra }, "s.json").errors;
+
+    it.each([
+      [{ traefik: "x" }, "traefik: expected an object"],
+      [{ sablier: "on" }, "sablier: expected an object"],
+      [{ nats: [] }, "nats: expected an object"],
+      [{ params: "x" }, "params: expected an object"],
+      [{ build: "Dockerfile" }, "build: expected an object"],
+      [{ featuresEnabled: "vitest" }, "featuresEnabled: expected an array of strings"],
+      [{ featuresEnabled: [1] }, "featuresEnabled: expected an array of strings"],
+      [{ image: 7 }, "image: expected a string"],
+      [{ language: "BUN" }, "language: expected a lowercase id"],
+      [{ exposeViaProxy: "no" }, "exposeViaProxy: expected true or false"],
+      [{ replicas: 1.5 }, "replicas: expected an integer from 1 to 10"],
+      [{ replicas: 0 }, "replicas: expected an integer from 1 to 10"],
+      [{ replicas: "2" }, "replicas: expected an integer from 1 to 10"],
+      [{ replicas: 100000 }, "replicas: expected an integer from 1 to 10"],
+      [{ databaseName: "d".repeat(64) }, "databaseName: at most 63"],
+      [
+        { dockerfile: "/etc/passwd" },
+        "dockerfile: must be a path relative to the service directory",
+      ],
+      [
+        { buildContext: "/opt/src" },
+        "buildContext: must be a path relative to the service directory",
+      ],
+      [
+        { buildContext: "C:\\src" },
+        "buildContext: must be a path relative to the service directory",
+      ],
+      [
+        { build: { context: "/" } },
+        "build.context: must be a path relative to the service directory",
+      ],
+      [{ build: { dockerfile: "/x" } }, "build.dockerfile: must be a path relative to"],
+      [{ dev: { command: "x", watch: ["/etc/**"] } }, "dev.watch[0]: must be a path relative to"],
+      [{ dev: { watch: "src" } }, "dev.watch: expected an array of strings"],
+      [{ image: "nginx:1", dockerfile: "Dockerfile" }, 'set "image" or "dockerfile", not both'],
+    ])("reports %j", (extra, message) => {
+      expect(errorsFor(extra).join("\n")).toContain(message);
+    });
+
+    it.each([
+      {},
+      { replicas: 1 },
+      { replicas: 10 },
+      { traefik: null },
+      { build: null },
+      { dockerfile: "docker/Dockerfile.dev" },
+      { buildContext: "src" },
+      // A service.json inside the project may build from a tree outside it; `flisk import` writes exactly this for a Compose app.
+      { buildContext: "../../../api" },
+      { buildContext: "../../../../l565-ext/outer-src", dockerfile: "Dockerfile" },
+      { build: { context: "../../../api", dockerfile: "Dockerfile" } },
+      { build: { dockerfile: "Dockerfile", context: "." } },
+      { featuresEnabled: [] },
+      { restart: "always" },
+      { appType: "bring-your-own" },
+      { appType: "api" },
+      { restart: "sometimes" },
+    ])("accepts %j", (extra) => {
+      expect(errorsFor(extra)).toEqual([]);
+    });
+
+    it("refuses a frontend framework that is not registered, which would stop the Vite generator", () => {
+      for (const framework of ["Next", "no such", "react;rm", "", "../react"]) {
+        expect(errorsFor({ appType: "frontend", framework }).join("\n")).toContain(
+          "framework: expected one of",
+        );
+      }
+      for (const framework of ["react", "vue", "tanstack-router", "next"]) {
+        expect(errorsFor({ appType: "frontend", framework })).toEqual([]);
+      }
+      // A backend's framework (hono, express, ...) is not in this list and is not checked here.
+      expect(errorsFor({ appType: "backend", framework: "hono" })).toEqual([]);
+    });
+
+    it("refuses replicas above 1 on a frontend, which Compose is not generated for", () => {
+      expect(errorsFor({ appType: "frontend", replicas: 3 }).join("\n")).toContain(
+        "a frontend runs as one container",
+      );
+      expect(errorsFor({ appType: "frontend", replicas: 1 })).toEqual([]);
+      expect(errorsFor({ appType: "backend", replicas: 3 })).toEqual([]);
+    });
+
+    it("leaves a local-process service alone", () => {
+      expect(errorsFor({ command: "node x.js", replicas: 0, traefik: "x" })).toEqual([]);
+    });
   });
 
   it("accepts a smoke block without calling it unknown, and reports a bad one as an error by path", () => {
@@ -599,5 +701,50 @@ describe("service manifest compatibility", () => {
         (error) => error.startsWith("service.json.smoke") && error.includes("line break"),
       ),
     ).toEqual([]);
+  });
+
+  describe("Docker-safe names", () => {
+    it.each(["orders", "orders-api", "orders2", "back_office", "a.b", "a__b", "a".repeat(63)])(
+      "accepts %j as a stack",
+      (name) => expect(isDockerSafeName(name)).toBe(true),
+    );
+    it("limits appName to 59 characters, because Tilt labels it app.<appName> (63 bytes)", () => {
+      expect(dockerNameErrors({ appName: "a".repeat(59) }, "s.json")).toEqual([]);
+      expect(dockerNameErrors({ appName: "a".repeat(60) }, "s.json")).toHaveLength(1);
+    });
+    it.each([
+      "",
+      "Orders",
+      "my service",
+      "-x",
+      "x-",
+      "x--",
+      ".x",
+      "x/y",
+      "x:y",
+      "ünï",
+      "a".repeat(64),
+      7,
+      null,
+    ])("refuses %j", (name) => expect(isDockerSafeName(name)).toBe(false));
+    it("reports appName and stack without echoing a long value", () => {
+      const errors = dockerNameErrors(
+        { appName: "A".repeat(100), stack: "Shop" },
+        "svc/service.json",
+      );
+      expect(errors).toHaveLength(2);
+      expect(errors[0]).toContain("svc/service.json.appName");
+      expect(errors[0].length).toBeLessThan(260);
+    });
+    it("is part of validateServiceManifest, and skips a local-process service", () => {
+      const base = { appType: "backend", schemaVersion: SERVICE_MANIFEST_SCHEMA_VERSION };
+      expect(
+        validateServiceManifest({ ...base, appName: "Orders", stack: "shop" }, "s.json").errors,
+      ).toEqual([expect.stringContaining("appName")]);
+      expect(
+        validateServiceManifest({ ...base, appName: "Orders", command: "node x.js" }, "s.json")
+          .errors,
+      ).toEqual([]);
+    });
   });
 });

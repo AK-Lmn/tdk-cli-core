@@ -35,6 +35,7 @@ import { writeJsonFile } from "../utils/file-helpers.js";
 import { type JsonCommandResult, runJsonCommand } from "../utils/json-command.js";
 import { createMachineEnvelope, writeMachineError } from "../utils/machine-output.js";
 import { findProjectRoot } from "../utils/paths.js";
+import { checkCircularDependencies, checkDependsOnShape } from "../utils/service-config-checks.js";
 import {
   SERVICE_MANIFEST_SCHEMA_VERSION,
   validateServiceManifest,
@@ -392,10 +393,22 @@ export const configCommand = new Command("config")
           // Same predicate as flisk doctor's Shared platform Postgres check.
           const sharedPostgres = evaluateSharedPlatformPostgres(projectRoot, resources);
           const prismaConsistency = checkPrismaConsistency(projectRoot, resources);
-          const sharedPostgresErrors = sharedPostgres.unknownDependsOnNames.map(
-            ({ resource, name }) =>
-              `dependsOn "${name}" on ${resource} is not a known service or stack (shared platform Postgres names are postgres and database-management)`,
-          );
+          // A wrong-typed dependsOn and a circular dependsOn are what `flisk up` refuses, so verify says the same.
+          const graphErrors = [
+            checkDependsOnShape(projectRoot, resources),
+            checkCircularDependencies(projectRoot, resources),
+          ]
+            .filter((check) => !check.didPass)
+            .map((check) =>
+              check.fix ? `${check.message}\n    Fix: ${check.fix}` : check.message,
+            );
+          const sharedPostgresErrors = [
+            ...graphErrors,
+            ...sharedPostgres.unknownDependsOnNames.map(
+              ({ resource, name }) =>
+                `dependsOn "${name}" on ${resource} is not a known service or stack (shared platform Postgres names are postgres and database-management)`,
+            ),
+          ];
 
           if (options.json) {
             console.log(

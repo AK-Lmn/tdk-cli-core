@@ -610,6 +610,24 @@ describe("template-engine", () => {
       );
     });
 
+    it("focus mode keeps the discovery daemon enabled, or a new service.json never reloads a running Tilt", () => {
+      // Found by a real `flisk up` (tests/chaos): every `flisk up` is a focus run, set_enabled_resources() disables whatever it
+      // does not list, and the daemon was not listed. It was created but stayed Disabled, so scaffolding a service while the stack
+      // ran changed nothing until some other watched file was edited.
+      const tiltfile = loadTemplate("Tiltfile.hbs");
+      const focusBlock = tiltfile.slice(
+        tiltfile.indexOf("if FOCUS_MODE and FOCUS_ENABLED_RESOURCES:"),
+      );
+
+      expect(focusBlock).toMatch(
+        /if _AUTO_DISCOVER_ENABLED:\s*\n\s*_ALWAYS_ENABLED_INFRA_RESOURCES\.append\('service-discovery-daemon'\)/,
+      );
+      // Only when the daemon is registered: enabling a name Tilt never registered fails Tiltfile evaluation.
+      expect(tiltfile).toMatch(
+        /if _AUTO_DISCOVER_ENABLED:\s*\n\s*watch_file\('snapshots\/resource-snapshot.json'\)/,
+      );
+    });
+
     it("focus mode always enables nats and every messaging-compose service, not just the hardcoded infra names", () => {
       // Regression (flisk#155): pre-alpha always exercises this focus
       // branch (see the FOCUS_MODE comment above it), and its always-enabled

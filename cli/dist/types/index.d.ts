@@ -20,6 +20,8 @@ export interface ResourceConfigFields {
     runtime?: string;
     featuresEnabled?: string[];
     dependsOn?: string[];
+    /** Deprecated spelling of dependsOn; still read, and counted with it. */
+    dependencies?: string[];
     enabled?: boolean;
     basePath?: string;
     backendName?: string;

@@ -1,6 +1,8 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
+
 import type { DiscoveredResource, StackMetadata } from "../types/index.js";
+import { dependsOnOf } from "./dependency-graph.js";
 import { getDeferredResourceNames } from "./doctor-runtime.js";
 import { deriveServiceStates, type ServiceRuntimeState } from "./service-runtime-state.js";
 import { deriveStackStatus } from "./stack-status.js";
@@ -18,7 +20,7 @@ export async function fetchServiceStates(
     if (!text) return {};
     return deriveServiceStates(
       text,
-      Object.fromEntries(services.map((r) => [r.name, r.config?.dependsOn ?? []])),
+      Object.fromEntries(services.map((r) => [r.name, dependsOnOf(r.config)])),
       getDeferredResourceNames(),
     );
   } catch {

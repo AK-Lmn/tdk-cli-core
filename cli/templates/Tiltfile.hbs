@@ -334,6 +334,10 @@ if FOCUS_MODE and FOCUS_ENABLED_RESOURCES:
     # service it declares is loaded via docker_compose() in infra-loader.star,
     # so it must be enabled here too, or it is silently disabled the same way.
     _ALWAYS_ENABLED_INFRA_RESOURCES = ['init-networks', 'traefik', 'golden-layers-build']
+    # The discovery daemon is what reloads this Tiltfile when a service.json is added (Tilt watches the files it has read, and a new
+    # file is not one of them). Left off this list it is created but stays Disabled in every focus run, which is every `flisk up`.
+    if _AUTO_DISCOVER_ENABLED:
+        _ALWAYS_ENABLED_INFRA_RESOURCES.append('service-discovery-daemon')
     if should_enable('database-management') or TILT_CONTEXT.get('_shared_platform_postgres_force_started', False):
         _ALWAYS_ENABLED_INFRA_RESOURCES.append('postgres')
     _messaging_compose_path = PROJECT_ROOT + '/services/platform/messaging/docker-compose.yml'

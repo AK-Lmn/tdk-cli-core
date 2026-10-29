@@ -3,6 +3,18 @@ import type { CheckResult, DiscoveredResource } from "../types/index.js";
 export declare function checkDependsOnShape(projectRoot?: string, resources?: DiscoveredResource[]): CheckResult;
 /** Services that wait on each other can never both start. A dependsOn name that is not a service is left to the unknown-name check. */
 export declare function checkCircularDependencies(projectRoot?: string, resources?: DiscoveredResource[]): CheckResult;
+/**
+ * Everything `flisk config verify` reports about one service.json's own fields (Docker-safe names, field types, line breaks,
+ * route paths), applied before `flisk up` starts anything. Without it a bad value passed `flisk up` and stopped inside Tilt
+ * ("repository name must be lowercase", "string has no .get field or method"). A missing schemaVersion or required field is
+ * left out: old projects keep working without them, and `flisk config migrate` adds the version.
+ */
+export declare function checkServiceFields(projectRoot?: string, resources?: DiscoveredResource[]): CheckResult;
+/**
+ * A custom `dockerfile` (relative to the service, or to its `buildContext`) that does not exist stops the Tiltfile with
+ * "CUSTOM DOCKERFILE NOT FOUND" (discovery/manifest/loading.star), after `flisk up` has said yes.
+ */
+export declare function checkCustomDockerfiles(projectRoot?: string, resources?: DiscoveredResource[]): CheckResult;
 /** A port outside 1-65535 can never be bound, and `flisk up` would otherwise find out only when Docker fails. */
 export declare function checkServicePorts(projectRoot?: string, resources?: DiscoveredResource[]): CheckResult;
 /**

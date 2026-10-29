@@ -2,6 +2,23 @@
 
 Notable changes to the `flisk` CLI. Versions match [npm](https://www.npmjs.com/package/@flisk-sh/flisk?activeTab=versions) and the [binary releases](https://github.com/flisk-sh/releases/releases).
 
+## Unreleased
+
+- `dependsOn` now means the same everywhere. `flisk up --only`, the circular-dependency check, `flisk config verify` and the generated Tiltfile read one graph: a service name, a stack name (the stack's other services, never its frontends, as with `--focus`), a frontend's `backendName` (also when the backend is in another stack) and the deprecated `dependencies` key.
+- A frontend that named a stack in `dependsOn` no longer fails the whole Tiltfile with `string value is not iterable`. A `dependsOn` written as a string, object or `null` no longer crashes `flisk config verify` (`{} is not iterable`) or splits into one unknown name per character; both commands report one clear error.
+- `flisk config verify` reports circular `dependsOn` and wrong-typed `dependsOn`, as `flisk up` already refused them. `flisk up` warns about a `dependsOn` name that is no service, stack or shared Postgres name, and the dry-run JSON lists them as `unknownDependsOn`.
+- `flisk up` now refuses, before anything starts, the `service.json` values that used to pass and then stopped inside Tilt, Compose or Docker: an `appName` or `stack` Docker cannot name an image after (uppercase, spaces, `/`, a leading or trailing separator, over 63 characters), a field of the wrong type (`traefik`, `sablier`, `params`, `build`, `featuresEnabled`, `image`, `replicas` outside 1-10), an absolute `dockerfile`, `buildContext` or `dev.watch` path (build paths are relative to the service directory; `..` stays allowed, so a service can build from a tree outside the project, as `flisk import` writes for a Compose app), and `image` together with `dockerfile`.
+- The frontend env no longer gets a `VITE_<NAME>_API_URL` line for a typo, a stack or the shared Postgres, and each line uses the route Traefik serves that backend on, the same as `VITE_API_URL`. It no longer reads the deprecated `dependencies` key in place of `dependsOn`.
+- `flisk up --only <service>` starts the service's `backendName` and the stack's services, as the Tiltfile waits for them.
+- A service named `alpha`, `beta` or `pre-alpha` is no longer taken for the release phase of that name by `--focus`, which started every service.
+- A new `service.json` now reloads a running Tilt: the discovery daemon wrote its snapshot outside the watched path and scanned `services/product` from inside `.flisk/.flisk-out`.
+- `flisk up` now also refuses a frontend `framework` that is not registered (it used to stop inside Tilt with "Unknown frontend framework for Vite generation") and `replicas` above 1 on a frontend (Tilt looked for a `<name>-1` Compose service that is never generated), and warns about a frontend whose `backendName` is no service of the project (`unknownBackendNames` in the dry-run JSON).
+- Found by running a real stack: the discovery daemon was created but stayed **Disabled** in every `flisk up` (focus runs leave out whatever the allowlist does not name), so a service added while the stack ran never appeared. It is now on the allowlist. A stack that is already running keeps its old state: run `flisk config regenerate`, then `flisk down` and `flisk up`.
+- Found by running a real stack: when Tilt itself rejected a circular `dependsOn`, it stopped watching every `service.json`, so removing the cycle did nothing and the stack stayed on the old graph until restarted. The Tiltfile now catches the cycle first, as an ordinary error that names it, and reloads by itself once it is gone.
+- Found by running a real stack: after an edit the Tiltfile cannot load (a cycle, a wrong-typed field), `flisk status` said every service was healthy. It now prints "Tilt could not reload the Tiltfile: ..." and `--json` has `tilt.tiltfileError`.
+- The discovery daemon's output is line-buffered, so "Changes detected" shows in Tilt's log when it happens instead of minutes later.
+- New tests: `tests/chaos` (random `service.json` edits checked against Tilt, `flisk up` and `flisk config verify`; a Docker tier that follows each value into the generated Compose file and Dockerfile; a bulk check that runs millions of good and corrupted `service.json` sets through the gates).
+
 ## 1.4.3 (2026-10-25)
 
 - `flisk init` is now an alias of `flisk project`. It accepts the same template names and flags.
