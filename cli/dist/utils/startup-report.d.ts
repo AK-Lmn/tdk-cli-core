@@ -1,4 +1,4 @@
-import type { PortOccupant } from "./port-occupant.js";
+import type { PortOccupant } from "../types/index.js";
 export interface StartupReport {
     failed: Array<{
         name: string;

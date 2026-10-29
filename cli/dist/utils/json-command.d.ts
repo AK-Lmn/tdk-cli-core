@@ -1,11 +1,5 @@
+import type { JsonCommandResult, MachineError } from "../types/index.js";
 import { FliskError } from "./errors.js";
-import { type MachineError } from "./machine-output.js";
-/** What a `--json` action reports: its data, any errors, and a non-zero exit code when the report is a failure. */
-export interface JsonCommandResult {
-    data: unknown;
-    errors?: MachineError[];
-    exitCode?: number;
-}
 /** A command failure with a machine code more precise than COMMAND_FAILED, such as IMPORT_FAILED. */
 export declare class JsonCommandError extends FliskError {
     readonly code: string;

@@ -3,8 +3,8 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createTempProject } from "../../test-support/index.js";
+import type { HostPortPlan } from "../../types/index.js";
 import { writeSavedHostPortPlan } from "../../utils/host-port-config.js";
-import type { HostPortPlan } from "../../utils/host-port-plan.js";
 import { openUrl } from "../../utils/url-actions.js";
 import {
   type FrontendTarget,

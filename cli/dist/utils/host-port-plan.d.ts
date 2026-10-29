@@ -1,23 +1,4 @@
-export interface HostPortPlan {
-    ingressHttp: number;
-    ingressHttps: number;
-    postgres: number;
-    requested: {
-        ingressHttp: number;
-        ingressHttps: number;
-        postgres: number;
-    };
-    explicit: {
-        ingressHttp: boolean;
-        ingressHttps: boolean;
-        postgres: boolean;
-    };
-    reason: {
-        ingressHttp: string;
-        ingressHttps: string;
-        postgres: string;
-    };
-}
+import type { HostPortPlan } from "../types/index.js";
 export interface HostPortPlanOptions {
     env?: NodeJS.ProcessEnv;
     isAvailable?: (port: number) => Promise<boolean>;

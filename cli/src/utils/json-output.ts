@@ -1,7 +1,9 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
+
 import { writeSync } from "node:fs";
-import { createMachineEnvelope, type MachineError } from "./machine-output.js";
+import type { MachineError } from "../types/index.js";
+import { createMachineEnvelope } from "./machine-output.js";
 
 export type JsonError = MachineError;
 

@@ -1,10 +1,10 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
 
-import type { DiscoveredResource, StackMetadata } from "../types/index.js";
+import type { DiscoveredResource, ServiceRuntimeState, StackMetadata } from "../types/index.js";
 import { dependsOnOf } from "./dependency-graph.js";
 import { getDeferredResourceNames } from "./doctor-runtime.js";
-import { deriveServiceStates, type ServiceRuntimeState } from "./service-runtime-state.js";
+import { deriveServiceStates } from "./service-runtime-state.js";
 import { deriveStackStatus } from "./stack-status.js";
 import { tiltGetUiResources } from "./up-readiness.js";
 

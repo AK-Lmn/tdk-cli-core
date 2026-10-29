@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import chalk from "chalk";
 import { Command } from "commander";
 import { generateMasterConfigs, readProjectConfig } from "../generator/template-engine.js";
-import type { DiscoveredResource, ProjectConfig } from "../types/index.js";
+import type { DiscoveredResource, JsonCommandResult, ProjectConfig } from "../types/index.js";
 import { installAgentSkills } from "../utils/agent-skills.js";
 import type { RuntimePrerequisiteStatus } from "../utils/cold-preflight.js";
 import { addYesOption } from "../utils/command-helpers.js";
@@ -24,7 +24,7 @@ import {
   showStep,
   showSuccess,
 } from "../utils/formatting.js";
-import { type JsonCommandResult, runJsonCommand } from "../utils/json-command.js";
+import { runJsonCommand } from "../utils/json-command.js";
 import { findProjectRoot } from "../utils/paths.js";
 import { PROJECT_FEATURES } from "../utils/project-features.js";
 import { PROJECT_TEMPLATES } from "../utils/project-templates.js";

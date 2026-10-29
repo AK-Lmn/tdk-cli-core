@@ -3,6 +3,7 @@
 Hard-won, repo-specific facts for anyone (human or agent) working here. Keep entries short, dated, and about things the code cannot tell you. Add one line when a small PR or task teaches you a trap; delete lines that stop being true.
 
 ## Verify before you push
+- 2026-10-29 (#2267): On native Windows, run `npm --prefix cli --script-shell="C:/Program Files/Git/bin/bash.exe" run check:dist`; npm's default `cmd.exe` cannot execute `../scripts/check-cli-dist.sh`. The checker also reports staged dist changes as stale, so rerun it after the local commit.
 - Lint and typecheck from `cli/` by exit code, not by `| tail`: `./node_modules/.bin/biome check . ; echo $?` and `./node_modules/.bin/tsc --noEmit ; echo $?`. `npx biome` runs an unrelated v0.3.3 package that exits 0 without checking.
 - Run `npm run build` before vitest when `src/` changed: the e2e tests spawn `cli/bin/flisk.js`, which imports `dist/`.
 - 2026-10-07 (#124): `scripts/benchmark/cli-startup.mjs` measures `flisk status` including its read-only Tilt availability probe; when Tilt is absent from `PATH`, each sample can spend about 10 seconds in that probe. Use the benchmark script's `--skip-status` for smoke runs and treat default status timings as probe-dominated.

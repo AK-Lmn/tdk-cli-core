@@ -12,7 +12,7 @@ import {
   TemplateEngine,
   verifyMasterConfigs,
 } from "../generator/template-engine.js";
-import type { ProjectConfig } from "../types/index.js";
+import type { JsonCommandResult, ProjectConfig } from "../types/index.js";
 import { isMasterConfigFileName } from "../types/index.js";
 import { assertValid, handleDryRun } from "../utils/command-helpers.js";
 import { type ConfigFileDrift, explainConfigFile } from "../utils/config-explain.js";
@@ -32,7 +32,7 @@ import {
   showError,
 } from "../utils/errors.js";
 import { writeJsonFile } from "../utils/file-helpers.js";
-import { type JsonCommandResult, runJsonCommand } from "../utils/json-command.js";
+import { runJsonCommand } from "../utils/json-command.js";
 import { createMachineEnvelope, writeMachineError } from "../utils/machine-output.js";
 import { findProjectRoot } from "../utils/paths.js";
 import { checkCircularDependencies, checkDependsOnShape } from "../utils/service-config-checks.js";

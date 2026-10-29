@@ -3,18 +3,18 @@
 
 import chalk from "chalk";
 import { Command } from "commander";
+import type { HostPortPlan, ServiceRuntimeState } from "../types/index.js";
 import { dependsOnOf } from "../utils/dependency-graph.js";
 import { createDiscoveryContext } from "../utils/discovery-context.js";
 import { getDeferredResourceNames } from "../utils/doctor-runtime.js";
 import { runCommand } from "../utils/errors.js";
 import { formatCount, showDetail, showStep } from "../utils/formatting.js";
 import { getHostPortPlan } from "../utils/host-port-config.js";
-import type { HostPortPlan } from "../utils/host-port-plan.js";
 import { createMachineEnvelope, writeMachineError } from "../utils/machine-output.js";
 import { nativeServiceStates } from "../utils/native-runtime.js";
 import { isNativeProject } from "../utils/native-service.js";
 import { findProjectRoot } from "../utils/paths.js";
-import { deriveServiceStates, type ServiceRuntimeState } from "../utils/service-runtime-state.js";
+import { deriveServiceStates } from "../utils/service-runtime-state.js";
 import { groupSharedPostgres, readProjectName } from "../utils/shared-infra.js";
 import { groupServicesByStack, unhealthyServiceNames } from "../utils/status-groups.js";
 import { buildServicePorts, buildStackPorts } from "../utils/status-ports.js";

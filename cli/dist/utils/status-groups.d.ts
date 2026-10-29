@@ -1,5 +1,4 @@
-import type { DiscoveredResource, DiscoveredStack } from "../types/index.js";
-import type { ServiceRuntimeState } from "./service-runtime-state.js";
+import type { DiscoveredResource, DiscoveredStack, ServiceRuntimeState } from "../types/index.js";
 /** Label of the group that holds services declared without a stack. */
 export declare const NO_STACK_LABEL = "(no stack)";
 /** A service that is failing or still starting. Unknown (not running, starts on request) is neither. */

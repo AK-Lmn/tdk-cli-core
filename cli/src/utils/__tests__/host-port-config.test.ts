@@ -1,9 +1,11 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
+
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
+import type { HostPortPlan } from "../../types/index.js";
 import {
   exportHostPortPlan,
   getHostPortPlan,
@@ -11,7 +13,6 @@ import {
   readSavedHostPortPlan,
   writeSavedHostPortPlan,
 } from "../host-port-config.js";
-import type { HostPortPlan } from "../host-port-plan.js";
 
 describe("saved host port plan", () => {
   let projectRoot = "";

@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
-import type { DiscoveredResource, DiscoveredStack } from "../types/index.js";
-import type { ServiceRuntimeState } from "./service-runtime-state.js";
+import type { DiscoveredResource, DiscoveredStack, ServiceRuntimeState } from "../types/index.js";
 
 /** Label of the group that holds services declared without a stack. */
 export const NO_STACK_LABEL = "(no stack)";

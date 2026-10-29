@@ -1,9 +1,8 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
 import { describe, expect, it } from "vitest";
-import type { DiscoveredResource } from "../../types/index.js";
+import type { DiscoveredResource, HostPortPlan } from "../../types/index.js";
 import { STANDARD_PORTS } from "../constants.js";
-import type { HostPortPlan } from "../host-port-plan.js";
 import { buildServicePorts, buildStackPorts } from "../status-ports.js";
 
 const resource = (

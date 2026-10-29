@@ -1,8 +1,7 @@
 // Copyright (c) 2026 Flisk Landscape contributors
 // SPDX-License-Identifier: MIT
-import type { DiscoveredResource } from "../types/index.js";
+import type { DiscoveredResource, HostPortPlan } from "../types/index.js";
 import { BRING_YOUR_OWN_TYPE, STANDARD_PORTS } from "./constants.js";
-import type { HostPortPlan } from "./host-port-plan.js";
 import { resolveServicePath, resolveSubdomainBases, routesAsApi } from "./service-urls.js";
 
 export interface ServicePorts {
