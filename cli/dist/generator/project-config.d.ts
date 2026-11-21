@@ -10,16 +10,17 @@ import { FliskError } from "../utils/errors.js";
  * - This pattern is standard for deep object validation in type guards
  */
 /** One project.json field that has the wrong type, as `normalizeProjectConfig` found it. */
-type ProjectConfigProblem = {
+export type ProjectConfigProblem = {
     field: string;
     expected: string;
     got: unknown;
 };
-type NormalizedProjectConfig = {
+export type NormalizedProjectConfig = {
     ok: true;
     config: ProjectConfig;
 } | {
     ok: false;
+    problems: ProjectConfigProblem[];
     problem: ProjectConfigProblem;
 };
 export declare function normalizeProjectConfig(value: unknown): NormalizedProjectConfig;
@@ -42,4 +43,3 @@ export declare function readProjectConfig(projectRoot: string): ProjectConfig;
  * `flisk up` runs Tilt with the wrapper. False when there is no readable project.json.
  */
 export declare function isTiltfileOrchestration(projectRoot: string): boolean;
-export {};

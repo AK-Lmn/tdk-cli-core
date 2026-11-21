@@ -56,33 +56,36 @@ function describeJsonValue(value) {
     return String(value);
 }
 export function normalizeProjectConfig(value) {
-    const fail = (field, expected, got) => ({
-        ok: false,
-        problem: { field, expected, got },
-    });
+    const problems = [];
+    const addProblem = (field, expected, got) => {
+        problems.push({ field, expected, got });
+    };
     if (!value || typeof value !== "object" || Array.isArray(value)) {
-        return fail("", "an object", value);
+        const problem = { field: "", expected: "an object", got: value };
+        return { ok: false, problems: [problem], problem };
     }
     // Safe to assert as Record after null and object type checks
     const config = value;
     if (typeof config.version !== "string") {
-        return fail("version", "a string", config.version);
+        addProblem("version", "a string", config.version);
     }
     if (!config.project || typeof config.project !== "object" || Array.isArray(config.project)) {
-        return fail("project", "an object", config.project);
+        addProblem("project", "an object", config.project);
     }
-    const project = config.project;
-    if (typeof project.name !== "string") {
-        return fail("project.name", "a string", project.name);
-    }
-    // Reading an existing project.json accepts every name Docker Compose accepts for a project (lowercase letters, numbers,
-    // hyphens and underscores, starting with a letter or number): `flisk import` keeps a Compose project's own name such as
-    // `pl_mail` so its volume names stay stable. The stricter kebab-case rule applies where Flisk derives or asks for a name.
-    if (project.name.length > 64 || !/^[a-z0-9][a-z0-9_-]*$/.test(project.name)) {
-        return fail("project.name", "a Docker-compatible name (lowercase letters, numbers, hyphens and underscores, starting with a letter or number)", project.name);
-    }
-    if (typeof project.version !== "string") {
-        return fail("project.version", "a string", project.version);
+    else {
+        const project = config.project;
+        if (typeof project.name !== "string") {
+            addProblem("project.name", "a string", project.name);
+        }
+        else if (project.name.length > 64 || !/^[a-z0-9][a-z0-9_-]*$/.test(project.name)) {
+            // Reading an existing project.json accepts every name Docker Compose accepts for a project (lowercase letters, numbers,
+            // hyphens and underscores, starting with a letter or number): `flisk import` keeps a Compose project's own name such as
+            // `pl_mail` so its volume names stay stable. The stricter kebab-case rule applies where Flisk derives or asks for a name.
+            addProblem("project.name", "a Docker-compatible name (lowercase letters, numbers, hyphens and underscores, starting with a letter or number)", project.name);
+        }
+        if (typeof project.version !== "string") {
+            addProblem("project.version", "a string", project.version);
+        }
     }
     let phases = null;
     const modernProblem = phaseShapeProblem(config.phases, "enabledStacks", "phases");
@@ -120,61 +123,81 @@ export function normalizeProjectConfig(value) {
     else {
         // A file that has neither shape is a `phases` problem unless it is written in the legacy `stacks` form.
         const problem = config.stacks !== undefined && config.phases === undefined ? legacyProblem : modernProblem;
-        return fail(problem.field, problem.expected, problem.got);
+        addProblem(problem.field, problem.expected, problem.got);
     }
     if (!config.optional_infra ||
         typeof config.optional_infra !== "object" ||
         Array.isArray(config.optional_infra)) {
-        return fail("optional_infra", "an object with boolean flags", config.optional_infra);
+        addProblem("optional_infra", "an object with boolean flags", config.optional_infra);
     }
-    const optionalInfra = config.optional_infra;
-    for (const flag of ["monitoring", "elk", "debezium", "golden_image", "verdaccio"]) {
-        if (typeof optionalInfra[flag] !== "boolean") {
-            return fail(`optional_infra.${flag}`, "a boolean", optionalInfra[flag]);
+    else {
+        const optionalInfra = config.optional_infra;
+        for (const flag of ["monitoring", "elk", "debezium", "golden_image", "verdaccio"]) {
+            if (typeof optionalInfra[flag] !== "boolean") {
+                addProblem(`optional_infra.${flag}`, "a boolean", optionalInfra[flag]);
+            }
         }
     }
     if (!config.discovery ||
         typeof config.discovery !== "object" ||
         Array.isArray(config.discovery)) {
-        return fail("discovery", "an object", config.discovery);
+        addProblem("discovery", "an object", config.discovery);
     }
-    const discovery = config.discovery;
-    if (!Array.isArray(discovery.paths)) {
-        return fail("discovery.paths", "an array", discovery.paths);
+    else {
+        const discovery = config.discovery;
+        if (!Array.isArray(discovery.paths)) {
+            addProblem("discovery.paths", "an array", discovery.paths);
+        }
     }
     // A capability is a boolean: `"gateway": "false"` would not match `=== false` and leave Traefik on, so refuse the file.
     if (config.capabilities !== undefined && !isCapabilityMap(config.capabilities)) {
-        return fail("capabilities", "an object of booleans", config.capabilities);
+        addProblem("capabilities", "an object of booleans", config.capabilities);
     }
     let repos;
     if (config.repos !== undefined) {
         if (!Array.isArray(config.repos)) {
-            return fail("repos", "an array", config.repos);
+            addProblem("repos", "an array", config.repos);
         }
-        repos = [];
-        for (const [index, item] of config.repos.entries()) {
-            const prefix = `repos[${index}]`;
-            if (!item || typeof item !== "object" || Array.isArray(item)) {
-                return fail(prefix, "an object with url and dir", item);
+        else {
+            repos = [];
+            for (const [index, item] of config.repos.entries()) {
+                const prefix = `repos[${index}]`;
+                if (!item || typeof item !== "object" || Array.isArray(item)) {
+                    addProblem(prefix, "an object with url and dir", item);
+                    continue;
+                }
+                const repo = item;
+                if (typeof repo.url !== "string" || !repo.url.trim()) {
+                    addProblem(`${prefix}.url`, "a non-empty string", repo.url);
+                }
+                if (typeof repo.dir !== "string" || !repo.dir.trim()) {
+                    addProblem(`${prefix}.dir`, "a non-empty string", repo.dir);
+                }
+                if (repo.branch !== undefined && typeof repo.branch !== "string") {
+                    addProblem(`${prefix}.branch`, "a string", repo.branch);
+                }
+                if (typeof repo.url === "string" &&
+                    repo.url.trim() &&
+                    typeof repo.dir === "string" &&
+                    repo.dir.trim() &&
+                    (repo.branch === undefined || typeof repo.branch === "string")) {
+                    repos.push({
+                        url: repo.url.trim(),
+                        dir: repo.dir.trim(),
+                        ...(typeof repo.branch === "string" && repo.branch.trim()
+                            ? { branch: repo.branch.trim() }
+                            : {}),
+                    });
+                }
             }
-            const repo = item;
-            if (typeof repo.url !== "string" || !repo.url.trim()) {
-                return fail(`${prefix}.url`, "a non-empty string", repo.url);
-            }
-            if (typeof repo.dir !== "string" || !repo.dir.trim()) {
-                return fail(`${prefix}.dir`, "a non-empty string", repo.dir);
-            }
-            if (repo.branch !== undefined && typeof repo.branch !== "string") {
-                return fail(`${prefix}.branch`, "a string", repo.branch);
-            }
-            repos.push({
-                url: repo.url.trim(),
-                dir: repo.dir.trim(),
-                ...(typeof repo.branch === "string" && repo.branch.trim()
-                    ? { branch: repo.branch.trim() }
-                    : {}),
-            });
         }
+    }
+    if (problems.length > 0) {
+        return {
+            ok: false,
+            problems,
+            problem: problems[0],
+        };
     }
     const capabilities = config.capabilities;
     return {
@@ -182,7 +205,7 @@ export function normalizeProjectConfig(value) {
         config: {
             version: config.version,
             project: config.project,
-            phases,
+            phases: phases,
             always_enabled_infra: config.always_enabled_infra,
             optional_infra: config.optional_infra,
             discovery: config.discovery,
@@ -234,11 +257,22 @@ export function readProjectConfig(projectRoot) {
     }
     const normalized = normalizeProjectConfig(parsed);
     if (!normalized.ok) {
-        const { field, expected, got } = normalized.problem;
-        const name = field ? `${PROJECT_JSON_DISPLAY}.${field}` : PROJECT_JSON_DISPLAY;
-        throw new FliskError(`${name}: expected ${expected}, got ${describeJsonValue(got)}`, [
-            `Fix ${name}, then run 'flisk config verify'`,
-        ]);
+        if (normalized.problems.length === 1) {
+            const { field, expected, got } = normalized.problem;
+            const name = field ? `${PROJECT_JSON_DISPLAY}.${field}` : PROJECT_JSON_DISPLAY;
+            throw new FliskError(`${name}: expected ${expected}, got ${describeJsonValue(got)}`, [
+                `Fix ${name}, then run 'flisk config verify'`,
+            ]);
+        }
+        const lines = normalized.problems.map(({ field, expected, got }) => {
+            const name = field ? `${PROJECT_JSON_DISPLAY}.${field}` : PROJECT_JSON_DISPLAY;
+            return `  - ${name}: expected ${expected}, got ${describeJsonValue(got)}`;
+        });
+        const message = `${PROJECT_JSON_DISPLAY} has ${normalized.problems.length} errors:\n${lines.join("\n")}`;
+        const suggestions = [
+            `Fix the reported fields in ${PROJECT_JSON_DISPLAY}, then run 'flisk config verify'`,
+        ];
+        throw new FliskError(message, suggestions);
     }
     return normalized.config;
 }

@@ -101,7 +101,7 @@ describe("project-config", () => {
       });
     });
 
-    it("rejects a wrong-typed field with a FliskError naming the field", () => {
+    it("rejects a single wrong-typed field with a FliskError naming the field", () => {
       withTempRoot((projectRoot) => {
         writeProjectJson(projectRoot, {
           ...projectConfig(),
@@ -115,11 +115,66 @@ describe("project-config", () => {
           caught = error;
         }
         expect(caught).toBeInstanceOf(FliskError);
-        expect((caught as Error).message).toContain(
-          ".flisk/project.json.optional_infra.verdaccio: expected a boolean",
+        expect((caught as Error).message).toBe(
+          '.flisk/project.json.optional_infra.verdaccio: expected a boolean, got "yes"',
         );
+        expect((caught as FliskError).suggestions).toEqual([
+          "Fix .flisk/project.json.optional_infra.verdaccio, then run 'flisk config verify'",
+        ]);
         expect((caught as FliskError).exitCode).toBe(1);
         expect(caught).not.toBeInstanceOf(ProjectConfigNotFoundError);
+      });
+    });
+
+    it("reports all errors when multiple fields are invalid", () => {
+      withTempRoot((projectRoot) => {
+        writeProjectJson(projectRoot, {
+          version: 123,
+          project: { name: "INVALID NAME!", version: 456 },
+          phases: {},
+          optional_infra: {
+            monitoring: "no",
+            elk: false,
+            debezium: false,
+            golden_image: false,
+            verdaccio: "yes",
+          },
+          discovery: { paths: "not-an-array" },
+        });
+
+        let caught: unknown;
+        try {
+          readProjectConfig(projectRoot);
+        } catch (error) {
+          caught = error;
+        }
+        expect(caught).toBeInstanceOf(FliskError);
+        const error = caught as FliskError;
+        expect(error.message).toContain(".flisk/project.json has 7 errors:");
+        expect(error.message).toContain(
+          "- .flisk/project.json.version: expected a string, got 123",
+        );
+        expect(error.message).toContain(
+          "- .flisk/project.json.project.name: expected a Docker-compatible name",
+        );
+        expect(error.message).toContain(
+          "- .flisk/project.json.project.version: expected a string, got 456",
+        );
+        expect(error.message).toContain(
+          "- .flisk/project.json.phases.pre_alpha: expected an object",
+        );
+        expect(error.message).toContain(
+          '- .flisk/project.json.optional_infra.monitoring: expected a boolean, got "no"',
+        );
+        expect(error.message).toContain(
+          '- .flisk/project.json.optional_infra.verdaccio: expected a boolean, got "yes"',
+        );
+        expect(error.message).toContain(
+          '- .flisk/project.json.discovery.paths: expected an array, got "not-an-array"',
+        );
+        expect(error.suggestions).toEqual([
+          "Fix the reported fields in .flisk/project.json, then run 'flisk config verify'",
+        ]);
       });
     });
 
@@ -159,12 +214,45 @@ describe("project-config", () => {
       expect(normalized).toEqual({ ok: true, config });
     });
 
-    it("reports the first wrong-typed field instead of throwing", () => {
+    it("reports wrong-typed field and keeps problem backward compatibility", () => {
       const normalized = normalizeProjectConfig({ version: 1 });
       expect(normalized.ok).toBe(false);
       if (!normalized.ok) {
         expect(normalized.problem.field).toBe("version");
         expect(normalized.problem.expected).toBe("a string");
+        expect(normalized.problems.length).toBeGreaterThan(0);
+        expect(normalized.problems[0]).toEqual(normalized.problem);
+      }
+    });
+
+    it("collects all invalid fields across different sections", () => {
+      const normalized = normalizeProjectConfig({
+        version: 1,
+        project: { name: "Invalid Name!", version: 2 },
+        optional_infra: {
+          monitoring: "not-bool",
+          elk: false,
+          debezium: false,
+          golden_image: false,
+          verdaccio: 123,
+        },
+        discovery: { paths: 42 },
+        capabilities: { traefik: "invalid" },
+        repos: [{ url: "", dir: " " }, "invalid-repo-element"],
+      });
+      expect(normalized.ok).toBe(false);
+      if (!normalized.ok) {
+        const fields = normalized.problems.map((p) => p.field);
+        expect(fields).toContain("version");
+        expect(fields).toContain("project.name");
+        expect(fields).toContain("project.version");
+        expect(fields).toContain("optional_infra.monitoring");
+        expect(fields).toContain("optional_infra.verdaccio");
+        expect(fields).toContain("discovery.paths");
+        expect(fields).toContain("capabilities");
+        expect(fields).toContain("repos[0].url");
+        expect(fields).toContain("repos[0].dir");
+        expect(fields).toContain("repos[1]");
       }
     });
 
@@ -173,6 +261,7 @@ describe("project-config", () => {
       expect(normalized.ok).toBe(false);
       if (!normalized.ok) {
         expect(normalized.problem.field).toBe("");
+        expect(normalized.problems).toHaveLength(1);
       }
     });
   });
