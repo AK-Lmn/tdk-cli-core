@@ -6,7 +6,7 @@ export interface Envelope {
   schemaVersion: number;
   // biome-ignore lint/suspicious/noExplicitAny: each command has its own data shape, tests narrow it themselves
   data: any;
-  errors: Array<{ code: string; message: string }>;
+  errors: Array<{ code: string; message: string; suggestions?: string[] }>;
 }
 
 /**
